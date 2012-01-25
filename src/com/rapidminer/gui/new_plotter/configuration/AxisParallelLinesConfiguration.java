@@ -1,0 +1,110 @@
+/*
+ *  RapidMiner
+ *
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *
+ *  Complete list of developers available at our web site:
+ *
+ *       http://rapid-i.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ */
+
+package com.rapidminer.gui.new_plotter.configuration;
+
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
+import com.rapidminer.gui.new_plotter.configuration.event.AxisParallelLinesConfigurationChangeEvent;
+import com.rapidminer.gui.new_plotter.configuration.event.AxisParallelLinesConfigurationChangeEvent.AxisParallelLineConfigurationsChangeType;
+import com.rapidminer.gui.new_plotter.event.AxisParallelLineConfigurationChangeEvent;
+import com.rapidminer.gui.new_plotter.listener.AxisParallelLineConfigurationListener;
+
+/**
+ * A class which defines lines which shall be drawn on an axis.
+ * It defines the value on the axis, and if a label will be shown.
+ * 
+ * @author Marius Helf
+ *
+ */
+public class AxisParallelLinesConfiguration implements AxisParallelLineConfigurationListener, Cloneable {
+	private List<AxisParallelLineConfiguration> lineConfigurations = new LinkedList<AxisParallelLineConfiguration>();
+	private List<WeakReference<AxisParallelLinesConfigurationListener>> listeners = new LinkedList<WeakReference<AxisParallelLinesConfigurationListener>>();
+	
+	public void addLine(double value, boolean labelVisible, LineStyle style, float width) {
+		AxisParallelLineConfiguration line = new AxisParallelLineConfiguration(value, labelVisible);
+		line.getFormat().setStyle(style);
+		line.getFormat().setWidth(width);
+		lineConfigurations.add(line);
+	}
+	
+	public void addLine(AxisParallelLineConfiguration line) {
+		lineConfigurations.add(line);
+		fireLineAdded(line);
+	}
+	
+	public void removeLine(AxisParallelLineConfiguration line) {
+		lineConfigurations.remove(line);
+		fireLineRemoved(line);
+	}
+	
+	public List<AxisParallelLineConfiguration> getLines() {
+		return lineConfigurations;
+	}
+
+	private void fireLineAdded(AxisParallelLineConfiguration line) {
+		fireAxisParallelLinesChanged(new AxisParallelLinesConfigurationChangeEvent(this, AxisParallelLineConfigurationsChangeType.LINE_ADDED, line));
+	}
+	
+	private void fireLineRemoved(AxisParallelLineConfiguration line) {
+		fireAxisParallelLinesChanged(new AxisParallelLinesConfigurationChangeEvent(this, AxisParallelLineConfigurationsChangeType.LINE_REMOVED, line));
+	}
+
+	private void fireAxisParallelLineChanged(AxisParallelLineConfigurationChangeEvent e) {
+		fireAxisParallelLinesChanged(new AxisParallelLinesConfigurationChangeEvent(this, e));
+	}
+
+	private void fireAxisParallelLinesChanged(AxisParallelLinesConfigurationChangeEvent e) {
+		Iterator<WeakReference<AxisParallelLinesConfigurationListener>> it = listeners.iterator();
+		while (it.hasNext()) {
+			AxisParallelLinesConfigurationListener l = it.next().get();
+			if (l != null) {
+				l.axisParallelLineConfigurationsChanged(e);
+			} else {
+				it.remove();
+			}
+		}
+	}
+	
+	public void addListener(AxisParallelLinesConfigurationListener l) {
+		listeners.add(new WeakReference<AxisParallelLinesConfigurationListener>(l));
+	}
+
+	@Override
+	public void axisParallelLineConfigurationChanged(AxisParallelLineConfigurationChangeEvent e) {
+		fireAxisParallelLineChanged(e);
+	}
+	
+	@Override
+	public AxisParallelLinesConfiguration clone() {
+		AxisParallelLinesConfiguration clone = new AxisParallelLinesConfiguration();
+		for (AxisParallelLineConfiguration line : lineConfigurations) {
+			clone.addLine(line.clone());
+		}
+		return clone;
+	}
+}

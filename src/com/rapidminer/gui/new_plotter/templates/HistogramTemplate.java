@@ -1,0 +1,362 @@
+/*
+ *  RapidMiner
+ *
+ *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *
+ *  Complete list of developers available at our web site:
+ *
+ *       http://rapid-i.com
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Affero General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Affero General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Affero General Public License
+ *  along with this program.  If not, see http://www.gnu.org/licenses/.
+ */
+package com.rapidminer.gui.new_plotter.templates;
+
+import java.text.DateFormat;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import com.rapidminer.datatable.DataTable;
+import com.rapidminer.gui.new_plotter.ChartConfigurationException;
+import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
+import com.rapidminer.gui.new_plotter.configuration.ValueSource;
+import com.rapidminer.gui.new_plotter.configuration.EquidistantFixedBinCountBinning;
+import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
+import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.ValueGrouping.GroupingType;
+import com.rapidminer.gui.new_plotter.configuration.ValueGrouping.ValueGroupingFactory;
+import com.rapidminer.gui.new_plotter.templates.gui.HistogrammTemplatePanel;
+import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
+import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction.AggregationFunctionType;
+
+/**
+ * The template for a histogram plot.
+ * 
+ * @author Marco Boeck
+ *
+ */
+public class HistogramTemplate extends PlotterTemplate {
+	
+	/** the current {@link RangeAxisConfig}s */
+	private List<RangeAxisConfig> currentRangeAxisConfigsList;
+	
+	/** the names of the plots to show */
+	private Object[] plotNames;
+	
+	/** the number of bins */
+	private int bins;
+	
+	/** the opaque value */
+	private int opaque;
+	
+	/** determines if absolute values are used */
+	private boolean useAbsoluteValues;
+	
+	/** determines if the range (Y) axis should be logarithmic */
+	private boolean yAxisLogarithmic;
+	
+	
+	/**
+	 * Creates a new {@link HistogramTemplate}. This template allows easy configuration
+	 * of the histogram chart for the plotter.
+	 */
+	public HistogramTemplate() {
+		currentRangeAxisConfigsList = new LinkedList<RangeAxisConfig>();
+		
+		bins = 11;
+		opaque = 255;
+		
+		useAbsoluteValues = false;
+		yAxisLogarithmic = false;
+		
+		plotNames = new Object[0];
+	}
+
+	@Override
+	public String getChartType() {
+		return HistogramTemplate.getI18NName();
+	}
+
+	@Override
+	public PlotterTemplatePanel getTemplateConfigurationPanel() {
+		return new HistogrammTemplatePanel(this);
+	}
+	
+	/**
+	 * Sets the number of bins.
+	 * @param bins must be >0 and <=100
+	 */
+	public void setBins(int bins) {
+		if (bins <= 0 || bins > 100) {
+			throw new IllegalArgumentException("bins must be > 0 and <= 100!");
+		}
+		
+		this.bins = bins;
+		
+		updatePlotConfiguration();
+		setChanged();
+		notifyObservers();
+	}
+	
+	/**
+	 * Returns the number of bins.
+	 * @return
+	 */
+	public int getBins() {
+		return bins;
+	}
+	
+	/**
+	 * Sets the opacity.
+	 * @param opaque must be >=0 and <=255
+	 */
+	public void setOpaque(int opaque) {
+		if (opaque < 0 || opaque > 255) {
+			throw new IllegalArgumentException("opaque must be >= 0 and <= 255!");
+		}
+		
+		this.opaque = opaque;
+		
+		updatePlotConfiguration();
+		setChanged();
+		notifyObservers();
+	}
+	
+	/**
+	 * Returns the opacity.
+	 * @return
+	 */
+	public int getOpacity() {
+		return opaque;
+	}
+	
+	@Override
+	protected void dataUpdated(final DataTable dataTable) {
+		// clear possible existing data
+		currentRangeAxisConfigsList.clear();
+	}
+	
+	/**
+	 * Sets whether absolute values should be used or not.
+	 * @param useAbsoluteValues
+	 */
+	public void setUseAbsoluteValues(boolean useAbsoluteValues) {
+		this.useAbsoluteValues = useAbsoluteValues;
+		
+		updatePlotConfiguration();
+		setChanged();
+		notifyObservers();
+	}
+	
+	/**
+	 * Returns whether absolute values are used or not.
+	 * @return
+	 */
+	public boolean isUsingAbsoluteValues() {
+		return useAbsoluteValues;
+	}
+	
+	/**
+	 * Sets whether the range (Y) axis should be logarithmic or not.
+	 * @param yAxisLogarithmic
+	 */
+	public void setYAxisLogarithmic(boolean yAxisLogarithmic) {
+		this.yAxisLogarithmic = yAxisLogarithmic;
+		
+		updatePlotConfiguration();
+		setChanged();
+		notifyObservers();
+	}
+	
+	/**
+	 * Returns whether the range (Y) axis is logarithmic or not.
+	 * @return
+	 */
+	public boolean isYAxisLogarithmic() {
+		return yAxisLogarithmic;
+	}
+	
+	/**
+	 * Sets the currently selected plots by their name.
+	 * @param plotNames
+	 */
+	public void setPlotSelection(Object[] plotNames) {
+		this.plotNames = plotNames;
+		
+		updatePlotConfiguration();
+		setChanged();
+		notifyObservers();
+	}
+	
+	/**
+	 * Returns the currently selected plots.
+	 * @return
+	 */
+	public Object[] getPlotSelection() {
+		return plotNames;
+	}
+	
+	public static String getI18NName() {
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.histogram.name");
+	}
+
+	@Override
+	protected void updatePlotConfiguration() {
+		PlotConfiguration plotConfiguration = plotInstance.getMasterPlotConfiguration();
+		// stop event processing
+		boolean plotConfigurationProcessedEvents = plotConfiguration.isProcessingEvents();
+		plotConfiguration.setProcessEvents(false);
+		
+		// remove old config(s)
+		for (RangeAxisConfig rAConfig : currentRangeAxisConfigsList) {
+			plotConfiguration.removeRangeAxisConfig(rAConfig);
+		}
+		currentRangeAxisConfigsList.clear();
+		// no selection?
+		if (plotNames.length == 0) {
+			return;
+		}
+		
+		try {
+			for (Object plot : plotNames) {
+				String plotName = String.valueOf(plot);
+				
+				DataTableColumn aDataTableColumn = new DataTableColumn(currentDataTable, currentDataTable.getColumnIndex(plotName));
+				
+				// set binning
+				EquidistantFixedBinCountBinning newValueGrouping;
+				if(aDataTableColumn.isNominal()) {
+					newValueGrouping = (EquidistantFixedBinCountBinning) ValueGroupingFactory.getValueGrouping(GroupingType.EQUIDISTANT_FIXED_BIN_COUNT, aDataTableColumn, false, DateFormat.getDateTimeInstance());
+				} else {
+					newValueGrouping = (EquidistantFixedBinCountBinning) ValueGroupingFactory.getValueGrouping(GroupingType.EQUIDISTANT_FIXED_BIN_COUNT, aDataTableColumn, false, DateFormat.getDateTimeInstance());
+				}
+				newValueGrouping.setBinCount(bins);
+
+				plotConfiguration.getDomainConfigManager().setGrouping(newValueGrouping);
+				plotConfiguration.getDomainConfigManager().setDataTableColumn(aDataTableColumn);
+				RangeAxisConfig newRangeAxisConfig = new RangeAxisConfig(plotName, plotConfiguration);
+				ValueSource valueSource;
+				valueSource = new ValueSource(plotConfiguration, aDataTableColumn, AggregationFunctionType.count, true);
+				valueSource.setUseDomainGrouping(true);
+				SeriesFormat sFormat = new SeriesFormat();
+				sFormat.setSeriesType(SeriesType.BARS);
+//				ColorRGB yAxisColor = styleProvider.getColorScheme().getColors().get(indexOfPlots % styleProvider.getColorScheme().getColors().size());
+//				sFormat.setItemColor(ColorRGB.convertToColor(yAxisColor));
+				// TODO: change to alpha value provided by the ColorScheme and remove opaque slider?
+				sFormat.setOpacity(opaque);
+				valueSource.setSeriesFormat(sFormat);
+				newRangeAxisConfig.addValueSource(valueSource, null);
+				newRangeAxisConfig.setLogarithmicAxis(yAxisLogarithmic);
+
+				// add new config(s)
+				plotConfiguration.addRangeAxisConfig(newRangeAxisConfig);
+				// remember the new config so we can remove it later again
+				currentRangeAxisConfigsList.add(newRangeAxisConfig);
+			}
+			
+			// general settings
+			plotConfiguration.setAxesFont(styleProvider.getAxesFont());
+			plotConfiguration.setTitleFont(styleProvider.getTitleFont());
+			plotConfiguration.getLegendConfiguration().setLegendFont(styleProvider.getLegendFont());
+			plotConfiguration.addColorSchemeAndSetActive(styleProvider.getColorScheme());
+		} catch (ChartConfigurationException e) {
+			LogService.getRoot().log(Level.WARNING, "Chart could not be configured.", e);
+		}
+		
+		// continue event processing
+		plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);
+	}
+	
+	@Override
+	public Element writeToXML(Document document) {
+		Element template = document.createElement("template");
+		template.setAttribute("name", getChartType());
+		Element setting;
+		
+		setting = document.createElement("yAxisLogarithmic");
+		setting.setAttribute("value", String.valueOf(yAxisLogarithmic));
+		template.appendChild(setting);
+		
+		setting = document.createElement("useAbsoluteValues");
+		setting.setAttribute("value", String.valueOf(useAbsoluteValues));
+		template.appendChild(setting);
+		
+		setting = document.createElement("bins");
+		setting.setAttribute("value", String.valueOf(bins));
+		template.appendChild(setting);
+		
+		setting = document.createElement("opaque");
+		setting.setAttribute("value", String.valueOf(opaque));
+		template.appendChild(setting);
+		
+		setting = document.createElement("plotNames");
+		for (Object key : plotNames) {
+			Element plotNameElement = document.createElement("plotName");
+			plotNameElement.setAttribute("value", String.valueOf(key));
+			setting.appendChild(plotNameElement);
+		}
+		template.appendChild(setting);
+		
+		return template;
+	}
+	
+	@Override
+	public void loadFromXML(Element templateElement) {
+		for (int i=0; i<templateElement.getChildNodes().getLength(); i++) {
+			Node node = templateElement.getChildNodes().item(i);
+			if (node instanceof Element) {
+				Element setting = (Element) node;
+				
+				if (setting.getNodeName().equals("plotNames")) {
+					List<Object> plotNamesList = new LinkedList<Object>();
+					for (int j=0; j<setting.getChildNodes().getLength(); j++) {
+						Node plotNode = setting.getChildNodes().item(j);
+						if (plotNode instanceof Element) {
+							Element plotNameElement = (Element) plotNode;
+							
+							if (plotNameElement.getNodeName().equals("plotName")) {
+								plotNamesList.add(plotNameElement.getAttribute("value"));
+							}
+						}
+					}
+					setPlotSelection(plotNamesList.toArray());
+				} else if (setting.getNodeName().equals("useAbsoluteValues")) {
+					setUseAbsoluteValues(Boolean.parseBoolean(setting.getAttribute("value")));
+				} else if (setting.getNodeName().equals("yAxisLogarithmic")) {
+					setYAxisLogarithmic(Boolean.parseBoolean(setting.getAttribute("value")));
+				} else if (setting.getNodeName().equals("bins")) {
+					try {
+						setBins(Integer.parseInt(setting.getAttribute("value")));
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore bins setting for histogram template!");
+					}
+				} else if (setting.getNodeName().equals("opaque")) {
+					try {
+						setOpaque(Integer.parseInt(setting.getAttribute("value")));
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore opaque setting for histogram template!");
+					}
+				}
+			}
+		}
+	}
+}
