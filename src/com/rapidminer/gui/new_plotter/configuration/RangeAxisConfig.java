@@ -464,7 +464,8 @@ public class RangeAxisConfig implements ValueSourceListener, ValueRangeListener,
 		clone.autoNaming = autoNaming;
 		clone.logarithmicAxis = logarithmicAxis;
 		clone.crosshairLines = crosshairLines.clone();
-		clone.userDefinedRange = userDefinedRange;
+		clone.userDefinedRange = userDefinedRange.clone();
+		clone.userDefinedRange.addValueRangeListener(clone);
 		clone.useUserDefinedLowerBound = useUserDefinedLowerBound;
 		clone.useUserDefinedUpperBound = useUserDefinedUpperBound;
 

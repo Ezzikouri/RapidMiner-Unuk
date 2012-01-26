@@ -263,7 +263,8 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 
 	@Override
 	public void componentMoved(ComponentEvent e) {
-		hidePopup();
+		// Unnecessary to hide on move event. Causes trouble on Linux 
+		//hidePopup();
 	}
 
 	@Override

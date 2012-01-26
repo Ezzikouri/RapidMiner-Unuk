@@ -204,7 +204,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		listOfColors.add(colorful3);
 		listOfColors.add(colorful4);
 		listOfColors.add(colorful5);
-		ColorScheme cs = new ColorScheme("Colorful", listOfColors, colorful2, colorful5);
+		ColorScheme cs = new ColorScheme("Mud", listOfColors, colorful2, colorful5);
 		this.colorSchemes.put(cs.getName(), cs);
 
 		listOfColors = new LinkedList<ColorRGB>();
@@ -220,6 +220,21 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		listOfColors.add(forest4);
 		listOfColors.add(forest5);
 		cs = new ColorScheme("Forest", listOfColors, forest4, forest5);
+		this.colorSchemes.put(cs.getName(), cs);
+		
+		listOfColors = new LinkedList<ColorRGB>();
+		ColorRGB baw1 = new ColorRGB(0, 0, 0);
+		ColorRGB baw2 = new ColorRGB(255, 255, 255);
+		ColorRGB baw3 = new ColorRGB(204, 204, 204);
+		ColorRGB baw4 = new ColorRGB(102, 102, 102);
+		ColorRGB baw5 = new ColorRGB(51, 51, 51);
+
+		listOfColors.add(baw1);
+		listOfColors.add(baw2);
+		listOfColors.add(baw3);
+		listOfColors.add(baw4);
+		listOfColors.add(baw5);
+		cs = new ColorScheme("Grayscale", listOfColors, baw2, baw1);
 		this.colorSchemes.put(cs.getName(), cs);
 
 		this.activeSchemeName = colorScheme.getName();
