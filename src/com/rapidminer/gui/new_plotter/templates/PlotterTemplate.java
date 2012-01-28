@@ -55,6 +55,16 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 	/** the {@link JFreeChartPlotEngine} instance */
 	protected JFreeChartPlotEngine plotEngine;
 	
+	/** if true, will not update plot configuration despite changes */
+	protected transient boolean suspendUpdates;
+	
+	
+	public static final String TEMPLATE_ELEMENT = "template";
+
+	public static final String NAME_ELEMENT = "name";
+	
+	public static final String VALUE_ATTRIBUTE = "value";
+	
 	
 	/**
 	 * Standard constructor.
@@ -130,7 +140,7 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 	 * Call to notify the plotter template that the data has changed.
 	 * @param dataTable the new data
 	 */
-	public void fireDataUpdated(final DataTable dataTable) {
+	public synchronized void fireDataUpdated(final DataTable dataTable) {
 		this.currentDataTable = dataTable;
 		dataUpdated(dataTable);
 		

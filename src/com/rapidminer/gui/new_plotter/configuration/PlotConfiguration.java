@@ -44,7 +44,7 @@ import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimensio
 import com.rapidminer.gui.new_plotter.configuration.DomainConfigManager.GroupingState;
 import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelectionListener;
 import com.rapidminer.gui.new_plotter.listener.DimensionConfigListener;
@@ -85,7 +85,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 
 	private boolean initializing = false;
 
-	private static final double MIN_SHAPE_SCALING_FACTOR = 0.2;
+	private static final double MIN_SHAPE_SCALING_FACTOR = 0.4;
 	private static final double MAX_SHAPE_SCALING_FACTOR = 5.0;
 
 	public static final int GUI_PLOTTER_ROWS_MAXIMUM_IF_RAPIDMINER_PROPERTY_NOT_READABLE = 5000;
@@ -224,8 +224,8 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		
 		listOfColors = new LinkedList<ColorRGB>();
 		ColorRGB baw1 = new ColorRGB(0, 0, 0);
-		ColorRGB baw2 = new ColorRGB(255, 255, 255);
-		ColorRGB baw3 = new ColorRGB(204, 204, 204);
+		ColorRGB baw2 = new ColorRGB(204, 204, 204);
+		ColorRGB baw3 = new ColorRGB(255, 255, 255);
 		ColorRGB baw4 = new ColorRGB(102, 102, 102);
 		ColorRGB baw5 = new ColorRGB(51, 51, 51);
 
@@ -313,9 +313,11 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	}
 
 	public void removeRangeAxisConfig(int index) {
+		StaticDebug.debug("REMOVING RANGEAXIS with index " + index + " from " + this);
 		RangeAxisConfig rangeAxis = rangeAxisConfigs.get(index);
 		rangeAxis.removeRangeAxisConfigListener(this);
-		rangeAxisConfigs.remove(index);
+		RangeAxisConfig rangeAxisConfig = rangeAxisConfigs.remove(index);
+		StaticDebug.debug("  axis was: " + rangeAxisConfig);
 		fireRangeAxisRemoved(index, rangeAxis);
 
 	}
@@ -331,12 +333,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	 * getPrioritizedListenerCount().
 	 */
 	public void addPlotConfigurationListener(PlotConfigurationListener l, boolean prioritized) {
-		debug("ADDING PLOTCONFIGLISTENER "+l+" TO PLOTCONFIG "+this);
 		if (prioritized) {
-			StaticDebug.debug("  -> prioritized -> " + l + " as no. " + (prioritizedListeners.size()+1));
-			if (prioritizedListeners.size() > 0) {
-//				throw new RuntimeException("Only one prioritized listener may be registered at the same time.");
-			}
 			prioritizedListeners.add(new WeakReference<PlotConfigurationListener>(l));
 		} else {
 			defaultListeners.add(new WeakReference<PlotConfigurationListener>(l));
@@ -346,10 +343,6 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	public int getPrioritizedListenerCount() {
 		return prioritizedListeners.size();
 	}
-
-//	public void clearPrioritizedListeners() {
-//		prioritizedListeners.clear();
-//	}
 
 	/**
 	 * Removes prioritized and default listeners if contained in one of these lists.
@@ -647,7 +640,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 			ValueSource lastValueSource = valueSourceList.get(valueSourceList.size() - 1);
 			SeriesFormat lastFormat = lastValueSource.getSeriesFormat();
 //			seriesFormat.setSeriesType(lastFormat.getSeriesType());
-			if (lastFormat.getSeriesType() == SeriesType.LINES_AND_SHAPES) {
+			if (lastFormat.getSeriesType() == VisualizationType.LINES_AND_SHAPES) {
 
 				if (lastFormat.getItemShape() == ItemShape.NONE) {
 					seriesFormat.setItemShape(ItemShape.NONE);
@@ -747,8 +740,6 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 			currentEvent = null;
 			listenersInformedCounter = 0;
 			debug("PlotConfiguration: Reset current event..");
-			StaticDebug.emptyDebugLine();
-			StaticDebug.emptyDebugLine();
 		}
 		processQueueEvent();
 	}
@@ -764,6 +755,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	public void setProcessEvents(Boolean process) {
 		synchronized (processEventsLock) {
 			this.processEvents = process;
+			StaticDebug.debug("PLOTCONFIG: SET PROCESS EVENTS TO: "+process);
 
 			if (processEvents) {
 				processQueueEvent();
@@ -827,6 +819,8 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 					} else {
 						
 						debug("NO CURRENT EVENTS TO HANDLE");
+						StaticDebug.emptyDebugLine();
+						StaticDebug.emptyDebugLine();
 						
 						// there are no recent events that have to be handled
 						return;
@@ -1389,7 +1383,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		return -1;
 	}
 
-	public DefaultDimensionConfig getDimensionConfigById(int dimensionConfigId) {
+	public DefaultDimensionConfig getDefaultDimensionConfigById(int dimensionConfigId) {
 		if (domainConfigManager.getDomainConfig(true).getId() == dimensionConfigId) {
 			return domainConfigManager.getDomainConfig(true);
 		}

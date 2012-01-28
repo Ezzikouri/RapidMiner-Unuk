@@ -386,7 +386,7 @@ public class DomainConfigManager extends AbstractDimensionConfig implements Dime
 				domainManagerEvent = new DimensionConfigChangeEvent(this, change.getDimension(), type);
 				break;
 			case COLUMN:
-				domainManagerEvent = new DimensionConfigChangeEvent(this, change.getDimension(), change.getColumn());
+				domainManagerEvent = new DimensionConfigChangeEvent(this, change.getDimension(), change.getDataTableColumn());
 				break;
 			case CROSSHAIR_LINES_CHANGED:
 				domainManagerEvent = new DimensionConfigChangeEvent(this, change.getDimension(), change.getCrosshairLinesChange());

@@ -223,11 +223,18 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 	@Override
 	public void update(Observable o, Object arg) {
 		if (o instanceof DefaultPlotterStyleProvider) {
-			// update ComboBox with ColorSchemes
+			// update ComboBox with ColorSchemes (and make sure no events are fired during that time)
 			DefaultPlotterStyleProvider defaultStyleProvider = (DefaultPlotterStyleProvider)o;
-			Object selectedItem = colorSchemeComboBox.getSelectedItem();
 			colorSchemeComboBox.setModel(new DefaultComboBoxModel(defaultStyleProvider.getColorSchemes().toArray()));
-			colorSchemeComboBox.setSelectedItem(selectedItem);
+			ActionListener[] actionListeners = colorSchemeComboBox.getActionListeners();
+			for (ActionListener l : actionListeners) {
+				colorSchemeComboBox.removeActionListener(l);
+			}
+			colorSchemeComboBox.setSelectedIndex(defaultStyleProvider.getSelectedColorSchemeIndex());
+			for (ActionListener l : actionListeners) {
+				colorSchemeComboBox.addActionListener(l);
+			}
+			
 			
 			// update font buttons
 			axesFontButton.setFont(new Font(defaultStyleProvider.getAxesFont().getName(), defaultStyleProvider.getAxesFont().getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));

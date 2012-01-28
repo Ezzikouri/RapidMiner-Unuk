@@ -56,6 +56,7 @@ import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimensio
 import com.rapidminer.gui.new_plotter.configuration.DomainConfigManager;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.ValueGrouping.GroupingType;
 import com.rapidminer.gui.new_plotter.configuration.ValueGrouping.ValueGroupingFactory;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
@@ -84,7 +85,8 @@ public class PlotConfigurationTreeTransferHandler extends AbstractPatchedTransfe
 
 	private static final String[] OPTIONS = { I18N.getMessage(I18N.getGUIBundle(), "gui.label.input.plotter.drop_below_last_range_axis.option.add_value_source.label"),
 			I18N.getMessage(I18N.getGUIBundle(), "gui.label.input.plotter.drop_below_last_range_axis.option.create_new_axis.label"),
-			I18N.getMessage(I18N.getGUIBundle(), "gui.label.plotter.configuration_dialog.cancel_menu_item.label"), };
+			I18N.getMessage(I18N.getGUIBundle(), "gui.label.plotter.configuration_dialog.cancel_menu_item.label"),
+			I18N.getMessage(I18N.getGUIBundle(), "gui.label.input.plotter.drop_below_last_range_axis.option.move_value_source_to_axis_end.label")};
 
 	private static final String[] VALUE_SOURCE_OPTIONS = { I18N.getMessage(I18N.getGUIBundle(), "gui.label.input.plotter.drop_on_value_source.option.exchange_main_column.label"),
 			I18N.getMessage(I18N.getGUIBundle(), "gui.label.input.plotter.drop_on_value_source.option.utility1.label"),
@@ -234,7 +236,7 @@ public class PlotConfigurationTreeTransferHandler extends AbstractPatchedTransfe
 				rangeAxisConfigDrop(support, path, childIndex);
 			} else if (support.isDataFlavorSupported(ValueSourceTreeNode.VALUE_SOURCE_FLAVOR)) {
 				ValueSourceTreeNode valueSourceTreeNode = (ValueSourceTreeNode) support.getTransferable().getTransferData(ValueSourceTreeNode.VALUE_SOURCE_FLAVOR);
-				valueSourceDrop(valueSourceTreeNode, path, childIndex);
+				valueSourceDrop(valueSourceTreeNode, path, childIndex, false);
 			} else if (support.isDataFlavorSupported(DataTableColumnCollection.DATATABLE_COLUMN_COLLECTION_FLAVOR)) {
 				dataTableColumnDrop(support, path, childIndex);
 			} else {
@@ -404,184 +406,163 @@ public class PlotConfigurationTreeTransferHandler extends AbstractPatchedTransfe
 	/**
 	 * Is called if a {@link ValueSourceTreeNode} is dropped on the {@link PlotConfigurationTree}.
 	 */
-	private void valueSourceDrop(final ValueSourceTreeNode valueSourceTreeNode, TreePath path, final int childIndex) throws UnsupportedFlavorException, IOException,
-			ChartConfigurationException {
+	private void valueSourceDrop(final ValueSourceTreeNode valueSourceTreeNode, TreePath path, final int childIndex, boolean importDataTableColumn)
+			throws UnsupportedFlavorException, IOException, ChartConfigurationException {
 
 		// fetch dropped value source and parent
 		final ValueSource valueSource = (ValueSource) valueSourceTreeNode.getUserObject();
 
 		Object lastPathComponent = path.getLastPathComponent();
 		if (lastPathComponent instanceof RangeAxisConfigTreeNode) {
-			// fetch last path range axis tree node and containing range axis
-			RangeAxisConfigTreeNode rangeAxisTreeNode = (RangeAxisConfigTreeNode) lastPathComponent;
-			RangeAxisConfig rangeAxis = (RangeAxisConfig) rangeAxisTreeNode.getUserObject();
+			valueSourceDropOnRangeAxisConfig(valueSourceTreeNode, childIndex, valueSource, lastPathComponent);
+		} else {
+			valueSourceDropOnPlotConfiguration(valueSourceTreeNode, childIndex, valueSource, lastPathComponent, importDataTableColumn);
+		}
 
-			PlotConfiguration plotConfig = (PlotConfiguration) ((DefaultMutableTreeNode) rangeAxisTreeNode.getParent()).getUserObject();
+	}
+
+	private void valueSourceDropOnPlotConfiguration(final ValueSourceTreeNode valueSourceTreeNode, final int childIndex, final ValueSource valueSource, Object lastPathComponent,
+			final boolean importedDataTableColumn) {
+
+		// get plot configuration
+		final PlotConfigurationTreeNode plotConfigurationTreeNode = (PlotConfigurationTreeNode) lastPathComponent;
+		final PlotConfiguration plotConfiguration = (PlotConfiguration) plotConfigurationTreeNode.getUserObject();
+
+		final int index = childIndex - PlotConfigurationTreeModel.NUMBER_OF_PERMANENT_DIMENSIONS;
+		if (index >= 0) {
+			valueSourceDropOnPlotConfigBelowDimensionConfigs(valueSourceTreeNode, childIndex, valueSource, plotConfigurationTreeNode, plotConfiguration, index, importedDataTableColumn);
+		} else {
+			// value source is dropped on PlotConfigurationTreeNode
 
 			//fetch old parent
 			RangeAxisConfigTreeNode parent = (RangeAxisConfigTreeNode) valueSourceTreeNode.getParent();
-			if (parent != lastPathComponent) {
-				// ValueSource is moved to new RangeAxisConfig
+
+			boolean process = plotConfiguration.isProcessingEvents(); // save processing state
+			plotConfiguration.setProcessEvents(false);
+
+			if (parent != null) {
+				// ValueSource is moved to new RangeAxisConfig and has a parent
 
 				// Remove from old RangeAxis
 				RangeAxisConfig oldRangeAxis = (RangeAxisConfig) parent.getUserObject();
-
-				boolean process = plotConfig.isProcessingEvents();
-				plotConfig.setProcessEvents(false);
-
 				oldRangeAxis.removeValueSource(valueSource);
 
-				// Add to new RangeAxis
-				if (childIndex < 0) {
-					rangeAxis.addValueSource(valueSource, null);
-				} else {
-					rangeAxis.addValueSource(childIndex, valueSource, null);
-				}
-
-				plotConfig.setProcessEvents(process);
-
-			} else {
-				// ValueSource is moved within old parent RangeAxisConfig		
-				if (childIndex < 0) {
-					rangeAxis.changeIndex(rangeAxis.getSize() - 1, valueSource);
-				} else {
-					rangeAxis.changeIndex(childIndex, valueSource);
-				}
 			}
 
+			// create new RangeAxis
+			RangeAxisConfig newRangeAxis = new RangeAxisConfig(null, plotConfiguration);
+
+			SeriesFormat newSeriesFormat = null;
+			if (importedDataTableColumn) {
+				newSeriesFormat = plotConfiguration.getAutomaticSeriesFormatForNextValueSource(newRangeAxis);
+			}
+
+			// user drops on plot configuration tree node
+			newRangeAxis.addValueSource(valueSource, newSeriesFormat);
+			plotConfiguration.addRangeAxisConfig(newRangeAxis);
+
+			plotConfiguration.setProcessEvents(process);
+		}
+	}
+
+	private void valueSourceDropOnPlotConfigBelowDimensionConfigs(final ValueSourceTreeNode valueSourceTreeNode, final int childIndex, final ValueSource valueSource,
+			final PlotConfigurationTreeNode plotConfigurationTreeNode, final PlotConfiguration plotConfiguration, final int index, final boolean importedDataTableColumn) {
+		
+		if (index > 0) {
+			valueSourceDropOnPlotConfigBelowLastRangeAxis(valueSourceTreeNode, childIndex, valueSource, plotConfigurationTreeNode, plotConfiguration, index, importedDataTableColumn);
 		} else {
 
-			// get plot configuration
-			final PlotConfigurationTreeNode plotConfigurationTreeNode = (PlotConfigurationTreeNode) lastPathComponent;
-			final PlotConfiguration plotConfiguration = (PlotConfiguration) plotConfigurationTreeNode.getUserObject();
+			//fetch old parent
+			RangeAxisConfigTreeNode parent = (RangeAxisConfigTreeNode) valueSourceTreeNode.getParent();
 
-			final int index = childIndex - PlotConfigurationTreeModel.NUMBER_OF_PERMANENT_DIMENSIONS;
-			if (index >= 0) {
+			boolean process = plotConfiguration.isProcessingEvents(); // save processing state
+			plotConfiguration.setProcessEvents(false);
 
-				if (index > 0) {
-					// ask user for advice
+			if (parent != null) {
+				// ValueSource is moved to new RangeAxisConfig and has a parent
 
-					// create popup menu
-					final JPopupMenu rangeAxisPopupMenu = new JPopupMenu();
+				// Remove from old RangeAxis
+				RangeAxisConfig oldRangeAxis = (RangeAxisConfig) parent.getUserObject();
+				oldRangeAxis.removeValueSource(valueSource);
 
-					// get last range axis config
-					final RangeAxisConfig rangeAxis = (RangeAxisConfig) ((DefaultMutableTreeNode) plotConfigurationTreeNode.getChildAt(childIndex - 1)).getUserObject();
+			}
 
-					JMenuItem menuItem = new JMenuItem(OPTIONS[0]);
-					menuItem.addActionListener(new ActionListener() {
+			RangeAxisConfig newRangeAxis = new RangeAxisConfig(null, plotConfiguration);
 
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							// user wants to add value source to range axis config
+			//fetch new series format of data table column is imported
+			SeriesFormat newSeriesFormat = null;
+			if (importedDataTableColumn) {
+				newSeriesFormat = plotConfiguration.getAutomaticSeriesFormatForNextValueSource(newRangeAxis);
+			}
+			
+			// add value source
+			newRangeAxis.addValueSource(valueSource, newSeriesFormat);
 
-							//fetch old parent
-							RangeAxisConfigTreeNode parent = (RangeAxisConfigTreeNode) valueSourceTreeNode.getParent();
+			// add range axis to plot configuration
+			plotConfiguration.addRangeAxisConfig(index, newRangeAxis);
 
-							boolean process = plotConfiguration.isProcessingEvents();
-							plotConfiguration.setProcessEvents(false);
+			plotConfiguration.setProcessEvents(process);
+		}
+	}
 
-							if (parent != null) {
-								// ValueSource is moved to new RangeAxisConfig and has a parent
+	private void valueSourceDropOnPlotConfigBelowLastRangeAxis(final ValueSourceTreeNode valueSourceTreeNode, final int childIndex, final ValueSource valueSource,
+			final PlotConfigurationTreeNode plotConfigurationTreeNode, final PlotConfiguration plotConfiguration, final int index, final boolean importedDataTableColumn) {
+		// ask user for advice
 
-								// Remove from old RangeAxis
-								RangeAxisConfig oldRangeAxis = (RangeAxisConfig) parent.getUserObject();
-								oldRangeAxis.removeValueSource(valueSource);
+		// create popup menu
+		final JPopupMenu rangeAxisPopupMenu = new JPopupMenu();
 
-							}
+		// get last range axis config
+		final RangeAxisConfig rangeAxis = (RangeAxisConfig) ((DefaultMutableTreeNode) plotConfigurationTreeNode.getChildAt(childIndex - 1)).getUserObject();
 
-							// add value source
-							rangeAxis.addValueSource(valueSource, plotConfiguration.getAutomaticSeriesFormatForNextValueSource(rangeAxis));
+		String menuItemText = OPTIONS[0];
+		if(!importedDataTableColumn) {
+			menuItemText = OPTIONS[3];
+		}
+		JMenuItem menuItem = new JMenuItem(menuItemText);
+		menuItem.addActionListener(new ActionListener() {
 
-							plotConfiguration.setProcessEvents(process);
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// user wants to add value source to range axis config
 
-						}
+				//fetch old parent
+				RangeAxisConfigTreeNode parent = (RangeAxisConfigTreeNode) valueSourceTreeNode.getParent();
 
-					});
-					rangeAxisPopupMenu.add(menuItem);
+				boolean process = plotConfiguration.isProcessingEvents();
+				plotConfiguration.setProcessEvents(false);
 
-					menuItem = new JMenuItem(OPTIONS[1]);
-					menuItem.addActionListener(new ActionListener() {
+				if (parent != null) {
+					// ValueSource is moved to new RangeAxisConfig and has a parent
 
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							// user wants to create a new range axis config
+					// Remove from old RangeAxis
+					RangeAxisConfig oldRangeAxis = (RangeAxisConfig) parent.getUserObject();
+					oldRangeAxis.removeValueSource(valueSource);
 
-							//fetch old parent
-							RangeAxisConfigTreeNode parent = (RangeAxisConfigTreeNode) valueSourceTreeNode.getParent();
-
-							boolean process = plotConfiguration.isProcessingEvents(); // save processing state
-							plotConfiguration.setProcessEvents(false);
-
-							if (parent != null) {
-								// ValueSource is moved to new RangeAxisConfig and has a parent
-
-								// Remove from old RangeAxis
-								RangeAxisConfig oldRangeAxis = (RangeAxisConfig) parent.getUserObject();
-								oldRangeAxis.removeValueSource(valueSource);
-
-							}
-
-							RangeAxisConfig newRangeAxis = new RangeAxisConfig(null, plotConfiguration);
-
-							// add range axis to plot configuration
-							plotConfiguration.addRangeAxisConfig(index, newRangeAxis);
-
-							// add value source
-							newRangeAxis.addValueSource(valueSource, plotConfiguration.getAutomaticSeriesFormatForNextValueSource(rangeAxis));
-
-							plotConfiguration.setProcessEvents(process); // restore old processing state
-
-						}
-
-					});
-					rangeAxisPopupMenu.add(menuItem);
-
-					rangeAxisPopupMenu.addSeparator();
-
-					menuItem = new JMenuItem(OPTIONS[2]);
-					Font font = menuItem.getFont();
-					menuItem.setFont(new Font(font.getFamily(), Font.ITALIC, font.getSize()));
-					rangeAxisPopupMenu.add(menuItem);
-
-					// get mouse position
-					PointerInfo mouseInfo = MouseInfo.getPointerInfo();
-					Point point = mouseInfo.getLocation();
-
-					SwingUtilities.convertPointFromScreen(point, parent);
-
-					// show popup menu
-					rangeAxisPopupMenu.show(parent, (int) point.getX(), (int) point.getY());
-
-				} else {
-
-					//fetch old parent
-					RangeAxisConfigTreeNode parent = (RangeAxisConfigTreeNode) valueSourceTreeNode.getParent();
-
-					boolean process = plotConfiguration.isProcessingEvents(); // save processing state
-					plotConfiguration.setProcessEvents(false);
-
-					if (parent != null) {
-						// ValueSource is moved to new RangeAxisConfig and has a parent
-
-						// Remove from old RangeAxis
-						RangeAxisConfig oldRangeAxis = (RangeAxisConfig) parent.getUserObject();
-						oldRangeAxis.removeValueSource(valueSource);
-
-					}
-
-					RangeAxisConfig newRangeAxis = new RangeAxisConfig(null, plotConfiguration);
-
-					// add value source
-					newRangeAxis.addValueSource(valueSource, plotConfiguration.getAutomaticSeriesFormatForNextValueSource(newRangeAxis));
-
-					// add range axis to plot configuration
-					plotConfiguration.addRangeAxisConfig(index, newRangeAxis);
-
-					plotConfiguration.setProcessEvents(process);
+				}
+				
+				//fetch new series format of data table column is imported
+				SeriesFormat newSeriesFormat = null;
+				if (importedDataTableColumn) {
+					newSeriesFormat = plotConfiguration.getAutomaticSeriesFormatForNextValueSource(rangeAxis);
 				}
 
-			} else {
-				// value source is dropped on PlotConfigurationTreeNode
+				// add value source
+				rangeAxis.addValueSource(valueSource, newSeriesFormat);
+
+				plotConfiguration.setProcessEvents(process);
+
+			}
+
+		});
+		rangeAxisPopupMenu.add(menuItem);
+
+		menuItem = new JMenuItem(OPTIONS[1]);
+		menuItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// user wants to create a new range axis config
 
 				//fetch old parent
 				RangeAxisConfigTreeNode parent = (RangeAxisConfigTreeNode) valueSourceTreeNode.getParent();
@@ -598,17 +579,82 @@ public class PlotConfigurationTreeTransferHandler extends AbstractPatchedTransfe
 
 				}
 
-				// create new RangeAxis
 				RangeAxisConfig newRangeAxis = new RangeAxisConfig(null, plotConfiguration);
 
-				// user drops on plot configuration tree node
-				newRangeAxis.addValueSource(valueSource, plotConfiguration.getAutomaticSeriesFormatForNextValueSource(newRangeAxis));
-				plotConfiguration.addRangeAxisConfig(newRangeAxis);
+				// add range axis to plot configuration
+				plotConfiguration.addRangeAxisConfig(index, newRangeAxis);
+				
+				//fetch new series format of data table column is imported
+				SeriesFormat newSeriesFormat = null;
+				if (importedDataTableColumn) {
+					newSeriesFormat = plotConfiguration.getAutomaticSeriesFormatForNextValueSource(newRangeAxis);
+				}
 
-				plotConfiguration.setProcessEvents(process);
+				// add value source
+				newRangeAxis.addValueSource(valueSource, newSeriesFormat);
+
+				plotConfiguration.setProcessEvents(process); // restore old processing state
+
+			}
+
+		});
+		rangeAxisPopupMenu.add(menuItem);
+
+		rangeAxisPopupMenu.addSeparator();
+
+		menuItem = new JMenuItem(OPTIONS[2]);
+		Font font = menuItem.getFont();
+		menuItem.setFont(new Font(font.getFamily(), Font.ITALIC, font.getSize()));
+		rangeAxisPopupMenu.add(menuItem);
+
+		// get mouse position
+		PointerInfo mouseInfo = MouseInfo.getPointerInfo();
+		Point point = mouseInfo.getLocation();
+
+		SwingUtilities.convertPointFromScreen(point, parent);
+
+		// show popup menu
+		rangeAxisPopupMenu.show(parent, (int) point.getX(), (int) point.getY());
+	}
+
+	private void valueSourceDropOnRangeAxisConfig(final ValueSourceTreeNode valueSourceTreeNode, final int childIndex, final ValueSource valueSource, Object lastPathComponent) {
+
+		// fetch last path range axis tree node and containing range axis
+		RangeAxisConfigTreeNode rangeAxisTreeNode = (RangeAxisConfigTreeNode) lastPathComponent;
+		RangeAxisConfig rangeAxis = (RangeAxisConfig) rangeAxisTreeNode.getUserObject();
+
+		PlotConfiguration plotConfig = (PlotConfiguration) ((DefaultMutableTreeNode) rangeAxisTreeNode.getParent()).getUserObject();
+
+		//fetch old parent
+		RangeAxisConfigTreeNode parent = (RangeAxisConfigTreeNode) valueSourceTreeNode.getParent();
+		if (parent != lastPathComponent) {
+			// ValueSource is moved to new RangeAxisConfig
+
+			// Remove from old RangeAxis
+			RangeAxisConfig oldRangeAxis = (RangeAxisConfig) parent.getUserObject();
+
+			boolean process = plotConfig.isProcessingEvents();
+			plotConfig.setProcessEvents(false);
+
+			oldRangeAxis.removeValueSource(valueSource);
+
+			// Add to new RangeAxis
+			if (childIndex < 0) {
+				rangeAxis.addValueSource(valueSource, null);
+			} else {
+				rangeAxis.addValueSource(childIndex, valueSource, null);
+			}
+
+			plotConfig.setProcessEvents(process);
+
+		} else {
+			// ValueSource is moved within old parent RangeAxisConfig		
+			if (childIndex < 0) {
+				rangeAxis.changeIndex(rangeAxis.getSize() - 1, valueSource);
+			} else {
+				rangeAxis.changeIndex(childIndex, valueSource);
 			}
 		}
-
 	}
 
 	private void rangeAxisConfigDrop(TransferSupport support, TreePath path, int childIndex) throws UnsupportedFlavorException, IOException {
@@ -661,7 +707,7 @@ public class PlotConfigurationTreeTransferHandler extends AbstractPatchedTransfe
 			}
 
 			if (dataTableColumnList.size() == 1) {
-				valueSourceDrop(new ValueSourceTreeNode(valueSources.get(0)), path, childIndex);
+				valueSourceDrop(new ValueSourceTreeNode(valueSources.get(0)), path, childIndex, true);
 			} else {
 				multipleDataTableColumnsDropOnPlotConfigTreeNode(valueSources, path, childIndex);
 			}
@@ -836,7 +882,7 @@ public class PlotConfigurationTreeTransferHandler extends AbstractPatchedTransfe
 					if (valueSource instanceof ValueSource) {
 						ValueSource source = (ValueSource) valueSource;
 						try {
-							source.setDataTableColumn(SeriesUsageType.UTILITY_2, dataTableColumn);
+							source.setDataTableColumn(SeriesUsageType.INDICATOR_2, dataTableColumn);
 						} catch (ChartConfigurationException e1) {
 							e1.printStackTrace();
 							SwingTools.showVerySimpleErrorMessage("plotting.general_error");

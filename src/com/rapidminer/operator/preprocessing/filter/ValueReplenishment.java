@@ -108,11 +108,16 @@ public abstract class ValueReplenishment extends PreprocessingOperator {
 				}
 			}
 
+			final double replenishmentValue = getReplenishmentValue(function, exampleSet, attribute);
 			if (attribute.isNominal()) {
-				nominalReplacementMap.put(attributeName, attribute.getMapping().mapIndex((int) getReplenishmentValue(function, exampleSet, attribute)));
+				if ((replacedValue == -1) || Double.isNaN(replacedValue)) {
+					nominalReplacementMap.put(attributeName, null);
+				} else {
+					nominalReplacementMap.put(attributeName, attribute.getMapping().mapIndex((int) replenishmentValue));
+				}
 			}
 			if (attribute.isNumerical()) {
-				numericalReplacementMap.put(attributeName, getReplenishmentValue(function, exampleSet, attribute));
+				numericalReplacementMap.put(attributeName, replenishmentValue);
 			}
 		}
 

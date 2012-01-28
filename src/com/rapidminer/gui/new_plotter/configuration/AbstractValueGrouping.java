@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.rapidminer.datatable.DataTable;
+import com.rapidminer.gui.new_plotter.StaticDebug;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;
 import com.rapidminer.gui.new_plotter.listener.ValueGroupingListener;
 import com.rapidminer.gui.new_plotter.listener.events.ValueGroupingChangeEvent;
@@ -125,15 +126,17 @@ public abstract class AbstractValueGrouping implements ValueGrouping {
 	}
 	
 	@Override
-	public final List<ValueRange> getGroupingModel(DataTable data) {
-		return createGroupingModel(data);
+	public final List<ValueRange> getGroupingModel(DataTable data, double upperBound, double lowerBound) {
+		StaticDebug.debug("Create grouping with upper bound: "+upperBound);
+		StaticDebug.debug("and lower bound: "+lowerBound);
+		return createGroupingModel(data, upperBound, lowerBound);
 	}
 	
 	/**
 	 * Returns an up-to-date grouping model without cumulation applied.
 	 * Does not need to implement caching, since this is handled in AbstractValueGrouping.
 	 */
-	protected abstract List<ValueRange> createGroupingModel(DataTable data);
+	protected abstract List<ValueRange> createGroupingModel(DataTable data, double upperBound, double lowerBound);
 	
 	@Override
 	public abstract boolean equals(Object obj);

@@ -119,16 +119,20 @@ public class MissingValueReplenishment extends ValueReplenishment {
 		case NONE:
 			return Double.NaN;
 		case MINIMUM:
-			return exampleSet.getStatistics(attribute, Statistics.MINIMUM);
+			final double min = exampleSet.getStatistics(attribute, Statistics.MINIMUM);			
+			return min;
 		case MAXIMUM:
-			return exampleSet.getStatistics(attribute, Statistics.MAXIMUM);
+			final double max = exampleSet.getStatistics(attribute, Statistics.MAXIMUM);
+			return max;
 		case AVERAGE:
 			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
 				return Double.NaN;
 			} else if (attribute.isNominal()) {
-				return exampleSet.getStatistics(attribute, Statistics.MODE);
+				final double mode = exampleSet.getStatistics(attribute, Statistics.MODE);				
+				return mode;
 			} else {
-				return exampleSet.getStatistics(attribute, Statistics.AVERAGE);
+				final double mode = exampleSet.getStatistics(attribute, Statistics.AVERAGE);
+				return mode;
 			}
 		case ZERO:
 			return 0.0d;

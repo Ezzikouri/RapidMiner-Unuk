@@ -23,6 +23,7 @@
 
 package com.rapidminer.gui.new_plotter.data;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,6 +48,7 @@ import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.listener.PlotConfigurationListener;
 import com.rapidminer.gui.new_plotter.listener.events.DimensionConfigChangeEvent;
+import com.rapidminer.gui.new_plotter.listener.events.DimensionConfigChangeEvent.DimensionConfigChangeType;
 import com.rapidminer.gui.new_plotter.listener.events.PlotConfigurationChangeEvent;
 import com.rapidminer.gui.new_plotter.listener.events.RangeAxisConfigChangeEvent;
 import com.rapidminer.gui.new_plotter.listener.events.ValueSourceChangeEvent;
@@ -234,7 +236,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 	}
 
 	private void clearCache() {
-		for (ValueSourceData valueSourceData : valueSourceDataMap.values()) {
+		for (ValueSourceData valueSourceData : getValueSourcesData()) {
 			valueSourceData.clearCache();
 		}
 		for (DimensionConfigData dimensionConfigData : dimensionConfigDataMap.values()) {
@@ -295,6 +297,29 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 		}
 		lastProcessedEvent = change;
 
+		PlotConfiguration currentPlotConfig = plotInstance.getCurrentPlotConfigurationClone();  // get current plot config
+
+		// prepare temp variables
+		int id = -1;
+		DimensionConfig currentDimensionConfig = null;
+		RangeAxisConfig currentRangeAxis = null;
+
+		DimensionConfig changeDimensionConfig = change.getDimensionConfig();
+		if (changeDimensionConfig != null) {
+			// if event is a dimension config add/remove event, get current dimension config 
+			// (may be null if meta event is processed and it has been deleted afterwards)
+			id = changeDimensionConfig.getId();
+			currentDimensionConfig = currentPlotConfig.getDefaultDimensionConfigById(id);
+		}
+
+		RangeAxisConfig changeRangeAxis = change.getRangeAxisConfig();
+		if (changeRangeAxis != null) {
+			// if event is a range axis config add/remove event, get current range axis config 
+			// (may be null if meta event is processed and it has been deleted afterwards)
+			id = changeRangeAxis.getId();
+			currentRangeAxis = currentPlotConfig.getRangeAxisConfigById(id);
+		}
+
 		switch (change.getType()) {
 			case AXES_FONT:
 				break;
@@ -311,17 +336,23 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 			case DATA_TABLE_EXCHANGED:
 				break;
 			case DIMENSION_CONFIG_ADDED:
-				debug("ADDED dimension " + change.getDimensionConfig().getDimension().getName() + " ## ID: " + ((DefaultDimensionConfig) change.getDimensionConfig()).getId());
-				dimensionConfigDataMap.put(((DefaultDimensionConfig) change.getDimensionConfig()).getId(),
-						new DimensionConfigData(plotInstance, (DefaultDimensionConfig) change.getDimensionConfig()));
-				clearCache();
+				// if current plot configuration still contains item..
+				if (currentDimensionConfig != null && id != -1) {
+					// add new dimension config data to map
+					dimensionConfigDataMap.put(id, new DimensionConfigData(plotInstance, (DefaultDimensionConfig) currentDimensionConfig));
+					debug("ADDED dimension " + currentDimensionConfig.getDimension().getName() + " ## ID: " + id);
+					clearCache();
+				} else {
+					StaticDebug.debug("#### CAUTION ###### ADD DIMENSION CONFIG: CURRENT DIMENSIONCONFIG " + changeDimensionConfig.getLabel() + " with id " + changeDimensionConfig.getId()
+							+ " IS NULL! Processing meta event?");
+				}
 				break;
 			case DIMENSION_CONFIG_CHANGED:
 				dimensionConfigChanged(change.getDimensionChange());
 				break;
 			case DIMENSION_CONFIG_REMOVED:
-				debug("REMOVED dimension " + change.getDimensionConfig().getDimension().getName() + " ## ID: " + ((DefaultDimensionConfig) change.getDimensionConfig()).getId());
-				dimensionConfigDataMap.remove(((DefaultDimensionConfig) change.getDimensionConfig()).getId());
+				debug("REMOVED dimension " + changeDimensionConfig.getDimension().getName() + " ## ID: " + changeDimensionConfig.getId());
+				dimensionConfigDataMap.remove(changeDimensionConfig.getId());  // remove dimension config data from map
 				clearCache();
 				break;
 			case LEGEND_CHANGED:
@@ -331,23 +362,34 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 			case PLOT_ORIENTATION:
 				break;
 			case RANGE_AXIS_CONFIG_ADDED:
-				debug("range axis ADDED - " + change.getRangeAxisConfig().getLabel() + " ## ID: " + change.getRangeAxisConfig().getId());
-				rangeAxisDataMap.put(change.getRangeAxisConfig().getId(), new RangeAxisData(change.getRangeAxisConfig(), plotInstance));
-				for (ValueSource valueSource : change.getRangeAxisConfig().getValueSources()) {
-					debug("value source ADDED - " + valueSource.toString() + " ## ID: " + valueSource.getId());
-					valueSourceDataMap.put(valueSource.getId(), new ValueSourceData(valueSource, plotInstance));
+				// if current plot configuration still contains item..
+				if (currentRangeAxis != null && id != -1) {
+					// add new range axis data to map
+					debug("range axis ADDED - " + currentRangeAxis.getLabel() + " ## ID: " + id);
+					rangeAxisDataMap.put(id, new RangeAxisData(currentRangeAxis, plotInstance));
+					for (ValueSource valueSource : currentRangeAxis.getValueSources()) {  // also add containing value sources data to map
+						debug("value source ADDED - " + valueSource.getLabel() + " ## ID: " + valueSource.getId());
+						valueSourceDataMap.put(valueSource.getId(), new ValueSourceData(valueSource, plotInstance));
+					}
+				} else {
+					StaticDebug.debug("#### CAUTION ###### ADD RANGE AXIS CONFIG: CURRENT RANGEAXISCONFIG " + changeRangeAxis.getLabel() + " with id " + changeRangeAxis.getId()
+							+ " IS NULL! Processing meta event?");
 				}
 				break;
 			case RANGE_AXIS_CONFIG_CHANGED:
-				debug("range axis CHANGED - " + change.getRangeAxisConfigChange().getSource().getLabel() + " ## ID: " + change.getRangeAxisConfigChange().getSource().getId());
 				RangeAxisConfigChangeEvent rangeAxisConfigChange = change.getRangeAxisConfigChange();
+				debug("range axis CHANGED - " + rangeAxisConfigChange.getSource().getLabel() + " ## ID: " + rangeAxisConfigChange.getSource().getId());
 				rangeAxisConfigChanged(rangeAxisConfigChange);
 				break;
 			case RANGE_AXIS_CONFIG_MOVED:
 				break;
 			case RANGE_AXIS_CONFIG_REMOVED:
-				debug("range axis REMOVED - " + change.getRangeAxisConfig().getLabel() + " ## ID: " + change.getRangeAxisConfig().getId());
-				rangeAxisDataMap.remove(change.getRangeAxisConfig().getId());
+				RangeAxisConfig rangeAxis = change.getRangeAxisConfig();
+				debug("range axis REMOVED - " + rangeAxis.getLabel() + " ## ID: " + rangeAxis.getId());
+				rangeAxisDataMap.remove(rangeAxis.getId());  					// remove range axis config from map
+				for (ValueSource valueSource : rangeAxis.getValueSources()) {  	// also remove all containing value sources from data map
+					valueSourceDataMap.remove(valueSource.getId());
+				}
 				clearCache();
 				break;
 			case LINK_AND_BRUSH_SELECTION:
@@ -362,51 +404,64 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 		return true;
 	}
 
-	/**
-	 * @param rangeAxisConfigChange
-	 * @param rangeAxisConfig 
-	 * @param clonedPlotConfig 
-	 */
 	private void rangeAxisConfigChanged(RangeAxisConfigChangeEvent rangeAxisConfigChange) {
-		RangeAxisData rangeAxisData = getRangeAxisData(rangeAxisConfigChange.getSource());
+
+		PlotConfiguration currentPlotConfig = plotInstance.getCurrentPlotConfigurationClone();  // get current plot config
+		int id = rangeAxisConfigChange.getSource().getId();  									// fetch id
+		RangeAxisConfig currentRangeAxisConfig = currentPlotConfig.getRangeAxisConfigById(id);  // look up range axis config
+
+		if (currentRangeAxisConfig == null) {
+			// if current range axis config is null it has been deleted afterwards in a meta change event
+			StaticDebug.debug("#### CAUTION #### RANGE AXIS CONFIG CHANGE: current range axis config " + rangeAxisConfigChange.getSource().getLabel() + " with id "
+					+ rangeAxisConfigChange.getSource().getId() + " is null! Meta change event?");
+			return;
+		}
+
+		//inform range axis data
+		RangeAxisData rangeAxisData = getRangeAxisData(currentRangeAxisConfig);
 		rangeAxisData.rangeAxisConfigChanged(rangeAxisConfigChange);
-		debug(" range axis change type: " + rangeAxisConfigChange.getType());
+
+		// and also process event here 
+		ValueSource changeValueSource = rangeAxisConfigChange.getValueSource();
+		ValueSource currentValueSource = null;
+		if (changeValueSource != null) {
+			id = changeValueSource.getId(); 										// fetch id from value source add/remove event
+			currentValueSource = currentRangeAxisConfig.getValueSourceById(id);		// look up current value source
+		}
+//		else {
+//			return; // nothing to be done
+//		}
+
 		switch (rangeAxisConfigChange.getType()) {
-			case AUTO_NAMING:
-				break;
-			case CLEARED:
-				break;
-			case LABEL:
-				break;
-			case RANGE_CHANGED:
-				break;
-			case SCALING:
-				break;
 			case VALUE_SOURCE_ADDED:
-				debug("value source ADDED - " + rangeAxisConfigChange.getValueSource().toString() + " ## ID: " + rangeAxisConfigChange.getValueSource().getId());
-				valueSourceDataMap.put(rangeAxisConfigChange.getValueSource().getId(), new ValueSourceData(rangeAxisConfigChange.getValueSource(), plotInstance));
-				clearCache();
+				if (currentValueSource != null) {
+					debug("value source ADDED - " + currentValueSource.getLabel() + " ## ID: " + currentValueSource.getId());
+					valueSourceDataMap.put(currentValueSource.getId(), new ValueSourceData(currentValueSource, plotInstance));
+					clearCache();
+				} else {
+					// if current value source is null it has been deleted afterwards in a meta change event
+					StaticDebug.debug("#### CAUTION #### VALUE SOURCE ADDED: current value source" + changeValueSource.getLabel() + " with id " + changeValueSource.getId() + " is null! Meta change event?");
+					return; // nothing to be done
+				}
 				break;
 			case VALUE_SOURCE_CHANGED:
 				ValueSourceChangeEvent valueSourceChange = rangeAxisConfigChange.getValueSourceChange();
-				ValueSource source = valueSourceChange.getSource();
-				debug("value source CHANGED - " + source.toString() + " ## ID: " + source.getId());
-				ValueSourceData valueSourceData = getValueSourceData(source);
-				int id = rangeAxisConfigChange.getSource().getId();
-				RangeAxisConfig rangeAxisConfigById = plotInstance.getCurrentPlotConfigurationClone().getRangeAxisConfigById(id);
-				ValueSource newSource = null;
-				if (rangeAxisConfigById != null) {
-					newSource = rangeAxisConfigById.getValueSourceById(source.getId());
+				changeValueSource = valueSourceChange.getSource();						// get source
+				id = changeValueSource.getId();											// fetch id from changed value source
+				currentValueSource = currentRangeAxisConfig.getValueSourceById(id);		// look up current value source
+				
+				if(currentValueSource != null) {
+					debug("value source CHANGED - " + currentValueSource.getLabel() + " ## ID: " + id);
+					getValueSourceData(currentValueSource).valueSourceChanged(valueSourceChange, currentValueSource);
 				} else {
-					StaticDebug.debug("PlotData: ### ATTENTION #### RangeAxis with ID " + id + " is null!");
+					// if current value source is null it has been deleted afterwards in a meta change event
+					StaticDebug.debug("#### CAUTION #### VALUE SOURCE CHANGED: current value source" + changeValueSource.getLabel() + " with id " + changeValueSource.getId() + " is null! Meta change event?");
+					return; // nothing to be done
 				}
-				valueSourceData.valueSourceChanged(valueSourceChange, newSource);
-				break;
-			case VALUE_SOURCE_MOVED:
 				break;
 			case VALUE_SOURCE_REMOVED:
-				debug("value source REMOVED - " + rangeAxisConfigChange.getValueSource().toString() + " ## ID: " + rangeAxisConfigChange.getValueSource().getId());
-				valueSourceDataMap.remove(rangeAxisConfigChange.getValueSource().getId());
+				debug("value source REMOVED - " + changeValueSource.getLabel() + " ## ID: " + changeValueSource.getId());
+				valueSourceDataMap.remove(changeValueSource.getId());
 				clearCache();
 				break;
 
@@ -414,57 +469,38 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 	}
 
 	private void dimensionConfigChanged(DimensionConfigChangeEvent dimensionChange) {
-		DimensionConfig dimConf = dimensionChange.getSource();
+		PlotConfiguration currentPlotConfig = plotInstance.getCurrentPlotConfigurationClone(); 	// get current plot configuration
+
+		// if domain config has changed
 		if (dimensionChange.getDimension() == PlotDimension.DOMAIN) {
-			getDomainConfigManagerData().dimensionConfigChanged(dimensionChange);
+			getDomainConfigManagerData().dimensionConfigChanged(dimensionChange);  // inform domain config data
 
 			// also inform both domain dimension configs
-			DomainConfigManager domainConfigManager = (DomainConfigManager) dimensionChange.getSource();
-
-			DefaultDimensionConfig domainConfig = domainConfigManager.getDomainConfig(false);
-			DimensionConfigData dimensionConfigData = getDimensionConfigData(domainConfig);
-			dimensionConfigData.dimensionConfigChanged(dimensionChange);
-
-			domainConfig = domainConfigManager.getDomainConfig(true);
-			dimensionConfigData = getDimensionConfigData(domainConfig);
-			dimensionConfigData.dimensionConfigChanged(dimensionChange);
+			DomainConfigManager domainConfigManager = currentPlotConfig.getDomainConfigManager();
+			getDimensionConfigData(domainConfigManager.getDomainConfig(false)).dimensionConfigChanged(dimensionChange);
+			getDimensionConfigData(domainConfigManager.getDomainConfig(true)).dimensionConfigChanged(dimensionChange);
 
 		} else {
-			DimensionConfigData dimData = getDimensionConfigData((DefaultDimensionConfig) dimConf);
-			dimData.dimensionConfigChanged(dimensionChange);
+			// inform default dimension config data about change
+			
+			int id = dimensionChange.getSource().getId();  											// fetch id of changed dimension
+			DimensionConfig currentDimensionConfig = currentPlotConfig.getDefaultDimensionConfigById(id); 	// look up dimension config 
+			
+			// if dimension config is still present, inform data about changes
+			if (currentDimensionConfig != null) {
+				DimensionConfigData dimData = getDimensionConfigData((DefaultDimensionConfig) currentDimensionConfig);
+				dimData.dimensionConfigChanged(dimensionChange);
+			} else {
+				// if current dimension config is null it has been deleted afterwards in a meta change event
+				StaticDebug.debug("#### CAUTION #### DIMENSION CHANGED:  current dimension config " + dimensionChange.getSource().getLabel() + " with id " + dimensionChange.getSource().getId()
+						+ " is null! Meta change event?");
+				return; // do nothing and return
+			}
 		}
 
-		switch (dimensionChange.getType()) {
-			case ABOUT_TO_CHANGE_GROUPING:
-				break;
-			case AUTO_NAMING:
-				break;
-			case COLOR_PROVIDER:
-				break;
-			case COLOR_SCHEME:
-				break;
-			case COLUMN:
-				break;
-			case CROSSHAIR_LINES_CHANGED:
-				break;
-			case GROUPING_CHANGED:
-				break;
-			case LABEL:
-				break;
-			case RANGE:
-				clearCache();
-				break;
-			case RESET:
-				break;
-			case SCALING:
-				break;
-			case SHAPE_PROVIDER:
-				break;
-			case SIZE_PROVIDER:
-				break;
-			case SORTING:
-				break;
-
+		// and process event here too
+		if (dimensionChange.getType() == DimensionConfigChangeType.RANGE) {
+			clearCache();
 		}
 	}
 
@@ -477,7 +513,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 	public List<PlotConfigurationError> getErrors() {
 		List<PlotConfigurationError> errors = new LinkedList<PlotConfigurationError>();
 
-		for (ValueSourceData valueSourceData : valueSourceDataMap.values()) {
+		for (ValueSourceData valueSourceData : getValueSourcesData()) {
 			errors.addAll(valueSourceData.getErrors());
 		}
 
@@ -518,7 +554,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 
 	public List<PlotConfigurationError> getWarnings() {
 		List<PlotConfigurationError> warnings = new LinkedList<PlotConfigurationError>();
-		for (ValueSourceData valueSourceData : valueSourceDataMap.values()) {
+		for (ValueSourceData valueSourceData : getValueSourcesData()) {
 			warnings.addAll(valueSourceData.getErrors());
 		}
 		boolean xAddedWarning = false;
@@ -539,6 +575,13 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 
 		warnings.addAll(domainConfigManagerData.getWarnings());
 		return warnings;
+	}
+
+	/**
+	 * @return
+	 */
+	private Collection<ValueSourceData> getValueSourcesData() {
+		return valueSourceDataMap.values();
 	}
 
 	public boolean isValid() {

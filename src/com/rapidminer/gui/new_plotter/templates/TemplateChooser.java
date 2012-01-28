@@ -72,9 +72,6 @@ public class TemplateChooser {
 	/** the panel holding the chart chooser JComboBox and the according template control GUI */
 	private JPanel controlContainerPanel;
 	
-	/** the container panel holding the chart panel */
-	private JPanel chartContainerPanel;
-	
 	/** the container panel holding the chart style provider */
 	private JPanel styleProviderContainerPanel;
 	
@@ -154,7 +151,7 @@ public class TemplateChooser {
 		}
 		
 		// the template chart panel
-		templateChartPanel = new JPanel();
+		templateChartPanel = new JPanel(new BorderLayout());
 		
 		setupGUI();
 	}
@@ -203,7 +200,7 @@ public class TemplateChooser {
 	 * @return
 	 */
 	public JPanel getTemplateChooserChartPanel() {
-		return chartContainerPanel;
+		return templateChartPanel;
 	}
 	
 	/** 
@@ -274,10 +271,6 @@ public class TemplateChooser {
 			((CardLayout)templatePanel.getLayout()).show(templatePanel, "");
 		}
 		
-		// chart panel
-		chartContainerPanel = new JPanel(new BorderLayout());
-		chartContainerPanel.add(BorderLayout.CENTER, templateChartPanel);
-		
 		// style provider panel
 		styleProviderContainerPanel = new JPanel(new BorderLayout());
 		styleProviderContainerPanel.add(BorderLayout.CENTER, stylePanel);
@@ -314,7 +307,7 @@ public class TemplateChooser {
 		// set plotConfig to selected chart
 		plotEngine.setPlotInstance(((PlotterTemplate)plotTypeComboBox.getSelectedItem()).getPlotInstance());
 		
-		templateChartPanel.add(plotEngine.getChartPanel());
+		templateChartPanel.add(plotEngine.getChartPanel(), BorderLayout.CENTER);
 	}
 	
 	/**

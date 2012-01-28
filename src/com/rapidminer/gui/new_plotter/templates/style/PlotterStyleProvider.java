@@ -27,6 +27,9 @@ import java.util.Observable;
 
 import javax.swing.JPanel;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 /**
  * Abstract class which all style providers for the new plotter templates have to extend.
  * 
@@ -34,6 +37,9 @@ import javax.swing.JPanel;
  *
  */
 public abstract class PlotterStyleProvider extends Observable {
+	
+	public static final String STYLE_ELEMENT = "style";
+	
 	
 	/**
 	 * Return the {@link JPanel} where the user can change the color/font settings.
@@ -66,4 +72,17 @@ public abstract class PlotterStyleProvider extends Observable {
 	 * @return
 	 */
 	public abstract ColorScheme getColorScheme();
+	
+	/**
+	 * Creates an {@link Element} which contains all {@link PlotterStyleProvider} settings.
+	 * @param document the {@link Document} where the {@link Element} will be written to
+	 * @return the styleElement {@link Element}
+	 */
+	public abstract Element createXML(Document document);
+	
+	/**
+	 * Loads all {@link PlotterStyleProvider} settings from the given {@link Element}.
+	 * @param styleElement the {@link Element} where all settings are loaded from
+	 */
+	public abstract void loadFromXML(Element styleElement);
 }

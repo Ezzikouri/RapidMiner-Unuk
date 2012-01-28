@@ -42,7 +42,7 @@ import com.rapidminer.gui.new_plotter.ChartConfigurationException;
 import com.rapidminer.gui.new_plotter.PlotConfigurationError;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
@@ -213,7 +213,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 			seriesTypeLabel.setPreferredSize(new Dimension(80, 15));
 
 			// create series type combobox
-			seriesTypeComboBox = new JComboBox(SeriesType.values());
+			seriesTypeComboBox = new JComboBox(VisualizationType.values());
 			seriesTypeLabel.setLabelFor(seriesTypeComboBox);
 			seriesTypeComboBox.setRenderer(new EnumComboBoxCellRenderer("plotter.series_type"));
 			seriesTypeComboBox.setSelectedIndex(0);
@@ -229,7 +229,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 				public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
 					ValueSource selectedValueSource = getSelectedValueSource();
 					if (selectedValueSource != null) {
-						selectedValueSource.getSeriesFormat().setSeriesType((SeriesType) seriesTypeComboBox.getSelectedItem());
+						selectedValueSource.getSeriesFormat().setSeriesType((VisualizationType) seriesTypeComboBox.getSelectedItem());
 					}
 				}
 
@@ -560,7 +560,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 				itemConstraint = new GridBagConstraints();
 
 				// create attribute textfield
-				secondUtilityTextField = new AttributeDropTextField(plotConfigTree, th, SeriesUsageType.UTILITY_2);
+				secondUtilityTextField = new AttributeDropTextField(plotConfigTree, th, SeriesUsageType.INDICATOR_2);
 				secondUtilityTextField.setPreferredSize(new Dimension(100, 18));
 				secondUtilityAttributeLabel.setLabelFor(secondUtilityTextField);
 
@@ -577,7 +577,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						try {
-							getSelectedValueSource().setDataTableColumn(SeriesUsageType.UTILITY_2, null);
+							getSelectedValueSource().setDataTableColumn(SeriesUsageType.INDICATOR_2, null);
 						} catch (ChartConfigurationException e1) {
 							PlotConfigurationError plotConfigurationError = e1.getResponse().getErrors().get(0);
 							SwingTools.showVerySimpleErrorMessage(plotConfigurationError.getErrorId(), plotConfigurationError.getMessageParameters());
@@ -607,7 +607,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 					public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
 						ValueSource selectedValueSource = getSelectedValueSource();
 						if (selectedValueSource != null) {
-							selectedValueSource.setAggregationFunction(SeriesUsageType.UTILITY_2, (AggregationFunctionType) firstUtilityAggregationComboBox.getSelectedItem());
+							selectedValueSource.setAggregationFunction(SeriesUsageType.INDICATOR_2, (AggregationFunctionType) firstUtilityAggregationComboBox.getSelectedItem());
 						}
 					}
 
@@ -793,7 +793,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 		}
 	}
 
-	private void seriesTypeSelectionChanged(SeriesType seriesType) {
+	private void seriesTypeSelectionChanged(VisualizationType seriesType) {
 		seriesTypeComboBox.setSelectedItem(seriesType);
 	}
 
@@ -851,8 +851,8 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 			firstUtilityDataTableColumnChanged(selectedValueSource.getDataTableColumn(SeriesUsageType.INDICATOR_1));
 
 			// set second utility aggregation and column
-			secondUtilityAggregationChanged(selectedValueSource.getAggregationFunctionType(SeriesUsageType.UTILITY_2));
-			secondUtilityDataTableColumnChanged(selectedValueSource.getDataTableColumn(SeriesUsageType.UTILITY_2));
+			secondUtilityAggregationChanged(selectedValueSource.getAggregationFunctionType(SeriesUsageType.INDICATOR_2));
+			secondUtilityDataTableColumnChanged(selectedValueSource.getDataTableColumn(SeriesUsageType.INDICATOR_2));
 
 		}
 	}

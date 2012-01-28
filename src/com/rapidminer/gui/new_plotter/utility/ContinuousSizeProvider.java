@@ -48,8 +48,10 @@ public class ContinuousSizeProvider implements SizeProvider {
 		
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-		this.minScalingFactor = minSize;
-		this.maxScalingFactor = maxSize;
+//		this.minScalingFactor = minSize;
+//		this.maxScalingFactor = maxSize;
+		this.minScalingFactor = minSize*minSize;
+		this.maxScalingFactor = maxSize*maxSize;
 		this.logarithmic = logarithmic;
 	}
 	
@@ -72,8 +74,8 @@ public class ContinuousSizeProvider implements SizeProvider {
 				fraction = (value-minValue)/(maxValue-minValue);
 			}
 		}
-		
-		return minScalingFactor + (maxScalingFactor-minScalingFactor)*fraction;
+//		return minScalingFactor + (maxScalingFactor-minScalingFactor)*fraction;
+		return Math.sqrt(minScalingFactor + (maxScalingFactor-minScalingFactor)*fraction);
 	}
 
 	@Override

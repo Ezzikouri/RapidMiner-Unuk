@@ -55,7 +55,7 @@ public class DistinctValueGrouping extends AbstractValueGrouping {
 	}
 
 	@Override
-	protected List<ValueRange> createGroupingModel(DataTable dataTable) {
+	protected List<ValueRange> createGroupingModel(DataTable dataTable, double upperBound, double lowerBound) {
 		List<Double> sortedValues =  new LinkedList<Double>();
 		
 		int columnIdx = DataTableColumn.getColumnIndex(dataTable, getDataTableColumn());
@@ -65,7 +65,9 @@ public class DistinctValueGrouping extends AbstractValueGrouping {
 		
 		List<ValueRange> groupingModel = new LinkedList<ValueRange>();
 		for(Double value : sortedValues) {
-			groupingModel.add(new SingleValueValueRange(value, dataTable, columnIdx));
+			if(value >= lowerBound && value <= upperBound) {
+				groupingModel.add(new SingleValueValueRange(value, dataTable, columnIdx));
+			}
 		}
 
 		if (!getDataTableColumn().isNominal()) {

@@ -40,7 +40,7 @@ import com.rapidminer.gui.new_plotter.configuration.LinkAndBrushMaster;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.StackingMode;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
@@ -94,8 +94,8 @@ public class ChartAxisFactory {
 			List<ValueSource> valueSources = rangeAxisConfig.getValueSources();
 			if (rangeAxisConfig.hasAbsolutStackedPlot()) {
 				for (ValueSource valueSource : valueSources) {
-					SeriesType seriesType = valueSource.getSeriesFormat().getSeriesType();
-					if (seriesType == SeriesType.BARS || seriesType == SeriesType.AREA) {
+					VisualizationType seriesType = valueSource.getSeriesFormat().getSeriesType();
+					if (seriesType == VisualizationType.BARS || seriesType == VisualizationType.AREA) {
 						if (valueSource.getSeriesFormat().getStackingMode() == StackingMode.ABSOLUTE) {
 							Pair<Double, Double> minMax = calculateUpperAndLowerBounds(valueSource, plotInstance);
 							if (upperBound < minMax.getSecond()) {
@@ -353,8 +353,8 @@ public class ChartAxisFactory {
 			// check if there are value sources with bar or area series type only
 
 			SeriesFormat seriesFormat = valueSource.getSeriesFormat();
-			SeriesType seriesType = seriesFormat.getSeriesType();
-			if (seriesType == SeriesType.BARS || seriesType == SeriesType.AREA) {
+			VisualizationType seriesType = seriesFormat.getSeriesType();
+			if (seriesType == VisualizationType.BARS || seriesType == VisualizationType.AREA) {
 				hasAreaOrBars = true;
 			}
 			
@@ -367,8 +367,8 @@ public class ChartAxisFactory {
 		//iterate over all value sources 
 		for (ValueSource valueSource : valueSources) {
 			SeriesFormat seriesFormat = valueSource.getSeriesFormat();
-			SeriesType seriesType = seriesFormat.getSeriesType();
-			if (seriesType == SeriesType.BARS || seriesType == SeriesType.AREA) {
+			VisualizationType seriesType = seriesFormat.getSeriesType();
+			if (seriesType == VisualizationType.BARS || seriesType == VisualizationType.AREA) {
 
 				if (!hasRelatives) {
 					hasRelatives = (seriesFormat.getStackingMode() == StackingMode.RELATIVE);

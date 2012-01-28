@@ -30,6 +30,7 @@ import java.util.List;
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableRow;
 import com.rapidminer.gui.new_plotter.ChartConfigurationException;
+import com.rapidminer.gui.new_plotter.StaticDebug;
 import com.rapidminer.gui.new_plotter.listener.events.ValueGroupingChangeEvent;
 import com.rapidminer.gui.new_plotter.utility.NumericalValueRange;
 import com.rapidminer.gui.new_plotter.utility.ValueRange;
@@ -45,14 +46,14 @@ import com.rapidminer.gui.new_plotter.utility.ValueRange;
  * @author Marius Helf, Nils Woehler
  *
  */
-public class EquidistantFixedBinCountBinning extends AbstractValueGrouping  {
-	
+public class EquidistantFixedBinCountBinning extends AbstractValueGrouping {
+
 	/**
 	 * Number of bins (excluding overflow bins)
 	 */
 	private int binCount;
-	private double minValue;
-	private double maxValue;
+	private double userDefinedMinValue;
+	private double userDefinedMaxValue;
 	private boolean autoRange = true;
 
 	private final GroupingType type = GroupingType.EQUIDISTANT_FIXED_BIN_COUNT;
@@ -65,17 +66,19 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping  {
 	 * @param categorical
 	 * @throws GroupingException 
 	 */
-	public EquidistantFixedBinCountBinning(int binCount, double minValue, double maxValue, DataTableColumn dataTableColumn, boolean categorical, DateFormat dateFormat) throws ChartConfigurationException {
+	public EquidistantFixedBinCountBinning(int binCount, double minValue, double maxValue, DataTableColumn dataTableColumn, boolean categorical, DateFormat dateFormat)
+			throws ChartConfigurationException {
 		super(dataTableColumn, categorical, dateFormat);
-		
+
 		if (dataTableColumn.isNominal()) {
-			throw new ChartConfigurationException("grouping.illegal_column_type", getGroupingType().getName(), dataTableColumn.getName(), dataTableColumn.getValueType(), "numerical or date.");
+			throw new ChartConfigurationException("grouping.illegal_column_type", getGroupingType().getName(), dataTableColumn.getName(), dataTableColumn.getValueType(),
+					"numerical or date.");
 		}
-		
+
 		this.binCount = binCount;
-		this.minValue = minValue;
-		this.maxValue = maxValue;
-		
+		this.userDefinedMinValue = minValue;
+		this.userDefinedMaxValue = maxValue;
+
 	}
 
 	/**
@@ -84,8 +87,8 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping  {
 	public EquidistantFixedBinCountBinning(EquidistantFixedBinCountBinning other) {
 		super(other.getDataTableColumn(), other.isCategorical(), other.getDateFormat());
 		this.binCount = other.binCount;
-		this.minValue = other.minValue;
-		this.maxValue = other.maxValue;
+		this.userDefinedMinValue = other.userDefinedMinValue;
+		this.userDefinedMaxValue = other.userDefinedMaxValue;
 		this.autoRange = other.autoRange;
 		this.forceDataTableColumn(other.getDataTableColumn());
 	}
@@ -103,7 +106,7 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping  {
 	public void setBinCount(int binCount) {
 		if (binCount != this.binCount) {
 			this.binCount = binCount;
-//			invalidateCache();
+			//			invalidateCache();
 			fireGroupingChanged(new ValueGroupingChangeEvent(this, binCount));
 		}
 	}
@@ -112,15 +115,15 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping  {
 	 * @return the minValue
 	 */
 	public double getMinValue() {
-		return minValue;
+		return userDefinedMinValue;
 	}
-	
+
 	/**
 	 * @param minValue the minValue to set
 	 */
 	public void setMinValue(double minValue) {
-		if (minValue != this.minValue) {
-			this.minValue = minValue;
+		if (minValue != this.userDefinedMinValue) {
+			this.userDefinedMinValue = minValue;
 			fireGroupingChanged(new ValueGroupingChangeEvent(this));
 		}
 	}
@@ -129,83 +132,96 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping  {
 	 * @return the maxValue
 	 */
 	public double getMaxValue() {
-		return maxValue;
+		return userDefinedMaxValue;
 	}
 
 	/**
 	 * @param maxValue the maxValue to set
 	 */
 	public void setMaxValue(double maxValue) {
-		if (maxValue != this.maxValue) {
-			this.maxValue = maxValue;
+		if (maxValue != this.userDefinedMaxValue) {
+			this.userDefinedMaxValue = maxValue;
 			fireGroupingChanged(new ValueGroupingChangeEvent(this));
 		}
 	}
-	
+
 	@Override
-	protected List<ValueRange> createGroupingModel(DataTable data) {
+	protected List<ValueRange> createGroupingModel(DataTable data, double userDefinedUpperDimensionBound, double userDefinedLowerDimensionBound) {
 		if (getDataTableColumn() == null) {
 			return null;
 		}
-		
+
 		List<ValueRange> groupingModel = new LinkedList<ValueRange>();
+
+		double currentMinValue = userDefinedMinValue;
+		double currentMaxValue = userDefinedMaxValue;
 		
 		if (calculatesAutoRange()) {
-			
+
 			// determine min and max values from data
 			double newMinValue = Double.POSITIVE_INFINITY;
 			double newMaxValue = Double.NEGATIVE_INFINITY;
 			int columnIdx = DataTableColumn.getColumnIndex(data, getDataTableColumn());
 			for (DataTableRow row : data) {
 				double value = row.getValue(columnIdx);
-				if (newMinValue > value) {
-					newMinValue = value;
-				}
-				if (newMaxValue < value) {
-					newMaxValue = value;
+				if(value >= userDefinedLowerDimensionBound && value <= userDefinedUpperDimensionBound) {
+					StaticDebug.debug("Value of "+value+" above lower and below upper bound.");
+					if (newMinValue > value) {
+						newMinValue = value;
+					}
+					if (newMaxValue < value) {
+						newMaxValue = value;
+					}
+					
+				} else {
+					StaticDebug.debug("Value of "+value+" not in range..");
 				}
 			}
+
+			if(!Double.isInfinite(userDefinedLowerDimensionBound) && newMinValue > userDefinedLowerDimensionBound) {
+				newMinValue = userDefinedLowerDimensionBound;
+			}
 			
-			minValue = newMinValue;
-			maxValue = newMaxValue;
+			if(!Double.isInfinite(userDefinedUpperDimensionBound) && newMaxValue < userDefinedUpperDimensionBound) {
+				newMaxValue = userDefinedUpperDimensionBound;
+			}
+			currentMinValue = newMinValue;
+			currentMaxValue = newMaxValue;
 		}
-		
-		double currentMinValue = minValue;
-		double currentMaxValue = maxValue;
-		
+
 		int columnIdx = DataTableColumn.getColumnIndex(data, getDataTableColumn());
 		boolean columnIsDate = getDataTableColumn().isDate();
 		groupingModel = new LinkedList<ValueRange>();
-		if (isCategorical() && (!autoRange || Double.isNaN(minValue))) {
+		if (isCategorical() && (!autoRange || Double.isNaN(userDefinedMinValue))) {
 			// create underflow bin
 			ValueRange group = new NumericalValueRange(Double.NEGATIVE_INFINITY, currentMinValue, columnIdx, null, true, false);
 			groupingModel.add(group);
 		}
-		
+
 		boolean includeLowerBound = true;
 		boolean includeUpperBound = false;
-		
+
 		// create normal bins
-		double stepWidth = (currentMaxValue-currentMinValue)/binCount;
+		double stepWidth = (currentMaxValue - currentMinValue) / binCount;
 		for (int i = 0; i < binCount; ++i) {
-			double lowerBound = currentMinValue+(currentMaxValue-currentMinValue)/binCount * i;
-			double upperBound = lowerBound + stepWidth;
-			
-			if (i == binCount-1) {
+			userDefinedLowerDimensionBound = currentMinValue + (currentMaxValue - currentMinValue) / binCount * i;
+			userDefinedUpperDimensionBound = userDefinedLowerDimensionBound + stepWidth;
+
+			if (i == binCount - 1) {
 				// last bin should include largest value
-				includeUpperBound = true;	
-				groupingModel.add(new NumericalValueRange(lowerBound, maxValue, columnIdx, null, includeLowerBound, includeUpperBound));
+				includeUpperBound = true;
+				groupingModel.add(new NumericalValueRange(userDefinedLowerDimensionBound, currentMaxValue, columnIdx, null, includeLowerBound, includeUpperBound));
 				continue;
 			}
-			groupingModel.add(new NumericalValueRange(lowerBound, upperBound, columnIdx, null, includeLowerBound, includeUpperBound));
+			groupingModel.add(new NumericalValueRange(userDefinedLowerDimensionBound, userDefinedUpperDimensionBound, columnIdx, null, includeLowerBound, includeUpperBound));
 		}
-		
-		if (isCategorical() && (!autoRange || Double.isNaN(maxValue))) {
+
+		if (isCategorical() && (!autoRange || Double.isNaN(userDefinedMaxValue))) {
 			// create overflow bin
 			ValueRange group = new NumericalValueRange(currentMaxValue, Double.POSITIVE_INFINITY, columnIdx, null, false, true);
 			groupingModel.add(group);
 		}
-		
+
 		applyAdaptiveVisualRounding(groupingModel, columnIsDate);
 
 		return groupingModel;
@@ -220,16 +236,16 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping  {
 	public ValueGrouping clone() {
 		return new EquidistantFixedBinCountBinning(this);
 	}
-	
-//	@Override
-//	protected void invalidateCache() {
-//		super.invalidateCache();
-//	}
+
+	//	@Override
+	//	protected void invalidateCache() {
+	//		super.invalidateCache();
+	//	}
 
 	private boolean calculatesAutoRange() {
-		return  Double.isNaN(minValue) || Double.isNaN(maxValue) || autoRange;	
+		return Double.isNaN(userDefinedMinValue) || Double.isNaN(userDefinedMaxValue) || autoRange;
 	}
-	
+
 	/**
 	 * @return the autoRange
 	 */
@@ -241,40 +257,48 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping  {
 	 * @param autoRange the autoRange to set
 	 */
 	public void setAutoRange(boolean autoRange) {
-		if(autoRange!=this.autoRange) {
+		if (autoRange != this.autoRange) {
 			this.autoRange = autoRange;
 			fireGroupingChanged(new ValueGroupingChangeEvent(this));
 		}
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
-		if(obj == null || !(obj instanceof EquidistantFixedBinCountBinning)) {
+		if (obj == null || !(obj instanceof EquidistantFixedBinCountBinning)) {
 			return false;
 		}
-		
-		EquidistantFixedBinCountBinning tempObj = (EquidistantFixedBinCountBinning) obj;
-		
-		if(tempObj.isCategorical() != isCategorical()) {
+
+		EquidistantFixedBinCountBinning other = (EquidistantFixedBinCountBinning) obj;
+
+		if (other.isCategorical() != isCategorical()) {
 			return false;
 		}
-		
-		if(tempObj.getBinCount() != getBinCount()) {
+
+		if (other.getBinCount() != getBinCount()) {
 			return false;
 		}
-		
-		if(tempObj.isAutoRanging() != isAutoRanging()) {
+
+		if (other.isAutoRanging() != isAutoRanging()) {
 			return false;
 		}
-		
-		if(tempObj.getMaxValue() != getMaxValue()) {
+
+		if (Double.isNaN(other.getMaxValue())) {
+			if (!Double.isNaN(getMaxValue())) {
+				return false;
+			}
+		} else if (other.getMaxValue() != getMaxValue()) {
 			return false;
 		}
-		
-		if(tempObj.getMinValue() != getMinValue()) {
+
+		if (Double.isNaN(other.getMinValue())) {
+			if (!Double.isNaN(getMinValue())) {
+				return false;
+			}
+		} else if (other.getMinValue() != getMinValue()) {
 			return false;
 		}
-		
+
 		return true;
 	}
 

@@ -31,12 +31,14 @@ import com.rapidminer.datatable.DataTable;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DefaultDimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
+import com.rapidminer.gui.new_plotter.configuration.LegendConfiguration.LegendPosition;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.ScatterTemplatePanel;
+import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction.AggregationFunctionType;
@@ -48,6 +50,21 @@ import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunctio
  * 
  */
 public class ScatterTemplate extends PlotterTemplate {
+
+	private static final String JITTER_ELEMENT = "jitter";
+
+	private static final String COLOR_LOGARITHMIC_ELEMENT = "colorLogarithmic";
+
+	private static final String Y_AXIS_LOGARITHMIC_ELEMENT = "yAxisLogarithmic";
+
+	private static final String X_AXIS_LOGARITHMIC_ELEMENT = "xAxisLogarithmic";
+
+	private static final String COLOR_COLUMN_ELEMENT = "colorColumn";
+
+	private static final String Y_AXIS_COLUMN_ELEMENT = "yAxisColumn";
+
+	private static final String X_AXIS_COLUMN_ELEMENT = "xAxisColumn";
+	
 
 	/** the current {@link RangeAxisConfig} */
 	private RangeAxisConfig currentRangeAxisConfig;
@@ -72,7 +89,11 @@ public class ScatterTemplate extends PlotterTemplate {
 
 	/** the jitter value for the plot */
 	private int jitter;
-
+	
+	/** the {@link ScatterTemplatePanel} instance */
+	private transient ScatterTemplatePanel scatterPanel;
+	
+	
 	/**
 	 * Creates a new {@link ScatterTemplate}. This template allows easy configuration of the scatter
 	 * chart for the plotter.
@@ -89,6 +110,8 @@ public class ScatterTemplate extends PlotterTemplate {
 		colorLogarithmic = false;
 
 		jitter = 0;
+		
+		scatterPanel = new ScatterTemplatePanel(this);
 	}
 
 	@Override
@@ -98,7 +121,7 @@ public class ScatterTemplate extends PlotterTemplate {
 
 	@Override
 	public PlotterTemplatePanel getTemplateConfigurationPanel() {
-		return new ScatterTemplatePanel(this);
+		return scatterPanel;
 	}
 
 	@Override
@@ -280,6 +303,11 @@ public class ScatterTemplate extends PlotterTemplate {
 
 	@Override
 	protected void updatePlotConfiguration() {
+		// don't do anything if updates are suspended due to batch updating
+		if (suspendUpdates) {
+			return;
+		}
+		
 		PlotConfiguration plotConfiguration = plotInstance.getMasterPlotConfiguration();
 
 		// value when "None" is selected
@@ -299,6 +327,7 @@ public class ScatterTemplate extends PlotterTemplate {
 				plotConfiguration.removeRangeAxisConfig(currentRangeAxisConfig);
 				currentRangeAxisConfig = null;
 			}
+			plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);
 			return;
 		}
 
@@ -345,6 +374,7 @@ public class ScatterTemplate extends PlotterTemplate {
 		plotConfiguration.setTitleFont(styleProvider.getTitleFont());
 		plotConfiguration.getLegendConfiguration().setLegendFont(styleProvider.getLegendFont());
 		plotConfiguration.addColorSchemeAndSetActive(styleProvider.getColorScheme());
+		plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.BOTTOM);
 		
 		// continue event processing
 		plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);
@@ -352,68 +382,77 @@ public class ScatterTemplate extends PlotterTemplate {
 
 	@Override
 	public Element writeToXML(Document document) {
-		Element template = document.createElement("template");
-		template.setAttribute("name", getChartType());
+		Element template = document.createElement(TEMPLATE_ELEMENT);
+		template.setAttribute(NAME_ELEMENT, getChartType());
 		Element setting;
 		
-		setting = document.createElement("xAxisColumn");
-		setting.setAttribute("value", xAxisColumn);
+		setting = document.createElement(X_AXIS_COLUMN_ELEMENT);
+		setting.setAttribute(VALUE_ATTRIBUTE, xAxisColumn);
 		template.appendChild(setting);
 		
-		setting = document.createElement("yAxisColumn");
-		setting.setAttribute("value", yAxisColumn);
+		setting = document.createElement(Y_AXIS_COLUMN_ELEMENT);
+		setting.setAttribute(VALUE_ATTRIBUTE, yAxisColumn);
 		template.appendChild(setting);
 		
-		setting = document.createElement("colorColumn");
-		setting.setAttribute("value", colorColumn);
+		setting = document.createElement(COLOR_COLUMN_ELEMENT);
+		setting.setAttribute(VALUE_ATTRIBUTE, colorColumn);
 		template.appendChild(setting);
 		
-		setting = document.createElement("xAxisLogarithmic");
-		setting.setAttribute("value", String.valueOf(xAxisLogarithmic));
+		setting = document.createElement(X_AXIS_LOGARITHMIC_ELEMENT);
+		setting.setAttribute(VALUE_ATTRIBUTE, String.valueOf(xAxisLogarithmic));
 		template.appendChild(setting);
 		
-		setting = document.createElement("yAxisLogarithmic");
-		setting.setAttribute("value", String.valueOf(yAxisLogarithmic));
+		setting = document.createElement(Y_AXIS_LOGARITHMIC_ELEMENT);
+		setting.setAttribute(VALUE_ATTRIBUTE, String.valueOf(yAxisLogarithmic));
 		template.appendChild(setting);
 		
-		setting = document.createElement("colorLogarithmic");
-		setting.setAttribute("value", String.valueOf(colorLogarithmic));
+		setting = document.createElement(COLOR_LOGARITHMIC_ELEMENT);
+		setting.setAttribute(VALUE_ATTRIBUTE, String.valueOf(colorLogarithmic));
 		template.appendChild(setting);
 		
-		setting = document.createElement("jitter");
-		setting.setAttribute("value", String.valueOf(jitter));
+		setting = document.createElement(JITTER_ELEMENT);
+		setting.setAttribute(VALUE_ATTRIBUTE, String.valueOf(jitter));
 		template.appendChild(setting);
+		
+		template.appendChild(styleProvider.createXML(document));
 		
 		return template;
 	}
 	
 	@Override
 	public void loadFromXML(Element templateElement) {
+		suspendUpdates = true;
+		
 		for (int i=0; i<templateElement.getChildNodes().getLength(); i++) {
 			Node node = templateElement.getChildNodes().item(i);
 			if (node instanceof Element) {
 				Element setting = (Element) node;
 				
-				if (setting.getNodeName().equals("xAxisColumn")) {
-					setXAxisColum(setting.getAttribute("value"));
-				} else if (setting.getNodeName().equals("yAxisColumn")) {
-					setYAxisColum(setting.getAttribute("value"));
-				} else if (setting.getNodeName().equals("colorColumn")) {
-					setColorColum(setting.getAttribute("value"));
-				} else if (setting.getNodeName().equals("xAxisLogarithmic")) {
-					setXAxisLogarithmic(Boolean.parseBoolean(setting.getAttribute("value")));
-				} else if (setting.getNodeName().equals("yAxisLogarithmic")) {
-					setYAxisLogarithmic(Boolean.parseBoolean(setting.getAttribute("value")));
-				} else if (setting.getNodeName().equals("colorLogarithmic")) {
-					setColorLogarithmic(Boolean.parseBoolean(setting.getAttribute("value")));
-				} else if (setting.getNodeName().equals("jitter")) {
+				if (setting.getNodeName().equals(X_AXIS_COLUMN_ELEMENT)) {
+					setXAxisColum(setting.getAttribute(VALUE_ATTRIBUTE));
+				} else if (setting.getNodeName().equals(Y_AXIS_COLUMN_ELEMENT)) {
+					setYAxisColum(setting.getAttribute(VALUE_ATTRIBUTE));
+				} else if (setting.getNodeName().equals(COLOR_COLUMN_ELEMENT)) {
+					setColorColum(setting.getAttribute(VALUE_ATTRIBUTE));
+				} else if (setting.getNodeName().equals(X_AXIS_LOGARITHMIC_ELEMENT)) {
+					setXAxisLogarithmic(Boolean.parseBoolean(setting.getAttribute(VALUE_ATTRIBUTE)));
+				} else if (setting.getNodeName().equals(Y_AXIS_LOGARITHMIC_ELEMENT)) {
+					setYAxisLogarithmic(Boolean.parseBoolean(setting.getAttribute(VALUE_ATTRIBUTE)));
+				} else if (setting.getNodeName().equals(COLOR_LOGARITHMIC_ELEMENT)) {
+					setColorLogarithmic(Boolean.parseBoolean(setting.getAttribute(VALUE_ATTRIBUTE)));
+				} else if (setting.getNodeName().equals(JITTER_ELEMENT)) {
 					try {
-						setJitter(Integer.parseInt(setting.getAttribute("value")));
+						setJitter(Integer.parseInt(setting.getAttribute(VALUE_ATTRIBUTE)));
 					} catch (NumberFormatException e) {
 						LogService.getRoot().warning("Could not restore jitter setting for scatter template!");
 					}
+				} else if (setting.getNodeName().equals(PlotterStyleProvider.STYLE_ELEMENT)) {
+					styleProvider.loadFromXML(setting);
 				}
 			}
 		}
+		
+		suspendUpdates = false;
+		updatePlotConfiguration();
 	}
 }

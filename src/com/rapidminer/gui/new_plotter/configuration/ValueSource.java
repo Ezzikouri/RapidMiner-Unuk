@@ -30,7 +30,7 @@ import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimensio
 import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.FillStyle;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
 import com.rapidminer.gui.new_plotter.listener.AggregationWindowingListener;
 import com.rapidminer.gui.new_plotter.listener.SeriesFormatListener;
@@ -62,13 +62,13 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 
 	public enum SeriesUsageType {
 		MAIN_SERIES,		// The main series, used for plotting the values of a series
-		INDICATOR_1,    // Errors of the main series. If UTILITY_2 is not set, 
-					// symmetric error bars are generated based on UTILITY_1. 
-					// Otherwise UTILITY_1 defines the upper error. The series 
+		INDICATOR_1,    // Errors of the main series. If INDICATOR_2 is not set, 
+					// symmetric error bars are generated based on INDICATOR_1. 
+					// Otherwise INDICATOR_1 defines the upper error. The series 
 					// must contain error values (like stdev or variance), not the 
 					// absolute position of the error bars in the coordinate system.
-		UTILITY_2,    // Lower errors of the main series. If unset, a symmetric error 
-					// from UTILITY_1 is plotted.
+		INDICATOR_2,    // Lower errors of the main series. If unset, a symmetric error 
+					// from INDICATOR_1 is plotted.
 	}
 
 	private boolean useDomainGrouping;
@@ -110,7 +110,7 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 
 		setAggregationFunction(SeriesUsageType.MAIN_SERIES, aggregationFunctionType);
 		setAggregationFunction(SeriesUsageType.INDICATOR_1, AggregationFunctionType.standard_deviation);
-		setAggregationFunction(SeriesUsageType.UTILITY_2, AggregationFunctionType.standard_deviation);
+		setAggregationFunction(SeriesUsageType.INDICATOR_2, AggregationFunctionType.standard_deviation);
 
 		aggregationWindowing.addAggregationWindowingListener(this);
 
@@ -558,11 +558,11 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 				errors.add(new PlotConfigurationError("incompatible_utility_value_type", this.toString(), SeriesUsageType.INDICATOR_1, valueType, seriesValueType));
 			}
 		}
-		if (format.getUtilityUsage() != UtilityUsage.NONE && getDefinedUsageTypes().contains(SeriesUsageType.UTILITY_2)) {
+		if (format.getUtilityUsage() != UtilityUsage.NONE && getDefinedUsageTypes().contains(SeriesUsageType.INDICATOR_2)) {
 			if (format.getUtilityUsage() != UtilityUsage.DIFFERENCE) {
-				ValueType seriesValueType = getValueType(SeriesUsageType.UTILITY_2);
+				ValueType seriesValueType = getValueType(SeriesUsageType.INDICATOR_2);
 				if (seriesValueType != valueType) {
-					errors.add(new PlotConfigurationError("incompatible_utility_value_type", this.toString(), SeriesUsageType.UTILITY_2, valueType, seriesValueType));
+					errors.add(new PlotConfigurationError("incompatible_utility_value_type", this.toString(), SeriesUsageType.INDICATOR_2, valueType, seriesValueType));
 				}
 			}
 		}
@@ -573,7 +573,7 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 	public List<PlotConfigurationError> getWarnings() {
 		List<PlotConfigurationError> warnings = new LinkedList<PlotConfigurationError>();
 
-		if (format.getSeriesType() == SeriesType.LINES_AND_SHAPES) {
+		if (format.getSeriesType() == VisualizationType.LINES_AND_SHAPES) {
 			if (format.getItemShape() == ItemShape.NONE && format.getLineStyle() == LineStyle.NONE && format.getUtilityUsage() == UtilityUsage.NONE) {
 				warnings.add(new PlotConfigurationError("invisible_format", this.toString()));
 			} else if (format.getItemShape() == ItemShape.NONE && format.getAreaFillStyle() == FillStyle.NONE) {
@@ -582,11 +582,11 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 		}
 
 		if (format.getUtilityUsage() == UtilityUsage.NONE) {
-			if (getDataTableColumn(SeriesUsageType.INDICATOR_1) != null || getDataTableColumn(SeriesUsageType.UTILITY_2) != null) {
+			if (getDataTableColumn(SeriesUsageType.INDICATOR_1) != null || getDataTableColumn(SeriesUsageType.INDICATOR_2) != null) {
 				warnings.add(new PlotConfigurationError("unused_utility_series", this.toString(), UtilityUsage.NONE.getName()));
 			}
 		} else if (format.getUtilityUsage() == UtilityUsage.DIFFERENCE) {
-			if (getDataTableColumn(SeriesUsageType.UTILITY_2) != null) {
+			if (getDataTableColumn(SeriesUsageType.INDICATOR_2) != null) {
 				warnings.add(new PlotConfigurationError("unused_secondary_utility_series", this.toString(), UtilityUsage.DIFFERENCE.getName()));
 			}
 		}

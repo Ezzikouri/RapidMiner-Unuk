@@ -82,7 +82,7 @@ public interface ValueGrouping {
 		}
 	}
 	
-	public List<ValueRange> getGroupingModel(DataTable data);
+	public List<ValueRange> getGroupingModel(DataTable data, double upperBoud, double lowerBound);
 	public boolean isCategorical();
 	
 	
@@ -109,4 +109,5 @@ public interface ValueGrouping {
 	
 	public DateFormat getDateFormat();
 	public void setDateFormat(DateFormat dateFormat);
+	public boolean equals(Object obj);
 }

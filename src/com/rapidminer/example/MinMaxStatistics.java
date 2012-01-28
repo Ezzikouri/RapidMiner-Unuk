@@ -65,7 +65,7 @@ public class MinMaxStatistics implements Statistics {
         } else if (MAXIMUM.equals(name)) {
             return this.maximum;    
         } else {
-            LogService.getGlobal().log("Cannot calculate statistics, unknown type: " + name, LogService.WARNING);
+            LogService.getRoot().warning("Cannot calculate statistics, unknown type: " + name);
             return Double.NaN;
         }
 	}

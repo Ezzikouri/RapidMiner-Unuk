@@ -28,7 +28,12 @@ import java.util.List;
 
 import javax.swing.JPanel;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
+import com.rapidminer.tools.LogService;
 
 /**
  * The default {@link PlotterStyleProvider}. Lets the user choose a font
@@ -39,6 +44,51 @@ import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
  */
 public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	
+	private static final String COLOR_B_ATTRIBUTE = "b";
+
+	private static final String COLOR_G_ATTRIBUTE = "g";
+
+	private static final String COLOR_R_ATTRIBUTE = "r";
+
+	private static final String COLOR_ALPHA_ATTRIBUTE = "alpha";
+
+	private static final String COLOR_ELEMENT = "color";
+
+	private static final String COLORS_ELEMENT = "colors";
+
+	private static final String GRADIENT_END_B_ATTRIBUTE = "gradient_end_b";
+
+	private static final String GRADIENT_END_G_ATTRIBUTE = "gradient_end_g";
+
+	private static final String GRADIENT_END_R_ATTRIBUTE = "gradient_end_r";
+
+	private static final String GRADIENT_END_ALPHA_ATTRIBUTE = "gradient_end_alpha";
+
+	private static final String GRADIENT_START_B_ATTRIBUTE = "gradient_start_b";
+
+	private static final String GRADIENT_START_G_ATTRIBUTE = "gradient_start_g";
+
+	private static final String GRADIENT_START_R_ATTRIBUTE = "gradient_start_r";
+
+	private static final String GRADIENT_START_ALPHA_ATTRIBUTE = "gradient_start_alpha";
+
+	private static final String COLOR_SCHEME_ELEMENT = "color_scheme";
+
+	private static final String TITLE_FONT_ELEMENT = "title_font";
+
+	private static final String LEGEND_FONT_ELEMENT = "legend_font";
+
+	private static final String FONT_SIZE_ATTRIBUTE = "size";
+
+	private static final String FONT_STYLE_ATTRIBUTE = "style";
+
+	private static final String FONT_NAME_ATTRIBUTE = "name";
+
+	private static final String AXES_FONT_ELEMENT = "axes_font";
+	
+	private static final String SCHEME_NAME_ATTRIBUTE = "name";
+	
+
 	/** the list containing all {@link ColorScheme}s. */
 	private List<ColorScheme> listOfColorSchemes;
 	
@@ -185,6 +235,24 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	}
 	
 	/**
+	 * Sets the selected {@link ColorScheme}. If the given {@link ColorScheme} is not in the current list of schemes,
+	 * it will be appended at the end.
+	 * @param colorScheme the newly selected {@link ColorScheme}
+	 */
+	public void setSelectedColorScheme(ColorScheme colorScheme) {
+		if (colorScheme == null) {
+			throw new IllegalArgumentException("colorScheme must not be null!");
+		}
+		
+		synchronized(synchronizeColorSchemeListObject) {
+			if (!listOfColorSchemes.contains(colorScheme)) {
+				addColorScheme(colorScheme);
+			}
+			setSelectedColorSchemeIndex(listOfColorSchemes.indexOf(colorScheme));
+		}
+	}
+	
+	/**
 	 * Returns the index of the currently selected {@link ColorScheme}.
 	 * @return
 	 */
@@ -281,5 +349,145 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 			scheme = listOfColorSchemes.get(colorSchemeIndex);
 		}
 		return scheme;
+	}
+	
+	@Override
+	public Element createXML(Document document) {
+		Element styleElement = document.createElement(STYLE_ELEMENT);
+		
+		// store axes font
+		Element axesFont = document.createElement(AXES_FONT_ELEMENT);
+		axesFont.setAttribute(FONT_NAME_ATTRIBUTE, String.valueOf(getAxesFont().getName()));
+		axesFont.setAttribute(FONT_STYLE_ATTRIBUTE, String.valueOf(getAxesFont().getStyle()));
+		axesFont.setAttribute(FONT_SIZE_ATTRIBUTE, String.valueOf(getAxesFont().getSize()));
+		styleElement.appendChild(axesFont);
+		
+		// store legend font
+		Element legendFont = document.createElement(LEGEND_FONT_ELEMENT);
+		legendFont.setAttribute(FONT_NAME_ATTRIBUTE, String.valueOf(getLegendFont().getName()));
+		legendFont.setAttribute(FONT_STYLE_ATTRIBUTE, String.valueOf(getLegendFont().getStyle()));
+		legendFont.setAttribute(FONT_SIZE_ATTRIBUTE, String.valueOf(getLegendFont().getSize()));
+		styleElement.appendChild(legendFont);
+		
+		// store title font
+		Element titleFont = document.createElement(TITLE_FONT_ELEMENT);
+		titleFont.setAttribute(FONT_NAME_ATTRIBUTE, String.valueOf(getTitleFont().getName()));
+		titleFont.setAttribute(FONT_STYLE_ATTRIBUTE, String.valueOf(getTitleFont().getStyle()));
+		titleFont.setAttribute(FONT_SIZE_ATTRIBUTE, String.valueOf(getTitleFont().getSize()));
+		styleElement.appendChild(titleFont);
+		
+		// store currently selected color scheme
+		Element selectedColorSchemeElement = document.createElement(COLOR_SCHEME_ELEMENT);
+		selectedColorSchemeElement.setAttribute(SCHEME_NAME_ATTRIBUTE, String.valueOf(getColorScheme().getName()));
+		selectedColorSchemeElement.setAttribute(GRADIENT_START_ALPHA_ATTRIBUTE, String.valueOf(getColorScheme().getGradientStartColor().getAlpha()));
+		selectedColorSchemeElement.setAttribute(GRADIENT_START_R_ATTRIBUTE, String.valueOf(getColorScheme().getGradientStartColor().getR()));
+		selectedColorSchemeElement.setAttribute(GRADIENT_START_G_ATTRIBUTE, String.valueOf(getColorScheme().getGradientStartColor().getG()));
+		selectedColorSchemeElement.setAttribute(GRADIENT_START_B_ATTRIBUTE, String.valueOf(getColorScheme().getGradientStartColor().getB()));
+		selectedColorSchemeElement.setAttribute(GRADIENT_END_ALPHA_ATTRIBUTE, String.valueOf(getColorScheme().getGradientEndColor().getAlpha()));
+		selectedColorSchemeElement.setAttribute(GRADIENT_END_R_ATTRIBUTE, String.valueOf(getColorScheme().getGradientEndColor().getR()));
+		selectedColorSchemeElement.setAttribute(GRADIENT_END_G_ATTRIBUTE, String.valueOf(getColorScheme().getGradientEndColor().getG()));
+		selectedColorSchemeElement.setAttribute(GRADIENT_END_B_ATTRIBUTE, String.valueOf(getColorScheme().getGradientEndColor().getB()));
+		Element colorsElement = document.createElement(COLORS_ELEMENT);
+		for (ColorRGB color : getColorScheme().getColors()) {
+			Element colorElement = document.createElement(COLOR_ELEMENT);
+			colorElement.setAttribute(COLOR_ALPHA_ATTRIBUTE, String.valueOf(color.getAlpha()));
+			colorElement.setAttribute(COLOR_R_ATTRIBUTE, String.valueOf(color.getR()));
+			colorElement.setAttribute(COLOR_G_ATTRIBUTE, String.valueOf(color.getG()));
+			colorElement.setAttribute(COLOR_B_ATTRIBUTE, String.valueOf(color.getB()));
+			colorsElement.appendChild(colorElement);
+		}
+		selectedColorSchemeElement.appendChild(colorsElement);
+		styleElement.appendChild(selectedColorSchemeElement);
+		
+		return styleElement;
+	}
+	
+	@Override
+	public void loadFromXML(Element styleElement) {
+		for (int i=0; i<styleElement.getChildNodes().getLength(); i++) {
+			Node node = styleElement.getChildNodes().item(i);
+			if (node instanceof Element) {
+				Element setting = (Element) node;
+				
+				if (setting.getNodeName().equals(COLOR_SCHEME_ELEMENT)) {
+					try {
+						// load currently selected color scheme
+						List<ColorRGB> listOfColors = new LinkedList<ColorRGB>();
+						for (int j=0; j<setting.getChildNodes().getLength(); j++) {
+							Node colorSchemeNode = setting.getChildNodes().item(j);
+							if (colorSchemeNode instanceof Element) {
+								Element colorsElement = (Element) colorSchemeNode;
+
+								if (colorsElement.getNodeName().equals(COLORS_ELEMENT)) {
+									// load currently selected color scheme
+
+									for (int k=0; k<colorsElement.getChildNodes().getLength(); k++) {
+										Node colorNode = colorsElement.getChildNodes().item(k);
+										if (colorNode.getNodeName().equals(COLOR_ELEMENT)) {
+											Element colorElement = (Element) colorNode;
+											int alpha = Integer.parseInt(colorElement.getAttribute(COLOR_ALPHA_ATTRIBUTE));
+											int r = Integer.parseInt(colorElement.getAttribute(COLOR_R_ATTRIBUTE));
+											int g = Integer.parseInt(colorElement.getAttribute(COLOR_G_ATTRIBUTE));
+											int b = Integer.parseInt(colorElement.getAttribute(COLOR_B_ATTRIBUTE));
+											ColorRGB colorRGB = new ColorRGB(r, g, b, alpha);
+											listOfColors.add(colorRGB);
+										}
+									}
+
+								}
+							}
+						}
+						String name = setting.getAttribute(SCHEME_NAME_ATTRIBUTE);
+						int alpha = Integer.parseInt(setting.getAttribute(GRADIENT_START_ALPHA_ATTRIBUTE));
+						int r = Integer.parseInt(setting.getAttribute(GRADIENT_START_R_ATTRIBUTE));
+						int g = Integer.parseInt(setting.getAttribute(GRADIENT_START_G_ATTRIBUTE));
+						int b = Integer.parseInt(setting.getAttribute(GRADIENT_START_B_ATTRIBUTE));
+						ColorRGB gradientStart = new ColorRGB(r, g, b, alpha);
+						alpha = Integer.parseInt(setting.getAttribute(GRADIENT_END_ALPHA_ATTRIBUTE));
+						r = Integer.parseInt(setting.getAttribute(GRADIENT_END_R_ATTRIBUTE));
+						g = Integer.parseInt(setting.getAttribute(GRADIENT_END_G_ATTRIBUTE));
+						b = Integer.parseInt(setting.getAttribute(GRADIENT_END_B_ATTRIBUTE));
+						ColorRGB gradientEnd = new ColorRGB(r, g, b, alpha);
+						ColorScheme colorScheme = new ColorScheme(name, listOfColors, gradientStart, gradientEnd);
+						setSelectedColorScheme(colorScheme);
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore color scheme for style provider!");
+					}
+				} else if (setting.getNodeName().equals(AXES_FONT_ELEMENT)) {
+					// load axes font
+					try {
+						String name = setting.getAttribute(FONT_NAME_ATTRIBUTE);
+						int style = Integer.parseInt(setting.getAttribute(FONT_STYLE_ATTRIBUTE));
+						int size = Integer.parseInt(setting.getAttribute(FONT_SIZE_ATTRIBUTE));
+						Font axesFont = new Font(name, style, size);
+						setAxesFont(axesFont);
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore axes font for style provider!");
+					}
+				} else if (setting.getNodeName().equals(LEGEND_FONT_ELEMENT)) {
+					try {
+						// load legend font
+						String name = setting.getAttribute(FONT_NAME_ATTRIBUTE);
+						int style = Integer.parseInt(setting.getAttribute(FONT_STYLE_ATTRIBUTE));
+						int size = Integer.parseInt(setting.getAttribute(FONT_SIZE_ATTRIBUTE));
+						Font legendFont = new Font(name, style, size);
+						setLegendFont(legendFont);
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore legend font for style provider!");
+					}
+				} else if (setting.getNodeName().equals(TITLE_FONT_ELEMENT)) {
+					try {
+						// load title font
+						String name = setting.getAttribute(FONT_NAME_ATTRIBUTE);
+						int style = Integer.parseInt(setting.getAttribute(FONT_STYLE_ATTRIBUTE));
+						int size = Integer.parseInt(setting.getAttribute(FONT_SIZE_ATTRIBUTE));
+						Font titleFont = new Font(name, style, size);
+						setTitleFont(titleFont);
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore title font for style provider!");
+					}
+				}
+			}
+		}
 	}
 }

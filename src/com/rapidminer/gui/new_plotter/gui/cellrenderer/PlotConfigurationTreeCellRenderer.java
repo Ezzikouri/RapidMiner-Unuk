@@ -48,7 +48,7 @@ import com.rapidminer.gui.new_plotter.configuration.DimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.gui.dnd.DataTableColumnListTransferHandler;
 import com.rapidminer.gui.new_plotter.gui.treenodes.DimensionConfigTreeNode;
@@ -455,8 +455,8 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 			if (fontValue == null) {
 				fontValue = nameLabel.getFont();
 			}
-			fontValue = new Font(fontValue.getFamily(), Font.BOLD, fontValue.getSize());
-			nameLabel.setFont(fontValue);
+//			fontValue = new Font(fontValue.getFamily(), Font.BOLD, fontValue.getSize());
+//			nameLabel.setFont(fontValue);
 
 			// set label icon
 			String icon = I18N.getMessageOrNull(I18N.getGUIBundle(), "gui.label." + i18nKey + ".icon");
@@ -483,9 +483,9 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 
 			ValueSource valueSource = (ValueSource) node.getUserObject();
 			String i18nKey = null;
-			if (valueSource.getSeriesFormat().getSeriesType() == SeriesType.LINES_AND_SHAPES) {
+			if (valueSource.getSeriesFormat().getSeriesType() == VisualizationType.LINES_AND_SHAPES) {
 				i18nKey = "plotter.configuration_dialog.line_value_source";
-			} else if (valueSource.getSeriesFormat().getSeriesType() == SeriesType.AREA) {
+			} else if (valueSource.getSeriesFormat().getSeriesType() == VisualizationType.AREA) {
 				i18nKey = "plotter.configuration_dialog.area_value_source";
 			} else {
 				i18nKey = "plotter.configuration_dialog.bar_value_source";
@@ -509,6 +509,8 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 				valueText += valueSource.getAutoLabel();
 				valueText += "]";
 			}
+			
+			valueText = I18N.getGUILabel("plotter.series_label.label")+valueText;
 
 			nameLabel.setText(valueText);
 

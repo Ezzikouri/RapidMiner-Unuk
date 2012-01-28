@@ -65,7 +65,7 @@ import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.FillStyle;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.data.DimensionConfigData;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
@@ -124,6 +124,21 @@ public class PlotInstanceLegendCreator {
 			}
 		}
 		
+		List<Set<PlotDimension>> dimensionsWithLegend = findCompatibleDimensions(plotConfiguration, allValueSources);
+		
+		
+		// create legend items for DimensionConfigs
+		for (Set<PlotDimension> dimensionSet : dimensionsWithLegend) {
+			PlotDimension aDimension = dimensionSet.iterator().next();
+			DimensionConfig dimensionConfig = plotConfiguration.getDimensionConfig(aDimension);
+			
+			createDimensionConfigLegendItem(plotInstance, (DefaultDimensionConfig) dimensionConfig, dimensionSet, legendItemCollection);
+		}
+		return legendItemCollection;
+	}
+
+
+	private List<Set<PlotDimension>> findCompatibleDimensions(PlotConfiguration plotConfiguration, List<ValueSource> allValueSources) {
 		Map<PlotDimension, DefaultDimensionConfig> dimensionConfigMap = plotConfiguration.getDefaultDimensionConfigs();
 		
 		// find all Dimensions for which we create a legend item
@@ -193,16 +208,7 @@ public class PlotInstanceLegendCreator {
 				}
 			}
 		}
-		
-		
-		// create legend items for DimensionConfigs
-		for (Set<PlotDimension> dimensionSet : dimensionsWithLegend) {
-			PlotDimension aDimension = dimensionSet.iterator().next();
-			DimensionConfig dimensionConfig = plotConfiguration.getDimensionConfig(aDimension);
-			
-			createDimensionConfigLegendItem(plotInstance, (DefaultDimensionConfig) dimensionConfig, dimensionSet, legendItemCollection);
-		}
-		return legendItemCollection;
+		return dimensionsWithLegend;
 	}
 
 	
@@ -235,7 +241,7 @@ public class PlotInstanceLegendCreator {
 		boolean shapeOutlineVisible = true;
 		Paint outlinePaint = PlotConfiguration.DEFAULT_OUTLINE_COLOR;
 		Stroke outlineStroke = DEFAULT_OUTLINE_STROKE;
-		boolean lineVisible = format.getLineStyle() != LineStyle.NONE && format.getSeriesType() == SeriesFormat.SeriesType.LINES_AND_SHAPES;
+		boolean lineVisible = format.getLineStyle() != LineStyle.NONE && format.getSeriesType() == SeriesFormat.VisualizationType.LINES_AND_SHAPES;
 
 
 		// configure fill paint and line paint
@@ -262,8 +268,8 @@ public class PlotInstanceLegendCreator {
 			
 		}
 		
-		SeriesType seriesType = valueSource.getSeriesFormat().getSeriesType();
-		if (seriesType == SeriesType.LINES_AND_SHAPES) {
+		VisualizationType seriesType = valueSource.getSeriesFormat().getSeriesType();
+		if (seriesType == VisualizationType.LINES_AND_SHAPES) {
 			if (dimensions.contains(PlotDimension.SHAPE)) {
 				shape = format.getItemShape().getShape();
 			} else if (dimensions.contains(PlotDimension.COLOR)) {
@@ -278,9 +284,9 @@ public class PlotInstanceLegendCreator {
 				transformation.scale(scalingFactor, scalingFactor);
 				shape = transformation.createTransformedShape(shape);
 			}
-		} else if (seriesType == SeriesType.BARS) {
+		} else if (seriesType == VisualizationType.BARS) {
 			shape = BAR_SHAPE;
-		} else if (seriesType == SeriesType.AREA) {
+		} else if (seriesType == VisualizationType.AREA) {
 			shape = AREA_SHAPE;
 		} else {
 			throw new RuntimeException("Unknown SeriesType. This should not happen.");
@@ -511,14 +517,16 @@ public class PlotInstanceLegendCreator {
 				double fraction = minScalingFactor + ((double)i/legendItemCount * (maxScalingFactor-minScalingFactor));
 				double legendScalingFactor = legendSizeProvider.getScalingFactorForValue(fraction);
 				
-				double width = composedShape.getBounds().getWidth();
-				double height = composedShape.getBounds().getHeight();
+				double composedWidth = composedShape.getBounds().getWidth();
+
 				AffineTransform t = new AffineTransform();
 				t.scale(legendScalingFactor, legendScalingFactor);
 				Shape shape = t.createTransformedShape(originalShape);
+
 				t = new AffineTransform();
 				double shapeWidth = shape.getBounds().getWidth();
-				t.translate(width + shapeWidth * .1, (maxHeight-height)/2.0);
+				double shapeHeight = shape.getBounds().getHeight();
+				t.translate(composedWidth + shapeWidth * .1, (maxHeight-shapeHeight)/2.0);
 				t.translate(-shape.getBounds().getMinX(), -shape.getBounds().getMinY());
 				shape = t.createTransformedShape(shape);
 				composedShape.add(new Area(shape));

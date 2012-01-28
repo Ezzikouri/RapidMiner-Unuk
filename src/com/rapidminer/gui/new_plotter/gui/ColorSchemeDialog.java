@@ -80,7 +80,7 @@ import com.rapidminer.gui.new_plotter.configuration.EqualDataFractionGrouping;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.LegendConfiguration.LegendPosition;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.StackingMode;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
@@ -1128,7 +1128,7 @@ public class ColorSchemeDialog extends ButtonDialog implements PlotConfiguration
 
 		RangeAxisConfig nominalRangeAxis = new RangeAxisConfig("", nominalPlotConfig);
 		ValueSource nominalValueSource = new ValueSource(nominalPlotConfig, mainColumn, AggregationFunctionType.count, true);
-		nominalValueSource.getSeriesFormat().setSeriesType(SeriesType.BARS);
+		nominalValueSource.getSeriesFormat().setSeriesType(VisualizationType.BARS);
 		nominalValueSource.getSeriesFormat().setStackingMode(StackingMode.RELATIVE);
 		nominalRangeAxis.addValueSource(nominalValueSource, nominalPlotConfig.getAutomaticSeriesFormatForNextValueSource(nominalRangeAxis));
 		nominalPlotConfig.addRangeAxisConfig(nominalRangeAxis);

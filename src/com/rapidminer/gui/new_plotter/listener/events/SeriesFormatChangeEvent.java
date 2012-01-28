@@ -28,7 +28,7 @@ import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.FillStyle;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.StackingMode;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
 
@@ -55,7 +55,7 @@ public class SeriesFormatChangeEvent implements ConfigurationChangeEvent {
 	private final SeriesFormat source;
 	private final SeriesFormatChangeType type;
 	
-	private SeriesType seriesType = null;
+	private VisualizationType seriesType = null;
 	private StackingMode stackingMode = null;
 	private UtilityUsage errorIndicator = null;
 	private LineStyle lineStyle = null;
@@ -69,7 +69,7 @@ public class SeriesFormatChangeEvent implements ConfigurationChangeEvent {
 	private FillStyle areaFillStyle = null;
 	private Integer opacity = null;
 
-	public SeriesFormatChangeEvent(SeriesFormat source, SeriesType seriesType) {
+	public SeriesFormatChangeEvent(SeriesFormat source, VisualizationType seriesType) {
 		this.type = SeriesFormatChangeType.SERIES_TYPE;
 		this.seriesType = seriesType;
 		this.source = source;
@@ -140,7 +140,7 @@ public class SeriesFormatChangeEvent implements ConfigurationChangeEvent {
 		return type;
 	}
 
-	public SeriesType getSeriesType() {
+	public VisualizationType getSeriesType() {
 		return seriesType;
 	}
 
@@ -204,7 +204,7 @@ public class SeriesFormatChangeEvent implements ConfigurationChangeEvent {
 	/**
 	 * @param seriesType the seriesType to set
 	 */
-	public void setSeriesType(SeriesType seriesType) {
+	public void setSeriesType(VisualizationType seriesType) {
 		this.seriesType = seriesType;
 	}
 

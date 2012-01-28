@@ -33,7 +33,7 @@ import com.rapidminer.gui.new_plotter.StaticDebug;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.StackingMode;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.listener.events.RangeAxisConfigChangeEvent;
@@ -82,7 +82,7 @@ public class RangeAxisData {
 			double minValue = minMax.getFirst();
 			double maxValue = minMax.getSecond();
 			
-			if(valueSource.getSeriesFormat().getSeriesType() == SeriesType.AREA || valueSource.getSeriesFormat().getSeriesType() == SeriesType.BARS) {
+			if(valueSource.getSeriesFormat().getSeriesType() == VisualizationType.AREA || valueSource.getSeriesFormat().getSeriesType() == VisualizationType.BARS) {
 				if(valueSource.getSeriesFormat().getStackingMode() == StackingMode.RELATIVE) {
 					minValue = 0;
 					maxValue = 1;
@@ -186,21 +186,15 @@ public class RangeAxisData {
 		
 		// update rangeAxisConfig to the one of the current plot configuration clone with the corresponding id
 		PlotConfiguration currentPlotConfigurationClone = plotInstance.getCurrentPlotConfigurationClone();
-		int id = e.getSource().getId();
+		int id = e.getSource().getId(); 
 		RangeAxisConfig rangeAxisConfigById = currentPlotConfigurationClone.getRangeAxisConfigById(id);
 		if(rangeAxisConfigById == null) {
-			StaticDebug.debug("RangeAxisData: ### ATTENTION #### RangeAxis with ID "+id+" is null!");
+			StaticDebug.debug("RangeAxisData: ### ATTENTION #### RangeAxis with ID "+id+" is null! Meta change event?");
+			return;  // do nothing if range axis is not present anymore
 		}
 		setRangeAxisConfig(rangeAxisConfigById);
 		
-		// TODO 
 		switch (e.getType()) {
-			case AUTO_NAMING:
-				break;
-			case LABEL:
-				break;
-			case SCALING:
-				break;
 			case CLEARED:
 			case RANGE_CHANGED:
 			case VALUE_SOURCE_ADDED:

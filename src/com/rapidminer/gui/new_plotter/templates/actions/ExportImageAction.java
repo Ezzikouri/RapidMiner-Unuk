@@ -336,7 +336,7 @@ public class ExportImageAction extends ResourceAction {
 				return;
 			}
 			panel.setSize(dialog.getUserDimension());
-			panel.setChart(template.getPlotEngine().getCurrentChart()); //FIXME check if this is working in the new way the function is used
+			panel.setChart(template.getPlotEngine().getCurrentChart()); 
 			
 			ExportDialog exportDialog = new ExportDialog("RapidMiner");
 			exportDialog.showExportDialog(ApplicationFrame.getApplicationFrame(), "Save Image...", panel, "plot");

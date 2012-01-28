@@ -77,29 +77,9 @@ public class DomainConfigManagerData implements DimensionConfigListener {
 		lastProcessedEvent  = e;
 		
 		switch (e.getType()) {
-		case ABOUT_TO_CHANGE_GROUPING:
-			break;
-		case AUTO_NAMING:
-			break;
-		case COLOR_PROVIDER:
-			break;
 		case COLUMN:
 		case SORTING:
 			applySorting();
-			break;
-		case GROUPING_CHANGED:
-			break;
-		case LABEL:
-			break;
-		case RANGE:
-			break;
-		case RESET:
-			break;
-		case SCALING:
-			break;
-		case SHAPE_PROVIDER:
-			break;
-		case SIZE_PROVIDER:
 			break;
 		}
 	}

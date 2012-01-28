@@ -290,19 +290,22 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 	 */
 	private void hideDropDeniedTooltip() {
 		if (tipWindow != null) {
+//			StaticDebug.debug("DND POPUP: Hide tooltip");
 			tipWindow.hide();
 			tipWindow = null;
 			if (hideTimer.isRunning()) {
+//				StaticDebug.debug("DND POPUP: Hide timer is running. Stopping it");
 				hideTimer.stop();
 			}
 		}
 		if (showTimer.isRunning()) {
+//			StaticDebug.debug("DND POPUP: Show timer is running. Stopping it");
 			showTimer.stop();
 		}
 	}
 
 	private void showPopupAtMousePosition() {
-
+//		StaticDebug.debug("DND POPUP: Show popup at Mouse position");
 		// get mouse location
 		Point screenLocation = MouseInfo.getPointerInfo().getLocation();
 		screenLocation.x += 26;
@@ -310,12 +313,19 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 
 		// if tooltip is shown
 		if (tipWindow != null) {
+//			StaticDebug.debug("DND POPUP: Popup is already shown");
 
 			// check if mouse has moved
-			if (mouseX != screenLocation.x || mouseY != screenLocation.x) {
+			if (mouseX != screenLocation.x || mouseY != screenLocation.y) {
+//				StaticDebug.debug("DND POPUP: old position x = "+mouseX);
+//				StaticDebug.debug("DND POPUP: old position y = "+mouseY);
+//				StaticDebug.debug("DND POPUP: new position x = "+screenLocation.x);
+//				StaticDebug.debug("DND POPUP: new position y = "+screenLocation.y);
+//				StaticDebug.debug("DND POPUP: Mouse position has changed.. hide popup first");
 				// hide tooltip
 				hideDropDeniedTooltip();
 			} else {
+//				StaticDebug.debug("DND POPUP: Restart hide timer to prevent popup from being hidden.");
 				// otherwise restart hide timer
 				hideTimer.restart();
 				return;
@@ -325,6 +335,7 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 		Point componentLocation = (Point) screenLocation.clone();
 		SwingUtilities.convertPointFromScreen(componentLocation, popupSource);
 		if (tipWindow == null && popupSource.contains(componentLocation)) {
+//			StaticDebug.debug("DND POPUP: Mouse is inside popupSource and popup is not shown");
 			JToolTip tip = popupSource.createToolTip();
 			tip.setTipText(reason);
 			PopupFactory popupFactory = PopupFactory.getSharedInstance();
@@ -332,6 +343,7 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 			mouseX = screenLocation.x;
 			mouseY = screenLocation.y;
 
+//			StaticDebug.debug("DND POPUP: show popup at "+mouseX+","+mouseY+" and start hide timer");
 			tipWindow = popupFactory.getPopup(popupSource, tip, mouseX, mouseY);
 			tipWindow.show();
 			hideTimer.restart();
@@ -342,29 +354,38 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 
 		// if there is a tooltip to show
 		if (deniedReason != null) {
+//			StaticDebug.debug("DND POPUP: Drop denied reason: "+deniedReason);
 
 			// if tooltip is shown
 			if (tipWindow != null) {
+//				StaticDebug.debug("DND POPUP: Popup is already shown.. ");
 
 				// check if reason has changed
 				if (!deniedReason.equals(reason)) {
+//					StaticDebug.debug("DND POPUP: Reason has changed!");
 
 					popupSource = (JComponent) comp;
 					reason = deniedReason;
 					hideDropDeniedTooltip();
 					showTimer.restart();
 				} else {
+//					StaticDebug.debug("DND POPUP: Check if mouse position has changed.. ");
+					
 					// check if mouse position has changed
 					showPopupAtMousePosition();
 				}
 
 			} else {
+//				StaticDebug.debug("DND POPUP: Popup is not shown.. ");
+				
 				// if tooltip is not shown check if show timer is running already. if not start it
 				if (!showTimer.isRunning()) {
+//					StaticDebug.debug("DND POPUP: Show timer is not running.. starting Show timer");
 					popupSource = (JComponent) comp;
 					reason = deniedReason;
 					showTimer.restart();
 				} else if (!deniedReason.equals(reason)) {
+//					StaticDebug.debug("DND POPUP: Show timer is running.. but reason has changed! Restarting timer..");
 					// if timer is running already check if reason has changed an restart if it has changed
 					popupSource = (JComponent) comp;
 					reason = deniedReason;
@@ -372,6 +393,7 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 				}
 			}
 		} else {
+//			StaticDebug.debug("DND POPUP: No reason. Stop timers and hide tooltip");
 
 			// reason is null. stop timers and hide tooltip
 			hideDropDeniedTooltip();

@@ -550,7 +550,12 @@ public class DimensionConfigPanel extends AbstractConfigurationPanel {
 			dateFormatTextField.setVisible(dateFormatConfigVisible);
 			dateFormatLabel.setVisible(dateFormatConfigVisible);
 			useDefaultDateFormatCheckBox.setVisible(dateFormatConfigVisible);
-			dateFormatTextField.setText(dimensionConfig.getUserDefinedDateFormatString());
+			
+			String userDefinedDateFormatString = dimensionConfig.getUserDefinedDateFormatString();
+			String text = dateFormatTextField.getText();
+			if(!text.equals(userDefinedDateFormatString)) {
+				dateFormatTextField.setText(userDefinedDateFormatString);
+			}
 			dateFormatTextField.setEnabled(dimensionConfig.isUsingUserDefinedDateFormat());
 			useDefaultDateFormatCheckBox.setSelected(!dimensionConfig.isUsingUserDefinedDateFormat());
 				
@@ -602,8 +607,6 @@ public class DimensionConfigPanel extends AbstractConfigurationPanel {
 
 			upperBoundChanged(dimensionConfig.getUserDefinedUpperBound());
 			useUpperBoundChanged(dimensionConfig.isUsingUserDefinedUpperBound(), nominal);
-
-			//TODO check date
 
 		} else {
 			disableAllComponents();

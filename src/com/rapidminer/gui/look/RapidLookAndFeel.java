@@ -30,7 +30,7 @@ import javax.swing.plaf.BorderUIResource.LineBorderUIResource;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.InsetsUIResource;
-import javax.swing.plaf.basic.BasicLookAndFeel;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.text.DefaultEditorKit;
 
 import com.rapidminer.gui.look.borders.Borders;
@@ -42,7 +42,7 @@ import com.rapidminer.gui.tools.SwingTools;
  *
  * @author Ingo Mierswa
  */
-public class RapidLookAndFeel extends BasicLookAndFeel {
+public class RapidLookAndFeel extends MetalLookAndFeel {
 
 	private static final long serialVersionUID = 1616331528047010458L;
 	
@@ -239,9 +239,16 @@ public class RapidLookAndFeel extends BasicLookAndFeel {
 				zero,
 				"CheckBox.focusInputMap",
 				new UIDefaults.LazyInputMap(new Object[] { "SPACE", "pressed", "released SPACE", "released", "RETURN", "pressed" }),
+				//TextField
+				"TextField.selectionBackground",
+				COLORS.getTextHighlightBackColor(),
 				// ComboBox
 				"ComboBox.font",
 				fontDialog12,
+				"ComboBox.selectionBackground",
+				COLORS.getTextHighlightBackColor(),
+				"ComboBox.selectionForeground", 
+				getHighlightedTextColor(),
 				"ComboBox.background",
 				COLORS.getCommonBackground(),
 				"ComboBox.foreground",
@@ -622,6 +629,8 @@ public class RapidLookAndFeel extends BasicLookAndFeel {
 																		fontDialog12,
 																		"Tree.selectionBorder",
 																		focusCellHighlightBorder,
+																		"Tree.selectionBackground", // HERE
+																		COLORS.getTextHighlightBackColor(),
 																		"Tree.editorBorder",
 																		focusCellHighlightBorder,
 																		"Tree.line",
@@ -838,7 +847,7 @@ public class RapidLookAndFeel extends BasicLookAndFeel {
 		return new FontUIResource("Dialog", 0, 12);
 	}
 
-	public ColorUIResource getTextHighlightColor() {
-		return getColors().getTextHighlightBackColor();
-	}
+//	public ColorUIResource getTextHighlightColor() {
+//		return getColors().getTextHighlightBackColor();
+//	}
 }

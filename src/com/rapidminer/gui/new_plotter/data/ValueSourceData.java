@@ -469,8 +469,8 @@ public class ValueSourceData {
 		SeriesUsageType seriesUsage = SeriesUsageType.INDICATOR_1;
 
 		// check if second utility can should be used
-		if (!secondary && dataTableColumnIdxMap.get(SeriesUsageType.UTILITY_2) != null) {
-			seriesUsage = SeriesUsageType.UTILITY_2;
+		if (!secondary && dataTableColumnIdxMap.get(SeriesUsageType.INDICATOR_2) != null) {
+			seriesUsage = SeriesUsageType.INDICATOR_2;
 		}
 
 		GroupCellData groupCellData = groupCellKeyAndData.getData();
@@ -679,7 +679,8 @@ public class ValueSourceData {
 		lastProcessedEvent = e;
 		
 		if(clonedValueSource == null) {
-			StaticDebug.debug("ValueSourceData: ### ATTENTION #### ValueSource with ID "+valueSource.getId()+" is null!");
+			StaticDebug.debug("ValueSourceData: ### CAUTION #### ValueSource with ID "+valueSource.getId()+" is null!");
+			return;
 		}
 		setValueSource(clonedValueSource);
 

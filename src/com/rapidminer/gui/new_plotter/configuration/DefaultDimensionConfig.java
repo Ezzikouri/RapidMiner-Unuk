@@ -150,7 +150,7 @@ public class DefaultDimensionConfig extends AbstractDimensionConfig implements V
 			throw new RuntimeException("NULL value range is not allowed");
 		}
 		if (this.userDefinedRange != range) {
-			if (userDefinedRange != null) {
+			if (this.userDefinedRange != null) {
 				this.userDefinedRange.removeValueRangeListener(this);
 			}
 

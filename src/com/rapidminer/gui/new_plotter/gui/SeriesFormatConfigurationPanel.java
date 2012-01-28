@@ -27,7 +27,7 @@ import java.awt.CardLayout;
 
 import javax.swing.JTree;
 
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.listener.events.PlotConfigurationChangeEvent;
 
@@ -61,10 +61,10 @@ public class SeriesFormatConfigurationPanel extends AbstractTreeSelectionDepende
 	protected void adaptGUI() {
 
 		if (getSelectedValueSource() != null) {
-			SeriesType seriesType = getSelectedValueSource().getSeriesFormat().getSeriesType();
+			VisualizationType seriesType = getSelectedValueSource().getSeriesFormat().getSeriesType();
 
 			// check for series type and handle lines and shapes different
-			if (seriesType == SeriesType.AREA || seriesType == SeriesType.BARS) {
+			if (seriesType == VisualizationType.AREA || seriesType == VisualizationType.BARS) {
 				CardLayout cardLayout = (CardLayout) this.getLayout();
 				cardLayout.show(this, AREA_BAR);
 			} else {

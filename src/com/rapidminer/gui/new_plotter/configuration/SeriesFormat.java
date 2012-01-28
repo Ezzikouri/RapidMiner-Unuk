@@ -240,14 +240,14 @@ public class SeriesFormat implements Cloneable {
 		}
 	}
 	
-	public enum SeriesType{
+	public enum VisualizationType{
 		LINES_AND_SHAPES(I18N.getGUILabel("plotter.series_type.lines_and_shapes")),
 		BARS(I18N.getGUILabel("plotter.series_type.bars")),
 		AREA(I18N.getGUILabel("plotter.series_type.area"));
 		
 		private final String name;
 		
-		private SeriesType(String name) {
+		private VisualizationType(String name) {
 			this.name = name;
 		}
 		
@@ -284,7 +284,7 @@ public class SeriesFormat implements Cloneable {
 	private FillStyle areaFillStyle = FillStyle.SOLID;	// hatched, solid, ...
 	private int opacity = 255;
 	private StackingMode stackingMode = StackingMode.NONE;
-	private SeriesType seriesType = SeriesType.LINES_AND_SHAPES;
+	private VisualizationType seriesType = VisualizationType.LINES_AND_SHAPES;
 	private UtilityUsage utilityUsage = UtilityUsage.NONE;
 	private LineFormat lineFormat = new LineFormat();
 	
@@ -499,11 +499,11 @@ public class SeriesFormat implements Cloneable {
 		return lineFormat.getStroke();
 	}
 
-	public SeriesType getSeriesType() {
+	public VisualizationType getSeriesType() {
 		return seriesType;
 	}
 
-	public void setSeriesType(SeriesType seriesType) {
+	public void setSeriesType(VisualizationType seriesType) {
 		if (seriesType != this.seriesType) {
 			this.seriesType = seriesType;
 			fireChanged(new SeriesFormatChangeEvent(this, seriesType));

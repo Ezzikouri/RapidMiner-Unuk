@@ -160,12 +160,21 @@ public class DimensionConfigData {
 	}
 
 	private void updateGroupingModel() {
-		cachedValueGroups = getDimensionConfig().getGrouping().getGroupingModel(plotInstance.getPlotData().getDataTable());
+		DefaultDimensionConfig dimensionConfig = getDimensionConfig();
+		double upperBound = Double.POSITIVE_INFINITY;
+		double lowerBound = Double.NEGATIVE_INFINITY;
+		if (dimensionConfig.isUsingUserDefinedUpperBound()) {
+			upperBound = dimensionConfig.getUserDefinedUpperBound();
+		}
+		if (dimensionConfig.isUsingUserDefinedLowerBound()) {
+			lowerBound = dimensionConfig.getUserDefinedLowerBound();
+		}
+		cachedValueGroups = dimensionConfig.getGrouping().getGroupingModel(plotInstance.getPlotData().getDataTable(), upperBound, lowerBound);
 
 		int maxAllowedValueCount = PlotConfiguration.getMaxAllowedValueCount();
 		if (cachedValueGroups.size() > maxAllowedValueCount) {
 			ConfigurationChangeResponse response = new ConfigurationChangeResponse();
-			response.addError(new PlotConfigurationError("too_many_values_in_plot", getDimensionConfig().getDimension().getName()));
+			response.addError(new PlotConfigurationError("too_many_values_in_plot", dimensionConfig.getDimension().getName()));
 			plotInstance.getMasterOfDesaster().registerConfigurationChangeResponse(response);
 			cachedValueGroups = new LinkedList<ValueRange>();
 			cachedMinGroupValue = 0;
@@ -404,8 +413,8 @@ public class DimensionConfigData {
 		} else {
 			double minValue = getMinValue();
 			double maxValue = getMaxValue();
-			setSizeProvider(new ContinuousSizeProvider(minValue, maxValue, plotConfiguration.getMinShapeSize(), plotConfiguration.getMaxShapeSize(),
-					getDimensionConfig().isLogarithmic()));
+			setSizeProvider(new ContinuousSizeProvider(minValue, maxValue, plotConfiguration.getMinShapeSize(), plotConfiguration.getMaxShapeSize(), getDimensionConfig()
+					.isLogarithmic()));
 		}
 	}
 
@@ -481,28 +490,18 @@ public class DimensionConfigData {
 			return;
 		}
 		lastProcessedEvent = e;
-		
+
 		// update dimension config to the one of the current clone
 		PlotDimension dimension = e.getSource().getDimension();
 		DimensionConfig dimConf = plotInstance.getCurrentPlotConfigurationClone().getDimensionConfig(dimension);
-		if(dimConf == null) {
-			StaticDebug.debug("DimensionConfigData: ### ATTENTION #### DimensionConfig for dimension "+dimension+" is null!");
+		if (dimConf == null) {
+			StaticDebug.debug("DimensionConfigData: ### ATTENTION #### DimensionConfig for dimension " + dimension + " is null! Meta change event?");
 			return;
 		}
-//		if(dimConf instanceof DefaultDimensionConfig) {
-//			setDimensionConfig(((DefaultDimensionConfig) dimConf));
-//		} else if (dimConf instanceof DomainConfigManager) {
-//			if (e.getSource().isGrouping()) {
-//				DomainConfigManager domainConfigManager = (DomainConfigManager)dimConf;
-//				setDimensionConfig(domainConfigManager.getDomainConfig(getDimensionConfig().isGrouping()));
-//			}
-//		} else {
-//			throw new IllegalArgumentException("source of event must be either a DefaultDimensionConfig or a DomainConfigManager");
-//		}
-		
+
 		switch (e.getType()) {
 			case COLUMN:
-				columnIdx.setDataTableColumn(e.getColumn());
+				columnIdx.setDataTableColumn(dimConf.getDataTableColumn());
 			case RESET:
 			case GROUPING_CHANGED:
 			case RANGE:
@@ -510,18 +509,6 @@ public class DimensionConfigData {
 			case SCALING:
 				clearCache();
 				invalidateFormatProviders();
-				break;
-			case ABOUT_TO_CHANGE_GROUPING:
-				break;
-			case COLOR_PROVIDER:
-				break;
-			case SHAPE_PROVIDER:
-				break;
-			case SIZE_PROVIDER:
-				break;
-			case AUTO_NAMING:
-			case LABEL:
-				// do nothing
 				break;
 			case COLOR_SCHEME:
 				StaticDebug.debug("Color scheme has changed. " + this + " invalidate format providers");
@@ -533,9 +520,9 @@ public class DimensionConfigData {
 	public List<PlotConfigurationError> getErrors() {
 		List<PlotConfigurationError> errorList = new LinkedList<PlotConfigurationError>();
 
-		if(cachedValueGroups != null) {
+		if (cachedValueGroups != null) {
 			plotInstance.getCurrentPlotConfigurationClone();
-			if(cachedValueGroups.size() > PlotConfiguration.getMaxAllowedValueCount()) {
+			if (cachedValueGroups.size() > PlotConfiguration.getMaxAllowedValueCount()) {
 				errorList.add(new PlotConfigurationError("too_many_values_in_plot", getDimensionConfig().getDimension().getName()));
 			}
 		}
@@ -576,9 +563,9 @@ public class DimensionConfigData {
 			}
 		}
 
-//		// check if the user defined range contains no data  FIXME check if this check can be done without using the data table
 		PlotData plotData = plotInstance.getPlotData();
-		if ((getDimensionConfig().isUsingUserDefinedLowerBound() || getDimensionConfig().isUsingUserDefinedUpperBound()) && plotData.isDataTableValid() && plotData.getDataTable().getRowNumber() == 0) {
+		if ((getDimensionConfig().isUsingUserDefinedLowerBound() || getDimensionConfig().isUsingUserDefinedUpperBound()) && plotData.isDataTableValid()
+				&& plotData.getDataTable().getRowNumber() == 0) {
 			warnings.add(new PlotConfigurationError("user_range_includes_no_data", getDimensionConfig().getDimension().getName()));
 		}
 
@@ -603,18 +590,17 @@ public class DimensionConfigData {
 	 * @return The dimension config with the id of this {@link DimensionConfigData} of the {@link PlotInstance#getCurrentPlotConfigurationClone()}.
 	 */
 	public DefaultDimensionConfig getDimensionConfig() {
-		return plotInstance.getCurrentPlotConfigurationClone().getDimensionConfigById(dimensionConfigId);
+		return plotInstance.getCurrentPlotConfigurationClone().getDefaultDimensionConfigById(dimensionConfigId);
 	}
 
-	
 	/**
 	 * @param getDimensionConfig() the getDimensionConfig() to set
 	 */
-//	private void setDimensionConfig(DefaultDimensionConfig getDimensionConfig()) {
-//		if(getDimensionConfig() != null && getDimensionConfig().getId() == this.getDimensionConfig().getId()) {
-//			this.getDimensionConfig() = getDimensionConfig();
-//		} else {
-//			throw new IllegalArgumentException("Trying to set getDimensionConfig() on dimensionConfigData with different id (or null) - this should not happen");
-//		}
-//	}
+	//	private void setDimensionConfig(DefaultDimensionConfig getDimensionConfig()) {
+	//		if(getDimensionConfig() != null && getDimensionConfig().getId() == this.getDimensionConfig().getId()) {
+	//			this.getDimensionConfig() = getDimensionConfig();
+	//		} else {
+	//			throw new IllegalArgumentException("Trying to set getDimensionConfig() on dimensionConfigData with different id (or null) - this should not happen");
+	//		}
+	//	}
 }

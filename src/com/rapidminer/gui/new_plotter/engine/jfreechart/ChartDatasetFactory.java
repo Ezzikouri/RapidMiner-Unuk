@@ -424,7 +424,7 @@ public class ChartDatasetFactory {
 			}
 
 			// this dataset does not support unsymmetric errors
-			if (groupCellData.getDataForUsageType(SeriesUsageType.UTILITY_2) != null) {
+			if (groupCellData.getDataForUsageType(SeriesUsageType.INDICATOR_2) != null) {
 				throw new ChartPlottimeException("unsymmetric_utility_not_supported", valueSource.toString());
 			}
 

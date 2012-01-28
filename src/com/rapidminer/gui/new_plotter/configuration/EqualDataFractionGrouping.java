@@ -98,14 +98,14 @@ public class EqualDataFractionGrouping extends AbstractValueGrouping {
 	}
 
 	@Override
-	protected List<ValueRange> createGroupingModel(DataTable dataTable) {
+	protected List<ValueRange> createGroupingModel(DataTable dataTable, double upperBound, double lowerBound) {
 		int columnIdx = DataTableColumn.getColumnIndex(dataTable, getDataTableColumn());
 		Map<Double, Integer> distinctValueCountMap = new HashMap<Double, Integer>();
 		Vector<Double> sortedDistinctValueList = new Vector<Double>();
 		int valueCount = 0;
 		for (DataTableRow row : dataTable) {
 			Double value = row.getValue(columnIdx);
-			if (!Double.isNaN(value)) {
+			if (!Double.isNaN(value) && value >= lowerBound && value <= upperBound) {
 				Integer currentCount = distinctValueCountMap.get(value);
 				if (currentCount == null) {
 					distinctValueCountMap.put(value, 1);
@@ -143,8 +143,8 @@ public class EqualDataFractionGrouping extends AbstractValueGrouping {
 
 		int valuesUsed = 0;
 
-		Double lowerBound = sortedDistinctValueList.get(0);
-		Double upperBound;
+		lowerBound = sortedDistinctValueList.get(0);
+		upperBound = 0;
 
 		// start iterating over data
 		for (int binIdx = 1; binIdx <= binCount; ++binIdx) {

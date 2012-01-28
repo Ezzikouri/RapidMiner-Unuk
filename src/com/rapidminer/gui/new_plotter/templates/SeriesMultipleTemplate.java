@@ -34,17 +34,19 @@ import com.rapidminer.datatable.DataTable;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
+import com.rapidminer.gui.new_plotter.configuration.LegendConfiguration.LegendPosition;
 import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.templates.SeriesTemplate.DataTableWithIndexDelegate;
 import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.SeriesMultipleTemplatePanel;
+import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction.AggregationFunctionType;
 
@@ -56,6 +58,13 @@ import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunctio
  */
 public class SeriesMultipleTemplate extends PlotterTemplate {
 
+	private static final String PLOT_NAME_ELEMENT = "plotName";
+
+	private static final String PLOT_NAMES_ELEMENT = "plotNames";
+
+	private static final String INDEX_NAME_ELEMENT = "indexName";
+	
+	
 	/** the current {@link DataTable} */
 	private DataTable currentDataTable;
 
@@ -67,6 +76,10 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 
 	/** the names of the plots to show */
 	private Object[] plotNames;
+	
+	/** the {@link SeriesMultipleTemplatePanel} instance */
+	private transient SeriesMultipleTemplatePanel seriesMultiplePanel;
+	
 
 	/**
 	 * Creates a new {@link SeriesMultipleTemplate}. This template allows easy configuration of the
@@ -79,6 +92,8 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 		String noSelection = I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.column.empty_selection.label");
 		indexName = noSelection;
 		plotNames = new Object[0];
+		
+		seriesMultiplePanel = new SeriesMultipleTemplatePanel(this);
 	}
 
 	@Override
@@ -88,7 +103,7 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 
 	@Override
 	public PlotterTemplatePanel getTemplateConfigurationPanel() {
-		return new SeriesMultipleTemplatePanel(this);
+		return seriesMultiplePanel;
 	}
 
 	/**
@@ -156,6 +171,11 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 
 	@Override
 	protected void updatePlotConfiguration() {
+		// don't do anything if updates are suspended due to batch updating
+		if (suspendUpdates) {
+			return;
+		}
+		
 		PlotConfiguration plotConfiguration = getPlotConfiguration();
 		
 		// stop event processing
@@ -167,8 +187,10 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 			plotConfiguration.removeRangeAxisConfig(rAConfig);
 		}
 		currentRangeAxisConfigsList.clear();
+		
 		// no selection?
 		if (plotNames.length == 0) {
+			plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);
 			return;
 		}
 
@@ -190,7 +212,7 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 			DataTableColumn aDataTableColumn = new DataTableColumn(currentDataTable, currentDataTable.getColumnIndex(plotName));
 			valueSource = new ValueSource(plotConfiguration, aDataTableColumn, AggregationFunctionType.count, false);
 			SeriesFormat sFormat = new SeriesFormat();
-			sFormat.setSeriesType(SeriesType.LINES_AND_SHAPES);
+			sFormat.setSeriesType(VisualizationType.LINES_AND_SHAPES);
 			sFormat.setLineStyle(LineStyle.SOLID);
 			sFormat.setItemShape(ItemShape.NONE);
 			sFormat.setLineWidth(1.5f);
@@ -208,6 +230,7 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 		plotConfiguration.setTitleFont(styleProvider.getTitleFont());
 		plotConfiguration.getLegendConfiguration().setLegendFont(styleProvider.getLegendFont());
 		plotConfiguration.addColorSchemeAndSetActive(styleProvider.getColorScheme());
+		plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.BOTTOM);
 		
 		// continue event processing
 		plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);
@@ -215,49 +238,58 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 	
 	@Override
 	public Element writeToXML(Document document) {
-		Element template = document.createElement("template");
-		template.setAttribute("name", getChartType());
+		Element template = document.createElement(PlotterTemplate.TEMPLATE_ELEMENT);
+		template.setAttribute(PlotterTemplate.NAME_ELEMENT, getChartType());
 		Element setting;
 		
-		setting = document.createElement("indexName");
-		setting.setAttribute("value", String.valueOf(indexName));
+		setting = document.createElement(INDEX_NAME_ELEMENT);
+		setting.setAttribute(VALUE_ATTRIBUTE, String.valueOf(indexName));
 		template.appendChild(setting);
 		
-		setting = document.createElement("plotNames");
+		setting = document.createElement(PLOT_NAMES_ELEMENT);
 		for (Object key : plotNames) {
-			Element plotNameElement = document.createElement("plotName");
-			plotNameElement.setAttribute("value", String.valueOf(key));
+			Element plotNameElement = document.createElement(PLOT_NAME_ELEMENT);
+			plotNameElement.setAttribute(VALUE_ATTRIBUTE, String.valueOf(key));
 			setting.appendChild(plotNameElement);
 		}
 		template.appendChild(setting);
+		
+		template.appendChild(styleProvider.createXML(document));
 		
 		return template;
 	}
 	
 	@Override
 	public void loadFromXML(Element templateElement) {
+		suspendUpdates = true;
+		
 		for (int i=0; i<templateElement.getChildNodes().getLength(); i++) {
 			Node node = templateElement.getChildNodes().item(i);
 			if (node instanceof Element) {
 				Element setting = (Element) node;
 				
-				if (setting.getNodeName().equals("plotNames")) {
+				if (setting.getNodeName().equals(PLOT_NAMES_ELEMENT)) {
 					List<Object> plotNamesList = new LinkedList<Object>();
 					for (int j=0; j<setting.getChildNodes().getLength(); j++) {
 						Node plotNode = setting.getChildNodes().item(j);
 						if (plotNode instanceof Element) {
 							Element plotNameElement = (Element) plotNode;
 							
-							if (plotNameElement.getNodeName().equals("plotName")) {
-								plotNamesList.add(plotNameElement.getAttribute("value"));
+							if (plotNameElement.getNodeName().equals(PLOT_NAME_ELEMENT)) {
+								plotNamesList.add(plotNameElement.getAttribute(VALUE_ATTRIBUTE));
 							}
 						}
 					}
 					setPlotSelection(plotNamesList.toArray());
-				} else if (setting.getNodeName().equals("indexName")) {
-					setIndexDimensionName(setting.getAttribute("value"));
+				} else if (setting.getNodeName().equals(INDEX_NAME_ELEMENT)) {
+					setIndexDimensionName(setting.getAttribute(VALUE_ATTRIBUTE));
+				} else if (setting.getNodeName().equals(PlotterStyleProvider.STYLE_ELEMENT)) {
+					styleProvider.loadFromXML(setting);
 				}
 			}
 		}
+
+		suspendUpdates = false;
+		updatePlotConfiguration();
 	}
 }

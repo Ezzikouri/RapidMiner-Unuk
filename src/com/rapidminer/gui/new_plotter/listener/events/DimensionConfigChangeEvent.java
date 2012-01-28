@@ -181,7 +181,7 @@ public class DimensionConfigChangeEvent implements ConfigurationChangeEvent {
 	/**
 	 * @return the column
 	 */
-	public DataTableColumn getColumn() {
+	public DataTableColumn getDataTableColumn() {
 		return column;
 	}
 

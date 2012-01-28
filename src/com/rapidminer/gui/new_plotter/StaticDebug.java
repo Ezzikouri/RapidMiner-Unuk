@@ -223,8 +223,8 @@ public class StaticDebug {
 			case COLOR_SCHEME:
 				break;
 			case COLUMN:
-				inputs[pad+1] = change.getColumn().getName();
-				inputs[pad+2] = change.getColumn().getValueType();
+				inputs[pad+1] = change.getDataTableColumn().getName();
+				inputs[pad+2] = change.getDataTableColumn().getValueType();
 				break;
 			case CROSSHAIR_LINES_CHANGED:
 				break;

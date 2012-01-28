@@ -69,7 +69,6 @@ public class ResultDisplayTools {
             try {
                 Component rendererComponent = renderer.getVisualizationComponent(resultObject, resultContainer);
                 if (rendererComponent != null) {
-                	StaticDebug.debug("ResultDisplayTools: add component to RadioCardPanel of type " + rendererComponent.getClass()+" "+rendererComponent.getClass().hashCode());
                     ((RadioCardPanel)visualisationComponent).addCard(renderer.getName(), rendererComponent);
                 }
             } catch (Exception e) {

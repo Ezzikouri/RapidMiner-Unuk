@@ -74,7 +74,7 @@ import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.StackingMode;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
@@ -800,7 +800,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	 * @return The index of the newly added dataset in the plot.
 	 */
 	private void addDataAndRendererToXYPlot(ValueSource valueSource, XYPlot plot, int rangeAxisIdx) throws ChartPlottimeException {
-		SeriesType seriesType = valueSource.getSeriesFormat().getSeriesType();
+		VisualizationType seriesType = valueSource.getSeriesFormat().getSeriesType();
 		StackingMode stackingMode = valueSource.getSeriesFormat().getStackingMode();
 		UtilityUsage errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
 
@@ -809,7 +809,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 
 		DefaultDimensionConfig domainConfig = valueSource.getDomainConfig();
 		DimensionConfigData domainConfigData = plotInstance.getPlotData().getDimensionConfigData(domainConfig);
-		if (seriesType == SeriesType.LINES_AND_SHAPES) {
+		if (seriesType == VisualizationType.LINES_AND_SHAPES) {
 			// stacking is ignored
 
 			// grouping is irrelevant
@@ -840,7 +840,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				// unknown error indicator - this should not happen
 				throw new IllegalArgumentException("unknown error indicator");
 			}
-		} else if (seriesType == SeriesType.BARS) {
+		} else if (seriesType == VisualizationType.BARS) {
 			// grouping is irrelevant
 
 			if (errorIndicator != UtilityUsage.NONE) {
@@ -851,7 +851,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), UtilityUsage.NONE);
 				error.addQuickFix(new PlotConfigurationQuickFix(change));
 				// suggest to switch to lines and shapes
-				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), SeriesType.LINES_AND_SHAPES);
+				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), VisualizationType.LINES_AND_SHAPES);
 				error.addQuickFix(new PlotConfigurationQuickFix(change));
 				throw new ChartPlottimeException(error);
 			} else {
@@ -874,7 +874,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 					throw new IllegalArgumentException("unknown stacking mode");
 				}
 			}
-		} else if (seriesType == SeriesType.AREA) {
+		} else if (seriesType == VisualizationType.AREA) {
 			// grouping is irrelevant
 			if (errorIndicator != UtilityUsage.NONE) {
 				// not supported
@@ -884,7 +884,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), UtilityUsage.NONE);
 				error.addQuickFix(new PlotConfigurationQuickFix(change));
 				// suggest to switch to lines and shapes
-				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), SeriesType.LINES_AND_SHAPES);
+				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), VisualizationType.LINES_AND_SHAPES);
 				error.addQuickFix(new PlotConfigurationQuickFix(change));
 				throw new ChartPlottimeException(error);
 			} else {
@@ -957,7 +957,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	 * @param rangeAxisIdx
 	 */
 	private void addDataAndRendererToCategoryPlot(ValueSource valueSource, CategoryPlot plot, int rangeAxisIdx) throws ChartPlottimeException {
-		SeriesType seriesType = valueSource.getSeriesFormat().getSeriesType();
+		VisualizationType seriesType = valueSource.getSeriesFormat().getSeriesType();
 		StackingMode stackingMode = valueSource.getSeriesFormat().getStackingMode();
 		UtilityUsage errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
 		DefaultDimensionConfig domainConfig = valueSource.getDomainConfig();
@@ -967,7 +967,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		CategoryItemRenderer renderer;
 		CategoryDataset dataset;
 
-		if (seriesType == SeriesType.LINES_AND_SHAPES) {
+		if (seriesType == VisualizationType.LINES_AND_SHAPES) {
 			// stacking is ignored
 
 			if (errorIndicator == UtilityUsage.DIFFERENCE || errorIndicator == UtilityUsage.BAND) {
@@ -993,7 +993,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				// unknown error indicator - this should not happen
 				throw new IllegalArgumentException("unknown error indicator: " + errorIndicator);
 			}
-		} else if (seriesType == SeriesType.BARS) {
+		} else if (seriesType == VisualizationType.BARS) {
 			// grouping is irrelevant
 
 			// bars don't support duplicate values on domain dimension:
@@ -1028,7 +1028,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 					throw new IllegalArgumentException("unknown stacking mode");
 				}
 			}
-		} else if (seriesType == SeriesType.AREA) {
+		} else if (seriesType == VisualizationType.AREA) {
 			// areas don't support duplicate values on domain dimension:
 			if (domainConfigData.hasDuplicateValues()) {
 				throwDuplicateValuesNotSupported(valueSource, PlotDimension.DOMAIN);
@@ -1599,7 +1599,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		// check if a category plot contains value sources which request lines to be drawn
 		if (plotConfiguration.getDomainConfigManager().isNominal()) {
 			for (ValueSource valueSource : plotConfiguration.getAllValueSources()) {
-				if (valueSource.getSeriesFormat().getSeriesType() == SeriesType.LINES_AND_SHAPES && valueSource.getSeriesFormat().getLineStyle() != LineStyle.NONE
+				if (valueSource.getSeriesFormat().getSeriesType() == VisualizationType.LINES_AND_SHAPES && valueSource.getSeriesFormat().getLineStyle() != LineStyle.NONE
 						&& !valueSource.isUsingDomainGrouping()) {
 					warnings.add(new PlotConfigurationError("plot_does_not_support_lines", "categorical scatter plot with ungrouped domain axis", valueSource.toString()));
 				}
@@ -1609,7 +1609,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		// check if a value source requests a difference plot with items
 		for (ValueSource valueSource : plotConfiguration.getAllValueSources()) {
 			SeriesFormat format = valueSource.getSeriesFormat();
-			if (format.getSeriesType() == SeriesType.LINES_AND_SHAPES) {
+			if (format.getSeriesType() == VisualizationType.LINES_AND_SHAPES) {
 				if (format.getUtilityUsage() == UtilityUsage.DIFFERENCE) {
 					if (format.getItemShape() != ItemShape.NONE) {
 						warnings.add(new PlotConfigurationError("difference_plot_with_items_not_supported", valueSource.toString()));

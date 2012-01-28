@@ -32,7 +32,7 @@ import com.rapidminer.gui.new_plotter.ChartConfigurationException;
 import com.rapidminer.gui.new_plotter.PlotConfigurationError;
 import com.rapidminer.gui.new_plotter.StaticDebug;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.SeriesType;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.StackingMode;
 import com.rapidminer.gui.new_plotter.configuration.event.AxisParallelLinesConfigurationChangeEvent;
 import com.rapidminer.gui.new_plotter.listener.RangeAxisConfigListener;
@@ -264,8 +264,8 @@ public class RangeAxisConfig implements ValueSourceListener, ValueRangeListener,
 
 	public boolean hasAbsolutStackedPlot() {
 		for (ValueSource valueSource : valueSourceList) {
-			SeriesType seriesType = valueSource.getSeriesFormat().getSeriesType();
-			if (seriesType == SeriesType.BARS || seriesType == SeriesType.AREA) {
+			VisualizationType seriesType = valueSource.getSeriesFormat().getSeriesType();
+			if (seriesType == VisualizationType.BARS || seriesType == VisualizationType.AREA) {
 				if (valueSource.getSeriesFormat().getStackingMode() == StackingMode.ABSOLUTE) {
 					return true;
 				}
@@ -446,8 +446,8 @@ public class RangeAxisConfig implements ValueSourceListener, ValueRangeListener,
 		int relativePlots = 0;
 		for (ValueSource valueSource : valueSourceList) {
 
-			SeriesType seriesType = valueSource.getSeriesFormat().getSeriesType();
-			if (seriesType == SeriesType.BARS || seriesType == SeriesType.AREA) {
+			VisualizationType seriesType = valueSource.getSeriesFormat().getSeriesType();
+			if (seriesType == VisualizationType.BARS || seriesType == VisualizationType.AREA) {
 				if (valueSource.getSeriesFormat().getStackingMode() == StackingMode.RELATIVE) {
 					++relativePlots;
 				}
