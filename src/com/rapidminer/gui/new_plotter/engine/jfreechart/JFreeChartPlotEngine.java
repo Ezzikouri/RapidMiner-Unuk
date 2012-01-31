@@ -17,6 +17,7 @@ package com.rapidminer.gui.new_plotter.engine.jfreechart;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.RenderingHints;
 import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.util.Iterator;
@@ -181,7 +182,6 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		chartPanel.setMaximumDrawWidth(10000);
 		chartPanel.setMaximumDrawHeight(10000);
 
-
 		subscribeAtPlotInstance(plotInstance);
 	}
 
@@ -300,14 +300,25 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	 */
 	private synchronized void updateChartPanel(final JFreeChart chart) {
 		Runnable updateChartPanelRunnable = new Runnable() {
-
+			
 			@Override
 			public void run() {
 				if (chart != chartPanel.getChart()) {
 					if (chart == null) {
 						chartPanel.setChart(new JFreeChart(new CategoryPlot()));
+						
 						fireChartChanged(new JFreeChart(new CategoryPlot()));
 					} else {
+						RenderingHints renderingHints = chart.getRenderingHints();
+						
+						// enable antialiasing
+						renderingHints.add(new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
+						
+						// disable normalization (normalization tries to draw the center of strokes at whole pixels, which causes e.g. 
+						// scaled shapes to appear more like potatoes than like circles)
+						renderingHints.add(new RenderingHints(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE));
+						chart.setRenderingHints(renderingHints);
+						
 						chartPanel.setChart(chart);
 						fireChartChanged(chart);
 					}

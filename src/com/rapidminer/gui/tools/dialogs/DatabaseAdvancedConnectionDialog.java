@@ -193,6 +193,8 @@ public class DatabaseAdvancedConnectionDialog extends ButtonDialog {
 					}
 				}
 				propInfo[row].value = String.valueOf(value);
+				override.set(row, Boolean.TRUE);
+				fireTableCellUpdated(row, 2);
 			} else if (col == 2) {
 				override.set(row, Boolean.parseBoolean(String.valueOf(value)));
 			}

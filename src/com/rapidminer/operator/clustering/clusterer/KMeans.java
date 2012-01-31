@@ -192,9 +192,17 @@ public class KMeans extends RMAbstractClusterer implements CapabilityProvider {
 		bestModel.setClusterAssignments(bestAssignments, exampleSet);
 
 		if (addsClusterAttribute()) {
-			Attribute cluster = AttributeFactory.createAttribute("cluster", Ontology.NOMINAL);
-			exampleSet.getExampleTable().addAttribute(cluster);
-			exampleSet.getAttributes().setCluster(cluster);
+			Attribute cluster;
+			if (!getParameterAsBoolean(PARAMETER_ADD_AS_LABEL)) {
+				cluster = AttributeFactory.createAttribute(Attributes.CLUSTER_NAME, Ontology.NOMINAL);
+				exampleSet.getExampleTable().addAttribute(cluster);
+				attributes.setCluster(cluster);
+			} else {
+				cluster = AttributeFactory.createAttribute(Attributes.LABEL_NAME, Ontology.NOMINAL);
+				exampleSet.getExampleTable().addAttribute(cluster);
+				attributes.setLabel(cluster);
+			}
+
 			int i = 0;
 			for (Example example : exampleSet) {
 				example.setValue(cluster, "cluster_" + bestAssignments[i]);

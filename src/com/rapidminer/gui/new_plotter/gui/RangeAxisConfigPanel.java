@@ -202,7 +202,7 @@ public class RangeAxisConfigPanel extends AbstractConfigurationPanel implements 
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (selectedRangeAxisConfig != null) {
-						selectedRangeAxisConfig.setUseUserDefinedUpperViewBound(upperBoundCheckBox.isSelected());
+						selectedRangeAxisConfig.setUseUserDefinedUpperViewBound(!upperBoundCheckBox.isSelected());
 					}
 				}
 
@@ -242,7 +242,7 @@ public class RangeAxisConfigPanel extends AbstractConfigurationPanel implements 
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (selectedRangeAxisConfig != null) {
-						selectedRangeAxisConfig.setUseUserDefinedLowerViewBound(lowerBoundCheckBox.isSelected());
+						selectedRangeAxisConfig.setUseUserDefinedLowerViewBound(!lowerBoundCheckBox.isSelected());
 					}
 				}
 
@@ -289,7 +289,7 @@ public class RangeAxisConfigPanel extends AbstractConfigurationPanel implements 
 	}
 
 	private void useLowerBoundChanged(boolean useLowerBound, boolean visible) {
-		lowerBoundCheckBox.setSelected(useLowerBound);
+		lowerBoundCheckBox.setSelected(!useLowerBound);
 
 		lowerBoundSpinner.setVisible(visible);
 		lowerBoundSpinner.setEnabled(useLowerBound);
@@ -298,7 +298,7 @@ public class RangeAxisConfigPanel extends AbstractConfigurationPanel implements 
 	}
 
 	private void useUpperBoundChanged(boolean useUpperBound, boolean visible) {
-		upperBoundCheckBox.setSelected(useUpperBound);
+		upperBoundCheckBox.setSelected(!useUpperBound);
 
 		upperBoundSpinner.setVisible(visible);
 		upperBoundSpinner.setEnabled(useUpperBound);

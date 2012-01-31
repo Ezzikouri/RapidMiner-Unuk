@@ -192,7 +192,7 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping {
 		int columnIdx = DataTableColumn.getColumnIndex(data, getDataTableColumn());
 		boolean columnIsDate = getDataTableColumn().isDate();
 		groupingModel = new LinkedList<ValueRange>();
-		if (isCategorical() && (!autoRange || Double.isNaN(userDefinedMinValue))) {
+		if (isCategorical() && (!isAutoRanging() || Double.isNaN(currentMinValue))) {
 			// create underflow bin
 			ValueRange group = new NumericalValueRange(Double.NEGATIVE_INFINITY, currentMinValue, columnIdx, null, true, false);
 			groupingModel.add(group);
@@ -216,7 +216,7 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping {
 			groupingModel.add(new NumericalValueRange(userDefinedLowerDimensionBound, userDefinedUpperDimensionBound, columnIdx, null, includeLowerBound, includeUpperBound));
 		}
 
-		if (isCategorical() && (!autoRange || Double.isNaN(userDefinedMaxValue))) {
+		if (isCategorical() && (!isAutoRanging()|| Double.isNaN(currentMaxValue))) {
 			// create overflow bin
 			ValueRange group = new NumericalValueRange(currentMaxValue, Double.POSITIVE_INFINITY, columnIdx, null, false, true);
 			groupingModel.add(group);
