@@ -108,8 +108,8 @@ public class ClusterModel2ExampleSet extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();		
-		ClusterModel model = modelInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);		
+		ClusterModel model = modelInput.getData(ClusterModel.class);
 		exampleSet = addClusterAttribute(exampleSet, model);
 
 		exampleSetOutput.deliver(exampleSet);

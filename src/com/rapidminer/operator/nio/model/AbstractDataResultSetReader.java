@@ -147,7 +147,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 			dataResultSetFactory.close();
 		}
 		if (fileInputPort.isConnected()) {
-			IOObject fileObject = fileInputPort.getDataOrNull();
+			IOObject fileObject = fileInputPort.getDataOrNull(IOObject.class);
 			if (fileObject != null) {
 				String sourceAnnotation = fileObject.getAnnotations().getAnnotation(Annotations.KEY_SOURCE);
 				if (sourceAnnotation != null) {
@@ -215,7 +215,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 			return isParameterSet(getFileParameterName());
 		} else {
 			try {
-				return (fileInputPort.getData() instanceof FileObject);
+				return (fileInputPort.getData(IOObject.class) instanceof FileObject);
 			} catch (OperatorException e) {
 				return false;
 			}

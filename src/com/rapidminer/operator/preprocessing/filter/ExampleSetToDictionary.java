@@ -113,7 +113,7 @@ public class ExampleSetToDictionary extends PreprocessingOperator {
 
 	@Override
 	public PreprocessingModel createPreprocessingModel(ExampleSet exampleSet) throws OperatorException {
-		ExampleSet dictionarySet = dictionaryInput.getData();
+		ExampleSet dictionarySet = dictionaryInput.getData(ExampleSet.class);
 
 		AttributeSubsetSelector subsetSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());	
 		boolean toLowerCase = getParameterAsBoolean(PARAMETER_TO_LOWERCASE);

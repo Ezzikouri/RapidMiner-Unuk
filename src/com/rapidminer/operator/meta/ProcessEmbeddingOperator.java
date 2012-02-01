@@ -32,14 +32,15 @@ import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.operator.IOContainer;
+import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.operator.ProcessSetupError;
-import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ports.InputPortExtender;
 import com.rapidminer.operator.ports.OutputPortExtender;
 import com.rapidminer.operator.ports.metadata.MDTransformationRule;
@@ -190,7 +191,7 @@ public class ProcessEmbeddingOperator extends Operator {
 		// run process
 		IOContainer result = null;
 		if (getParameterAsBoolean(PARAMETER_USE_INPUT)) {			
-			result = process.run(new IOContainer(inputExtender.getData(false)),LogService.UNKNOWN_LEVEL, macroMap, getParameterAsBoolean(PARAMETER_STORE_OUTPUT));
+			result = process.run(new IOContainer(inputExtender.getData(IOObject.class, false)),LogService.UNKNOWN_LEVEL, macroMap, getParameterAsBoolean(PARAMETER_STORE_OUTPUT));
 		} else {
 			result = process.run(new IOContainer(),LogService.UNKNOWN_LEVEL, macroMap, getParameterAsBoolean(PARAMETER_STORE_OUTPUT));
 		}

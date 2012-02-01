@@ -54,8 +54,8 @@ public class ModelUpdater extends Operator {
 	 */
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet inputExampleSet = exampleSetInput.getData();
-		Model model = modelInput.getData();
+		ExampleSet inputExampleSet = exampleSetInput.getData(ExampleSet.class);
+		Model model = modelInput.getData(Model.class);
 		if (!model.isUpdatable())
 			throw new UserError(this, 135, model.getClass());
 

@@ -90,7 +90,7 @@ public class IteratingPerformanceAverage extends OperatorChain {
         // set last result for plotting purposes. This is an average value and
         // actually not the last performance value!
 		boolean success = false;
-		for (IOObject result : performancePortExtender.getData()) {
+		for (IOObject result : performancePortExtender.getData(IOObject.class)) {
 			if (result instanceof PerformanceVector) {
 				lastPerformance = ((PerformanceVector)result).getMainCriterion();				
 				success = true;

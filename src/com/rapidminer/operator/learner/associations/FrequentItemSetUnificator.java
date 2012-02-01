@@ -94,7 +94,7 @@ public class FrequentItemSetUnificator extends Operator {
 
     @Override
     public void doWork() throws OperatorException {
-        List<FrequentItemSets> sets = portExtender.getData();
+        List<FrequentItemSets> sets = portExtender.getData(FrequentItemSets.class);
         for (FrequentItemSets set: sets) {
             set.sortSets(new FrequencyIgnoringSetComparator());
             sets.add(set);

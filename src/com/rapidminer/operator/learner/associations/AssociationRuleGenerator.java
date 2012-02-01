@@ -96,7 +96,7 @@ public class AssociationRuleGenerator extends Operator {
 		}
 		double theta = getParameterAsDouble(PARAMETER_GAIN_THETA);
 		double laplaceK = getParameterAsDouble(PARAMETER_LAPLACE_K);
-		FrequentItemSets sets = itemSetsInput.getData();
+		FrequentItemSets sets = itemSetsInput.getData(FrequentItemSets.class);
 		AssociationRules rules = new AssociationRules();
 		HashMap<Collection<Item>, Integer> setFrequencyMap = new HashMap<Collection<Item>, Integer>();
 		int numberOfTransactions = sets.getNumberOfTransactions();

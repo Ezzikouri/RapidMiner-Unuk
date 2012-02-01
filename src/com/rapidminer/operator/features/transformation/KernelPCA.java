@@ -104,7 +104,7 @@ public class KernelPCA extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		// only use numeric attributes
 		Tools.onlyNumericalAttributes(exampleSet, "KernelPCA");

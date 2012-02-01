@@ -26,6 +26,7 @@ import java.util.List;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -109,7 +110,7 @@ public class FeatureIterator extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		String iterationMacroName = getParameterAsString(PARAMETER_ITERATION_MACRO);
 
 		// filter and loop 
@@ -125,7 +126,7 @@ public class FeatureIterator extends OperatorChain {
 		getProcess().getMacroHandler().removeMacro(iterationMacroName);
 
 		if (exampleSetInnerSink.isConnected()) {
-			exampleSetOutput.deliver(exampleSetInnerSink.getData());
+			exampleSetOutput.deliver(exampleSetInnerSink.getData(IOObject.class));
 		} else {
 			exampleSetOutput.deliver(exampleSet);
 		}
@@ -139,7 +140,7 @@ public class FeatureIterator extends OperatorChain {
 			if (iteration == 0) {
 				iterationSet = inputExampleSet;
 			} else {
-				iterationSet = exampleSetInnerSink.getData();
+				iterationSet = exampleSetInnerSink.getData(ExampleSet.class);
 			}
 		} else {
 			iterationSet = (ExampleSet)inputExampleSet.clone();

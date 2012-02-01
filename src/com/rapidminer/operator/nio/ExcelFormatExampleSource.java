@@ -124,7 +124,7 @@ public class ExcelFormatExampleSource extends AbstractExampleSource {
     		}
     		sourceAnnotation = inputFile.getPath();
     	} else {
-        	IOObject fileObject = fileInputPort.getDataOrNull();
+        	IOObject fileObject = fileInputPort.getDataOrNull(IOObject.class);
         	if (fileObject != null) {
         		inputStream = fileInputPort.getData(FileObject.class).openStream();
         		sourceAnnotation = fileObject.getAnnotations().getAnnotation(Annotations.KEY_SOURCE);

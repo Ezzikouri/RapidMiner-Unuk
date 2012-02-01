@@ -75,7 +75,7 @@ public class AttributeCounter extends AbstractExampleSetEvaluator {
 
 	@Override
 	public PerformanceVector evaluate(ExampleSet exampleSet) throws OperatorException {		
-		PerformanceVector inputPerformance = performanceInput.getDataOrNull();		
+		PerformanceVector inputPerformance = performanceInput.getDataOrNull(PerformanceVector.class);		
 		PerformanceVector performance = count(exampleSet, inputPerformance);
 		return performance;
 	}

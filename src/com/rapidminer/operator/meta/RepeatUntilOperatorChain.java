@@ -127,7 +127,7 @@ public class RepeatUntilOperatorChain extends AbstractIteratingOperatorChain {
 		};
 
 		// NOTE: This is not optional
-		PerformanceVector performanceVector = performanceConditionInput.getData();
+		PerformanceVector performanceVector = performanceConditionInput.getData(PerformanceVector.class);
 		int changeType = getParameterAsInt(PARAMETER_PERFORMANCE_CHANGE);
 		if (changeType != NONE) {
 			if (getIteration() > 0) {
@@ -150,7 +150,7 @@ public class RepeatUntilOperatorChain extends AbstractIteratingOperatorChain {
 		}
 
 
-		ExampleSet exampleSet = exampleSetConditionInput.getData();
+		ExampleSet exampleSet = exampleSetConditionInput.getData(ExampleSet.class);
 		int maxAtts = getParameterAsInt(PARAMETER_MAX_ATTRIBUTES);
 		int minAtts = getParameterAsInt(PARAMETER_MIN_ATTRIBUTES);
 		if ((maxAtts < Integer.MAX_VALUE) || (minAtts > 0)) {

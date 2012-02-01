@@ -84,7 +84,7 @@ public class TransitionGraphOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		TransitionGraph transitionGraph = createTransitionGraph(exampleSet);
 		ObjectVisualizerService.addObjectVisualizer(transitionGraph, new ExampleVisualizer(exampleSet));

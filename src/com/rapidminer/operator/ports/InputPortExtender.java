@@ -28,6 +28,7 @@ import java.util.List;
 
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.IOObjectCollection;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.metadata.CollectionMetaData;
 import com.rapidminer.operator.ports.metadata.CollectionPrecondition;
 import com.rapidminer.operator.ports.metadata.CompatibilityLevel;
@@ -80,12 +81,33 @@ public class InputPortExtender extends SinglePortExtender<InputPort> {
 
 	/** Returns a list of non-null data of all input ports. 
 	 * @param unfold If true, collections are added as individual objects rather than as a collection. The unfolding is done recursively.  
-	 * */
+	 * @deprecated use {@link #getData(Class, boolean)} */
+	@Deprecated
 	@SuppressWarnings("unchecked")
 	public <T extends IOObject> List<T> getData(boolean unfold) {
 		List<T> results = new LinkedList<T>();		
 		for (InputPort port : getManagedPorts()) {
 			IOObject data = port.getAnyDataOrNull();
+			if (data != null) {
+				if (unfold && (data instanceof IOObjectCollection)) {
+					unfold((IOObjectCollection)data, results);
+				} else {
+					results.add((T)data);
+				}
+			}
+		}
+		return results;
+	}
+
+	/** Returns a list of non-null data of all input ports. 
+	 * @param unfold If true, collections are added as individual objects rather than as a collection. The unfolding is done recursively.  
+	 * @throws UserError 
+	 * */
+	@SuppressWarnings("unchecked")
+	public <T extends IOObject> List<T> getData(Class<T> desiredClass, boolean unfold) throws UserError {
+		List<T> results = new LinkedList<T>();		
+		for (InputPort port : getManagedPorts()) {
+			T data = port.getDataOrNull(desiredClass);
 			if (data != null) {
 				if (unfold && (data instanceof IOObjectCollection)) {
 					unfold((IOObjectCollection)data, results);

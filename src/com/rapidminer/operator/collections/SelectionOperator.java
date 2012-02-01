@@ -73,7 +73,8 @@ public class SelectionOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		IOObjectCollection<IOObject> collection = collectionInput.getData();
+		@SuppressWarnings("unchecked")
+		IOObjectCollection<IOObject> collection = collectionInput.getData(IOObjectCollection.class);
 		List<IOObject> elements;
 		if (getParameterAsBoolean(PARAMETER_UNFOLD)) {
 			elements = collection.getObjectsRecursive();

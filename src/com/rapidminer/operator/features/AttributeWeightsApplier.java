@@ -62,8 +62,8 @@ public class AttributeWeightsApplier extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		AttributeWeights weights = weightsInput.getData();
-		ExampleSet exampleSet = exampleSetInput.getData();
+		AttributeWeights weights = weightsInput.getData(AttributeWeights.class);
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		AttributeWeightedExampleSet weightedSet = new AttributeWeightedExampleSet(exampleSet, weights);
 		ExampleSet result = weightedSet.createCleanClone();

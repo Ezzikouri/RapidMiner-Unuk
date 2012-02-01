@@ -72,7 +72,8 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
         this.hardDataReference = object;
     }
 
-    @Override
+    @Deprecated
+    @Override    
     public final <T extends IOObject> T getData() throws UserError {
         T data = this.<T>getDataOrNull();
         if (data == null) {
@@ -93,8 +94,10 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
 
     @Override
     public final <T extends IOObject> T getData(Class<T> desiredClass) throws UserError {
-        IOObject data = getData();
-        if (desiredClass.isAssignableFrom(data.getClass())) {
+    	IOObject data = getAnyDataOrNull();
+    	if (data == null) {
+            throw new UserError(getPorts().getOwner().getOperator(), 149, getSpec() + (isConnected() ? " (connected)" : " (disconnected)"));
+    	} else if (desiredClass.isAssignableFrom(data.getClass())) {
             return desiredClass.cast(data);
         } else {
             throw new UserError(getPorts().getOwner().getOperator(), 156, RendererService.getName(data.getClass()), this.getName(), RendererService.getName(desiredClass));
@@ -102,13 +105,23 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
     }
 
     @Override
+    public final <T extends IOObject> T getDataOrNull(Class<T> desiredClass) throws UserError {
+        IOObject data = getAnyDataOrNull();
+        if (data == null) {
+        	return null;
+        } else if (desiredClass.isAssignableFrom(data.getClass())) {
+            return desiredClass.cast(data);
+        } else {
+            throw new UserError(getPorts().getOwner().getOperator(), 156, RendererService.getName(data.getClass()), this.getName(), RendererService.getName(desiredClass));
+        }
+    }
+        
+    @SuppressWarnings("unchecked")
+	@Deprecated
+    @Override
     public final <T extends IOObject> T getDataOrNull() throws UserError {
         IOObject data = getAnyDataOrNull();
-        try {
-            return (T) data;
-        } catch (ClassCastException e) {
-            throw new UserError(getPorts().getOwner().getOperator(), 150, data.getClass().getSimpleName());
-        }
+        return (T) data;
     }
 
     @Override

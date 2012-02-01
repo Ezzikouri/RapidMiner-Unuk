@@ -136,12 +136,12 @@ public abstract class AbstractExampleSetJoin extends Operator {
     		/* please note the order of calls: As a result from the transformation from process tree to process flow
     		 * this error was introduced. We introduced an incompatibly version change to overcome this.
     		 */
-    		es2 = leftInput.getData();
-            es1 = rightInput.getData();
+    		es2 = leftInput.getData(ExampleSet.class);
+            es1 = rightInput.getData(ExampleSet.class);
     	} else {
     		/* This is the correct order used by all operators that using a more current version than VERSION_SWAPPED_INPUT_PORTS */
-    		es1 = leftInput.getData();
-            es2 = rightInput.getData();
+    		es1 = leftInput.getData(ExampleSet.class);
+            es2 = rightInput.getData(ExampleSet.class);
     	}
         
         if (this.isIdNeeded()) {

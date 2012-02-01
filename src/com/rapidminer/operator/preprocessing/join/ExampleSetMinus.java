@@ -76,7 +76,7 @@ public class ExampleSetMinus extends AbstractDataProcessing {
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
 		// recall:   difference = minuend - subtrahend
 		// but the subtrahend is last on the ioobjects stack, so pop first
-		ExampleSet subtrahendSet = subtrahendInput.getData();
+		ExampleSet subtrahendSet = subtrahendInput.getData(ExampleSet.class);
 		ExampleSet minuendSet = exampleSet;
 
 		subtrahendSet.remapIds();

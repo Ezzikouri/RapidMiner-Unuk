@@ -84,7 +84,7 @@ public class MultipleLabelIterator extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		Attribute[] labels = getLabels(exampleSet);
 		if (labels.length == 0) {

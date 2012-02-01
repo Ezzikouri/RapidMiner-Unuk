@@ -83,7 +83,7 @@ public class Data2Log extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		Attribute attribute = exampleSet.getAttributes().get(getParameterAsString(PARAMETER_ATTRIBUTE_NAME));
 		if (attribute == null)

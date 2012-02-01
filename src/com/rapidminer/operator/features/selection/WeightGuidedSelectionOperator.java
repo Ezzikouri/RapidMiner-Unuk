@@ -116,7 +116,7 @@ public class WeightGuidedSelectionOperator extends FeatureOperator {
         List<PopulationOperator> preOp = new LinkedList<PopulationOperator>();
 
         String[] attributeNames = Tools.getRegularAttributeNames(input);
-        AttributeWeights attributeWeights = attributeWeightsInput.getData();
+        AttributeWeights attributeWeights = attributeWeightsInput.getData(AttributeWeights.class);
         attributeWeights.sortByWeight(attributeNames, AttributeWeights.DECREASING, getParameterAsBoolean(PARAMETER_USE_ABSOLUTE_WEIGHTS) ? AttributeWeights.ABSOLUTE_WEIGHTS : AttributeWeights.ORIGINAL_WEIGHTS);
 
         int[] attributeIndices = new int[input.getAttributes().size()];

@@ -93,7 +93,7 @@ public class AgglomerativeClustering extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		DistanceMeasure measure = measureHelper.getInitializedMeasure(exampleSet);		
 
 		// additional checks

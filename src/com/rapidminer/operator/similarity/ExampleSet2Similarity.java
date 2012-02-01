@@ -77,7 +77,7 @@ public class ExampleSet2Similarity extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		// needed for some measures
 		Tools.checkAndCreateIds(exampleSet);
 

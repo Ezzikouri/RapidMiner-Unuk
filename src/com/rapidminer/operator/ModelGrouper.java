@@ -96,7 +96,7 @@ public class ModelGrouper extends Operator {
 	@Override
 	public void doWork() throws OperatorException {
 		GroupedModel groupedModel = new GroupedModel();
-		List<Model> modelList = modelInputExtender.getData(true);
+		List<Model> modelList = modelInputExtender.getData(Model.class, true);
 		for (Model model : modelList) {
 			groupedModel.addModel(model);
 		}

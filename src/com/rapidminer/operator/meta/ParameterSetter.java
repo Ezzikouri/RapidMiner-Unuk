@@ -85,7 +85,7 @@ public class ParameterSetter extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ParameterSet parameterSet = parameterInput.getData();
+		ParameterSet parameterSet = parameterInput.getData(ParameterSet.class);
 
 		Map<String, String> nameMap = new HashMap<String, String>();
 		List<String[]> nameList = getParameterList(PARAMETER_NAME_MAP);

@@ -118,8 +118,8 @@ public class CrossDistancesOperator extends Operator {
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet requestSet = requestSetInput.getData();
-        ExampleSet documentSet = referenceSetInput.getData();
+        ExampleSet requestSet = requestSetInput.getData(ExampleSet.class);
+        ExampleSet documentSet = referenceSetInput.getData(ExampleSet.class);
         Tools.checkAndCreateIds(requestSet);
         Tools.checkAndCreateIds(documentSet);
 

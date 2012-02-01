@@ -93,7 +93,7 @@ public class ValueIteration extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		exampleSet.recalculateAllAttributeStatistics();
 		outExtender.reset();
 
@@ -124,7 +124,7 @@ public class ValueIteration extends OperatorChain {
 				getSubprocess(0).execute();
 
 				for (PortPairExtender.PortPair pair : outExtender.getManagedPairs()) {
-					IOObject result = pair.getInputPort().getDataOrNull();
+					IOObject result = pair.getInputPort().getDataOrNull(IOObject.class);
 					if (result != null) {
 						result.setSource(this.getName() + ":" + value);
 					}

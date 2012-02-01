@@ -148,7 +148,7 @@ public class BackwardAttributeEliminationOperator extends OperatorChain {
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet exampleSetOriginal = exampleSetInput.getData();
+        ExampleSet exampleSetOriginal = exampleSetInput.getData(ExampleSet.class);
         ExampleSet exampleSet = (ExampleSet) exampleSetOriginal.clone();
         int numberOfAttributes = exampleSet.getAttributes().size();
         Attributes attributes = exampleSet.getAttributes();
@@ -297,7 +297,7 @@ public class BackwardAttributeEliminationOperator extends OperatorChain {
 
         getSubprocess(0).execute();
 
-        return innerPerformanceSink.getData();
+        return innerPerformanceSink.getData(PerformanceVector.class);
     }
 
     @Override

@@ -54,7 +54,7 @@ public abstract class AbstractExampleSetEvaluator extends Operator {
 	
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet input = exampleSetInput.getData();
+		ExampleSet input = exampleSetInput.getData(ExampleSet.class);
 		performanceOutput.deliver(evaluate(input));
 		exampleSetOutput.deliver(input);				
 	}

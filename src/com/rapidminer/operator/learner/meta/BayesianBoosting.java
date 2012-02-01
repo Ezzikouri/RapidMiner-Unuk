@@ -365,7 +365,7 @@ public class BayesianBoosting extends AbstractMetaLearner {
 	/** Helper method reading a start model from the input if present. 
 	 * @throws UserError */
 	private void readOptionalParameters() throws UserError {
-		this.startModel = modelInput.getDataOrNull();
+		this.startModel = modelInput.getDataOrNull(Model.class);
 		if (this.startModel == null) {
 			log(getName() + ": No model found in input.");
 		}

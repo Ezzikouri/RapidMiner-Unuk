@@ -98,7 +98,7 @@ public abstract class AbstractSplitChain extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet inputSet = exampleSetInput.getData();
+		ExampleSet inputSet = exampleSetInput.getData(ExampleSet.class);
 		SplittedExampleSet exampleSet = createSplittedExampleSet(inputSet);
 		// TODO: Simon: Clone?
 		exampleSet.selectSingleSubset(0);

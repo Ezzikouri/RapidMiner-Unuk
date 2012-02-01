@@ -63,8 +63,8 @@ public class FlattenClusterModel extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {		
-		HierarchicalClusterModel hierarchicalModel = hierarchicalInput.getData();
-		ExampleSet exampleSet = exampleSetInput.getData();
+		HierarchicalClusterModel hierarchicalModel = hierarchicalInput.getData(HierarchicalClusterModel.class);
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		flatOutput.deliver(flatten(hierarchicalModel, exampleSet));
 	}
 

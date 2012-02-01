@@ -113,7 +113,7 @@ public abstract class AbstractLearner extends Operator implements Learner {
     /** Returns the weights (if computed, after one of the doWork()} methods has been called.
      * @throws OperatorException */
     public AttributeWeights getWeights() throws OperatorException {
-        return weightsOutput.getData();
+        return weightsOutput.getData(AttributeWeights.class);
     }
 
     /**

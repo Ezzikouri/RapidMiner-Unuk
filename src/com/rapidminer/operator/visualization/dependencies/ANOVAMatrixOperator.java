@@ -88,7 +88,7 @@ public class ANOVAMatrixOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet inputSet = exampleSetInput.getData();
+		ExampleSet inputSet = exampleSetInput.getData(ExampleSet.class);
 		ExampleSet exampleSet = new NonSpecialAttributesExampleSet(inputSet);
 
 		// determine anova and grouping attributes

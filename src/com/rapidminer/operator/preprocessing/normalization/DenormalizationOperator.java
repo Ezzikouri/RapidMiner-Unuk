@@ -70,7 +70,7 @@ public class DenormalizationOperator extends Operator {
 
     @Override
     public void doWork() throws OperatorException {
-        AbstractNormalizationModel model = modelInput.getData();
+        AbstractNormalizationModel model = modelInput.getData(AbstractNormalizationModel.class);
 
         Map<String, LinearTransformation> attributeTransformations = new HashMap<String, DenormalizationOperator.LinearTransformation>();
         for (Attribute attribute: model.getTrainingHeader().getAttributes()) {

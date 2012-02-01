@@ -175,7 +175,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 		double[] initialWeights = null;
 		if (attributeWeightsInput.isConnected()) {
 			AttributeWeights inputWeights = null;
-			inputWeights = attributeWeightsInput.getData();
+			inputWeights = attributeWeightsInput.getData(AttributeWeights.class);
 			initialWeights = new double[numberOfAttributes];
 			int index = 0;
 			for (Attribute attribute : es.getAttributes()) {

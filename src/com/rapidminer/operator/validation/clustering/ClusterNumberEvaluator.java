@@ -81,7 +81,7 @@ public class ClusterNumberEvaluator extends Operator {
 
     @Override
 	public void doWork() throws OperatorException {
-        ClusterModel model = clusterModelInput.getData();
+        ClusterModel model = clusterModelInput.getData(ClusterModel.class);
        
         this.numberOfClusters = model.getNumberOfClusters();
 
@@ -89,7 +89,7 @@ public class ClusterNumberEvaluator extends Operator {
         for (int i = 0; i < model.getNumberOfClusters(); i++)
             numItems += model.getCluster(i).getNumberOfExamples();
 
-        PerformanceVector performance = performanceInput.getDataOrNull();        
+        PerformanceVector performance = performanceInput.getDataOrNull(PerformanceVector.class);        
 
         if (performance == null)
             performance = new PerformanceVector();

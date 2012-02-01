@@ -75,7 +75,7 @@ public class SeeminglyUnrelatedRegressionOperator extends AbstractLearner {
 
 	@Override
 	public Model learn(ExampleSet mainSet) throws OperatorException {
-		List<ExampleSet> dataSets = unrelatedExampleSets.getData(true);
+		List<ExampleSet> dataSets = unrelatedExampleSets.getData(ExampleSet.class, true);
 		return learn(mainSet, dataSets);
 	}
 

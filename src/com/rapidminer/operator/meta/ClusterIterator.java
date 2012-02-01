@@ -81,7 +81,7 @@ public class ClusterIterator extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		Attribute clusterAttribute = exampleSet.getAttributes().getCluster();
 		if (clusterAttribute == null) {

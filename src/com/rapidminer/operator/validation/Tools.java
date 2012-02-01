@@ -129,11 +129,11 @@ public class Tools {
 	 *  builds the average.
 	 *  Null inputs are ignored. */
 	public static void buildAverages(InputPort inputPort, OutputPort outputPort) throws OperatorException {
-		AverageVector performance = inputPort.getDataOrNull();
+		AverageVector performance = inputPort.getDataOrNull(AverageVector.class);
 		if (performance == null) {
 			return;
 		}
-		if (outputPort.getDataOrNull() == null) {			
+		if (outputPort.getDataOrNull(IOObject.class) == null) {			
 			// we don't have data yet, so copy to output				
 			// since this averages might be averages of averages and averagecount could be greater 0: reset for equal weighting
 			for (int i = 0; i < performance.size(); i++) {					

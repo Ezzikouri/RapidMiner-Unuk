@@ -77,14 +77,24 @@ public interface Port extends Observable<Port> {
 	 */
 	public <T extends IOObject> T getData(Class<T> desiredClass) throws UserError;
 	
-	/** Same as {@link #getData(true)}. 
-	 * @throws UserError if data is missing. */
-	public <T extends IOObject> T getData() throws OperatorException;
-
 	/** Returns the last object delivered to the connected {@link InputPort}
 	 *  or received from the connected {@link OutputPort} 
 	 * @throws UserError If data is not of the requested type. 
 	 */
+    public <T extends IOObject> T getDataOrNull(Class<T> desiredClass) throws UserError;
+
+	/** Same as {@link #getData(true)}. 
+	 * @throws UserError if data is missing. 
+	 * @deprecated use {@link #getData(Class)} */
+    @Deprecated
+	public <T extends IOObject> T getData() throws OperatorException;
+
+	/** Returns the last object delivered to the connected {@link InputPort}
+	 *  or received from the connected {@link OutputPort} 
+	 * @throws UserError If data is not of the requested type.
+	 * @deprecated call {@link #getDataOrNull(Class)} 
+	 */
+	@Deprecated
 	public <T extends IOObject> T getDataOrNull() throws UserError;
 	
 	/** Returns the last object delivered to the connected {@link InputPort}

@@ -111,7 +111,7 @@ public class WrapperXValidation extends WrapperValidationChain {
     
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet eSet = exampleSetInput.getData();
+        ExampleSet eSet = exampleSetInput.getData(ExampleSet.class);
         if (getParameterAsBoolean(PARAMETER_LEAVE_ONE_OUT)) {
             number = eSet.size();
         } else {

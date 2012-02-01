@@ -808,7 +808,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
             }
 
             for (InputPort inputPort : getInputPorts().getAllPorts()) {
-                IOObject ioObject = inputPort.getDataOrNull();
+                IOObject ioObject = inputPort.getDataOrNull(IOObject.class);
                 if (ioObject != null) {
                     ioObject.setLoggingHandler(getLog());
                 }
@@ -845,7 +845,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
                 endCpuTime = getThreadCpuTime();
                 // set source to the output
                 for (OutputPort outputPort : getOutputPorts().getAllPorts()) {
-                    IOObject ioObject = outputPort.getDataOrNull();
+                    IOObject ioObject = outputPort.getDataOrNull(IOObject.class);
                     if (ioObject != null && ioObject.getSource() == null) {
                         ioObject.setSource(getName());
                         if (ioObject instanceof IOObjectCollection) {

@@ -177,7 +177,7 @@ public class MissingValueImputation extends OperatorChain {
         boolean ascending = (getParameterAsInt(PARAMETER_SORT) == ASCENDING);
         boolean learnOnCompleteCases = getParameterAsBoolean(PARAMETER_LEARN_ON_COMPLETE_CASES);
 
-        ExampleSet exampleSet = exampleSetInput.getData();
+        ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
         // delete original label which should not be learned from
         Attribute label = exampleSet.getAttributes().getLabel();
@@ -231,7 +231,7 @@ public class MissingValueImputation extends OperatorChain {
             // learn by applying inner subprocess
             innerExampleSetSource.deliver(learningSet);
             getSubprocess(0).execute();
-            Model model = innerModelSink.getData();
+            Model model = innerModelSink.getData(Model.class);
 
             // re-add current attribute
             workingSet = model.apply(workingSet);

@@ -154,7 +154,7 @@ public class DataMacroDefinitionOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		String macroName  = getParameterAsString(PARAMETER_MACRO);
 		this.macroValue = null;

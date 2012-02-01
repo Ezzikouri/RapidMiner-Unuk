@@ -112,7 +112,7 @@ public class AttributeWeightSelection extends AbstractDataProcessing {
 
     @Override
     public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
-        AttributeWeights weights = weightsInput.getData();
+        AttributeWeights weights = weightsInput.getData(AttributeWeights.class);
         boolean deselectUnknown = getParameterAsBoolean(PARAMETER_DESELECT_UNKNOWN);
         double relationWeight = getParameterAsDouble(PARAMETER_WEIGHT);
         int relation = getParameterAsInt(PARAMETER_WEIGHT_RELATION);

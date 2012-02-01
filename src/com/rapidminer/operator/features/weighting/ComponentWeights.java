@@ -63,12 +63,12 @@ public class ComponentWeights extends AbstractWeighting {
 		modelInput.receive(model);
 		getExampleSetInputPort().receive(exampleSet);
 		doWork();
-		return getWeightsOutputPort().getData();
+		return getWeightsOutputPort().getData(AttributeWeights.class);
 	}
 
 	@Override
 	protected AttributeWeights calculateWeights(ExampleSet exampleSet) throws OperatorException {
-		Model model = modelInput.getData();
+		Model model = modelInput.getData(Model.class);
 
 		if (!(model instanceof ComponentWeightsCreatable)) {
 			throw new OperatorException(getName() + ": needs an input model wich implements the ComponentWeightsCreatable interface:" + model.getClass().getName());

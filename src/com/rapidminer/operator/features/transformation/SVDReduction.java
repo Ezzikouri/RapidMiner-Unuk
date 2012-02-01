@@ -120,13 +120,13 @@ public class SVDReduction extends Operator {
     public Model doWork(ExampleSet exampleSet) throws OperatorException {
         exampleSetInput.receive(exampleSet);
         doWork();
-        return modelOutput.getData();
+        return modelOutput.getData(Model.class);
     }
 
     @Override
     public void doWork() throws OperatorException {
         // check whether all attributes are numerical
-        ExampleSet exampleSet = exampleSetInput.getData();
+        ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
         Tools.onlyNonMissingValues(exampleSet, "SVD");
         Tools.onlyNumericalAttributes(exampleSet, "SVD");

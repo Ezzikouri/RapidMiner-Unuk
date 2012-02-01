@@ -25,6 +25,8 @@ package com.rapidminer.operator.meta;
 import java.util.Collection;
 import java.util.List;
 
+import org.codehaus.groovy.tools.shell.IO;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
@@ -142,7 +144,7 @@ public class XVPrediction extends OperatorChain implements CapabilityProvider {
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet inputSet = exampleSetInput.getData();
+        ExampleSet inputSet = exampleSetInput.getData(ExampleSet.class);
 
         // check capabilities and produce errors if they are not fulfilled
         CapabilityCheck check = new CapabilityCheck(this, false);
@@ -176,10 +178,10 @@ public class XVPrediction extends OperatorChain implements CapabilityProvider {
             splittedSet.selectSingleSubset(iteration);
             applyProcessExampleSource.deliver((IOObject) splittedSet);
             throughExtender.passDataThrough();
-            applyProcessModelSource.deliver(trainingProcessModelSink.getData());
+            applyProcessModelSource.deliver(trainingProcessModelSink.getData(IOObject.class));
             getSubprocess(1).execute();
             
-            ExampleSet predictedSet = applyProcessExampleInnerSink.getData();
+            ExampleSet predictedSet = applyProcessExampleInnerSink.getData(ExampleSet.class);
             for (int i = 0; i < splittedSet.size(); i++) {
                 Example predictedExample = predictedSet.getExample(i);
                 // setting label in inputSet

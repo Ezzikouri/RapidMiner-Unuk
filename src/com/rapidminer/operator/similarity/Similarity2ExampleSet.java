@@ -162,9 +162,9 @@ public class Similarity2ExampleSet extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		SimilarityMeasureObject measureObject = similarityInput.getData();
+		SimilarityMeasureObject measureObject = similarityInput.getData(SimilarityMeasureObject.class);
 
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		Tools.checkAndCreateIds(exampleSet);
 
 		DistanceMeasure measure = measureObject.getDistanceMeasure();

@@ -44,7 +44,7 @@ import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
@@ -398,7 +398,7 @@ public class SeriesTemplate extends PlotterTemplate {
 				sFormat.setItemShape(ItemShape.NONE);
 				sFormat.setLineWidth(1.5f);
 				if (!lowerBoundName.equals(noSelection) && !upperBoundName.equals(noSelection)) {
-					sFormat.setUtilityUsage(UtilityUsage.BAND);
+					sFormat.setUtilityUsage(IndicatorType.BAND);
 					DataTableColumn lowerBoundDataTableColumn = new DataTableColumn(currentDataTable, currentDataTable.getColumnIndex(lowerBoundName));
 					DataTableColumn upperBoundDataTableColumn = new DataTableColumn(currentDataTable, currentDataTable.getColumnIndex(upperBoundName));
 					valueSource.setDataTableColumn(SeriesUsageType.INDICATOR_1, upperBoundDataTableColumn);

@@ -75,7 +75,7 @@ public class RainflowMatrixOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		String attributeName = getParameterAsString(PARAMETER_ATTRIBUTE);
 		Attribute attribute = exampleSet.getAttributes().get(attributeName);

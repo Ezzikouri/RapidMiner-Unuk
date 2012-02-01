@@ -68,7 +68,7 @@ public class RecallChooser extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		boolean useWeights = getParameterAsBoolean(PARAMETER_USE_EXAMPLE_WEIGHTS);
 
 		// checking preconditions

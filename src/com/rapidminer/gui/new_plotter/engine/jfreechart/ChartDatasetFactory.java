@@ -46,7 +46,7 @@ import com.rapidminer.gui.new_plotter.configuration.DefaultDimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
 import com.rapidminer.gui.new_plotter.configuration.GroupCellKey;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.data.DimensionConfigData;
@@ -349,7 +349,7 @@ public class ChartDatasetFactory {
 		mainSeries[yIdx] = yValues;
 		dataset.addSeries(seriesName, mainSeries);
 
-		if (valueSource.getSeriesFormat().getUtilityUsage() == UtilityUsage.DIFFERENCE) {
+		if (valueSource.getSeriesFormat().getUtilityUsage() == IndicatorType.DIFFERENCE) {
 			double[] differenceValues = valueSourceData.getAbsoluteUtilityValues(groupCellKeyAndData, true);
 			if (differenceValues == null) {
 				throw new ChartPlottimeException("undefined_series", valueSource.toString(), SeriesUsageType.INDICATOR_1);

@@ -75,7 +75,7 @@ public class ResultWriter extends Operator {
 	 */
 	@Override
 	public void doWork() throws OperatorException {		
-		IOObject[] input = portExtender.getData().toArray(new IOObject[0]);
+		IOObject[] input = portExtender.getData(IOObject.class).toArray(new IOObject[0]);
 		File file = getParameterAsFile(PARAMETER_RESULT_FILE, true);
 		if (file != null) {
 			PrintWriter out = null;

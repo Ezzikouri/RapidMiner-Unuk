@@ -88,7 +88,7 @@ public class FrequentItemSetsToData extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		FrequentItemSets sets = frequentItemSetsInput.getData();
+		FrequentItemSets sets = frequentItemSetsInput.getData(FrequentItemSets.class);
 		boolean generateItemSetIndicators = getParameterAsBoolean(PARAMETER_GENERATE_ITEM_SET_INDICATORS);
 		
 		Attribute itemsAttribute = AttributeFactory.createAttribute("Items", Ontology.NOMINAL);

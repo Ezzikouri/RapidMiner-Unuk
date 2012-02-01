@@ -70,8 +70,8 @@ public class PlattScaling extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
-		Model model = modelInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
+		Model model = modelInput.getData(Model.class);
 
 		// some checks
 		if (exampleSet.getAttributes().getLabel() == null) {

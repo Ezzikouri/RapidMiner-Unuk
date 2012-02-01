@@ -145,7 +145,7 @@ public class ForwardAttributeSelectionOperator extends OperatorChain {
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet exampleSetOriginal = exampleSetInput.getData();
+        ExampleSet exampleSetOriginal = exampleSetInput.getData(ExampleSet.class);
         ExampleSet exampleSet = (ExampleSet) exampleSetOriginal.clone();
         int numberOfAttributes = exampleSet.getAttributes().size();
         Attributes attributes = exampleSet.getAttributes();
@@ -195,7 +195,7 @@ public class ForwardAttributeSelectionOperator extends OperatorChain {
 
                         getSubprocess(0).execute();
 
-                        PerformanceVector performance = innerPerformanceSink.getData();
+                        PerformanceVector performance = innerPerformanceSink.getData(PerformanceVector.class);
                         if (currentBestPerformance == null || performance.compareTo(currentBestPerformance) > 0) {
                             bestIndex = current;
                             currentBestPerformance = performance;

@@ -147,7 +147,7 @@ public abstract class PreprocessingOperator extends AbstractDataProcessing {
 
 	public Pair<ExampleSet, Model> doWorkModel(ExampleSet exampleSet) throws OperatorException {
 		exampleSet = apply(exampleSet);
-		Model model = modelOutput.getData();
+		Model model = modelOutput.getData(Model.class);
 		return new Pair<ExampleSet, Model>(exampleSet, model);
 
 	}

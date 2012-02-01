@@ -62,7 +62,7 @@ public class DataStatisticsOperator extends Operator {
 	/** Creates and delivers the simple statistics object. */
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet eSet = exampleSetInput.getData();
+		ExampleSet eSet = exampleSetInput.getData(ExampleSet.class);
 		eSet.recalculateAllAttributeStatistics();
 		DataStatistics statistics = new DataStatistics();
 		Iterator<Attribute> i = eSet.getAttributes().allAttributes();

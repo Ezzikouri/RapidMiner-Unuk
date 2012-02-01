@@ -123,7 +123,7 @@ public class LearningCurveOperator extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet originalExampleSet = exampleSetInput.getData();
+		ExampleSet originalExampleSet = exampleSetInput.getData(ExampleSet.class);
 		double trainingRatio = getParameterAsDouble(PARAMETER_TRAINING_RATIO);
 		double stepFraction = getParameterAsDouble(PARAMETER_STEP_FRACTION);
 		double startFraction = getParameterAsDouble(PARAMETER_START_FRACTION);
@@ -150,7 +150,7 @@ public class LearningCurveOperator extends OperatorChain {
 			getSubprocess(1).execute();
 			//input = input.append(trainTestSplittedExamples);
 
-			PerformanceVector performance = performanceInnerSink.getData();
+			PerformanceVector performance = performanceInnerSink.getData(PerformanceVector.class);
 			this.lastPerformance = performance.getMainCriterion().getAverage();
 			this.lastDeviation = performance.getMainCriterion().getStandardDeviation();
 			this.lastFraction += stepFraction;

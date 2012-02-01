@@ -91,7 +91,7 @@ public class CollectionOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		List<IOObject> list = inExtender.getData(getParameterAsBoolean(PARAMETER_UNFOLD));		
+		List<IOObject> list = inExtender.getData(IOObject.class, getParameterAsBoolean(PARAMETER_UNFOLD));		
 		collectionOutput.deliver(new IOObjectCollection<IOObject>(list));
 	}
 	

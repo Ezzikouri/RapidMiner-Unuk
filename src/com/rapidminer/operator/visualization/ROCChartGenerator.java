@@ -104,7 +104,7 @@ public class ROCChartGenerator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		if (exampleSet.getAttributes().getLabel() == null) {
 			throw new UserError(this, 105);
 		}
@@ -124,7 +124,7 @@ public class ROCChartGenerator extends Operator {
 		}
 		Model model = null;
 		if (getParameterAsBoolean(PARAMETER_USE_MODEL)) {
-			model = modelInput.getData();		
+			model = modelInput.getData(Model.class);		
 			exampleSet = model.apply(exampleSet);
 		}
 		if (exampleSet.getAttributes().getPredictedLabel() == null) {

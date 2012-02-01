@@ -90,7 +90,7 @@ public class RankingEvaluator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		Attribute label = exampleSet.getAttributes().getLabel();
 		if (label != null) {
 			if (label.isNominal()) {

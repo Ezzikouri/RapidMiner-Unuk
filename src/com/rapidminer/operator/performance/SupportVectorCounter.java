@@ -78,12 +78,12 @@ public class SupportVectorCounter extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		Model model = modelInput.getData();
+		Model model = modelInput.getData(Model.class);
 		if (!(model instanceof KernelModel)) {
 			throw new UserError(this, 122, "'support vector based model (kernel model)'");
 		}
 
-		PerformanceVector inputPerformance = performanceInput.getDataOrNull();
+		PerformanceVector inputPerformance = performanceInput.getDataOrNull(PerformanceVector.class);
 
 		PerformanceVector performance = count((KernelModel)model, inputPerformance);
 

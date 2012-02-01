@@ -154,7 +154,7 @@ public class EvolutionaryFeatureAggregation extends OperatorChain {
 	@Override
 	public void doWork() throws OperatorException {
 		// init
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		int popSize = getParameterAsInt(PARAMETER_POPULATION_SIZE);
 		this.generation = 0;
 		this.maxGeneration = getParameterAsInt(PARAMETER_MAXIMUM_NUMBER_OF_GENERATIONS);
@@ -282,7 +282,7 @@ public class EvolutionaryFeatureAggregation extends OperatorChain {
 				} else {
 					innerExampleSetSource.deliver(exampleSet);
 					getSubprocess(0).execute();
-					PerformanceVector performanceVector = innerPerformanceSink.getData();
+					PerformanceVector performanceVector = innerPerformanceSink.getData(PerformanceVector.class);
 					individual.setPerformance(performanceVector);
 				}
 			}

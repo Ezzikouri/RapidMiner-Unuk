@@ -62,9 +62,9 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping {
 	 * @param binCount
 	 * @param minValue The left value of the left-most normal (non-overflow) bin. If NaN, the left-most point in the data is chosen. Infinity is not allowed. 
 	 * @param maxValue The right value of the right-most normal (non-overflow) bin. If NaN, the right-most point in the data is chosen. Infinity is not allowed.
-	 * @param columnIdx
+	 * @param dataTableColumn
 	 * @param categorical
-	 * @throws GroupingException 
+	 * @throws ChartConfigurationException if dataTableColumn is nominal
 	 */
 	public EquidistantFixedBinCountBinning(int binCount, double minValue, double maxValue, DataTableColumn dataTableColumn, boolean categorical, DateFormat dateFormat)
 			throws ChartConfigurationException {

@@ -131,7 +131,7 @@ public class FPGrowth extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		// check
 		Tools.onlyNominalAttributes(exampleSet, "FPGrowth");

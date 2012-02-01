@@ -74,7 +74,7 @@ public class CovarianceMatrixOperator extends Operator {
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet exampleSet = exampleSetInput.getData();
+        ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
         String[] columnNames = new String[exampleSet.getAttributes().size()];
         boolean[] isNominal = new boolean[columnNames.length];
         int counter = 0;

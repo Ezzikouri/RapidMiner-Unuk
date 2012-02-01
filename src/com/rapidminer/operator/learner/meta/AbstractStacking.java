@@ -86,7 +86,7 @@ public abstract class AbstractStacking extends OperatorChain implements Learner 
 
 	@Override
 	public void doWork() throws OperatorException {		
-		ExampleSet input = exampleSetInput.getData();
+		ExampleSet input = exampleSetInput.getData(ExampleSet.class);
 		modelOutput.deliver(learn(input));
 	}
 
@@ -94,7 +94,7 @@ public abstract class AbstractStacking extends OperatorChain implements Learner 
 		// learn base models
 		baseInputExtender.deliverToAll(exampleSet, false);
 		getBaseModelLearnerProcess().execute();
-		List<Model> baseModels = baseModelExtender.getData(true);      
+		List<Model> baseModels = baseModelExtender.getData(Model.class, true);      
 
 		// create temporary example set for stacking
 		ExampleSet stackingLearningSet = (ExampleSet)exampleSet.clone();

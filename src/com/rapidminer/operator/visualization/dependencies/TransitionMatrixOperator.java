@@ -70,7 +70,7 @@ public class TransitionMatrixOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		Attribute attribute = exampleSet.getAttributes().get(getParameterAsString(PARAMETER_ATTRIBUTE));
 		if (attribute == null)
 			throw new UserError(this, 111, getParameterAsString(PARAMETER_ATTRIBUTE));

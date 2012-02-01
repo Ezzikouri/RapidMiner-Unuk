@@ -90,8 +90,8 @@ public class AssociationRulesApplier extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		AssociationRules rules = associationRulesInput.getData();
-		ExampleSet exampleSet = exampleSetInput.getData();
+		AssociationRules rules = associationRulesInput.getData(AssociationRules.class);
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		exampleSet = (ExampleSet) exampleSet.clone();
 		// check
 		Tools.onlyNominalAttributes(exampleSet, "FPGrowth");

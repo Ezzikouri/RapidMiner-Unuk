@@ -76,7 +76,7 @@ public class CorrelationMatrixOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		NumericalMatrix matrix = new NumericalMatrix("Correlation", exampleSet, true);
 		int numberOfAttributes = exampleSet.getAttributes().size();
 		boolean squared = getParameterAsBoolean(PARAMETER_SQUARED_CORRELATION);

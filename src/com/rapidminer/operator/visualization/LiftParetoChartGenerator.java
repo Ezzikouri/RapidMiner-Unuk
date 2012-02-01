@@ -138,7 +138,7 @@ public class LiftParetoChartGenerator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		Attribute labelAttribute = exampleSet.getAttributes().getLabel();
 
 		if (exampleSet.getAttributes().getLabel() == null) {
@@ -150,7 +150,7 @@ public class LiftParetoChartGenerator extends Operator {
 		}
 
 		boolean cleanUp = false;
-		Model model = modelInput.getData();
+		Model model = modelInput.getData(Model.class);
 		if (exampleSet.getAttributes().getPredictedLabel() != null) {
 			logNote("Input example already has a predicted label which will be used by this operator without re-applying the model...");
 		} else {

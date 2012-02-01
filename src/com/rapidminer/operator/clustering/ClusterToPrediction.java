@@ -91,8 +91,8 @@ public class ClusterToPrediction extends Operator {
 	
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
-		ClusterModel model = clusterModelInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
+		ClusterModel model = clusterModelInput.getData(ClusterModel.class);
 		
 		// generate the predicted attribute
 		Attribute labelAttribute = exampleSet.getAttributes().getLabel();

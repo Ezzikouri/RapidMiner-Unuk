@@ -111,7 +111,7 @@ public class GHA extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		RandomGenerator random = RandomGenerator.getRandomGenerator(this);
 		exampleSet.recalculateAllAttributeStatistics();
 

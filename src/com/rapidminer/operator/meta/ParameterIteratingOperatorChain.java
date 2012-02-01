@@ -244,9 +244,9 @@ public abstract class ParameterIteratingOperatorChain extends OperatorChain {
             inputExtender.passDataThrough();
             executeSubprocess();
             if (isPerformanceRequired()) {
-                return getPerformanceInnerSink().getData();
+                return getPerformanceInnerSink().getData(PerformanceVector.class);
             } else {
-                return getPerformanceInnerSink().getDataOrNull();
+                return getPerformanceInnerSink().getDataOrNull(PerformanceVector.class);
             }
         } catch (OperatorException e) {        	
         	StringBuilder builder = new StringBuilder();
@@ -266,7 +266,7 @@ public abstract class ParameterIteratingOperatorChain extends OperatorChain {
      *  or {@link #getPerformance()} must have been called earlier.
      * @throws UserError */
     protected Collection<IOObject> getInnerResults() throws UserError {
-        return innerSinkExtender.getData();
+        return innerSinkExtender.getData(IOObject.class);
     }
 
     /** Passes data from the inner sinks to the output ports. */

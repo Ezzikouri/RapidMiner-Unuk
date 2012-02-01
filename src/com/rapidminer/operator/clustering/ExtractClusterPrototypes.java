@@ -75,7 +75,7 @@ public class ExtractClusterPrototypes extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		CentroidClusterModel model = modelInput.getData();
+		CentroidClusterModel model = modelInput.getData(CentroidClusterModel.class);
 		
 		Attributes trainAttributes = model.getTrainingHeader().getAttributes();
 		String[] attributeNames = model.getAttributeNames();

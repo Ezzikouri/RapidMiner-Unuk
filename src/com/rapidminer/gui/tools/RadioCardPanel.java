@@ -35,7 +35,6 @@ import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
 
 import com.rapidminer.gui.actions.StoreInRepositoryAction;
-import com.rapidminer.gui.new_plotter.StaticDebug;
 import com.rapidminer.gui.tools.components.DropDownButton;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ResultObject;
@@ -135,15 +134,6 @@ public class RadioCardPanel extends JPanel {
 
 	private void showCard(String name) {
 		layout.show(mainPanel, name);
-	}
-	
-	/**
-	 * TODO remove me (Debug only!)
-	 */
-	@Override
-	protected void finalize() throws Throwable {
-		StaticDebug.finalize(this);
-		super.finalize();
 	}
 }
 

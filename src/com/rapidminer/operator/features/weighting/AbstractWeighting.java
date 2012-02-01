@@ -108,13 +108,13 @@ public abstract class AbstractWeighting extends Operator implements CapabilityPr
         check.checkLearnerCapabilities(this, exampleSet);
 
         doWork();
-        return weightsOutput.getData();
+        return weightsOutput.getData(AttributeWeights.class);
     }
 
     @Override
     public void doWork() throws OperatorException {
         ExampleSet exampleSet =
-            isExampleSetMandatory() ? exampleSetInput.getData(ExampleSet.class) : exampleSetInput.<ExampleSet>getDataOrNull();
+            isExampleSetMandatory() ? exampleSetInput.getData(ExampleSet.class) : exampleSetInput.<ExampleSet>getDataOrNull(ExampleSet.class);
             AttributeWeights weights = calculateWeights(exampleSet);
             if (getParameterAsBoolean(PARAMETER_NORMALIZE_WEIGHTS)) {
                 weights.normalize();

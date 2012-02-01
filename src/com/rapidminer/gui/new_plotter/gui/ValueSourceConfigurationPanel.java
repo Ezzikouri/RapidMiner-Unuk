@@ -43,7 +43,7 @@ import com.rapidminer.gui.new_plotter.PlotConfigurationError;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
@@ -82,7 +82,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 
 	private JLabel utilityIndicatorLabel;
 	private JComboBox utilityIndicatorComboBox;
-	private JCheckBox relativeErrorCheckBox;
+	private JCheckBox relativeIndicatorCheckBox;
 
 	private JLabel firstUtilityAttributeLabel;
 	private JComboBox firstUtilityAggregationComboBox;
@@ -393,7 +393,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 			{
 
 				// create combo box
-				utilityIndicatorComboBox = new JComboBox(UtilityUsage.values());
+				utilityIndicatorComboBox = new JComboBox(IndicatorType.values());
 				utilityIndicatorLabel.setLabelFor(utilityIndicatorComboBox);
 				utilityIndicatorComboBox.setRenderer(new EnumComboBoxCellRenderer("plotter.error_indicator"));
 				utilityIndicatorComboBox.addPopupMenuListener(new PopupMenuListener() {
@@ -407,7 +407,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 					public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
 						ValueSource selectedValueSource = getSelectedValueSource();
 						if (selectedValueSource != null) {
-							selectedValueSource.getSeriesFormat().setUtilityUsage((UtilityUsage) utilityIndicatorComboBox.getSelectedItem());
+							selectedValueSource.getSeriesFormat().setUtilityUsage((IndicatorType) utilityIndicatorComboBox.getSelectedItem());
 						}
 
 					}
@@ -418,16 +418,16 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 
 					}
 				});
-				utilityIndicatorComboBox.setSelectedItem(UtilityUsage.NONE);
+				utilityIndicatorComboBox.setSelectedItem(IndicatorType.NONE);
 
-				relativeErrorCheckBox = new JCheckBox(I18N.getGUILabel("plotter.configuration_dialog.relative.label"));
-				relativeErrorCheckBox.addActionListener(new ActionListener() {
+				relativeIndicatorCheckBox = new JCheckBox(I18N.getGUILabel("plotter.configuration_dialog.relative.label"));
+				relativeIndicatorCheckBox.addActionListener(new ActionListener() {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						ValueSource selectedValueSource = getSelectedValueSource();
 						if (selectedValueSource != null) {
-							selectedValueSource.setUseRelativeUtilities(relativeErrorCheckBox.isSelected());
+							selectedValueSource.setUseRelativeUtilities(relativeIndicatorCheckBox.isSelected());
 						}
 					}
 				});
@@ -447,7 +447,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 				itemConstraint.gridwidth = GridBagConstraints.REMAINDER; //end row
 				itemConstraint.fill = GridBagConstraints.HORIZONTAL;
 				itemConstraint.insets = new Insets(0, 5, 5, 0);
-				utilityIndicatorPanel.add(relativeErrorCheckBox, itemConstraint);
+				utilityIndicatorPanel.add(relativeIndicatorCheckBox, itemConstraint);
 			}
 
 			addTwoComponentRow(this, utilityIndicatorLabel, utilityIndicatorPanel);
@@ -607,7 +607,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 					public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
 						ValueSource selectedValueSource = getSelectedValueSource();
 						if (selectedValueSource != null) {
-							selectedValueSource.setAggregationFunction(SeriesUsageType.INDICATOR_2, (AggregationFunctionType) firstUtilityAggregationComboBox.getSelectedItem());
+							selectedValueSource.setAggregationFunction(SeriesUsageType.INDICATOR_2, (AggregationFunctionType) secondUtilityAggregationComboBox.getSelectedItem());
 						}
 					}
 
@@ -674,7 +674,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 		windowingLabel.setEnabled(grouped);
 		windowingButton.setEnabled(grouped);
 
-		if (utilityIndicatorComboBox.getSelectedItem() != UtilityUsage.NONE) {
+		if (utilityIndicatorComboBox.getSelectedItem() != IndicatorType.NONE) {
 			firstUtilityAggregationComboBox.setEnabled(grouped);
 			secondUtilityAggregationComboBox.setEnabled(grouped);
 		}
@@ -739,19 +739,19 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 		return output;
 	}
 
-	private void errorIndicatorChanged(UtilityUsage utilityUsage) {
+	private void errorIndicatorChanged(IndicatorType utilityUsage) {
 		utilityIndicatorComboBox.setSelectedItem(utilityUsage);
 
 		//update first error attribute
 		boolean enableFirstUtility = false;
 		boolean enableSecondUtility = false;
 
-		if (utilityUsage != UtilityUsage.NONE) {
+		if (utilityUsage != IndicatorType.NONE) {
 			enableFirstUtility = true;
 			enableSecondUtility = true;
 		}
 
-		relativeErrorCheckBox.setEnabled(enableFirstUtility);
+		relativeIndicatorCheckBox.setEnabled(enableFirstUtility);
 
 		boolean useGrouping = false;
 		ValueSource source = getSelectedValueSource();
@@ -769,7 +769,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 		}
 
 		//update second error attribute
-		if (utilityUsage == UtilityUsage.DIFFERENCE) {
+		if (utilityUsage == IndicatorType.DIFFERENCE) {
 			enableSecondUtility = false;
 		}
 
@@ -816,7 +816,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 	 * @param useRelative
 	 */
 	private void useRelativeUtilitiesChanged(Boolean useRelative) {
-		relativeErrorCheckBox.setSelected(useRelative);
+		relativeIndicatorCheckBox.setSelected(useRelative);
 	}
 
 	@Override
@@ -844,7 +844,7 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 			errorIndicatorChanged(format.getUtilityUsage());
 
 			//update relative checkbox
-			useRelativeUtilitiesChanged(selectedValueSource.isUsingRelativeUtilities());
+			useRelativeUtilitiesChanged(selectedValueSource.isUsingRelativeIndicator());
 
 			// set first utility aggregation and column
 			firstUtilityAggregationChanged(selectedValueSource.getAggregationFunctionType(SeriesUsageType.INDICATOR_1));

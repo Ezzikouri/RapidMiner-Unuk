@@ -85,7 +85,7 @@ public class GroupedANOVAOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		significanceOutput.deliver(apply(exampleSet));
 	}
 

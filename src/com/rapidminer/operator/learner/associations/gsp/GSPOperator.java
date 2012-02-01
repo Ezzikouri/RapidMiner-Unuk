@@ -141,7 +141,7 @@ public class GSPOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		Attributes attributes = exampleSet.getAttributes();
 
 		String timeAttributeName = getParameterAsString(PARAMETER_TIME_ATTRIBUTE);

@@ -63,8 +63,8 @@ public class FrequentItemSetAttributeCreator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
-		FrequentItemSets sets = frequentItemSetsInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
+		FrequentItemSets sets = frequentItemSetsInput.getData(FrequentItemSets.class);
 
 		// mapping from name to attribute
 		HashMap<String, Attribute> attributeMap = new HashMap<String, Attribute>();

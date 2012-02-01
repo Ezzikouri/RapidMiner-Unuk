@@ -110,7 +110,7 @@ public class SOMDimensionalityReduction extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		// Get and check parameter values
 		int trainingRounds = getParameterAsInt(PARAMETER_TRAINING_ROUNDS);

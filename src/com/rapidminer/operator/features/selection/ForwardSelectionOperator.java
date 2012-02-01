@@ -74,7 +74,7 @@ public class ForwardSelectionOperator extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSetOriginal = exampleSetInput.getData();
+		ExampleSet exampleSetOriginal = exampleSetInput.getData(ExampleSet.class);
 		ExampleSet exampleSet = (ExampleSet) exampleSetOriginal.clone();
 		int numberOfSteps = getParameterAsInt(PARAMETER_NUMBER_OF_STEPS);
 		int numberOfAttributes = exampleSet.getAttributes().size();
@@ -103,7 +103,7 @@ public class ForwardSelectionOperator extends OperatorChain {
 					innerExampleSource.deliver(exampleSet);
 					getSubprocess(0).execute();
 
-					PerformanceVector performance = innerPerformanceSink.getData();
+					PerformanceVector performance = innerPerformanceSink.getData(PerformanceVector.class);
 					if (bestPerformance == null || performance.compareTo(bestPerformance) > 0 ) {
 						bestIndex = current;
 						bestPerformance = performance;

@@ -275,14 +275,14 @@ public abstract class ValidationChain extends OperatorChain implements Capabilit
         // Generate complete model, if desired
         if (modelOutput.isConnected()) {
             learnFinalModel(eSet);
-            modelOutput.deliver(trainingProcessModelInput.getData());
+            modelOutput.deliver(trainingProcessModelInput.getData(IOObject.class));
         }
         exampleSetOutput.deliver(eSet);
 
         // set last result for plotting purposes. This is an average value and
         // actually not the last performance value!
         boolean success = false;
-        for (IOObject result : applyProcessPerformancePortExtender.getOutputData()) {
+        for (IOObject result : applyProcessPerformancePortExtender.getOutputData(IOObject.class)) {
             if (result instanceof PerformanceVector) {
                 setResult((PerformanceVector)result);
                 success = true;
@@ -318,7 +318,7 @@ public abstract class ValidationChain extends OperatorChain implements Capabilit
         Attribute predictedBefore = testSet.getAttributes().getPredictedLabel();
 
         applyProcessExampleSetOutput.deliver(testSet);
-        applyProcessModelOutput.deliver(trainingProcessModelInput.getData());
+        applyProcessModelOutput.deliver(trainingProcessModelInput.getData(IOObject.class));
         throughExtender.passDataThrough();
 
         executeEvaluator();

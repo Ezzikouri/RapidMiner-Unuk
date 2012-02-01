@@ -124,7 +124,7 @@ public class EvolutionaryWeighting extends AbstractGeneticAlgorithm {
 		// handling
 		boolean useBoundedMutation = getParameterAsBoolean(PARAMETER_BOUNDED_MUTATION);
 		if (!useBoundedMutation) {
-			ExampleSet exampleSet = getExampleSetInput().getData();
+			ExampleSet exampleSet = getExampleSetInput().getData(ExampleSet.class);
 			boolean containsNominalAttributes = false;
 			for (Attribute attribute : exampleSet.getAttributes()) {
 				if (attribute.isNominal()) {
@@ -148,7 +148,7 @@ public class EvolutionaryWeighting extends AbstractGeneticAlgorithm {
 		double[] initialWeights = null;
 		if (getParameterAsBoolean(PARAMETER_INITIALIZE_WITH_INPUT_WEIGHTS)) {
 			AttributeWeights inputWeights = null;
-			inputWeights = attributeWeightsInput.getData();
+			inputWeights = attributeWeightsInput.getData(AttributeWeights.class);
 			initialWeights = new double[exampleSet.getAttributes().size()];
 			int index = 0;
 			for (Attribute attribute : exampleSet.getAttributes()) {

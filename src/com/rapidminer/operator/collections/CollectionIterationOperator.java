@@ -77,7 +77,7 @@ public class CollectionIterationOperator extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		IOObjectCollection<IOObject> data = collectionInput.getData();
+		IOObjectCollection<IOObject> data = collectionInput.getData(IOObjectCollection.class);
 		List<IOObject> list;
 		if (getParameterAsBoolean(PARAMETER_UNFOLD)) {
 			list = data.getObjectsRecursive(); 

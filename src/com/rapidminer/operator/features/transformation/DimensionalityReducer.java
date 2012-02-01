@@ -96,7 +96,7 @@ public abstract class DimensionalityReducer extends Operator implements Capabili
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet es = exampleSetInput.getData();
+        ExampleSet es = exampleSetInput.getData(ExampleSet.class);
         int dimensions = getParameterAsInt(PARAMETER_DIMENSIONS);
 
         Tools.onlyNumericalAttributes(es, "dimensionality reduction");

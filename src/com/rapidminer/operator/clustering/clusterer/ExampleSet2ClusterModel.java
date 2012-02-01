@@ -82,7 +82,7 @@ public class ExampleSet2ClusterModel extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		// checking and creating ids if necessary
 		Tools.checkAndCreateIds(exampleSet);

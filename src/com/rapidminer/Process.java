@@ -762,7 +762,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
                     } catch (MalformedRepositoryLocationException e1) {
                         throw e1.makeUserError(rootOperator);
                     }
-                    IOObject data = port.getDataOrNull();
+                    IOObject data = port.getDataOrNull(IOObject.class);
                     if (data == null) {
                         getLogger().warning("Nothing to store at " + location + ": No results produced at " + port.getSpec() + ".");
                     } else {

@@ -233,7 +233,7 @@ public abstract class AbstractPerformanceEvaluator extends Operator implements C
         ExampleSet testSet = exampleSetInput.getData(ExampleSet.class);
         checkCompatibility(testSet);
         init(testSet);
-        PerformanceVector inputPerformance = performanceInput.getDataOrNull();
+        PerformanceVector inputPerformance = performanceInput.getDataOrNull(PerformanceVector.class);
         performanceOutput.deliver(evaluate(testSet, inputPerformance));
         exampleSetOutput.deliver(testSet);
     }

@@ -67,7 +67,7 @@ public class GroupByOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		Attribute attribute = exampleSet.getAttributes().get(this.getParameterAsString(PARAMETER_ATTRIBUTE_NAME));
 
 		if (attribute == null) {

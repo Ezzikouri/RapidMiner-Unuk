@@ -82,7 +82,7 @@ public class ZippedFileIterator extends AbstractFileIterator {
 		ZipFile zipFile = null;
 		File physicalZipFile = null;
 		if (fileInputPort.isConnected()) {
-			FileObject zipFileObject = fileInputPort.getDataOrNull();
+			FileObject zipFileObject = fileInputPort.getDataOrNull(FileObject.class);
 			if (zipFileObject == null) {
 				throw new UserError(this, 122, FileObject.class.getName());
 			}

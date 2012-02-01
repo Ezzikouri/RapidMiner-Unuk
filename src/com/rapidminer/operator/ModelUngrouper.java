@@ -52,7 +52,7 @@ public class ModelUngrouper extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		GroupedModel groupedModel = groupedModelInput.getData();
+		GroupedModel groupedModel = groupedModelInput.getData(GroupedModel.class);
 		Model[] result = new Model[groupedModel.getNumberOfModels()];
 		int index = 0;
 		for (Model inner : groupedModel) {

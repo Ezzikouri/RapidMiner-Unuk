@@ -109,14 +109,14 @@ public class RandomOptimizationChain extends SimpleOperatorChain {
 			// executing sub process
 			super.doWork();
 
-			PerformanceVector performanceVector = innerPerformanceSink.getData();
+			PerformanceVector performanceVector = innerPerformanceSink.getData(PerformanceVector.class);
 			if (bestPerformance == null) {
 				bestPerformance = performanceVector;
-				bestResult = outputExtender.getData();
+				bestResult = outputExtender.getData(IOObject.class);
 			} else {
 				if (performanceVector.getMainCriterion().compareTo(bestPerformance.getMainCriterion()) == 1) {
 					bestPerformance = performanceVector;
-					bestResult = outputExtender.getData();
+					bestResult = outputExtender.getData(IOObject.class);
 				}
 			}
 			this.bestPerformanceValue = bestPerformance.getMainCriterion().getFitness();

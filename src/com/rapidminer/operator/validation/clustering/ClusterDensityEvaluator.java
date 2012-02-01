@@ -84,11 +84,11 @@ public class ClusterDensityEvaluator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		SimilarityMeasureObject simMeasure = distanceInput.getData();
+		SimilarityMeasureObject simMeasure = distanceInput.getData(SimilarityMeasureObject.class);
 		DistanceMeasure measure = simMeasure.getDistanceMeasure();
-		ExampleSet exampleSet = exampleSetInput.getData();
-		ClusterModel clusterModel = clusterModelInput.getData();
-		PerformanceVector performance = performanceInput.getDataOrNull();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
+		ClusterModel clusterModel = clusterModelInput.getData(ClusterModel.class);
+		PerformanceVector performance = performanceInput.getDataOrNull(PerformanceVector.class);
 
 		if (performance == null)
 			performance = new PerformanceVector();

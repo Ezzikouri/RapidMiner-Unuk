@@ -82,7 +82,7 @@ public class RelevanceTreeLearner extends OperatorChain implements Learner {
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet exampleSet = exampleSetInput.getData();
+        ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
         // some checks
         if (exampleSet.getAttributes().getLabel() == null) {
             throw new UserError(this, 105, new Object[0]);
@@ -138,7 +138,7 @@ public class RelevanceTreeLearner extends OperatorChain implements Learner {
         double weight = Double.NaN;
         if (weightsInnerSink.isConnected()) {
             applyInnerLearner(trainingSet);
-            AttributeWeights weights = weightsInnerSink.getData();
+            AttributeWeights weights = weightsInnerSink.getData(AttributeWeights.class);
             weight = weights.getWeight(attribute.getName());
         } else {
             getLogger().info("Weight not connected. Skipping");

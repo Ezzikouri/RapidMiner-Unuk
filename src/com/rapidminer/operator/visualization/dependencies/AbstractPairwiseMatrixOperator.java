@@ -70,7 +70,7 @@ public abstract class AbstractPairwiseMatrixOperator extends Operator {
 	
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet eSet = exampleSetInput.getData();
+		ExampleSet eSet = exampleSetInput.getData(ExampleSet.class);
 		
 		// discretize values (view!)
 		ExampleSet exampleSet = performPreprocessing(eSet);

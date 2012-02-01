@@ -222,7 +222,7 @@ public abstract class ExampleSetBasedFeatureOperator extends OperatorChain {
 		this.totalEvaluations = 0;
 		this.maximalFitness = getParameterAsDouble(PARAMETER_MAXIMAL_FITNESS);
 
-		ExampleSet es = exampleSetInput.getData();
+		ExampleSet es = exampleSetInput.getData(ExampleSet.class);
 
 		if (es.getAttributes().size() == 0) {
 			throw new UserError(this, 125, 0, 1);
@@ -341,7 +341,7 @@ public abstract class ExampleSetBasedFeatureOperator extends OperatorChain {
 
 			getSubprocess(0).execute();
 
-			PerformanceVector performanceVector = innerPerformanceSink.getData();
+			PerformanceVector performanceVector = innerPerformanceSink.getData(PerformanceVector.class);
 			individual.setPerformance(performanceVector);
 			return performanceVector;
 		}

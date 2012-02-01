@@ -27,6 +27,7 @@ import java.util.List;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.SplittedExampleSet;
+import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
@@ -92,7 +93,7 @@ public class PartialExampleSetLearner extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException { 
-		ExampleSet originalExampleSet = exampleSetInput.getData();
+		ExampleSet originalExampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		double fraction = getParameterAsDouble(PARAMETER_FRACTION); 
 		if (fraction < 0 || fraction > 1.0) 
@@ -104,7 +105,7 @@ public class PartialExampleSetLearner extends OperatorChain {
 
 		exampleSubsetInnerSource.deliver(splitted);
 		getSubprocess(0).execute();                
-		modelOutput.deliver(modelInnerSink.getData());
+		modelOutput.deliver(modelInnerSink.getData(IOObject.class));
 	} 
 
 	@Override

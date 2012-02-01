@@ -85,7 +85,7 @@ public class ExampleSetIterator extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		List<ExampleSet> eSetList = exampleSetExtender.getData(true);
+		List<ExampleSet> eSetList = exampleSetExtender.getData(ExampleSet.class, true);
 		
 		boolean onlyBest = getParameterAsBoolean(PARAMETER_ONLY_BEST);
 		double bestFitness = Double.NEGATIVE_INFINITY;		
@@ -93,7 +93,7 @@ public class ExampleSetIterator extends OperatorChain {
 			exampleSetInnerSource.deliver(exampleSet);
 			getSubprocess(0).execute();
 			if (onlyBest) {
-				PerformanceVector pv = performanceInnerSink.getData();
+				PerformanceVector pv = performanceInnerSink.getData(PerformanceVector.class);
 				double fitness = pv.getMainCriterion().getFitness();
 				if (fitness > bestFitness) {
 					bestFitness = fitness;

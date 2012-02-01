@@ -84,7 +84,7 @@ public class RandomSplitWrapperValidationChain extends WrapperValidationChain {
 	@Override
 	public void doWork() throws OperatorException {
 		double splitRatio = getParameterAsDouble(PARAMETER_SPLIT_RATIO);
-		ExampleSet inputSet = exampleSetInput.getData();
+		ExampleSet inputSet = exampleSetInput.getData(ExampleSet.class);
 		SplittedExampleSet eSet = new SplittedExampleSet(
 				inputSet,
 				splitRatio,

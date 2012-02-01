@@ -150,7 +150,7 @@ public class PartitionOperator extends Operator {
 		for (int j = 0; j < ratios.length; j++) {
 			ratios[j] /= sum;
 		}
-		ExampleSet originalSet = exampleSetInput.getData();
+		ExampleSet originalSet = exampleSetInput.getData(ExampleSet.class);
 		SplittedExampleSet e = new SplittedExampleSet(originalSet, ratios, getParameterAsInt(PARAMETER_SAMPLING_TYPE), getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED));
 		List<OutputPort> outputs = outExtender.getManagedPorts();
 		for (int j = 0; j < ratioList.length; j++) {

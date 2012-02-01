@@ -152,7 +152,7 @@ public class AttributeSubsetPreprocessing extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet inputSet = exampleSetInput.getData();
+		ExampleSet inputSet = exampleSetInput.getData(ExampleSet.class);
 		ExampleSet workingExampleSet = (ExampleSet)inputSet.clone();
 		Set<Attribute> selectedAttributes = attributeSelector.getAttributeSubset(workingExampleSet, false);
 
@@ -174,7 +174,7 @@ public class AttributeSubsetPreprocessing extends OperatorChain {
 		getSubprocess(0).execute();
 
 		// retrieve transformed example set
-		ExampleSet resultSet = innerExampleSetSink.getData();
+		ExampleSet resultSet = innerExampleSetSink.getData(ExampleSet.class);
 
 		// transform special attributes back
 		Iterator<AttributeRole> r = resultSet.getAttributes().allAttributeRoles();

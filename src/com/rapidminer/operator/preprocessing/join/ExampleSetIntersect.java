@@ -70,7 +70,7 @@ public class ExampleSetIntersect extends AbstractDataProcessing {
 
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
-		ExampleSet secondSet = secondInput.getData();
+		ExampleSet secondSet = secondInput.getData(ExampleSet.class);
 		ExampleSet firstSet = exampleSet;
 
 		secondSet.remapIds();

@@ -79,7 +79,7 @@ public class IOObjectWriter extends Operator {
 	/** Writes the attribute set to a file. */
 	@Override
 	public void doWork() throws OperatorException {
-		IOObject object = objectInput.getData();
+		IOObject object = objectInput.getData(IOObject.class);
 		File objectFile = getParameterAsFile(PARAMETER_OBJECT_FILE, true);
 
 		int outputType = getParameterAsInt(PARAMETER_OUTPUT_TYPE);

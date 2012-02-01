@@ -80,7 +80,7 @@ public class AttributeConstructionsLoader extends Operator {
 	/** Loads the attribute set from a file and constructs desired features. */
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		boolean keepAll = getParameterAsBoolean(PARAMETER_KEEP_ALL);
 		List<Attribute> oldAttributes = new LinkedList<Attribute>();

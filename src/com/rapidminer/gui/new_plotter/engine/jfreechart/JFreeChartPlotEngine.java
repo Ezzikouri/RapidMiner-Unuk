@@ -74,10 +74,10 @@ import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.StackingMode;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.data.DimensionConfigData;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
@@ -729,6 +729,11 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 
 				// create plot
 				if (domainAxisType == ValueType.NOMINAL) {
+
+					if(!valueSource.isUsingRelativeIndicator()) {
+						throw new ChartPlottimeException("absolute_indicator_but_nominal_domain", valueSource.getLabel());
+					}
+					
 					CategoryPlot categoryPlot = (CategoryPlot) plot;
 					addDataAndRendererToCategoryPlot(valueSource, categoryPlot, rangeAxisIdx);
 				} else if (domainAxisType == ValueType.NUMERICAL) {
@@ -813,7 +818,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	private void addDataAndRendererToXYPlot(ValueSource valueSource, XYPlot plot, int rangeAxisIdx) throws ChartPlottimeException {
 		VisualizationType seriesType = valueSource.getSeriesFormat().getSeriesType();
 		StackingMode stackingMode = valueSource.getSeriesFormat().getStackingMode();
-		UtilityUsage errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
+		IndicatorType errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
 
 		XYItemRenderer renderer;
 		XYDataset dataset;
@@ -825,7 +830,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 
 			// grouping is irrelevant
 
-			if (errorIndicator == UtilityUsage.DIFFERENCE) {
+			if (errorIndicator == IndicatorType.DIFFERENCE) {
 				XYItemRenderer[] renderers = ChartRendererFactory.createXYDifferenceRenderers(valueSource, plotInstance);
 
 				if (domainConfigData.hasDuplicateValues()) {
@@ -838,13 +843,13 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 					pushDataAndRendererIntoPlot(plot, rangeAxisIdx, renderer, dataset);
 				}
 				return;
-			} else if (errorIndicator == UtilityUsage.BARS) {
+			} else if (errorIndicator == IndicatorType.BARS) {
 				dataset = ChartDatasetFactory.createDefaultIntervalXYDataset(valueSource, plotInstance, true);
 				renderer = ChartRendererFactory.createXYErrorRenderer(valueSource, plotInstance, dataset);
-			} else if (errorIndicator == UtilityUsage.BAND) {
+			} else if (errorIndicator == IndicatorType.BAND) {
 				dataset = ChartDatasetFactory.createDefaultIntervalXYDataset(valueSource, plotInstance, true);
 				renderer = ChartRendererFactory.createDeviationRenderer(valueSource, plotInstance);
-			} else if (errorIndicator == UtilityUsage.NONE) {
+			} else if (errorIndicator == IndicatorType.NONE) {
 				dataset = ChartDatasetFactory.createDefaultXYDataset(valueSource, plotInstance);
 				renderer = ChartRendererFactory.createXYLineAndShapeRenderer(valueSource, plotInstance);
 			} else {
@@ -854,12 +859,12 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		} else if (seriesType == VisualizationType.BARS) {
 			// grouping is irrelevant
 
-			if (errorIndicator != UtilityUsage.NONE) {
+			if (errorIndicator != IndicatorType.NONE) {
 				// not supported
 				PlotConfigurationError error = new PlotConfigurationError("error_indicator_not_supported", valueSource.toString(), errorIndicator.getName());
 				SeriesFormatChangeEvent change;
 				// suggest to remove error indicators
-				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), UtilityUsage.NONE);
+				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), IndicatorType.NONE);
 				error.addQuickFix(new PlotConfigurationQuickFix(change));
 				// suggest to switch to lines and shapes
 				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), VisualizationType.LINES_AND_SHAPES);
@@ -887,12 +892,12 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 			}
 		} else if (seriesType == VisualizationType.AREA) {
 			// grouping is irrelevant
-			if (errorIndicator != UtilityUsage.NONE) {
+			if (errorIndicator != IndicatorType.NONE) {
 				// not supported
 				PlotConfigurationError error = new PlotConfigurationError("error_indicator_not_supported", valueSource.toString(), errorIndicator.getName());
 				SeriesFormatChangeEvent change;
 				// suggest to remove error indicators
-				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), UtilityUsage.NONE);
+				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), IndicatorType.NONE);
 				error.addQuickFix(new PlotConfigurationQuickFix(change));
 				// suggest to switch to lines and shapes
 				change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), VisualizationType.LINES_AND_SHAPES);
@@ -970,7 +975,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	private void addDataAndRendererToCategoryPlot(ValueSource valueSource, CategoryPlot plot, int rangeAxisIdx) throws ChartPlottimeException {
 		VisualizationType seriesType = valueSource.getSeriesFormat().getSeriesType();
 		StackingMode stackingMode = valueSource.getSeriesFormat().getStackingMode();
-		UtilityUsage errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
+		IndicatorType errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
 		DefaultDimensionConfig domainConfig = valueSource.getDomainConfig();
 		DimensionConfigData domainConfigData = plotInstance.getPlotData().getDimensionConfigData(domainConfig);
 		ValueSourceData valueSourceData = plotInstance.getPlotData().getValueSourceData(valueSource);
@@ -981,18 +986,18 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		if (seriesType == VisualizationType.LINES_AND_SHAPES) {
 			// stacking is ignored
 
-			if (errorIndicator == UtilityUsage.DIFFERENCE || errorIndicator == UtilityUsage.BAND) {
+			if (errorIndicator == IndicatorType.DIFFERENCE || errorIndicator == IndicatorType.BAND) {
 				// not supported
 				throwErrorIndicatorNotSupported(valueSource, errorIndicator);
 				return;
-			} else if (errorIndicator == UtilityUsage.BARS) {
+			} else if (errorIndicator == IndicatorType.BARS) {
 				if (domainConfigData.hasDuplicateValues()) {
 					throwDuplicateValuesNotSupported(valueSource, PlotDimension.DOMAIN);
 					return;
 				}
 				dataset = ChartDatasetFactory.createDefaultStatisticalCategoryDataset(valueSource, plotInstance);
 				renderer = ChartRendererFactory.createStatisticalLineAndShapeRenderer(valueSource, plotInstance);
-			} else if (errorIndicator == UtilityUsage.NONE) {
+			} else if (errorIndicator == IndicatorType.NONE) {
 				if (valueSource.isUsingDomainGrouping()) {
 					dataset = ChartDatasetFactory.createDefaultCategoryDataset(valueSource, plotInstance, false, true);
 					renderer = ChartRendererFactory.createLineAndShapeRenderer(valueSource, plotInstance);
@@ -1014,12 +1019,12 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 
 			// don't support other error indicators than bars for unstacked bar
 			// charts, and none at all for stacked bar charts
-			if ((errorIndicator != UtilityUsage.NONE && errorIndicator != UtilityUsage.BARS) || (errorIndicator != UtilityUsage.NONE && stackingMode != StackingMode.NONE)) {
+			if ((errorIndicator != IndicatorType.NONE && errorIndicator != IndicatorType.BARS) || (errorIndicator != IndicatorType.NONE && stackingMode != StackingMode.NONE)) {
 				throwErrorIndicatorNotSupported(valueSource, errorIndicator);
 				return;
 			} else {
 				if (stackingMode == StackingMode.NONE) {
-					if (errorIndicator == UtilityUsage.BARS) {
+					if (errorIndicator == IndicatorType.BARS) {
 						dataset = ChartDatasetFactory.createDefaultStatisticalCategoryDataset(valueSource, plotInstance);
 						renderer = ChartRendererFactory.createStatisticalBarRenderer(valueSource, plotInstance);
 					} else { // if (errorIndicator == ErrorIndicator.NONE) { //
@@ -1046,7 +1051,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 			}
 
 			// grouping is irrelevant
-			if (errorIndicator != UtilityUsage.NONE) {
+			if (errorIndicator != IndicatorType.NONE) {
 				throwErrorIndicatorNotSupported(valueSource, errorIndicator);
 				return;
 			} else {
@@ -1123,12 +1128,12 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		throw new ChartPlottimeException("duplicate_value", valueSource.toString(), dimension.getName());
 	}
 
-	private void throwErrorIndicatorNotSupported(ValueSource valueSource, UtilityUsage errorIndicator) throws ChartPlottimeException {
+	private void throwErrorIndicatorNotSupported(ValueSource valueSource, IndicatorType errorIndicator) throws ChartPlottimeException {
 		PlotConfigurationError error = new PlotConfigurationError("error_indicator_not_supported", valueSource.toString(), errorIndicator.getName());
 		SeriesFormatChangeEvent change;
 
 		// suggest to remove error indicators
-		change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), UtilityUsage.NONE);
+		change = new SeriesFormatChangeEvent(valueSource.getSeriesFormat(), IndicatorType.NONE);
 		error.addQuickFix(new PlotConfigurationQuickFix(change));
 		throw new ChartPlottimeException(error);
 	}
@@ -1621,7 +1626,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		for (ValueSource valueSource : plotConfiguration.getAllValueSources()) {
 			SeriesFormat format = valueSource.getSeriesFormat();
 			if (format.getSeriesType() == VisualizationType.LINES_AND_SHAPES) {
-				if (format.getUtilityUsage() == UtilityUsage.DIFFERENCE) {
+				if (format.getUtilityUsage() == IndicatorType.DIFFERENCE) {
 					if (format.getItemShape() != ItemShape.NONE) {
 						warnings.add(new PlotConfigurationError("difference_plot_with_items_not_supported", valueSource.toString()));
 					}

@@ -73,7 +73,7 @@ public class AttributeWeights2ExampleSet extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		AttributeWeights weights = weightInput.getData();
+		AttributeWeights weights = weightInput.getData(AttributeWeights.class);
 
 		List<Attribute> attributes = new LinkedList<Attribute>();
 		Attribute nameAttribute = AttributeFactory.createAttribute("Attribute", Ontology.NOMINAL);

@@ -111,7 +111,7 @@ public class LocalPolynomialExampleWeightingOperator extends Operator {
 	@Override
 	public void doWork() throws OperatorException {
 		// getting data
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		
 		// doing the work
 		exampleSet = doWork(exampleSet, this);

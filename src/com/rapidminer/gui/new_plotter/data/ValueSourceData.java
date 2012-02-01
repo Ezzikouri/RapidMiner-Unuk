@@ -43,7 +43,7 @@ import com.rapidminer.gui.new_plotter.configuration.DefaultDimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
 import com.rapidminer.gui.new_plotter.configuration.GroupCellKey;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.listener.events.ValueSourceChangeEvent;
@@ -450,19 +450,19 @@ public class ValueSourceData {
 	/**
 	 * Returns values of utility series for upper or lower case.
 	 * 
-	 * Returns null if {@link SeriesUsageType} UTILITY1 is not set or {@link UtilityUsage} is NONE.
-	 * If {@link UtilityUsage} is DIFFERENCE and secondary is <code>false</code> a List with NaNs is
+	 * Returns null if {@link SeriesUsageType} UTILITY1 is not set or {@link IndicatorType} is NONE.
+	 * If {@link IndicatorType} is DIFFERENCE and secondary is <code>false</code> a List with NaNs is
 	 * returned.
 	 */
 	public double[] getAbsoluteUtilityValues(GroupCellKeyAndData groupCellKeyAndData, boolean secondary) {
-		UtilityUsage errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
+		IndicatorType errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
 
 		// only the UTILITY_1 is used for the DIFFERENCE plot
-		if (errorIndicator == UtilityUsage.DIFFERENCE && !secondary) {
+		if (errorIndicator == IndicatorType.DIFFERENCE && !secondary) {
 			return null;
 		}
 
-		if (dataTableColumnIdxMap.get(SeriesUsageType.INDICATOR_1) == null || errorIndicator == UtilityUsage.NONE) {
+		if (dataTableColumnIdxMap.get(SeriesUsageType.INDICATOR_1) == null || errorIndicator == IndicatorType.NONE) {
 			return null;
 		}
 
@@ -481,7 +481,7 @@ public class ValueSourceData {
 			return null;
 		}
 
-		boolean relative = valueSource.isUsingRelativeUtilities();
+		boolean relative = valueSource.isUsingRelativeIndicator();
 
 		// in the utility arrays always absolute values are stored - so nothing to do
 		// if we want to return the absolute values.
@@ -518,8 +518,8 @@ public class ValueSourceData {
 	 */
 	public Pair<Double, Double> getMinAndMaxValue() {
 		if (Double.isNaN(cachedMinValue) || Double.isNaN(cachedMaxValue)) {
-			UtilityUsage errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
-			if (errorIndicator == UtilityUsage.NONE) {
+			IndicatorType errorIndicator = valueSource.getSeriesFormat().getUtilityUsage();
+			if (errorIndicator == IndicatorType.NONE) {
 				Pair<Double, Double> minMaxPair = calculateMinMaxFast();
 				cachedMinValue = minMaxPair.getFirst();
 				cachedMaxValue = minMaxPair.getSecond();
@@ -570,7 +570,7 @@ public class ValueSourceData {
 			}
 
 			// using DIFFERENCE plot there does not exist something like lower error
-			if (valueSource.getSeriesFormat().getUtilityUsage() != UtilityUsage.DIFFERENCE) {
+			if (valueSource.getSeriesFormat().getUtilityUsage() != IndicatorType.DIFFERENCE) {
 				double[] lowerValues = getAbsoluteUtilityValues(groupCellKeyAndData, false);
 				for (Double value : lowerValues) {
 					if (value < minValue) {

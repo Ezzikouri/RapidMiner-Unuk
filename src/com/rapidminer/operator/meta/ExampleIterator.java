@@ -102,7 +102,7 @@ public class ExampleIterator extends OperatorChain {
 	@Override
 	public void doWork() throws OperatorException {
 		outExtender.reset();
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		String iterationMacroName = getParameterAsString( PARAMETER_ITERATION_MACRO );
 		boolean innerSinkIsConnected = exampleSetInnerSink.isConnected();
 
@@ -116,7 +116,7 @@ public class ExampleIterator extends OperatorChain {
 			inApplyLoop();
 
 			if( innerSinkIsConnected ) {
-				exampleSet = exampleSetInnerSink.getData();
+				exampleSet = exampleSetInnerSink.getData(ExampleSet.class);
 			}
 
 			outExtender.collect();

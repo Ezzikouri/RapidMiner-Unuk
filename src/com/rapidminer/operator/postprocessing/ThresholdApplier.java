@@ -63,8 +63,8 @@ public class ThresholdApplier extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
-		Threshold threshold = thresholdInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
+		Threshold threshold = thresholdInput.getData(Threshold.class);
 
 		Attribute predictedLabel = exampleSet.getAttributes().getPredictedLabel();
 		if (predictedLabel == null)

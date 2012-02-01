@@ -80,7 +80,7 @@ public abstract class SignificanceTestOperator extends Operator {
 	/** Writes the attribute set to a file. */
 	@Override
 	public void doWork() throws OperatorException {
-		List<PerformanceVector> allVectors = performanceExtender.getData();
+		List<PerformanceVector> allVectors = performanceExtender.getData(PerformanceVector.class);
 		
 		if (allVectors.size() < getMinSize()) {
 			throw new UserError(this, 123, PerformanceVector.class, getMinSize() + "");

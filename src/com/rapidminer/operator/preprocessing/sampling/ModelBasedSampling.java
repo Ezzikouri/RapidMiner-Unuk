@@ -89,7 +89,7 @@ public class ModelBasedSampling extends AbstractSamplingOperator {
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
 		// retrieving and applying model
-		PredictionModel model = modelInput.getData();
+		PredictionModel model = modelInput.getData(PredictionModel.class);
 		exampleSet = model.apply(exampleSet);
 
 

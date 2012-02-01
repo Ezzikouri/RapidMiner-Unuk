@@ -198,9 +198,9 @@ public class ProcessBranch extends OperatorChain {
 			// execute
 			inputExtender.passDataThrough();
 			if (conditionState) {
-				conditionInnerSourceThen.deliver(conditionInput.getDataOrNull());
+				conditionInnerSourceThen.deliver(conditionInput.getDataOrNull(IOObject.class));
 			} else {
-				conditionInnerSourceElse.deliver(conditionInput.getDataOrNull());
+				conditionInnerSourceElse.deliver(conditionInput.getDataOrNull(IOObject.class));
 			}
 			int chosenProcess = conditionState ? 0 : 1;
 			getSubprocess(chosenProcess).execute();
@@ -216,7 +216,7 @@ public class ProcessBranch extends OperatorChain {
 	}
 
 	public <T extends IOObject> T getConditionInput(Class<T> cls) throws UserError { 
-		return conditionInput.<T>getDataOrNull();
+		return conditionInput.<T>getDataOrNull(cls);
 	}
 
 	public Class<? extends IOObject> getSelectedClass() throws UndefinedParameterError {

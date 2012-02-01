@@ -76,7 +76,7 @@ public class FormulaExtractor extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		Model model = modelInput.getData();
+		Model model = modelInput.getData(Model.class);
 		
 		if (model instanceof FormulaProvider) {
 			formulaOutput.deliver(new FormulaResult(((FormulaProvider)model).getFormula()));			

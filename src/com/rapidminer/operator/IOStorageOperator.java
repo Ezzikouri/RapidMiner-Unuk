@@ -104,7 +104,7 @@ public class IOStorageOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		IOObject object = storeInput.getData();
+		IOObject object = storeInput.getData(IOObject.class);
 		if (getParameterAsBoolean(PARAMETER_REMOVE_FROM_PROCESS)) {
 			getProcess().store(getParameterAsString(PARAMETER_NAME), object);
 		} else {

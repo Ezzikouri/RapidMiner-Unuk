@@ -114,7 +114,7 @@ public class ROCBasedComparisonOperator extends OperatorChain implements Capabil
 
     @Override
     public void doWork() throws OperatorException {
-        ExampleSet exampleSet = exampleSetInput.getData();
+        ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
         if (exampleSet.getAttributes().getLabel() == null) {
             throw new UserError(this, 105);
@@ -138,7 +138,7 @@ public class ROCBasedComparisonOperator extends OperatorChain implements Capabil
             eSet.selectSingleSubset(0);
             trainingSetExtender.deliverToAll(eSet, false);
             getSubprocess(0).execute();
-            List<Model> models = modelExtender.getData(true);
+            List<Model> models = modelExtender.getData(Model.class, true);
             // apply models on test set
             eSet.selectSingleSubset(1);
             for (Model model : models) {
@@ -167,7 +167,7 @@ public class ROCBasedComparisonOperator extends OperatorChain implements Capabil
                 trainingSetExtender.deliverToAll(eSet, false);
                 getSubprocess(0).execute();
                 // apply all models
-                List<Model> models = modelExtender.getData(true);
+                List<Model> models = modelExtender.getData(Model.class, true);
                 for (Model model : models) {
                     eSet.selectSingleSubset(iteration);
                     ExampleSet resultSet = model.apply(eSet);

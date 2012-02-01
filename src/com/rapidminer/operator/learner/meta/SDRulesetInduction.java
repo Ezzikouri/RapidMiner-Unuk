@@ -205,7 +205,7 @@ public class SDRulesetInduction extends OperatorChain {
 	private Model trainModel(ExampleSet exampleSet) throws OperatorException {
 		trainingInnerSource.deliver(exampleSet);
 		getSubprocess(0).execute();
-		return modelInnerSink.getData();
+		return modelInnerSink.getData(Model.class);
 	}
 
 	/**
@@ -218,7 +218,7 @@ public class SDRulesetInduction extends OperatorChain {
 	@Override
 	public void doWork() throws OperatorException {
 		// Reads the input example set and initializes its weights.
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		// Check if label is present and fits the learning task
 		if (exampleSet.getAttributes().getLabel() == null) {

@@ -80,7 +80,7 @@ public class ExampleDistributionEvaluator extends Operator {
 	@Override
 	public void doWork() throws OperatorException {
 
-		ClusterModel model = clusterModelInput.getData();
+		ClusterModel model = clusterModelInput.getData(ClusterModel.class);
 
 		ExampleDistributionMeasure measure = (ExampleDistributionMeasure) MEASURE_MAP.getInstantiation(getParameterAsString(PARAMETER_MEASURE));
 
@@ -93,7 +93,7 @@ public class ExampleDistributionEvaluator extends Operator {
 			count[i] = numItemsInCluster;
 		}
 
-		PerformanceVector performance = performanceInput.getDataOrNull();
+		PerformanceVector performance = performanceInput.getDataOrNull(PerformanceVector.class);
 		if (performance == null) {
 			// If no performance vector is available create a new one
 			performance = new PerformanceVector();

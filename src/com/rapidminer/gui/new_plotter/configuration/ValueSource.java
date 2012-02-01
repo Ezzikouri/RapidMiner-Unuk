@@ -31,7 +31,7 @@ import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.FillStyle;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.UtilityUsage;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.listener.AggregationWindowingListener;
 import com.rapidminer.gui.new_plotter.listener.SeriesFormatListener;
 import com.rapidminer.gui.new_plotter.listener.ValueSourceListener;
@@ -483,7 +483,7 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 		fireAggregationWindowingChanged();
 	}
 
-	public boolean isUsingRelativeUtilities() {
+	public boolean isUsingRelativeIndicator() {
 		return useRelativeUtilities;
 	}
 
@@ -552,14 +552,14 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 
 		// check that all series usage types have the same value type
 		ValueType valueType = getValueType();
-		if (format.getUtilityUsage() != UtilityUsage.NONE && getDefinedUsageTypes().contains(SeriesUsageType.INDICATOR_1)) {
+		if (format.getUtilityUsage() != IndicatorType.NONE && getDefinedUsageTypes().contains(SeriesUsageType.INDICATOR_1)) {
 			ValueType seriesValueType = getValueType(SeriesUsageType.INDICATOR_1);
 			if (seriesValueType != valueType) {
 				errors.add(new PlotConfigurationError("incompatible_utility_value_type", this.toString(), SeriesUsageType.INDICATOR_1, valueType, seriesValueType));
 			}
 		}
-		if (format.getUtilityUsage() != UtilityUsage.NONE && getDefinedUsageTypes().contains(SeriesUsageType.INDICATOR_2)) {
-			if (format.getUtilityUsage() != UtilityUsage.DIFFERENCE) {
+		if (format.getUtilityUsage() != IndicatorType.NONE && getDefinedUsageTypes().contains(SeriesUsageType.INDICATOR_2)) {
+			if (format.getUtilityUsage() != IndicatorType.DIFFERENCE) {
 				ValueType seriesValueType = getValueType(SeriesUsageType.INDICATOR_2);
 				if (seriesValueType != valueType) {
 					errors.add(new PlotConfigurationError("incompatible_utility_value_type", this.toString(), SeriesUsageType.INDICATOR_2, valueType, seriesValueType));
@@ -574,20 +574,20 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 		List<PlotConfigurationError> warnings = new LinkedList<PlotConfigurationError>();
 
 		if (format.getSeriesType() == VisualizationType.LINES_AND_SHAPES) {
-			if (format.getItemShape() == ItemShape.NONE && format.getLineStyle() == LineStyle.NONE && format.getUtilityUsage() == UtilityUsage.NONE) {
+			if (format.getItemShape() == ItemShape.NONE && format.getLineStyle() == LineStyle.NONE && format.getUtilityUsage() == IndicatorType.NONE) {
 				warnings.add(new PlotConfigurationError("invisible_format", this.toString()));
 			} else if (format.getItemShape() == ItemShape.NONE && format.getAreaFillStyle() == FillStyle.NONE) {
 				warnings.add(new PlotConfigurationError("invisible_format", this.toString()));
 			}
 		}
 
-		if (format.getUtilityUsage() == UtilityUsage.NONE) {
+		if (format.getUtilityUsage() == IndicatorType.NONE) {
 			if (getDataTableColumn(SeriesUsageType.INDICATOR_1) != null || getDataTableColumn(SeriesUsageType.INDICATOR_2) != null) {
-				warnings.add(new PlotConfigurationError("unused_utility_series", this.toString(), UtilityUsage.NONE.getName()));
+				warnings.add(new PlotConfigurationError("unused_utility_series", this.toString(), IndicatorType.NONE.getName()));
 			}
-		} else if (format.getUtilityUsage() == UtilityUsage.DIFFERENCE) {
+		} else if (format.getUtilityUsage() == IndicatorType.DIFFERENCE) {
 			if (getDataTableColumn(SeriesUsageType.INDICATOR_2) != null) {
-				warnings.add(new PlotConfigurationError("unused_secondary_utility_series", this.toString(), UtilityUsage.DIFFERENCE.getName()));
+				warnings.add(new PlotConfigurationError("unused_secondary_utility_series", this.toString(), IndicatorType.DIFFERENCE.getName()));
 			}
 		}
 

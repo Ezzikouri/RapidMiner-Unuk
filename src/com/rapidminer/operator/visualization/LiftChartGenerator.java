@@ -67,8 +67,8 @@ public class LiftChartGenerator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
-		Model model = modelInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
+		Model model = modelInput.getData(Model.class);
 
 		if (exampleSet.getAttributes().getLabel() == null) {
 			throw new UserError(this, 105);

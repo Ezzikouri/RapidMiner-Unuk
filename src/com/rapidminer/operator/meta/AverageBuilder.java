@@ -55,7 +55,7 @@ public class AverageBuilder extends Operator {
 	@Override
 	public void doWork() throws OperatorException {
 		RunVector runVector = new RunVector();
-		List<AverageVector> averageVectors = inExtender.getData(true);
+		List<AverageVector> averageVectors = inExtender.getData(AverageVector.class, true);
 		Class clazz = null;
 		for (AverageVector av : averageVectors) {
 			if (clazz == null) {

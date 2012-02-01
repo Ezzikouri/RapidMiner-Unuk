@@ -171,7 +171,7 @@ public class PSOWeighting extends OperatorChain {
 	@Override
 	public void doWork() throws OperatorException {
 		// optimization
-		this.exampleSet = exampleSetInput.getData();
+		this.exampleSet = exampleSetInput.getData(ExampleSet.class);
 		this.optimization = new PSOWeightingOptimization(this, this.exampleSet.getAttributes().size(), RandomGenerator.getRandomGenerator(this));
 		this.optimization.optimize();
 
@@ -212,7 +212,7 @@ public class PSOWeighting extends OperatorChain {
 		exampleSetInnerSource.deliver(evaluationSet);
 		inputExtender.passDataThrough();
 		getSubprocess(0).execute();
-		return performanceInnerSink.getData();
+		return performanceInnerSink.getData(PerformanceVector.class);
 	}
 
 	private AttributeWeightedExampleSet createWeightedExampleSet(double[] weights) {

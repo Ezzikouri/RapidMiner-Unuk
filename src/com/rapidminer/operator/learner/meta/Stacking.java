@@ -118,6 +118,6 @@ public class Stacking extends AbstractStacking {
 	protected Model getStackingModel(ExampleSet stackingLearningSet) throws OperatorException {
 		stackingExamplesInnerSource.deliver(stackingLearningSet);
 		getSubprocess(1).execute();
-		return stackingModelInnerSink.getData();
+		return stackingModelInnerSink.getData(Model.class);
 	}
 }

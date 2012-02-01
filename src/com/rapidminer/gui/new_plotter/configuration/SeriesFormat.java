@@ -193,12 +193,12 @@ public class SeriesFormat implements Cloneable {
 
 	
 	/**
-	 * Defines styles for dots in the plot.
+	 * Defines indicator type of the plot.
 	 * 
 	 * @author Marius Helf
 	 *
 	 */
-	public enum UtilityUsage {
+	public enum IndicatorType {
 		NONE(I18N.getGUILabel("plotter.error_indicator.NONE.label")),
 		BARS(I18N.getGUILabel("plotter.error_indicator.BARS.label")),
 		BAND(I18N.getGUILabel("plotter.error_indicator.BAND.label")),
@@ -207,7 +207,7 @@ public class SeriesFormat implements Cloneable {
 		
 		private final String name;
 		
-		private UtilityUsage(String name) {
+		private IndicatorType(String name) {
 			this.name = name;
 		}
 		
@@ -285,7 +285,7 @@ public class SeriesFormat implements Cloneable {
 	private int opacity = 255;
 	private StackingMode stackingMode = StackingMode.NONE;
 	private VisualizationType seriesType = VisualizationType.LINES_AND_SHAPES;
-	private UtilityUsage utilityUsage = UtilityUsage.NONE;
+	private IndicatorType utilityUsage = IndicatorType.NONE;
 	private LineFormat lineFormat = new LineFormat();
 	
 	/**
@@ -521,11 +521,11 @@ public class SeriesFormat implements Cloneable {
 		}
 	}
 
-	public UtilityUsage getUtilityUsage() {
+	public IndicatorType getUtilityUsage() {
 		return utilityUsage;
 	}
 
-	public void setUtilityUsage(UtilityUsage errorIndicator) {
+	public void setUtilityUsage(IndicatorType errorIndicator) {
 		if (errorIndicator != this.utilityUsage) {
 			this.utilityUsage = errorIndicator;
 			fireChanged(new SeriesFormatChangeEvent(this, errorIndicator));

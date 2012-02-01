@@ -103,7 +103,7 @@ public class FeatureSubsetIteration extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		Attribute[] allAttributes = exampleSet.getAttributes().createRegularAttributeArray();
 
 		// init

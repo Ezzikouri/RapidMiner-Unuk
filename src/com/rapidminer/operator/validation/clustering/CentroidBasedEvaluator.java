@@ -120,10 +120,10 @@ public class CentroidBasedEvaluator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		CentroidClusterModel clusterModel = clusterModelInput.getData();
-		ExampleSet exampleSet = exampleSetInput.getData();
+		CentroidClusterModel clusterModel = clusterModelInput.getData(CentroidClusterModel.class);
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
-		PerformanceVector performance = performanceInput.getDataOrNull();
+		PerformanceVector performance = performanceInput.getDataOrNull(PerformanceVector.class);
 		if (performance == null) {            
 			performance = new PerformanceVector();
 		}

@@ -62,7 +62,7 @@ public class WeightedPerformanceCreator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		PerformanceVector inputPerformance = performanceInput.getData();
+		PerformanceVector inputPerformance = performanceInput.getData(PerformanceVector.class);
 
 		Map<String, Double> weightMap = new HashMap<String, Double>();
 		List<String[]> weightList = getParameterList(PARAMETER_CRITERIA_WEIGHTS);

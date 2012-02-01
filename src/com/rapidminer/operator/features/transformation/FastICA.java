@@ -189,7 +189,7 @@ public class FastICA extends Operator {
 		double[][] wInit;
 
 		// get the ExampleSet
-		ExampleSet set = exampleSetInput.getData();
+		ExampleSet set = exampleSetInput.getData(ExampleSet.class);
 		set.recalculateAllAttributeStatistics();
 		numberOfSamples = set.size();
 		numberOfAttributes = set.getAttributes().size();

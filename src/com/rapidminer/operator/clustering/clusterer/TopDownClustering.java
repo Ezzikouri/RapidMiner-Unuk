@@ -113,7 +113,7 @@ public class TopDownClustering extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		int maxLeafSize = getParameterAsInt(PARAMETER_MAX_LEAF_SIZE);
 
 		// additional checks
@@ -154,7 +154,7 @@ public class TopDownClustering extends OperatorChain {
 		// applying inner clusterer
 		exampleSetInnerSource.deliver(exampleSet);
 		getSubprocess(0).execute();		
-		ClusterModel currentModel = modelInnerSink.getData();
+		ClusterModel currentModel = modelInnerSink.getData(ClusterModel.class);
 		int[] clusterAssignments = currentModel.getClusterAssignments(exampleSet);
 
 		// creating splitted examples set with cluster results

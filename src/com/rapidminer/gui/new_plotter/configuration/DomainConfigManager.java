@@ -554,7 +554,11 @@ public class DomainConfigManager extends AbstractDimensionConfig implements Dime
 		}
 		
 		setAutoNaming(true);
-		setGrouping(new DistinctValueGrouping(domainColumn, domainColumn.isNominal(), getDateFormat()));
+		try {
+			setGrouping(new EquidistantFixedBinCountBinning(5, Double.NaN, Double.NaN, domainColumn, domainColumn.isNominal(), getDateFormat()));
+		} catch (ChartConfigurationException e) {
+			setGrouping(new DistinctValueGrouping(domainColumn, domainColumn.isNominal(), getDateFormat()));
+		}
 		setUserDefinedDateFormatString(DEFAULT_DATE_FORMAT_STRING);
 		setUseUserDefinedDateFormat(DEFAULT_USE_USER_DEFINED_DATE_FORMAT);
 		setUseUserDefinedLowerBound(false);

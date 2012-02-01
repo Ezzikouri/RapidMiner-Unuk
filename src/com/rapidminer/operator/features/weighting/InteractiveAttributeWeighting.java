@@ -59,12 +59,12 @@ public class InteractiveAttributeWeighting extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		AttributeWeights weights = weightInput.getDataOrNull();
+		AttributeWeights weights = weightInput.getDataOrNull(AttributeWeights.class);
 		ExampleSet exampleSet = null;
 		if (weights == null) {
 			log("No feature weights found in input. Trying to find an example set...");
 			weights = new AttributeWeights();
-			exampleSet = exampleSetInput.getDataOrNull();
+			exampleSet = exampleSetInput.getDataOrNull(ExampleSet.class);
 			if (exampleSet != null) {
 				for (Attribute attribute : exampleSet.getAttributes()) {
 					weights.setWeight(attribute.getName(), 1.0d);

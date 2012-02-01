@@ -81,7 +81,7 @@ public class ThresholdFinder extends Operator {
     @Override
     public void doWork() throws OperatorException {
         // sanity checks
-        ExampleSet exampleSet = exampleSetInput.getData();
+        ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
         // checking preconditions
         Attribute label = exampleSet.getAttributes().getLabel();

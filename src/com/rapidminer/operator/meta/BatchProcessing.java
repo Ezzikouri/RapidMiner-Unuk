@@ -77,7 +77,7 @@ public class BatchProcessing extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
 		int batchSize = getParameterAsInt(PARAMETER_BATCH_SIZE);
 		int size = exampleSet.size();

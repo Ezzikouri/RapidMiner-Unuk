@@ -120,14 +120,14 @@ public abstract class WrapperValidationChain extends OperatorChain implements Ca
 	AttributeWeights useWeightingMethod(ExampleSet methodTrainingSet) throws OperatorException {
 		innerWeightingSetSource.deliver(methodTrainingSet);
 		getSubprocess(0).execute();
-		return innerAttributeWeightsSink.getData();
+		return innerAttributeWeightsSink.getData(AttributeWeights.class);
 	}
 
 	/** Applies the learner. */
 	Model learn(ExampleSet trainingSet) throws OperatorException {
 		innerTrainSetSource.deliver(trainingSet);
 		getSubprocess(1).execute();
-		return innerModelSink.getData();
+		return innerModelSink.getData(Model.class);
 	}
 
 	/** Applies the applier and evaluator. */
@@ -135,6 +135,6 @@ public abstract class WrapperValidationChain extends OperatorChain implements Ca
 		innerTestSetSource.deliver(testSet);
 		innerModelSource.deliver(model);
 		getSubprocess(2).execute();
-		return innerPerformanceSink.getData();
+		return innerPerformanceSink.getData(PerformanceVector.class);
 	}
 }

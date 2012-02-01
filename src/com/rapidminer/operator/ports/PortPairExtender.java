@@ -242,7 +242,9 @@ public class PortPairExtender implements PortExtender {
 	/**
 	 * Returns a list of all non-null data delivered to the input ports created by this port extender.
 	 * @throws UserError 
+	 * @deprecated use {@link #getData(Class))}
 	 */
+	@Deprecated
 	public <T extends IOObject> List<T> getData() throws UserError {
 		List<T> results = new LinkedList<T>();
 		for (PortPair pair : managedPairs) {
@@ -253,15 +255,40 @@ public class PortPairExtender implements PortExtender {
 		}
 		return results;
 	}
+	
+	public <T extends IOObject> List<T> getData(Class<T> desiredClass) throws UserError {
+		List<T> results = new LinkedList<T>();
+		for (PortPair pair : managedPairs) {
+			T data = pair.inputPort.<T> getDataOrNull(desiredClass);
+			if (data != null) {
+				results.add(data);
+			}
+		}
+		return results;
+	}
+
 
 	/**
 	 * Returns a list of all non-null data delivered to the input ports created by this port extender.
 	 * @throws UserError 
+	 * @deprecated use {@link #getOutputData(Class)}
 	 */
+	@Deprecated
 	public <T extends IOObject> List<T> getOutputData() throws UserError {
 		List<T> results = new LinkedList<T>();
 		for (PortPair pair : managedPairs) {
 			T data = pair.outputPort.<T> getDataOrNull();
+			if (data != null) {
+				results.add(data);
+			}
+		}
+		return results;
+	}
+	
+	public <T extends IOObject> List<T> getOutputData(Class<T> desiredClass) throws UserError {
+		List<T> results = new LinkedList<T>();
+		for (PortPair pair : managedPairs) {
+			T data = pair.outputPort.<T> getDataOrNull(desiredClass);
 			if (data != null) {
 				results.add(data);
 			}

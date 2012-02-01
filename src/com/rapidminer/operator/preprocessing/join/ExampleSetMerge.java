@@ -162,7 +162,7 @@ public class ExampleSetMerge extends Operator {
 
     @Override
     public void doWork() throws OperatorException {
-        List<ExampleSet> allExampleSets = inputExtender.getData(true);
+        List<ExampleSet> allExampleSets = inputExtender.getData(ExampleSet.class, true);
         mergedOutput.deliver(merge(allExampleSets));
     }
 

@@ -57,7 +57,7 @@ public class MinMaxWrapper extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		PerformanceVector performanceVector = performanceInput.getData();
+		PerformanceVector performanceVector = performanceInput.getData(PerformanceVector.class);
 		PerformanceVector result = new PerformanceVector();
 		for (int i = 0; i < performanceVector.size(); i++) {
 			PerformanceCriterion crit = performanceVector.getCriterion(i);

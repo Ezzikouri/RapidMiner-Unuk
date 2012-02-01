@@ -475,7 +475,7 @@ public abstract class FeatureOperator extends OperatorChain {
 
 		runEvaluationProcess();
 
-		return subprocessPerformanceInput.getData();
+		return subprocessPerformanceInput.getData(PerformanceVector.class);
 	}
 
 	protected void runEvaluationProcess() throws OperatorException {

@@ -50,9 +50,11 @@ public abstract class AbstractWriter<T extends IOObject> extends Operator {
 
 	private InputPort inputPort = getInputPorts().createPort("input");
 	private OutputPort outputPort = getOutputPorts().createPort("through");
-
+	private Class<T> savedClass;
+	
 	public AbstractWriter(OperatorDescription description, Class<T> savedClass) {
-		super(description);		
+		super(description);
+		this.savedClass = savedClass;
 		inputPort.addPrecondition(new SimplePrecondition(inputPort, new MetaData(savedClass)));
 		getTransformer().addRule(new PassThroughRule(inputPort, outputPort, false));		
 	}
@@ -63,7 +65,7 @@ public abstract class AbstractWriter<T extends IOObject> extends Operator {
 
 	@Override
 	public final void doWork() throws OperatorException {
-		T ioobject = inputPort.<T>getData();
+		T ioobject = inputPort.getData(savedClass);
 		ioobject = write(ioobject);
 		outputPort.deliver(ioobject);		
 	}	

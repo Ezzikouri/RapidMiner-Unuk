@@ -82,8 +82,8 @@ public class SOMModelVisualization extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
-		Model model = modelInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
+		Model model = modelInput.getData(Model.class);
 
 		exampleSetOutput.deliver(exampleSet);
 		modelOutput.deliver(model);

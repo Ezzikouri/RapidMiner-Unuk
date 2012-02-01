@@ -164,7 +164,7 @@ public class ValueSubgroupIteration extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
-		ExampleSet exampleSet = exampleSetInput.getData();
+		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		exampleSet.recalculateAllAttributeStatistics();
 
 		List<String[]> attributeValueOptions = getParameterList(PARAMETER_ATTRIBUTES);
