@@ -39,6 +39,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JSlider;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
@@ -231,30 +232,37 @@ public class HistogrammTemplatePanel extends PlotterTemplatePanel implements Obs
 	@Override
 	public void update(Observable o, Object arg) {
 		if (o instanceof HistogramTemplate) {
-			HistogramTemplate histogramTemplate = (HistogramTemplate)o;
-			
-			// update list
-			DefaultListModel modelPlotsList = new DefaultListModel();
-			for (String attName : histogramTemplate.getDataTable().getColumnNames()) {
-				modelPlotsList.addElement(attName);
-			}
-			plotList.removeListSelectionListener(updatePlotListSelectionListener);
-			plotList.setModel(modelPlotsList);
-			int[] selectedIndicies = new int[modelPlotsList.size()];
-			Arrays.fill(selectedIndicies, -1);
-			int i = 0;
-			for (Object plot : histogramTemplate.getPlotSelection()) {
-				selectedIndicies[i++] = modelPlotsList.indexOf(plot);
-			}
-			plotList.setSelectedIndices(selectedIndicies);
-			plotList.addListSelectionListener(updatePlotListSelectionListener);
-			
-			// select correct value
-			absoluteValuesCheckBox.setSelected(histogramTemplate.isUsingAbsoluteValues());
-			columnLogCheckBox.setSelected(histogramTemplate.isYAxisLogarithmic());
-			
-			binsSlider.setValue(histogramTemplate.getBins());
-			opaqueSlider.setValue(histogramTemplate.getOpacity());
+			final HistogramTemplate histogramTemplate = (HistogramTemplate)o;
+			SwingUtilities.invokeLater(new Runnable() {
+
+				@Override
+				public void run() {
+					
+					// update list
+					DefaultListModel modelPlotsList = new DefaultListModel();
+					for (String attName : histogramTemplate.getDataTable().getColumnNames()) {
+						modelPlotsList.addElement(attName);
+					}
+					plotList.removeListSelectionListener(updatePlotListSelectionListener);
+					plotList.setModel(modelPlotsList);
+					int[] selectedIndicies = new int[modelPlotsList.size()];
+					Arrays.fill(selectedIndicies, -1);
+					int i = 0;
+					for (Object plot : histogramTemplate.getPlotSelection()) {
+						selectedIndicies[i++] = modelPlotsList.indexOf(plot);
+					}
+					plotList.setSelectedIndices(selectedIndicies);
+					plotList.addListSelectionListener(updatePlotListSelectionListener);
+					
+					// select correct value
+					absoluteValuesCheckBox.setSelected(histogramTemplate.isUsingAbsoluteValues());
+					columnLogCheckBox.setSelected(histogramTemplate.isYAxisLogarithmic());
+					
+					binsSlider.setValue(histogramTemplate.getBins());
+					opaqueSlider.setValue(histogramTemplate.getOpacity());
+				}
+				
+			});
 		}
 	}
 

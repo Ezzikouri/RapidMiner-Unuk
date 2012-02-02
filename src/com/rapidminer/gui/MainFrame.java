@@ -293,6 +293,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
     public final transient Action IMPORT_CSV_FILE_ACTION = new ResourceAction("import_csv_file") {
         private static final long serialVersionUID = 4632580631996166900L;
+
         @Override
         public void actionPerformed(ActionEvent e) {
             // CSVImportWizard wizard = new CSVImportWizard("import_csv_file");
@@ -306,9 +307,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             }
         }
     };
-    
+
     public final transient Action IMPORT_EXCEL_FILE_ACTION = new ResourceAction("import_excel_sheet") {
         private static final long serialVersionUID = 975782163819088729L;
+
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -322,8 +324,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     };
 
     public final transient Action IMPORT_XML_FILE_ACTION = new ResourceAction("import_xml_file") {
-		private static final long serialVersionUID = 1L;
-		@Override
+        private static final long serialVersionUID = 1L;
+
+        @Override
         public void actionPerformed(ActionEvent e) {
             try {
                 XMLImportWizard wizard = new XMLImportWizard();
@@ -335,7 +338,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         }
     };
 
-    
     public final transient Action IMPORT_ACCESS_FILE_ACTION = new ResourceAction("import_access_table") {
         private static final long serialVersionUID = 3725652002686421768L;
 
@@ -483,9 +485,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
     private void updateProcessNow() {
         lastUpdate = System.currentTimeMillis();
-        addToUndoList();
         String xmlWithoutGUIInformation = process.getRootOperator().getXML(true, false);
         if (!xmlWithoutGUIInformation.equals(lastProcessXML)) {
+            addToUndoList(xmlWithoutGUIInformation);
             validateProcess(false);
         } else {
             processPanel.getProcessRenderer().repaint();
@@ -1068,6 +1070,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         return changed;
     }
 
+    private boolean addToUndoList() {
+        return addToUndoList(null);
+    }
     /**
      * Adds the current state of the process to the undo list.
      * 
@@ -1077,10 +1082,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
      * 
      * @return true if process really differs.
      */
-    private boolean addToUndoList() {
+    private boolean addToUndoList(String currentStateXML) {
         final String lastStateXML = undoList.size() != 0 ? (String) undoList.get(undoList.size() - 1) : null;
-        String currentStateXML = null;
-        currentStateXML = this.process.getRootOperator().getXML(true);
+        if (currentStateXML == null)
+            currentStateXML = this.process.getRootOperator().getXML(true);
         if (currentStateXML != null) {
             if (lastStateXML == null || !lastStateXML.equals(currentStateXML)) {
                 if (undoIndex < undoList.size() - 1) {
@@ -1186,7 +1191,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             if (loc != null) {
                 setTitle(loc.getShortName() + (changed ? "*" : "") + " \u2013 " + TITLE + hostname);
             } else {
-                setTitle("<new process"    + (changed ? "*" : "") + "> \u2013 " + TITLE + hostname);
+                setTitle("<new process" + (changed ? "*" : "") + "> \u2013 " + TITLE + hostname);
             }
         } else {
             setTitle(TITLE + hostname);
@@ -1207,7 +1212,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             switch (SwingTools.showConfirmDialog("save", ConfirmDialog.YES_NO_CANCEL_OPTION, locName)) {
             case ConfirmDialog.YES_OPTION:
                 SaveAction.save(getProcess());
-                
+
                 // it may happen that save() does not actually save the process, because the user hits cancel in the
                 // saveAs dialog or an error occurs. In this case the process won't be marked as unchanged. Thus,
                 // we return the process changed status.
@@ -1321,9 +1326,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             menuItem.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-    				if (RapidMinerGUI.getMainFrame().close()){
-    					OpenAction.open(recentLocation, true);
-    				}
+                    if (RapidMinerGUI.getMainFrame().close()) {
+                        OpenAction.open(recentLocation, true);
+                    }
                 }
             });
             recentFilesMenu.add(menuItem);

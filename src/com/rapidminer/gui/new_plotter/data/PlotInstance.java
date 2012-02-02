@@ -29,7 +29,6 @@ import java.util.List;
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.gui.new_plotter.MasterOfDesaster;
 import com.rapidminer.gui.new_plotter.PlotConfigurationError;
-import com.rapidminer.gui.new_plotter.StaticDebug;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.engine.PlotEngine;
 import com.rapidminer.gui.new_plotter.listener.PlotConfigurationListener;
@@ -56,17 +55,15 @@ public class PlotInstance implements PlotConfigurationListener {
 		// THIS ENSURES THAT THE PLOT INSTANCE GETS TO KNOW THE CURRENT WORKING COPY AS FIRST LISTENER
 		this.masterPlotConfiguration.addPlotConfigurationListener(this, true);  // NEVER EVER REMOVE THIS. 
 		
-		currentPlotConfigurationClone = plotConfiguration;
+		currentPlotConfigurationClone = plotConfiguration.clone();
 		plotData = new PlotData(this, dataTable);
 	}
 
 	public PlotConfiguration getCurrentPlotConfigurationClone() {
-//		StaticDebug.debug("GETTING CLONED PLOT CONFIG " + currentPlotConfigurationClone);
 		return currentPlotConfigurationClone;
 	}
 	
 	public PlotConfiguration getMasterPlotConfiguration() {
-//		StaticDebug.debug("GETTING MASTER PLOT CONFIG " + masterPlotConfiguration);
 		return masterPlotConfiguration;
 	}
 
@@ -84,36 +81,30 @@ public class PlotInstance implements PlotConfigurationListener {
 
 	public List<PlotConfigurationError> getErrors() {
 		List<PlotConfigurationError> errorList = new LinkedList<PlotConfigurationError>();
-		errorList.addAll(masterPlotConfiguration.getErrors());
+		errorList.addAll(currentPlotConfigurationClone.getErrors());
 		errorList.addAll(plotData.getErrors());
 		return errorList;
 	}
 
 	public List<PlotConfigurationError> getWarnings() {
 		List<PlotConfigurationError> warnings = new LinkedList<PlotConfigurationError>();
-		warnings.addAll(masterPlotConfiguration.getWarnings());
+		warnings.addAll(currentPlotConfigurationClone.getWarnings());
 		warnings.addAll(plotData.getWarnings());
 		return warnings;
 	}
 
 	public boolean isValid() {
-		return masterPlotConfiguration.isValid() && plotData.isValid();
+		return currentPlotConfigurationClone.isValid() && plotData.isValid();
 	}
 
 	public boolean hasWarnings() {
-		return masterPlotConfiguration.getWarnings().size() > 0 || plotData.getWarnings().size() > 0;
+		return currentPlotConfigurationClone.getWarnings().size() > 0 || plotData.getWarnings().size() > 0;
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		StaticDebug.finalize(this);
-		super.finalize();
-	}
 
 	@Override
 	public boolean plotConfigurationChanged(PlotConfigurationChangeEvent change) {
 		this.currentPlotConfigurationClone = change.getSource();
-		StaticDebug.debug("CHANGED CURRENT PLOTCONFIGURATION CLONE "+this);
 		return true;
 	}
 }

@@ -222,7 +222,6 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		updatingChart = true;
 
 		StaticDebug.debug("######################### STARTING CHART UPDATE ######################");
-		new Throwable().printStackTrace(System.out);
 
 		SwingWorker updateChartWorker = new SwingWorker<JFreeChart, Void>() {
 
@@ -483,10 +482,6 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		return true;
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
-	}
 
 	private void setChartTitle() {
 		JFreeChart chart = getCurrentChart();

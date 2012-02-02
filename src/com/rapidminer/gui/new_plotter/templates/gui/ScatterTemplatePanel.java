@@ -37,6 +37,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JSlider;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -243,53 +244,59 @@ public class ScatterTemplatePanel extends PlotterTemplatePanel implements Observ
 	@Override
 	public void update(Observable o, Object arg) {
 		if (o instanceof ScatterTemplate) {
-			ScatterTemplate scatterTemplate = (ScatterTemplate)o;
-			
-			// update combo boxes
-			Vector<String> attrNameVector = new Vector<String>(scatterTemplate.getDataTable().getColumnNames().length);
-			attrNameVector.add(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.column.empty_selection.label"));
-			for (String attName : scatterTemplate.getDataTable().getColumnNames()) {
-				attrNameVector.add(attName);
-			}
-			
-			DefaultComboBoxModel modelXAxis = new DefaultComboBoxModel(attrNameVector);
-			DefaultComboBoxModel modelYAxis = new DefaultComboBoxModel(attrNameVector);
-			DefaultComboBoxModel modelColorAxis = new DefaultComboBoxModel(attrNameVector);
-			xAxisComboBox.setModel(modelXAxis);
-			yAxisComboBox.setModel(modelYAxis);
-			colorComboBox.setModel(modelColorAxis);
-			
-			// select correct values (and make sure they don't fire events)
-			ActionListener[] actionListeners = xAxisComboBox.getActionListeners();
-			for (ActionListener l : actionListeners) {
-				xAxisComboBox.removeActionListener(l);
-			}
-			xAxisComboBox.setSelectedItem(scatterTemplate.getXAxisColumn());
-			for (ActionListener l : actionListeners) {
-				xAxisComboBox.addActionListener(l);
-			}
-			actionListeners = yAxisComboBox.getActionListeners();
-			for (ActionListener l : actionListeners) {
-				yAxisComboBox.removeActionListener(l);
-			}
-			yAxisComboBox.setSelectedItem(scatterTemplate.getYAxisColumn());
-			for (ActionListener l : actionListeners) {
-				yAxisComboBox.addActionListener(l);
-			}
-			actionListeners = colorComboBox.getActionListeners();
-			for (ActionListener l : actionListeners) {
-				colorComboBox.removeActionListener(l);
-			}
-			colorComboBox.setSelectedItem(scatterTemplate.getColorColumn());
-			for (ActionListener l : actionListeners) {
-				colorComboBox.addActionListener(l);
-			}
-			
-			xAxisLogCheckBox.setSelected(scatterTemplate.isXAxisLogarithmic());
-			yAxisLogCheckBox.setSelected(scatterTemplate.isYAxisLogarithmic());
-			colorLogCheckBox.setSelected(scatterTemplate.isColorLogarithmic());
-			
-			jitterSlider.setValue(scatterTemplate.getJitter());
+			final ScatterTemplate scatterTemplate = (ScatterTemplate)o;
+			SwingUtilities.invokeLater(new Runnable() {
+
+				@Override
+				public void run() {
+					// update combo boxes
+					Vector<String> attrNameVector = new Vector<String>(scatterTemplate.getDataTable().getColumnNames().length);
+					attrNameVector.add(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.column.empty_selection.label"));
+					for (String attName : scatterTemplate.getDataTable().getColumnNames()) {
+						attrNameVector.add(attName);
+					}
+					
+					DefaultComboBoxModel modelXAxis = new DefaultComboBoxModel(attrNameVector);
+					DefaultComboBoxModel modelYAxis = new DefaultComboBoxModel(attrNameVector);
+					DefaultComboBoxModel modelColorAxis = new DefaultComboBoxModel(attrNameVector);
+					xAxisComboBox.setModel(modelXAxis);
+					yAxisComboBox.setModel(modelYAxis);
+					colorComboBox.setModel(modelColorAxis);
+					
+					// select correct values (and make sure they don't fire events)
+					ActionListener[] actionListeners = xAxisComboBox.getActionListeners();
+					for (ActionListener l : actionListeners) {
+						xAxisComboBox.removeActionListener(l);
+					}
+					xAxisComboBox.setSelectedItem(scatterTemplate.getXAxisColumn());
+					for (ActionListener l : actionListeners) {
+						xAxisComboBox.addActionListener(l);
+					}
+					actionListeners = yAxisComboBox.getActionListeners();
+					for (ActionListener l : actionListeners) {
+						yAxisComboBox.removeActionListener(l);
+					}
+					yAxisComboBox.setSelectedItem(scatterTemplate.getYAxisColumn());
+					for (ActionListener l : actionListeners) {
+						yAxisComboBox.addActionListener(l);
+					}
+					actionListeners = colorComboBox.getActionListeners();
+					for (ActionListener l : actionListeners) {
+						colorComboBox.removeActionListener(l);
+					}
+					colorComboBox.setSelectedItem(scatterTemplate.getColorColumn());
+					for (ActionListener l : actionListeners) {
+						colorComboBox.addActionListener(l);
+					}
+					
+					xAxisLogCheckBox.setSelected(scatterTemplate.isXAxisLogarithmic());
+					yAxisLogCheckBox.setSelected(scatterTemplate.isYAxisLogarithmic());
+					colorLogCheckBox.setSelected(scatterTemplate.isColorLogarithmic());
+					
+					jitterSlider.setValue(scatterTemplate.getJitter());
+				}
+				
+			});
 		}
 	}
 

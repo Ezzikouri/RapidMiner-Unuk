@@ -202,7 +202,7 @@ public class OperatorService {
                 return;
             }
             version = document.getDocumentElement().getAttribute("version");
-            if (version.equals("5.0")) {
+            if (version.startsWith("5.")) {
                 parseOperators(document, classLoader, provider);
                 // } else {
                 // parseOperatorsPre5(document, classLoader, provider);
@@ -255,7 +255,11 @@ public class OperatorService {
                     }
                     parseOperators(newTree, childElement, classLoader, provider, bundle);
                 } else if (childElement.getTagName().equals("operator")) {
-                    try {
+                    String extensionId = "RapidMiner Core";
+                    if(provider != null) {
+                    	extensionId = provider.getExtensionId();
+                    }
+					try {
                         OperatorDescription desc = new OperatorDescription(currentGroup.getFullyQualifiedKey(), childElement, classLoader, provider, bundle);
                         registerOperator(desc, bundle);
                         if (desc.getReplacedKeys() != null) {
@@ -264,17 +268,17 @@ public class OperatorService {
                             }
                         }
                     } catch (ClassNotFoundException e) {
-                        LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     } catch (NoClassDefFoundError e) {
-                        LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     } catch (Exception e) {
-                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     } catch (AbstractMethodError e) {
-                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     } catch (Throwable e) {
                         // Yes, this is evil. However, it is the only way we can prevent errors due to
                         // incompatible RapidMiner / extension updates
-                        LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + provider.getExtensionId() + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                     }
                 } else if (childElement.getTagName().equals("factory")) {
                     String factoryClassName = childElement.getTextContent();

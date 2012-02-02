@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.IOObjectCollection;
 import com.rapidminer.operator.UserError;
@@ -85,18 +86,22 @@ public class InputPortExtender extends SinglePortExtender<InputPort> {
 	@Deprecated
 	@SuppressWarnings("unchecked")
 	public <T extends IOObject> List<T> getData(boolean unfold) {
-		List<T> results = new LinkedList<T>();		
+		List<IOObject> results = new LinkedList<IOObject>();		
 		for (InputPort port : getManagedPorts()) {
 			IOObject data = port.getAnyDataOrNull();
 			if (data != null) {
 				if (unfold && (data instanceof IOObjectCollection)) {
-					unfold((IOObjectCollection)data, results);
+					try {
+						unfold((IOObjectCollection<?>)data, results, IOObject.class, port);
+					} catch (UserError e) {
+						throw new RuntimeException(e.getMessage(), e);
+					}
 				} else {
 					results.add((T)data);
 				}
 			}
 		}
-		return results;
+		return (List<T>) results;
 	}
 
 	/** Returns a list of non-null data of all input ports. 
@@ -107,25 +112,37 @@ public class InputPortExtender extends SinglePortExtender<InputPort> {
 	public <T extends IOObject> List<T> getData(Class<T> desiredClass, boolean unfold) throws UserError {
 		List<T> results = new LinkedList<T>();		
 		for (InputPort port : getManagedPorts()) {
-			T data = port.getDataOrNull(desiredClass);
+			IOObject data = port.getAnyDataOrNull();
 			if (data != null) {
 				if (unfold && (data instanceof IOObjectCollection)) {
-					unfold((IOObjectCollection)data, results);
+					unfold((IOObjectCollection)data, results, desiredClass, port);
 				} else {
-					results.add((T)data);
+					if (desiredClass.isInstance(data)) {
+						results.add((T)data);
+					} else {
+						throw new UserError(getPorts().getOwner().getOperator(), 156, RendererService.getName(data.getClass()), port.getName(), RendererService.getName(desiredClass));
+					}
 				}
 			}
 		}
 		return results;
 	}
 
+	/** 
+	 * @param desiredClass method will throw unless all non-collection children are of type desired class
+	 * @param port Used for error message only 
+	 */
 	@SuppressWarnings("unchecked")
-	private <T> void unfold(IOObjectCollection<IOObject> data, List<T> results) {
-		for (IOObject obj : data.getObjects()) {
+	private <T extends IOObject> void unfold(IOObjectCollection<?> collection, List<T> results, Class<T> desiredClass, Port port) throws UserError {
+		for (IOObject obj : collection.getObjects()) {
 			if (obj instanceof IOObjectCollection) {
-				unfold((IOObjectCollection)obj, results);
+				unfold((IOObjectCollection)obj, results, desiredClass, port);
 			} else {
-				results.add((T)obj);
+				if (desiredClass.isInstance(obj)) {
+					results.add((T)obj);
+				} else {
+					throw new UserError(getPorts().getOwner().getOperator(), 156, RendererService.getName(obj.getClass()), port.getName(), RendererService.getName(desiredClass));
+				}
 			}
 		}
 	}

@@ -86,12 +86,7 @@ public class PlotConfigurationTreeNode extends DefaultMutableTreeNode {
 		return false;
 	}
 	
-	@Override
-	protected void finalize() throws Throwable {
-		StaticDebug.finalize(this);
-		super.finalize();
-	}
-	
+
 	@Override
 	public PlotConfiguration getUserObject() {
 		return (PlotConfiguration) super.getUserObject();

@@ -39,6 +39,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -197,59 +198,66 @@ public class SeriesTemplatePanel extends PlotterTemplatePanel implements Observe
 	@Override
 	public void update(Observable o, Object arg) {
 		if (o instanceof SeriesTemplate) {
-			SeriesTemplate seriesTemplate = (SeriesTemplate)o;
-			
-			// update list & combo boxes
-			DefaultListModel modelPlotsList = new DefaultListModel();
-			Vector<String> attrNameVector = new Vector<String>(seriesTemplate.getDataTable().getColumnNames().length);
-			attrNameVector.add(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.column.empty_selection.label"));
-			for (String attName : seriesTemplate.getDataTable().getColumnNames()) {
-				modelPlotsList.addElement(attName);
-				attrNameVector.add(attName);
-			}
-			plotSeriesList.removeListSelectionListener(updatePlotListSelectionListener);
-			plotSeriesList.setModel(modelPlotsList);
-			int[] selectedIndicies = new int[modelPlotsList.size()];
-			Arrays.fill(selectedIndicies, -1);
-			int i = 0;
-			for (Object plot : seriesTemplate.getPlotSelection()) {
-				selectedIndicies[i++] = modelPlotsList.indexOf(plot);
-			}
-			plotSeriesList.setSelectedIndices(selectedIndicies);
-			plotSeriesList.addListSelectionListener(updatePlotListSelectionListener);
-			DefaultComboBoxModel modelLowerBound = new DefaultComboBoxModel(attrNameVector);
-			DefaultComboBoxModel modelUpperBound = new DefaultComboBoxModel(attrNameVector);
-			DefaultComboBoxModel modelIndexDimension = new DefaultComboBoxModel(attrNameVector);
-			
-			lowerBoundComboBox.setModel(modelLowerBound);
-			upperBoundComboBox.setModel(modelUpperBound);
-			indexDimensionComboBox.setModel(modelIndexDimension);
-			
-			// select correct values (and make sure they don't fire events)
-			ActionListener[] actionListeners = indexDimensionComboBox.getActionListeners();
-			for (ActionListener l : actionListeners) {
-				indexDimensionComboBox.removeActionListener(l);
-			}
-			indexDimensionComboBox.setSelectedItem(seriesTemplate.getIndexDimensionName());
-			for (ActionListener l : actionListeners) {
-				indexDimensionComboBox.addActionListener(l);
-			}
-			actionListeners = lowerBoundComboBox.getActionListeners();
-			for (ActionListener l : actionListeners) {
-				lowerBoundComboBox.removeActionListener(l);
-			}
-			lowerBoundComboBox.setSelectedItem(seriesTemplate.getLowerBoundName());
-			for (ActionListener l : actionListeners) {
-				lowerBoundComboBox.addActionListener(l);
-			}
-			actionListeners = upperBoundComboBox.getActionListeners();
-			for (ActionListener l : actionListeners) {
-				upperBoundComboBox.removeActionListener(l);
-			}
-			upperBoundComboBox.setSelectedItem(seriesTemplate.getUpperBoundName());
-			for (ActionListener l : actionListeners) {
-				upperBoundComboBox.addActionListener(l);
-			}
+			final SeriesTemplate seriesTemplate = (SeriesTemplate)o;
+			SwingUtilities.invokeLater(new Runnable() {
+
+				@Override
+				public void run() {
+					// update list & combo boxes
+					DefaultListModel modelPlotsList = new DefaultListModel();
+					Vector<String> attrNameVector = new Vector<String>(seriesTemplate.getDataTable().getColumnNames().length);
+					attrNameVector.add(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.column.empty_selection.label"));
+					for (String attName : seriesTemplate.getDataTable().getColumnNames()) {
+						modelPlotsList.addElement(attName);
+						attrNameVector.add(attName);
+					}
+					plotSeriesList.removeListSelectionListener(updatePlotListSelectionListener);
+					plotSeriesList.setModel(modelPlotsList);
+					int[] selectedIndicies = new int[modelPlotsList.size()];
+					Arrays.fill(selectedIndicies, -1);
+					int i = 0;
+					for (Object plot : seriesTemplate.getPlotSelection()) {
+						selectedIndicies[i++] = modelPlotsList.indexOf(plot);
+					}
+					plotSeriesList.setSelectedIndices(selectedIndicies);
+					plotSeriesList.addListSelectionListener(updatePlotListSelectionListener);
+					DefaultComboBoxModel modelLowerBound = new DefaultComboBoxModel(attrNameVector);
+					DefaultComboBoxModel modelUpperBound = new DefaultComboBoxModel(attrNameVector);
+					DefaultComboBoxModel modelIndexDimension = new DefaultComboBoxModel(attrNameVector);
+					
+					lowerBoundComboBox.setModel(modelLowerBound);
+					upperBoundComboBox.setModel(modelUpperBound);
+					indexDimensionComboBox.setModel(modelIndexDimension);
+					
+					// select correct values (and make sure they don't fire events)
+					ActionListener[] actionListeners = indexDimensionComboBox.getActionListeners();
+					for (ActionListener l : actionListeners) {
+						indexDimensionComboBox.removeActionListener(l);
+					}
+					indexDimensionComboBox.setSelectedItem(seriesTemplate.getIndexDimensionName());
+					for (ActionListener l : actionListeners) {
+						indexDimensionComboBox.addActionListener(l);
+					}
+					actionListeners = lowerBoundComboBox.getActionListeners();
+					for (ActionListener l : actionListeners) {
+						lowerBoundComboBox.removeActionListener(l);
+					}
+					lowerBoundComboBox.setSelectedItem(seriesTemplate.getLowerBoundName());
+					for (ActionListener l : actionListeners) {
+						lowerBoundComboBox.addActionListener(l);
+					}
+					actionListeners = upperBoundComboBox.getActionListeners();
+					for (ActionListener l : actionListeners) {
+						upperBoundComboBox.removeActionListener(l);
+					}
+					upperBoundComboBox.setSelectedItem(seriesTemplate.getUpperBoundName());
+					for (ActionListener l : actionListeners) {
+						upperBoundComboBox.addActionListener(l);
+					}
+					
+				}
+				
+			});
 		}
 	}
 

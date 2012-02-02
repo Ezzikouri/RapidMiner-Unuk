@@ -410,13 +410,13 @@ public class ExpressionParser {
         .add(new FunctionDescription(
                 "replace()",
                 "Replace",
-                "Replaces the first occurence of a search string by the defined replacement; <br>example: replace(att1, \"am\", \"pm\") replaces the first \"am\" in each value of attribute att1 by \"pm\"",
+                "Replaces all occurences of a search string by the defined replacement; <br>example: replace(att1, \"am\", \"pm\") replaces all occurences of \"am\" in each value of attribute att1 by \"pm\"",
                 3));
         textFunctions
         .add(new FunctionDescription(
                 "replaceAll()",
                 "Replace All",
-                "Replaces all occurences of a search string by the defined replacement; <br>example: replaceAll(att1, \"am\", \"pm\") replaces all \"am\" in each value of attribute att1 by \"pm\"",
+                "Evaluates the first argument as regular expression and replaces all matches by the defined replacement; <br>example: replaceAll(att1, \"[abc]\", \"X\") replaces all occurences of \"a\", \"b\" or \"c\" by \"X\" in each value of attribute att1",
                 3));
         textFunctions.add(new FunctionDescription("lower()", "Lower",
                 "Transforms the given argument into lower case characters; example: lower(att2)", 1));

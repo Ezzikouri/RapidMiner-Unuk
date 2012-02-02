@@ -32,6 +32,41 @@ public class RapidAssert extends Assert {
 	
 	public static final double DELTA = 0.000000001; 
 	public static final double MAX_RELATIVE_ERROR = 0.000000001; 
+	
+	/**
+	 * Classes which support comparison.
+	 */
+	public static final Class[] COMPARABLE_IOOBJECTS = {
+		ExampleSet.class,
+		NumericalMatrix.class, 
+		IOObjectCollection.class,
+		PerformanceVector.class, 
+		AverageVector.class
+	};
+	
+	/**
+	 * Returns <code>true</code> if the ioobjects class is supported for
+	 * comparison in the test extension and <code>false</code> otherwise.
+	 */
+	public static boolean comparable(IOObject ioobject) {
+		for(Class clazz : COMPARABLE_IOOBJECTS) {
+			if(clazz.isInstance(ioobject))
+				return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Returns <code>true</code> if both ioobject classes are comparable to
+	 * each other and <code>false</code> otherwise.
+	 */
+	public static boolean comparable(IOObject ioobject1, IOObject ioobject2) {
+		for(Class clazz : COMPARABLE_IOOBJECTS) {
+			if(clazz.isInstance(ioobject1) && clazz.isInstance(ioobject2))
+				return true;
+		}
+		return false;
+	}
 
 	
 	/**
@@ -423,6 +458,11 @@ public class RapidAssert extends Assert {
 	 * @param actualIOO
 	 */
 	public static void assertEquals(String message, IOObject expectedIOO, IOObject actualIOO) {
+		
+		/*
+		 * Do not forget to add a newly supported class to the 
+		 * COMPARABLE_IOOBJECTS array!!!
+		 */
 		
 		if( expectedIOO instanceof ExampleSet && actualIOO instanceof ExampleSet )
 			RapidAssert.assertEquals(message + "ExampleSets are not equal", (ExampleSet)expectedIOO, (ExampleSet)actualIOO, -1);

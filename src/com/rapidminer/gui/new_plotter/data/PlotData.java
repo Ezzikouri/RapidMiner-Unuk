@@ -504,12 +504,6 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 		}
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		StaticDebug.finalize(this);
-		super.finalize();
-	}
-
 	public List<PlotConfigurationError> getErrors() {
 		List<PlotConfigurationError> errors = new LinkedList<PlotConfigurationError>();
 

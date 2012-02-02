@@ -307,6 +307,7 @@ public class TemplateChooser {
 		// set plotConfig to selected chart
 		plotEngine.setPlotInstance(((PlotterTemplate)plotTypeComboBox.getSelectedItem()).getPlotInstance());
 		
+		templateChartPanel.removeAll();
 		templateChartPanel.add(plotEngine.getChartPanel(), BorderLayout.CENTER);
 	}
 	

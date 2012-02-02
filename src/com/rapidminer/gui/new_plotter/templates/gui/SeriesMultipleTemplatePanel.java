@@ -39,6 +39,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -148,39 +149,45 @@ public class SeriesMultipleTemplatePanel extends PlotterTemplatePanel implements
 	@Override
 	public void update(Observable o, Object arg) {
 		if (o instanceof SeriesMultipleTemplate) {
-			SeriesMultipleTemplate seriesMultipleTemplate = (SeriesMultipleTemplate)o;
-			
-			// update list & combo boxes
-			DefaultListModel modelPlotsList = new DefaultListModel();
-			Vector<String> attrNameVector = new Vector<String>(seriesMultipleTemplate.getDataTable().getColumnNames().length);
-			attrNameVector.add(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.column.empty_selection.label"));
-			for (String attName : seriesMultipleTemplate.getDataTable().getColumnNames()) {
-				modelPlotsList.addElement(attName);
-				attrNameVector.add(attName);
-			}
-			plotSeriesList.removeListSelectionListener(updatePlotListSelectionListener);
-			plotSeriesList.setModel(modelPlotsList);
-			int[] selectedIndicies = new int[modelPlotsList.size()];
-			Arrays.fill(selectedIndicies, -1);
-			int i = 0;
-			for (Object plot : seriesMultipleTemplate.getPlotSelection()) {
-				selectedIndicies[i++] = modelPlotsList.indexOf(plot);
-			}
-			plotSeriesList.setSelectedIndices(selectedIndicies);
-			plotSeriesList.addListSelectionListener(updatePlotListSelectionListener);
-			DefaultComboBoxModel modelIndexDimension = new DefaultComboBoxModel(attrNameVector);
-			
-			indexDimensionComboBox.setModel(modelIndexDimension);
-			
-			// select correct values (and make sure they don't fire events)
-			ActionListener[] actionListeners = indexDimensionComboBox.getActionListeners();
-			for (ActionListener l : actionListeners) {
-				indexDimensionComboBox.removeActionListener(l);
-			}
-			indexDimensionComboBox.setSelectedItem(seriesMultipleTemplate.getIndexDimensionName());
-			for (ActionListener l : actionListeners) {
-				indexDimensionComboBox.addActionListener(l);
-			}
+			final SeriesMultipleTemplate seriesMultipleTemplate = (SeriesMultipleTemplate)o;
+			SwingUtilities.invokeLater(new Runnable() {
+
+				@Override
+				public void run() {
+					// update list & combo boxes
+					DefaultListModel modelPlotsList = new DefaultListModel();
+					Vector<String> attrNameVector = new Vector<String>(seriesMultipleTemplate.getDataTable().getColumnNames().length);
+					attrNameVector.add(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.column.empty_selection.label"));
+					for (String attName : seriesMultipleTemplate.getDataTable().getColumnNames()) {
+						modelPlotsList.addElement(attName);
+						attrNameVector.add(attName);
+					}
+					plotSeriesList.removeListSelectionListener(updatePlotListSelectionListener);
+					plotSeriesList.setModel(modelPlotsList);
+					int[] selectedIndicies = new int[modelPlotsList.size()];
+					Arrays.fill(selectedIndicies, -1);
+					int i = 0;
+					for (Object plot : seriesMultipleTemplate.getPlotSelection()) {
+						selectedIndicies[i++] = modelPlotsList.indexOf(plot);
+					}
+					plotSeriesList.setSelectedIndices(selectedIndicies);
+					plotSeriesList.addListSelectionListener(updatePlotListSelectionListener);
+					DefaultComboBoxModel modelIndexDimension = new DefaultComboBoxModel(attrNameVector);
+					
+					indexDimensionComboBox.setModel(modelIndexDimension);
+					
+					// select correct values (and make sure they don't fire events)
+					ActionListener[] actionListeners = indexDimensionComboBox.getActionListeners();
+					for (ActionListener l : actionListeners) {
+						indexDimensionComboBox.removeActionListener(l);
+					}
+					indexDimensionComboBox.setSelectedItem(seriesMultipleTemplate.getIndexDimensionName());
+					for (ActionListener l : actionListeners) {
+						indexDimensionComboBox.addActionListener(l);
+					}
+				}
+				
+			});
 		}
 	}
 

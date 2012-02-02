@@ -30,7 +30,7 @@ import org.nfunk.jep.function.PostfixMathCommand;
 import com.rapidminer.tools.math.function.UnknownValue;
 
 /**
- * Replaces substrings by matching targetSequence to given string.
+ * Replaces substrings by matching targetSequence to given string, without regexp-evaluation.
  * 
  * @author Sebastian Land
  */

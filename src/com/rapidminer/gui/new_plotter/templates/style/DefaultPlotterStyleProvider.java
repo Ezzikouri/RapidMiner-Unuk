@@ -176,6 +176,7 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		}
 		
 		this.axesFont = axesFont;
+		
 		setChanged();
 		notifyObservers();
 	}
@@ -195,6 +196,7 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		}
 		
 		this.legendFont = legendFont;
+		
 		setChanged();
 		notifyObservers();
 	}
@@ -214,6 +216,7 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		}
 		
 		this.titleFont = titleFont;
+		
 		setChanged();
 		notifyObservers();
 	}
@@ -230,6 +233,7 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		}
 		
 		colorSchemeIndex = index;
+		
 		setChanged();
 		notifyObservers();
 	}

@@ -211,4 +211,11 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 		}
 	}
 
+	/**
+	 * Forces an update of the chart.
+	 */
+	public void forceUpdate() {
+		updatePlotConfiguration();
+	}
+
 }
