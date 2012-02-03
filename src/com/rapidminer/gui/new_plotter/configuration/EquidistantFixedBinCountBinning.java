@@ -165,7 +165,6 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping {
 			for (DataTableRow row : data) {
 				double value = row.getValue(columnIdx);
 				if(value >= userDefinedLowerDimensionBound && value <= userDefinedUpperDimensionBound) {
-					StaticDebug.debug("Value of "+value+" above lower and below upper bound.");
 					if (newMinValue > value) {
 						newMinValue = value;
 					}
@@ -173,9 +172,7 @@ public class EquidistantFixedBinCountBinning extends AbstractValueGrouping {
 						newMaxValue = value;
 					}
 					
-				} else {
-					StaticDebug.debug("Value of "+value+" not in range..");
-				}
+				} 
 			}
 
 			if(!Double.isInfinite(userDefinedLowerDimensionBound) && newMinValue > userDefinedLowerDimensionBound) {

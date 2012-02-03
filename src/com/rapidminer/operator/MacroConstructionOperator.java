@@ -30,6 +30,7 @@ import com.rapidminer.operator.ports.DummyPortPairExtender;
 import com.rapidminer.operator.ports.PortPairExtender;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeExpression;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.tools.math.function.ExpressionParser;
@@ -185,7 +186,7 @@ public class MacroConstructionOperator extends Operator {
 
 		ParameterType type = new ParameterTypeList(PARAMETER_FUNCTIONS, "The list of macro names together with the expressions which define the new macros", 
 				new ParameterTypeString("macro_name", "The name of the constructed macro."),
-				new ParameterTypeString("functions_expressions", "The expressions which define the new macros.", false));
+				new ParameterTypeExpression("functions_expressions", "The expressions which define the new macros.", getInputPorts().getPortByIndex(0), false));
 		type.setExpert(false);
 		types.add(type);
 

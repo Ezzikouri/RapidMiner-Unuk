@@ -107,4 +107,8 @@ public class PlotInstance implements PlotConfigurationListener {
 		this.currentPlotConfigurationClone = change.getSource();
 		return true;
 	}
+
+	public void triggerReplot() {
+		this.masterPlotConfiguration.triggerReplot();
+	}
 }

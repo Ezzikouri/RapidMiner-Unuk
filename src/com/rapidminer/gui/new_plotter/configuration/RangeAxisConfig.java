@@ -75,7 +75,7 @@ public class RangeAxisConfig implements ValueSourceListener, ValueRangeListener,
 
 	private transient List<WeakReference<RangeAxisConfigListener>> listeners = new LinkedList<WeakReference<RangeAxisConfigListener>>();
 	private final int Id;
-
+	
 	/**
 	 * Constructor that sets the name of the range axis. If name is <code>null</code> auto naming
 	 * will be enabled. If {@link SeriesFormat} is <code>null</code> the value sources default series format will be used.
@@ -127,7 +127,7 @@ public class RangeAxisConfig implements ValueSourceListener, ValueRangeListener,
 	 */
 	public void addValueSource(int index, ValueSource valueSource, SeriesFormat seriesFormat) { //throws ChartConfigurationException {
 
-		StaticDebug.debug("ADDING VALUE SOURCE " + valueSource + " to " + this);
+		StaticDebug.debug("ADDING VALUE SOURCE " + valueSource + " (id: "+valueSource.getId()+") to " + this.getId());
 
 		if (seriesFormat != null) {
 			valueSource.setSeriesFormat(seriesFormat);
@@ -461,6 +461,7 @@ public class RangeAxisConfig implements ValueSourceListener, ValueRangeListener,
 
 	public RangeAxisConfig clone() {
 		RangeAxisConfig clone = new RangeAxisConfig(name, Id);
+		
 		clone.autoNaming = autoNaming;
 		clone.logarithmicAxis = logarithmicAxis;
 		clone.crosshairLines = crosshairLines.clone();

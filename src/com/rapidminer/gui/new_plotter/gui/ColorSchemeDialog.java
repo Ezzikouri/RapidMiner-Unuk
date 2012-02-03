@@ -1148,8 +1148,8 @@ public class ColorSchemeDialog extends ButtonDialog implements PlotConfiguration
 
 		nominalPlotter = new JFreeChartPlotEngine(nominalPlotInstance, true);
 		
-		gradientPlotter.updateChartPanelChart(false);
-		nominalPlotter.updateChartPanelChart(false);
+		gradientPlotter.endInitializing();
+		nominalPlotter.endInitializing();
 
 		return;
 	}

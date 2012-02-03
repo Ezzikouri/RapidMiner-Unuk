@@ -96,6 +96,10 @@ public class ListPropertyTable2 extends JTable {
         fillEditors();
     }
 
+    public boolean isEmpty() {
+    	return renderers.isEmpty();
+    }
+    
     private void fillEditors() {
         while(editors.size() < getModel().getRowCount()) {
             TableCellRenderer rowRenderers[] = new TableCellRenderer[types.length];

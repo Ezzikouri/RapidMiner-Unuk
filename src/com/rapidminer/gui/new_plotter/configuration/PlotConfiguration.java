@@ -100,7 +100,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	private static final float DEFAULT_AXIS_LINE_WIDTH = 1.0f;
 
 	private static final Color DEFAULT_AXIS_COLOR = Color.black;
-	
+
 	public static final Color DEFAULT_TITLE_COLOR = Color.black;
 
 	private final List<RangeAxisConfig> rangeAxisConfigs = new LinkedList<RangeAxisConfig>();
@@ -135,11 +135,9 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	 * OTHER CODE setProcessEvents(processing);
 	 */
 	private Boolean processEvents = new Boolean(true);
-	private final Object processEventsLock = new Object();
 
 	private List<PlotConfigurationChangeEvent> eventList = new LinkedList<PlotConfigurationChangeEvent>();
 	private Integer listenersInformedCounter = 0;
-	private final Object listenerInformedCounterLock = new Object();
 
 	private transient List<WeakReference<PlotConfigurationListener>> defaultListeners = new LinkedList<WeakReference<PlotConfigurationListener>>();
 	private transient List<WeakReference<PlotConfigurationListener>> prioritizedListeners = new LinkedList<WeakReference<PlotConfigurationListener>>();
@@ -221,7 +219,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		listOfColors.add(forest5);
 		cs = new ColorScheme("Forest", listOfColors, forest4, forest5);
 		this.colorSchemes.put(cs.getName(), cs);
-		
+
 		listOfColors = new LinkedList<ColorRGB>();
 		ColorRGB baw1 = new ColorRGB(0, 0, 0);
 		ColorRGB baw2 = new ColorRGB(204, 204, 204);
@@ -274,8 +272,8 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	}
 
 	public void addRangeAxisConfig(int index, RangeAxisConfig rangeAxis) {
-		StaticDebug.debug("ADDING RANGEAXIS " + rangeAxis + " to " + this);
-		
+		debug("ADDING RANGEAXIS " + rangeAxis.getId());
+
 		rangeAxisConfigs.add(index, rangeAxis);
 		fireRangeAxisAdded(index, rangeAxis);
 		rangeAxis.addRangeAxisConfigListener(this);
@@ -313,11 +311,9 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	}
 
 	public void removeRangeAxisConfig(int index) {
-		StaticDebug.debug("REMOVING RANGEAXIS with index " + index + " from " + this);
 		RangeAxisConfig rangeAxis = rangeAxisConfigs.get(index);
 		rangeAxis.removeRangeAxisConfigListener(this);
-		RangeAxisConfig rangeAxisConfig = rangeAxisConfigs.remove(index);
-		StaticDebug.debug("  axis was: " + rangeAxisConfig);
+		debug(" REMOVING RANGEAXIS with index " + index);
 		fireRangeAxisRemoved(index, rangeAxis);
 
 	}
@@ -639,7 +635,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		if (size > 0) {
 			ValueSource lastValueSource = valueSourceList.get(valueSourceList.size() - 1);
 			SeriesFormat lastFormat = lastValueSource.getSeriesFormat();
-//			seriesFormat.setSeriesType(lastFormat.getSeriesType());
+			//			seriesFormat.setSeriesType(lastFormat.getSeriesType());
 			if (lastFormat.getSeriesType() == VisualizationType.LINES_AND_SHAPES) {
 
 				if (lastFormat.getItemShape() == ItemShape.NONE) {
@@ -723,24 +719,21 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		eventProcessed(false);
 	}
 
-	private void eventProcessed(boolean processedAtOnce) {
-		synchronized (listenerInformedCounterLock) {
-			listenersInformedCounter--;
+	private synchronized void eventProcessed(boolean processedAtOnce) {
+		listenersInformedCounter--;
 
-			if (!processedAtOnce && listenersInformedCounter <= 0) {
-				resetCurrentEvent();
-			}
+		if (!processedAtOnce && listenersInformedCounter <= 0) {
+			listenersInformedCounter = 0;
+			resetCurrentEvent();
 		}
 	}
 
-	private void resetCurrentEvent() {
+	private synchronized void resetCurrentEvent() {
 		// no changes to the event list may be done while adding removing change events
-		synchronized (listenerInformedCounterLock) {
-			informOfProcessingStatus(false);
-			currentEvent = null;
-			listenersInformedCounter = 0;
-			debug("PlotConfiguration: Reset current event..");
-		}
+		informOfProcessingStatus(false);
+		currentEvent = null;
+		listenersInformedCounter = 0;
+		debug("PlotConfiguration: Reset current event..");
 		processQueueEvent();
 	}
 
@@ -752,21 +745,17 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	 * Best Practice to use it: boolean processing = isProcessingEvents(); setProcessEvents(false);
 	 * OTHER CODE setProcessEvents(processing);
 	 */
-	public void setProcessEvents(Boolean process) {
-		synchronized (processEventsLock) {
-			this.processEvents = process;
-			StaticDebug.debug("PLOTCONFIG: SET PROCESS EVENTS TO: "+process);
+	public synchronized void setProcessEvents(Boolean process) {
+		this.processEvents = process;
+		debug(" SET PROCESS EVENTS TO: "+process);
 
-			if (processEvents) {
-				processQueueEvent();
-			}
+		if (processEvents) {
+			processQueueEvent();
 		}
 	}
 
-	public boolean isProcessingEvents() {
-		synchronized (processEventsLock) {
-			return processEvents.booleanValue();
-		}
+	public synchronized boolean isProcessingEvents() {
+		return processEvents.booleanValue();
 	}
 
 	private void informOfProcessingStatus(boolean started) {
@@ -791,104 +780,94 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		boolean booleanValue = false;
 		debug("PROCESS EVENT QUEUE");
 		// eventInformCounter has to be synchronize to prevent reaching 0 value while informing listeners
-		synchronized (listenerInformedCounterLock) {
-			synchronized (processEventsLock) {
-				booleanValue = processEvents.booleanValue();
-			}
-			debug("PROCESS EVENTS: "+booleanValue);
-			debug("CURRENT EVENT: "+currentEvent);
-			if (booleanValue && currentEvent == null) {
-				// if no current event is being processed
+		booleanValue = processEvents.booleanValue();
+		debug("PROCESS EVENTS: "+booleanValue);
+		debug("CURRENT EVENT: "+currentEvent);
+		if (booleanValue && currentEvent == null) {
+			// if no current event is being processed
 
 
-				// no changes to the event list may be done while processing a new event
-				synchronized (eventList) {
+			// no changes to the event list may be done while processing a new event
 
-					// if there is an events that needs to be handled do so
-					if (eventList.size() > 0) {
-						// get new event
-						currentEvent = eventList.get(0);
-						
-						debug("GOT NEW CURRENT EVENT: "+currentEvent);
+			// if there is an events that needs to be handled do so
+			if (eventList.size() > 0) {
+				// get new event
+				currentEvent = eventList.get(0);
 
-						StaticDebug.debugEvent(0, currentEvent);
+				debug("GOT NEW CURRENT EVENT: "+currentEvent);
 
-						eventList.remove(0);
+				StaticDebug.debugEvent(0, currentEvent);
 
-						informOfProcessingStatus(true);
-					} else {
-						
-						debug("NO CURRENT EVENTS TO HANDLE");
-						StaticDebug.emptyDebugLine();
-						StaticDebug.emptyDebugLine();
-						
-						// there are no recent events that have to be handled
-						return;
-					}
-				}
+				eventList.remove(0);
 
+				informOfProcessingStatus(true);
+			} else {
 
-				// iterate over all listeners
+				debug("NO CURRENT EVENTS TO HANDLE");
+				StaticDebug.emptyDebugLine();
+				StaticDebug.emptyDebugLine();
 
-				// first prioritizedListeners
-				Iterator<WeakReference<PlotConfigurationListener>> it = prioritizedListeners.iterator();
-				
-				// set counter to > 0, so that it will never drop to zero while we are in the loop.
-				// This prevents the currentEvent becoming null while we are still informing listeners.
-				// Will be decreased by 1 after we have informed all listeners.
-				listenersInformedCounter++;
-				
-				while (it.hasNext()) {
-					WeakReference<PlotConfigurationListener> wrl = it.next();
-					PlotConfigurationListener l = wrl.get();
-					if (l != null) {
-						// inform listener and increase informed counter
-						listenersInformedCounter++;
-
-						// if the event has been processed immediately decrease informed counter
-						if (l.plotConfigurationChanged(currentEvent)) {
-							eventProcessed(true);
-						}
-					} else {
-						it.remove();
-					}
-				}
-
-				// then default listeners
-				Iterator<WeakReference<PlotConfigurationListener>> defaultIt = defaultListeners.iterator();
-				while (defaultIt.hasNext()) {
-					WeakReference<PlotConfigurationListener> wrl = defaultIt.next();
-					PlotConfigurationListener l = wrl.get();
-					if (l != null) {
-						// inform listener and increase informed counter
-						listenersInformedCounter++;
-
-						// if the event has been processed immediately decrease informed counter
-						if (l.plotConfigurationChanged(currentEvent)) {
-							eventProcessed(true);
-						}
-					} else {
-						defaultIt.remove();
-					}
-				}
-				
-				// Decrease listener count, cause we increased it before (see comment above)
-				listenersInformedCounter--;
-
-				// if all event listeners have processed the event immediately 
-				if (listenersInformedCounter <= 0) {
-					// remove event from list
-					resetCurrentEvent();
-				}
-
+				// there are no recent events that have to be handled
+				return;
 			}
 
-			return;
+
+			// iterate over all listeners
+
+			// first prioritizedListeners
+			Iterator<WeakReference<PlotConfigurationListener>> it = prioritizedListeners.iterator();
+
+//			// set counter to > 0, so that it will never drop to zero while we are in the loop.
+//			// This prevents the currentEvent becoming null while we are still informing listeners.
+//			// Will be decreased by 1 after we have informed all listeners.
+//			listenersInformedCounter++;
+
+			while (it.hasNext()) {
+				WeakReference<PlotConfigurationListener> wrl = it.next();
+				PlotConfigurationListener l = wrl.get();
+				if (l != null) {
+					// inform listener and increase informed counter
+					listenersInformedCounter++;
+
+					// if the event has been processed immediately decrease informed counter
+					if (l.plotConfigurationChanged(currentEvent)) {
+						eventProcessed(true);
+					}
+				} else {
+					it.remove();
+				}
+			}
+
+			// then default listeners
+			Iterator<WeakReference<PlotConfigurationListener>> defaultIt = defaultListeners.iterator();
+			while (defaultIt.hasNext()) {
+				WeakReference<PlotConfigurationListener> wrl = defaultIt.next();
+				PlotConfigurationListener l = wrl.get();
+				if (l != null) {
+					// inform listener and increase informed counter
+					listenersInformedCounter++;
+
+					// if the event has been processed immediately decrease informed counter
+					if (l.plotConfigurationChanged(currentEvent)) {
+						eventProcessed(true);
+					}
+				} else {
+					defaultIt.remove();
+				}
+			}
+
+			// Decrease listener count, cause we increased it before (see comment above)
+//			listenersInformedCounter--;
+
+			// if all event listeners have processed the event immediately 
+			if (listenersInformedCounter <= 0) {
+				// remove event from list
+				resetCurrentEvent();
+			}
 
 		}
 
-		// an event is being processed. 
-//		return;
+		return;
 	}
 
 	/**
@@ -897,37 +876,36 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	 * 
 	 * @param e
 	 */
-	private void addEventToQueue(PlotConfigurationChangeEvent e) {
+	private synchronized void addEventToQueue(PlotConfigurationChangeEvent e) {
 
 		debug("ADD EVENT TO QUEUE");
-		
+
 		// no changes to the event list may be done while adding new change events
-		synchronized (eventList) {
 
-			if (eventList.size() > 0) {
-				PlotConfigurationChangeEvent plotConfigurationChangeEvent = eventList.get(0);
-				if (plotConfigurationChangeEvent.getType() == PlotConfigurationChangeType.META_CHANGE) {
-					plotConfigurationChangeEvent.addPlotConfigChangeEvent(this.clone(), e);
-					debug("ADD EVENT TO META EVENT");
-				} else {
-					List<PlotConfigurationChangeEvent> events = new LinkedList<PlotConfigurationChangeEvent>();
-					events.add(plotConfigurationChangeEvent);
-					events.add(e);
-					PlotConfigurationChangeEvent metaEvent = new PlotConfigurationChangeEvent(this.clone(), events);
-					eventList.set(0, metaEvent);
-					debug("CREATE NEW META EVENT");
-				}
+		if (eventList.size() > 0) {
+			PlotConfigurationChangeEvent plotConfigurationChangeEvent = eventList.get(0);
+			if (plotConfigurationChangeEvent.getType() == PlotConfigurationChangeType.META_CHANGE) {
+				plotConfigurationChangeEvent.addPlotConfigChangeEvent(this.clone(), e);
+				debug("ADD EVENT TO META EVENT");
 			} else {
-				debug("ADD EVENT TO LIST");
-				eventList.add(e);
+				List<PlotConfigurationChangeEvent> events = new LinkedList<PlotConfigurationChangeEvent>();
+				events.add(plotConfigurationChangeEvent);
+				events.add(e);
+				PlotConfigurationChangeEvent metaEvent = new PlotConfigurationChangeEvent(this.clone(), events);
+				eventList.set(0, metaEvent);
+				debug("CREATE NEW META EVENT");
 			}
-
+		} else {
+			debug("ADD EVENT TO LIST");
+			eventList.add(e);
 		}
+
 		processQueueEvent();
 	}
 
 	private void firePlotConfigurationChanged(PlotConfigurationChangeEvent e) {
 		if (!initializing) {
+			debug("Firing a PlotConfigChangeEvent");
 			e.setSource(this.clone());
 			addEventToQueue(e);
 		}
@@ -938,48 +916,48 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	}
 
 	private void debug(String msg) {
-		StaticDebug.debug(this+" "+msg);
+			StaticDebug.debug("PlotConfig: "+msg);
 	}
 
 	@Override
 	public void dimensionConfigChanged(DimensionConfigChangeEvent change) {
 		DimensionConfigChangeType type = change.getType();
-		
+
 		// save old processing status
 		boolean processEvents = isProcessingEvents();
 
 		// set processing to false
 		setProcessEvents(false);
-		
-		switch (type) {
-			case ABOUT_TO_CHANGE_GROUPING:
-				changingGrouping = true;
-				break;
-			case GROUPING_CHANGED:
-				ValueGroupingChangeEvent groupingChange = change.getGroupingChangeEvent();
-				if (groupingChange.getType() == ValueGroupingChangeType.RESET) {
-					if (changingGrouping)
-						changingGrouping = false;
-				}
 
+		switch (type) {
+		case ABOUT_TO_CHANGE_GROUPING:
+			changingGrouping = true;
+			break;
+		case GROUPING_CHANGED:
+			ValueGroupingChangeEvent groupingChange = change.getGroupingChangeEvent();
+			if (groupingChange.getType() == ValueGroupingChangeType.RESET) {
+				if (changingGrouping)
+					changingGrouping = false;
+			}
+
+			informValueSourcesAboutDimensionChange(change);
+			linkAndBrushMaster.clearZooming();
+			firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, change));
+			break;
+		case RANGE:
+			ValueRangeChangeEvent rangeChange = change.getValueRangeChangedEvent();
+			if (rangeChange.getType() == ValueRangeChangeType.RESET) {}
+			informValueSourcesAboutDimensionChange(change);
+			linkAndBrushMaster.clearZooming();
+			firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, change));
+			break;
+		default:
+			if (!changingGrouping) {
 				informValueSourcesAboutDimensionChange(change);
 				linkAndBrushMaster.clearZooming();
 				firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, change));
-				break;
-			case RANGE:
-				ValueRangeChangeEvent rangeChange = change.getValueRangeChangedEvent();
-				if (rangeChange.getType() == ValueRangeChangeType.RESET) {}
-				informValueSourcesAboutDimensionChange(change);
-				linkAndBrushMaster.clearZooming();
-				firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, change));
-				break;
-			default:
-				if (!changingGrouping) {
-					informValueSourcesAboutDimensionChange(change);
-					linkAndBrushMaster.clearZooming();
-					firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, change));
-				}
-				break;
+			}
+			break;
 		}
 		setProcessEvents(processEvents);
 
@@ -988,24 +966,24 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	@Override
 	public void rangeAxisConfigChanged(RangeAxisConfigChangeEvent e) {
 		switch (e.getType()) {
-			case AUTO_NAMING:
-			case LABEL:
+		case AUTO_NAMING:
+		case LABEL:
+			break;
+		case VALUE_SOURCE_CHANGED:
+			ValueSourceChangeEvent valueSourceChange = e.getValueSourceChange();
+			boolean shouldBreak = false;
+			switch (valueSourceChange.getType()) {
+			case SERIES_FORMAT_CHANGED:
+				shouldBreak = true;
 				break;
-			case VALUE_SOURCE_CHANGED:
-				ValueSourceChangeEvent valueSourceChange = e.getValueSourceChange();
-				boolean shouldBreak = false;
-				switch (valueSourceChange.getType()) {
-					case SERIES_FORMAT_CHANGED:
-						shouldBreak = true;
-						break;
-					default:
-						linkAndBrushMaster.clearZooming();
-				}
-				if (shouldBreak) {
-					break;
-				}
 			default:
-				linkAndBrushMaster.clearRangeAxisZooming();
+				linkAndBrushMaster.clearZooming();
+			}
+			if (shouldBreak) {
+				break;
+			}
+		default:
+			linkAndBrushMaster.clearRangeAxisZooming();
 
 		}
 		firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, e));
@@ -1036,7 +1014,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 
 		for (DimensionConfig dimensionConfig : dimensionConfigMap.values()) {
 			warnings.addAll(dimensionConfig.getWarnings());
-			
+
 			if(!isDimensionUsed(dimensionConfig.getDimension())) {
 				warnings.add(new PlotConfigurationError("dimension_config_not_used", dimensionConfig.getDimension().getName()));
 			}
@@ -1057,7 +1035,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 
 		return warnings;
 	}
-	
+
 	public boolean isDimensionUsed(PlotDimension dimension) {
 		if (dimension != PlotDimension.DOMAIN) {
 			DimensionConfig dimensionConfig = getDimensionConfig(dimension);
@@ -1089,13 +1067,13 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 
 	public PlotConfiguration clone() {
 		PlotConfiguration clone = new PlotConfiguration(domainConfigManager.clone(), legendConfiguration.clone());
-		
-		StaticDebug.debug("CLONING PlotConfiguration " + this + " to " + clone);
-		
+
+		debug(" Started CLONING");
+
 		clone.initializing = true;
 
 		clone.domainConfigManager.setPlotConfiguration(clone);
-		
+
 		clone.axesFont = axesFont;
 		clone.changingGrouping = changingGrouping;
 		clone.changingRange = changingRange;
@@ -1122,7 +1100,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		for (Map.Entry<PlotDimension, DefaultDimensionConfig> entry : dimensionConfigMap.entrySet()) {
 			clone.setDimensionConfig(entry.getKey(), entry.getValue().clone());
 		}
-		
+
 		// clone range axis configs
 		for (RangeAxisConfig rangeAxisConfig : getRangeAxisConfigs()) {
 			clone.addRangeAxisConfig(rangeAxisConfig.clone());
@@ -1132,14 +1110,14 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		for (ValueSource clonedValueSource : clone.getAllValueSources()) {
 			clonedValueSource.setDomainConfigManager(clone.getDomainConfigManager());
 		}
-		
+
 		clone.linkAndBrushMaster = linkAndBrushMaster.clone(clone);
-		
+
 		clone.initializing = false;
 
-		StaticDebug.debug("CLONING DONE - PlotConfiguration " + this + " to " + clone);
+		debug(" CLONING done");
 
-		
+
 		return clone;
 	}
 
@@ -1354,17 +1332,17 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	public void removePlotConfigurationProcessingListener(PlotConfigurationProcessingListener l) {
 		processingListeners.remove(l);
 	}
-	
+
 	public RangeAxisConfig getRangeAxisConfigById(int id) {
 		for (RangeAxisConfig rangeAxisConfig : getRangeAxisConfigs()) {
 			if (rangeAxisConfig.getId() == id) {
 				return rangeAxisConfig;
 			}
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Returns the index of the {@link RangeAxisConfig} with a given id. 
 	 * 
@@ -1379,7 +1357,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 			}
 			++idx;
 		}
-		
+
 		return -1;
 	}
 
@@ -1390,7 +1368,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		if (domainConfigManager.getDomainConfig(false).getId() == dimensionConfigId) {
 			return domainConfigManager.getDomainConfig(false);
 		}
-		
+
 		for (DefaultDimensionConfig dimensionConfig : getDefaultDimensionConfigs().values()) {
 			if (dimensionConfig.getId() == dimensionConfigId) {
 				return dimensionConfig;
@@ -1405,9 +1383,16 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	public Color getTitleColor() {
 		return titleColor;
 	}
-	
+
 	public void setTitleColor(Color titleColor) {
 		this.titleColor = titleColor;
 		fireTitleChanged();
+	}
+
+	/**
+	 * This function can be used to fire a TRIGGER_REPLOT event.
+	 */
+	public void triggerReplot() {
+		firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this));
 	}
 }

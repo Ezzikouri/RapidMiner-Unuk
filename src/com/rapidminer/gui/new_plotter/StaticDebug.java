@@ -43,9 +43,9 @@ public class StaticDebug {
 
 	public static void debug(String message) {
 //		if (message.toLowerCase().contains("error")) {
-//			System.err.println(new java.sql.Timestamp(new java.util.Date().getTime()) + " " + message + " ");
+//			System.err.println(new java.sql.Timestamp(new java.util.Date().getTime())+ " " + Thread.currentThread().getId() + " " + message + " ");
 //		} else {
-//			System.out.println(new java.sql.Timestamp(new java.util.Date().getTime()) + " " + message + " ");
+//			System.out.println(new java.sql.Timestamp(new java.util.Date().getTime()) + " " + Thread.currentThread().getId() + " " + message + " ");
 //		}
 	}
 

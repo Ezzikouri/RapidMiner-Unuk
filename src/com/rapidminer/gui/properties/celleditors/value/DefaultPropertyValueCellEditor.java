@@ -22,7 +22,6 @@
  */
 package com.rapidminer.gui.properties.celleditors.value;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.FocusEvent;
@@ -40,7 +39,6 @@ import javax.swing.text.JTextComponent;
 import com.rapidminer.gui.properties.PropertyTable;
 import com.rapidminer.gui.tools.CharTextField;
 import com.rapidminer.gui.tools.ExtendedJComboBox;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.autocomplete.AutoCompleteComboBoxAddition;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
@@ -61,7 +59,7 @@ import com.rapidminer.tools.Tools;
  * @see ListValueCellEditor
  * @see ColorValueCellEditor
  * @see OperatorValueValueCellEditor
- * @author Ingo Mierswa, Simon Fischer
+ * @author Ingo Mierswa, Simon Fischer, Nils Woehler
  */
 public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements PropertyValueCellEditor {
 
@@ -271,6 +269,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 	public DefaultPropertyValueCellEditor(final ParameterTypeInt type) {
 		super(new JTextField(TEXT_FIELD_WIDTH));
+		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -361,6 +360,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 	public DefaultPropertyValueCellEditor(final ParameterTypeDouble type) {
 		super(new JTextField(TEXT_FIELD_WIDTH));
+		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -450,6 +450,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 	public DefaultPropertyValueCellEditor(final ParameterTypePassword type) {
 		super(new JPasswordField());
+		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -496,6 +497,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 	public DefaultPropertyValueCellEditor(final ParameterTypeChar type) {
 		super(new CharTextField());
+		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -510,6 +512,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 	public DefaultPropertyValueCellEditor(final ParameterType type) {
 		super(new JTextField(TEXT_FIELD_WIDTH));
+		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
 			@Override
 			public void focusGained(FocusEvent e) {
@@ -561,19 +564,19 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		} else {
 			c = super.getTableCellEditorComponent(table, value, isSelected, row, column);
 		}
-		if (isSelected)
-			c.setBackground(SwingTools.LIGHTEST_BLUE);
-		else
-			c.setBackground(Color.WHITE);
+//		if (isSelected)
+//			c.setBackground(SwingTools.LIGHTEST_BLUE);
+//		else
+//			c.setBackground(Color.WHITE);
 		return c;
 	}
 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 		delegate.setValue(value);
-		if (isSelected)
-			editorComponent.setBackground(SwingTools.LIGHTEST_BLUE);
-		else
-			editorComponent.setBackground(Color.WHITE);
+//		if (isSelected)
+//			editorComponent.setBackground(SwingTools.LIGHTEST_BLUE);
+//		else
+//			editorComponent.setBackground(Color.WHITE);
 		return editorComponent;
 	}
 

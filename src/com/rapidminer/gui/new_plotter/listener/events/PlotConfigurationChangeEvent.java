@@ -60,7 +60,8 @@ public class PlotConfigurationChangeEvent implements ConfigurationChangeEvent {
 		COLOR_SCHEME,
 		LINK_AND_BRUSH_SELECTION,
 		LEGEND_CHANGED,
-		META_CHANGE  // this means the a list of plot config change events is about to happen
+		META_CHANGE,  // this means the a list of plot config change events is about to happen
+		TRIGGER_REPLOT // this event is used to trigger a replot
 	}
 
 	private final PlotConfigurationChangeType type;
@@ -112,6 +113,11 @@ public class PlotConfigurationChangeEvent implements ConfigurationChangeEvent {
 		this.type = type;
 		this.rangeAxisConfig = rangeAxis;
 		this.index = index;
+	}
+	
+	public PlotConfigurationChangeEvent(PlotConfiguration source) {
+		setSource(source);
+		this.type = PlotConfigurationChangeType.TRIGGER_REPLOT;
 	}
 
 	/**

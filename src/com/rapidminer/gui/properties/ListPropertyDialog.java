@@ -40,7 +40,7 @@ import com.rapidminer.parameter.ParameterTypeList;
  * also supported.
  * 
  * @see com.rapidminer.gui.properties.ListPropertyTable
- * @author Ingo Mierswa, Simon Fischer, Tobias Malbrecht
+ * @author Ingo Mierswa, Simon Fischer, Tobias Malbrecht, Nils Woehler
  */
 public class ListPropertyDialog extends PropertyDialog {
 
@@ -56,6 +56,9 @@ public class ListPropertyDialog extends PropertyDialog {
 		super(type, "list");
 		this.parameterList = parameterList;
 		listPropertyTable = new ListPropertyTable2(type, parameterList, operator);
+		if(listPropertyTable.isEmpty()) {
+			listPropertyTable.addRow();
+		}
 		JScrollPane scrollPane = new ExtendedJScrollPane(listPropertyTable);
 		scrollPane.setBorder(createBorder());
 		layoutDefault(scrollPane,

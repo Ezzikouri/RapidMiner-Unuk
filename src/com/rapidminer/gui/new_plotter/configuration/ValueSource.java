@@ -90,7 +90,7 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 
 	private final int Id;
 	private DomainConfigManager domainConfigManager;
-
+	
 	/**
 	 * Constructor for a default value source. Check if grouping is required by calling
 	 * isGroupingRequired() at the destinated {@link RangeAxisConfig} parent.

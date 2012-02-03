@@ -42,6 +42,11 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeExpression;
 
+/**
+ * 
+ * @author Ingo Mierswa, Nils Woehler
+ *
+ */
 public class ExpressionValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 	
 	private static final long serialVersionUID = 2355429695124754211L;
@@ -61,6 +66,8 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 	private final ParameterTypeExpression type;
 
 	private final GridBagLayout gridBagLayout = new GridBagLayout();
+
+	private JButton button;
 	
 	public ExpressionValueCellEditor(ParameterTypeExpression type) {
 		this.type = type;
@@ -76,7 +83,9 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 		textField.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
+				if(e.getOppositeComponent() != button) {
+					stopCellEditing();
+				}
 			}			
 			@Override public void focusGained(FocusEvent e) { }
 		});
@@ -88,10 +97,11 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 		gridBagLayout.setConstraints(textField, c);
 		panel.add(textField);
 		
-		JButton button = new JButton(CALCULATOR_ICON);
+		button = new JButton(CALCULATOR_ICON);
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				stopCellEditing();
 				buttonPressed();
 			}
 		});

@@ -166,16 +166,16 @@ public class InputPortImpl extends AbstractPort implements InputPort {
 	}
 
 	@Override
-	public void registerMetaDataChangeListener(MetaDataChangeListener listener) {
+	public synchronized void registerMetaDataChangeListener(MetaDataChangeListener listener) {
 		metaDataChangeListeners.add(listener);
 	}
 
 	@Override
-	public void removeMetaDataChangeListener(MetaDataChangeListener listener) {
+	public synchronized void removeMetaDataChangeListener(MetaDataChangeListener listener) {
 		metaDataChangeListeners.remove(listener);
 	}
 	
-	private void informListenersOfChange(MetaData metaData) {
+	private synchronized void informListenersOfChange(MetaData metaData) {		
 		for (MetaDataChangeListener listener: metaDataChangeListeners) {
 			listener.informMetaDataChanged(metaData);
 		}

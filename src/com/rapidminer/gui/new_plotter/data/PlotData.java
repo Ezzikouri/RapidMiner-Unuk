@@ -82,7 +82,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 	private PlotInstance plotInstance;
 
 	private PlotConfigurationChangeEvent lastProcessedEvent = null;
-
+	
 	public PlotData(PlotInstance plotInstance, DataTable dataTable) {
 		if (plotInstance == null) {
 			throw new IllegalArgumentException("null not allowed for plotInstance");
@@ -321,6 +321,9 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 		}
 
 		switch (change.getType()) {
+			case TRIGGER_REPLOT:
+				clearCache();
+				break;
 			case AXES_FONT:
 				break;
 			case AXIS_LINE_COLOR:
@@ -343,7 +346,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 					debug("ADDED dimension " + currentDimensionConfig.getDimension().getName() + " ## ID: " + id);
 					clearCache();
 				} else {
-					StaticDebug.debug("#### CAUTION ###### ADD DIMENSION CONFIG: CURRENT DIMENSIONCONFIG " + changeDimensionConfig.getLabel() + " with id " + changeDimensionConfig.getId()
+					debug("#### CAUTION ###### ADD DIMENSION CONFIG: CURRENT DIMENSIONCONFIG " + changeDimensionConfig.getLabel() + " with id " + changeDimensionConfig.getId()
 							+ " IS NULL! Processing meta event?");
 				}
 				break;
@@ -372,7 +375,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 						valueSourceDataMap.put(valueSource.getId(), new ValueSourceData(valueSource, plotInstance));
 					}
 				} else {
-					StaticDebug.debug("#### CAUTION ###### ADD RANGE AXIS CONFIG: CURRENT RANGEAXISCONFIG " + changeRangeAxis.getLabel() + " with id " + changeRangeAxis.getId()
+					debug("#### CAUTION ###### ADD RANGE AXIS CONFIG: CURRENT RANGEAXISCONFIG " + changeRangeAxis.getLabel() + " with id " + changeRangeAxis.getId()
 							+ " IS NULL! Processing meta event?");
 				}
 				break;
@@ -412,7 +415,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 
 		if (currentRangeAxisConfig == null) {
 			// if current range axis config is null it has been deleted afterwards in a meta change event
-			StaticDebug.debug("#### CAUTION #### RANGE AXIS CONFIG CHANGE: current range axis config " + rangeAxisConfigChange.getSource().getLabel() + " with id "
+			debug("#### CAUTION #### RANGE AXIS CONFIG CHANGE: current range axis config " + rangeAxisConfigChange.getSource().getLabel() + " with id "
 					+ rangeAxisConfigChange.getSource().getId() + " is null! Meta change event?");
 			return;
 		}
@@ -440,7 +443,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 					clearCache();
 				} else {
 					// if current value source is null it has been deleted afterwards in a meta change event
-					StaticDebug.debug("#### CAUTION #### VALUE SOURCE ADDED: current value source" + changeValueSource.getLabel() + " with id " + changeValueSource.getId() + " is null! Meta change event?");
+					debug("#### CAUTION #### VALUE SOURCE ADDED: current value source" + changeValueSource.getLabel() + " with id " + changeValueSource.getId() + " is null! Meta change event?");
 					return; // nothing to be done
 				}
 				break;
@@ -455,7 +458,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 					getValueSourceData(currentValueSource).valueSourceChanged(valueSourceChange, currentValueSource);
 				} else {
 					// if current value source is null it has been deleted afterwards in a meta change event
-					StaticDebug.debug("#### CAUTION #### VALUE SOURCE CHANGED: current value source" + changeValueSource.getLabel() + " with id " + changeValueSource.getId() + " is null! Meta change event?");
+					debug("#### CAUTION #### VALUE SOURCE CHANGED: current value source" + changeValueSource.getLabel() + " with id " + changeValueSource.getId() + " is null! Meta change event?");
 					return; // nothing to be done
 				}
 				break;
@@ -492,7 +495,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 				dimData.dimensionConfigChanged(dimensionChange);
 			} else {
 				// if current dimension config is null it has been deleted afterwards in a meta change event
-				StaticDebug.debug("#### CAUTION #### DIMENSION CHANGED:  current dimension config " + dimensionChange.getSource().getLabel() + " with id " + dimensionChange.getSource().getId()
+				debug("#### CAUTION #### DIMENSION CHANGED:  current dimension config " + dimensionChange.getSource().getLabel() + " with id " + dimensionChange.getSource().getId()
 						+ " is null! Meta change event?");
 				return; // do nothing and return
 			}
@@ -583,7 +586,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 	}
 
 	private void debug(String msg) {
-		StaticDebug.debug(msg + " " + this);
+		StaticDebug.debug(msg);
 	}
 
 	/**

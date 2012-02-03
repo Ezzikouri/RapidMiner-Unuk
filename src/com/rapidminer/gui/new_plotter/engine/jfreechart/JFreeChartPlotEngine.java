@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -155,10 +155,11 @@ Series type categorical grouped  stacking    error bars           Renderer      
 public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListener, PlotConfigurationProcessingListener, LegendItemSource {
 
 	private boolean initializing = false;
-
+	
 	private List<WeakReference<JFreeChartPlotEngineListener>> listeners = new LinkedList<WeakReference<JFreeChartPlotEngineListener>>();
 
 	private PlotInstance plotInstance;
+	private PlotInstance nextPlotInstance = null;
 
 	private final PlotInstanceLegendCreator legendCreator = new PlotInstanceLegendCreator();
 
@@ -166,15 +167,18 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 
 	private final LinkAndBrushChartPanel chartPanel;
 
-	private boolean updatingChart = false;
+	private AtomicBoolean updatingChart;
 
 	private boolean currentChartIsValid = false;
 
 	private MultiAxesCrosshairOverlay crosshairOverlay = new MultiAxesCrosshairOverlay();
+	
+	private Object nextPlotInstanceLock = new Object();
 
 	public JFreeChartPlotEngine(PlotInstance plotInstanceForEngine, boolean zoomInOnSelection) {
 
 		this.plotInstance = plotInstanceForEngine;
+		updatingChart = new AtomicBoolean(false);
 
 		chartPanel = new LinkAndBrushChartPanel(new JFreeChart(new CategoryPlot()), 50, 50, 50, 50, zoomInOnSelection);
 		chartPanel.setMinimumDrawWidth(50);
@@ -195,7 +199,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	}
 
 	public boolean updatingChart() {
-		return updatingChart;
+		return updatingChart.get();
 	}
 
 	/**
@@ -218,17 +222,16 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	 * 
 	 * @param informPlotConfigWhenDone should inform the {@link PlotConfiguration} that the worker thread is done?
 	 */
-	public synchronized void updateChartPanelChart(final boolean informPlotConfigWhenDone) {
-		updatingChart = true;
+	private synchronized void updateChartPanelChart(final boolean informPlotConfigWhenDone) {
+		updatingChart.getAndSet(true);
 
 		StaticDebug.debug("######################### STARTING CHART UPDATE ######################");
-
+		
 		SwingWorker updateChartWorker = new SwingWorker<JFreeChart, Void>() {
 
 			@Override
 			public JFreeChart doInBackground() throws Exception {
 				try {
-
 					if (!isPlotInstanceValid()) {
 						return null;
 					}
@@ -257,16 +260,9 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 					JFreeChart chart = null;
 					try {
 						chart = get(60, TimeUnit.SECONDS);
-						updatingChart = false;
-					} catch (InterruptedException ignore) {
-						ignore.printStackTrace();
-						handlePlottimeException(new ChartPlottimeException("generic_plotter_error"));
-						return;
-					} catch (java.util.concurrent.ExecutionException e) {
-						e.printStackTrace();
-						handlePlottimeException(new ChartPlottimeException("generic_plotter_error"));
-						return;
-					} catch (TimeoutException e) {
+						updatingChartPanelChartDone();
+					} catch (Exception e) {
+						updatingChartPanelChartDone();
 						e.printStackTrace();
 						handlePlottimeException(new ChartPlottimeException("generic_plotter_error"));
 						return;
@@ -359,7 +355,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	public void endInitializing() {
 		if (initializing) {
 			initializing = false;
-			replot(false);
+			plotInstance.triggerReplot();
 		}
 	}
 
@@ -443,19 +439,18 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 
 	/**
 	 * Is called to clear the {@link MasterOfDesaster}, invalidate the {@link JFreeChartPlotEngine} cache
-	 * and update the {@link ChartPanel}s chart.
-	 * 
-	 * @param informPlotConfig this should only be <code>true</code> if a {@link PlotConfigurationChangeEvent} is processed.
+	 * and update the {@link ChartPanel}s chart. This should only be called if a {@link PlotConfigurationChangeEvent} is processed.
+	 * If initializing it returns <code>true</code>, <code>false</code> otherwise.
 	 */
-	private void replot(boolean informPlotConfig) {
+	private boolean replot() {
 		if (initializing) {
-			plotInstance.getMasterPlotConfiguration().plotConfigurationChangeEventProcessed();
-			return;
+			return true;
 		}
 		plotInstance.getMasterOfDesaster().clearAll();
 		invalidateCache();
 
-		updateChartPanelChart(informPlotConfig);
+		updateChartPanelChart(true);
+		return false;
 	}
 
 	private boolean isPlotInstanceValid() {
@@ -1248,15 +1243,39 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		if (plotInstance == null) {
 			throw new IllegalArgumentException("null PlotConfiguration not allowed");
 		}
-
-		if (plotInstance != this.plotInstance) {
-			unsubscribeFromPlotInstance(plotInstance);
-			this.plotInstance = plotInstance;
-			subscribeAtPlotInstance(plotInstance);
-			replot(false);
+		
+		synchronized(nextPlotInstanceLock){
+			if (updatingChart.get()) {
+				if (plotInstance != this.plotInstance) {
+					StaticDebug.debug("Set NEW PLOTINSTANCE for PlotEnginge "+plotInstance);
+					this.nextPlotInstance = plotInstance;
+				}
+			} else {
+				this.nextPlotInstance = plotInstance;
+				privateSetPlotInstance();
+			}
 		}
 	}
 
+	private synchronized void updatingChartPanelChartDone(){
+		StaticDebug.debug("Updating chart done!");
+		updatingChart.getAndSet(false);
+		synchronized(nextPlotInstanceLock){
+			if(nextPlotInstance != null) {
+				privateSetPlotInstance();
+			}
+		}
+	}
+
+	private void privateSetPlotInstance() {
+		StaticDebug.debug("PlotInstance has changed. Replacing..");
+		unsubscribeFromPlotInstance(plotInstance);
+		this.plotInstance = nextPlotInstance;
+		this.nextPlotInstance = null;
+		subscribeAtPlotInstance(plotInstance);
+		plotInstance.triggerReplot();
+	}
+	
 	private void unsubscribeFromPlotInstance(PlotInstance plotInstance) {
 		initializing = true;
 		// unsubscribe from event sources
@@ -1269,7 +1288,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	@Override
 	public boolean plotConfigurationChanged(PlotConfigurationChangeEvent change) {
 		PlotConfigurationChangeType type = change.getType();
-		boolean processed = true;
+		boolean processed;
 		switch (type) {
 			case DIMENSION_CONFIG_ADDED:
 			case DIMENSION_CONFIG_REMOVED:
@@ -1279,42 +1298,55 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 			case COLOR_SCHEME:
 			case DATA_TABLE_EXCHANGED:
 			case META_CHANGE:
-				replot(true);
-				return false;
+				processed = replot();
+				break;
 			case AXES_FONT:
 				axesFontChanged(change.getAxesFont());
+				processed = true;
 				break;
 			case FRAME_BACKGROUND_COLOR:
 				chartBackgroundColorChanged(change.getFrameBackgroundColor());
+				processed = true;
 				break;
 			case CHART_TITLE:
 				chartTitleChanged();
+				processed = true;
 				break;
 			case DIMENSION_CONFIG_CHANGED:
 				processed = dimensionConfigChanged(change.getDimensionChange());
 				break;
 			case LEGEND_CHANGED:
 				legendChanged(change.getLegendConfigurationChangeEvent());
+				processed = true;
 				break;
 			case PLOT_BACKGROUND_COLOR:
 				plotBackgroundColorChanged(change.getPlotBackgroundColor());
+				processed = true;
 				break;
 			case RANGE_AXIS_CONFIG_CHANGED:
 				processed = rangeAxisConfigChanged(change.getRangeAxisConfigChange());
 				break;
 			case PLOT_ORIENTATION:
 				plotOrientationChanged(change.getOrientation());
+				processed = true;
 				break;
 			case AXIS_LINE_COLOR:
 				axisLineColorChanged(change.getDomainAxisLineColor());
+				processed = true;
 				break;
 			case AXIS_LINE_WIDTH:
 				axisLineWidthChanged(change.getDomainAxisLineWidth());
+				processed = true;
 				break;
 			case LINK_AND_BRUSH_SELECTION:
 				checkWarnings();
+				processed = true;
+				break;
+			case TRIGGER_REPLOT:
+				processed = replot();
 				break;
 			default:
+				//DONT FORGET TO RETURN TRUE OR FALSE
 				throw new RuntimeException("Unkown event type " + type + ". This should not happen.");
 		}
 		return processed;
@@ -1433,8 +1465,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 			case VALUE_SOURCE_MOVED:
 			case VALUE_SOURCE_REMOVED:
 			case CLEARED:
-				replot(true);
-				return false;
+				return replot();
 			case LABEL:
 				String label = change.getLabel();
 				if (label == null) {
@@ -1469,8 +1500,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 			case AGGREGATION_FUNCTION_MAP:
 			case DATATABLE_COLUMN_MAP:
 			case SERIES_FORMAT_CHANGED:
-				replot(true);
-				return false;
+				return replot();
 			case UPDATED:
 				// this is caused by other events that cause a replot - do nothing
 				break;
@@ -1491,7 +1521,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	 */
 	private boolean dimensionConfigChanged(DimensionConfigChangeEvent change) {
 		DimensionConfigChangeType type = change.getType();
-		boolean processed = true;
+		boolean processed;
 		switch (type) {
 			case LABEL:
 				if (change.getDimension() == PlotDimension.DOMAIN) {
@@ -1503,6 +1533,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				} else {
 					resetLegend();
 				}
+				processed = true;
 				break;
 			case DATE_FORMAT_CHANGED:
 				if (change.getDimension() == PlotDimension.DOMAIN) {
@@ -1510,21 +1541,17 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				} else {
 					resetLegend();
 				}
+				processed = true;
 				break;
-			case SORTING:
-				replot(true);
-				return false;
-			case SCALING:
-				replot(true);
-				return false;
 			case COLOR_SCHEME:
+				processed = true;
 				break;
 			case CROSSHAIR_LINES_CHANGED:
 				updateChartPanel(getCurrentChart());
+				processed = true;
 				break;
 			default:
-				replot(true);
-				return false;
+				return replot();
 		}
 
 		return processed;
