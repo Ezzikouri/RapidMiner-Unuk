@@ -47,6 +47,7 @@ import javax.swing.event.ListSelectionListener;
 
 import com.rapidminer.gui.new_plotter.templates.HistogramTemplate;
 import com.rapidminer.gui.new_plotter.templates.actions.ExportImageAction;
+import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.tools.I18N;
 
 /**
@@ -133,7 +134,8 @@ public class HistogrammTemplatePanel extends PlotterTemplatePanel implements Obs
 		gbc.gridy = 1;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weighty = 1;
-		this.add(plotList, gbc);
+		ExtendedJScrollPane plotSeriesScrollPane = new ExtendedJScrollPane(plotList);
+		this.add(plotSeriesScrollPane, gbc);
 		
 		absoluteValuesCheckBox = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.histogram.absolute_values.label"));
 		absoluteValuesCheckBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.histogram.absolute_values.tip"));

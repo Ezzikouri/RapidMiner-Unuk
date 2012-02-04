@@ -220,25 +220,20 @@ public class ScatterTemplatePanel extends PlotterTemplatePanel implements Observ
 		gbc.gridy = 10;
 		this.add(jitterSlider, gbc);
 		
-//		rotateLabelsCheckBox = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.scatter.rotate_labels.label"));
-//		rotateLabelsCheckBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.scatter.rotate_labels.tip"));
-//		rotateLabelsCheckBox.addActionListener(updatePlotActionListener);
-//		gbc.gridy = 11;
-//		this.add(rotateLabelsCheckBox, gbc);
-		
-		JButton exportImageButton = new JButton(new ExportImageAction(scatterTemplate));
-		gbc.gridy = 12;
-		this.add(exportImageButton, gbc);
-		
-		
 		// fill bottom
 		gbc.gridx = 0;
-		gbc.gridy = 100;
-		gbc.gridwidth = 100;
+		gbc.gridy = 11;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1;
 		gbc.weighty = 1;
 		this.add(new JLabel(), gbc);
+		
+		// add export bottom as lowest element (for consistency with other templates)
+		JButton exportImageButton = new JButton(new ExportImageAction(scatterTemplate));
+		gbc.gridy = 12;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.weighty = 0;
+		this.add(exportImageButton, gbc);
 	}
 
 	@Override

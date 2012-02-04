@@ -110,7 +110,7 @@ public abstract class ValueReplenishment extends PreprocessingOperator {
 
 			final double replenishmentValue = getReplenishmentValue(function, exampleSet, attribute);
 			if (attribute.isNominal()) {
-				if ((replacedValue == -1) || Double.isNaN(replacedValue)) {
+				if ((replenishmentValue == -1) || Double.isNaN(replenishmentValue)) {
 					nominalReplacementMap.put(attributeName, null);
 				} else {
 					nominalReplacementMap.put(attributeName, attribute.getMapping().mapIndex((int) replenishmentValue));

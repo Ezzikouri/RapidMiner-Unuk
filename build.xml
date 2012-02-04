@@ -1,5 +1,5 @@
-<project name="RapidMiner_Vega">
-	<description> Build file for RapidMiner 5.0</description>
+<project name="RapidMiner_Unuk">
+	<description> Build file for RapidMiner 5.2</description>
 	<property file="build.properties" />
 	<property name="src" location="src" />
 	<property name="src_generated" location="src_generated" />

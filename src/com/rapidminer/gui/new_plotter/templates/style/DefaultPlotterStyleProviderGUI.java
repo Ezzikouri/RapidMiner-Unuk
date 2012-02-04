@@ -90,14 +90,6 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		this.add(descriptionLabel, gbc);
 		
 		gbc.gridx = 0;
-		gbc.gridy = 1;
-		gbc.weightx = 1;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.gridwidth = 2;
-		// removed by Simon's request; why does nobody like them :-(
-//		this.add(new JSeparator(), gbc);
-		
-		gbc.gridx = 0;
 		gbc.gridy = 2;
 		gbc.weightx = 0;
 		gbc.fill = GridBagConstraints.NONE;
@@ -107,6 +99,7 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		
 		gbc.gridx = 1;
 		gbc.gridy = 2;
+		gbc.weightx = 1;
 		axesFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
 		axesFontButton.setFont(new Font(axesFont.getFamily(), axesFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 		axesFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.axes.tip"));
@@ -132,11 +125,13 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		
 		gbc.gridx = 0;
 		gbc.gridy = 3;
+		gbc.weightx = 0;
 		JLabel titleLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.title.label"));
 		this.add(titleLabel, gbc);
 		
 		gbc.gridx = 1;
 		gbc.gridy = 3;
+		gbc.weightx = 1;
 		titleFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
 		titleFontButton.setFont(new Font(titleFont.getFamily(), titleFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 		titleFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.title.tip"));
@@ -162,11 +157,13 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		
 		gbc.gridx = 0;
 		gbc.gridy = 4;
+		gbc.weightx = 0;
 		JLabel legendLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.legend.label"));
 		this.add(legendLabel, gbc);
 		
 		gbc.gridx = 1;
 		gbc.gridy = 4;
+		gbc.weightx = 1;
 		legendFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
 		legendFontButton.setFont(new Font(legendFont.getFamily(), legendFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 		legendFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.legend.tip"));
@@ -192,15 +189,16 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		
 		gbc.gridx = 0;
 		gbc.gridy = 5;
+		gbc.weightx = 0;
 		JLabel colorLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.colorscheme.label"));
 		this.add(colorLabel, gbc);
 		
 		gbc.gridx = 1;
 		gbc.gridy = 5;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.weightx = 1;
 		colorSchemeComboBox = new JComboBox(defaultStyleProvider.getColorSchemes().toArray());
 		colorSchemeComboBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.colorscheme.tip"));
+		colorSchemeComboBox.setPreferredSize(new Dimension(120, 30));
 		colorSchemeComboBox.addActionListener(new ActionListener() {
 			
 			@Override
@@ -213,6 +211,7 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		// fill empty area
 		gbc.gridx = 0;
 		gbc.gridy = 999;
+		gbc.gridwidth = 2;
 		gbc.weightx = 1;
 		gbc.weighty = 1;
 		gbc.fill = GridBagConstraints.BOTH;

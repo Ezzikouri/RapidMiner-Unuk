@@ -586,7 +586,7 @@ public class PlotData implements DataTableListener, PlotConfigurationListener {
 	}
 
 	private void debug(String msg) {
-		StaticDebug.debug(msg);
+		StaticDebug.debug("PlotData: "+msg);
 	}
 
 	/**

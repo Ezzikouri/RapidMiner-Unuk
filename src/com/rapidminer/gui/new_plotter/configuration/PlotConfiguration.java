@@ -125,6 +125,10 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	private Color frameBackgroundColor = DEFAULT_FRAME_BACKGROUND_COLOR;
 	private Font axesFont = DEFAULT_AXES_FONT;
 	private PlotOrientation orientation = DEFAULT_PLOT_ORIENTATION;
+	
+	private static int CLASS_ID = 0;
+	private int unique_debug_id = -1;
+	private boolean cloned_debug = false;
 
 	/**
 	 * If this variable is true, events that happen inside this PlotConfiguration, e.g. changes of
@@ -171,6 +175,8 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	 * @param domainColumn
 	 */
 	public PlotConfiguration(DataTableColumn domainColumn) {
+		++CLASS_ID;
+		unique_debug_id = CLASS_ID;
 		this.domainConfigManager = new DomainConfigManager(this, domainColumn);
 		this.linkAndBrushMaster = new LinkAndBrushMaster(this);
 		domainConfigManager.addDimensionConfigListener(this);
@@ -253,6 +259,8 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	 * Private ctor, used only by {@link #clone()} method
 	 */
 	private PlotConfiguration(DomainConfigManager domainConfigManager, LegendConfiguration legendConfiguration) {
+		++CLASS_ID;
+		unique_debug_id = CLASS_ID;
 		this.linkAndBrushMaster = new LinkAndBrushMaster(this);
 		this.legendConfiguration = legendConfiguration;
 		this.domainConfigManager = domainConfigManager;
@@ -313,9 +321,9 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	public void removeRangeAxisConfig(int index) {
 		RangeAxisConfig rangeAxis = rangeAxisConfigs.get(index);
 		rangeAxis.removeRangeAxisConfigListener(this);
-		debug(" REMOVING RANGEAXIS with index " + index);
+		debug(" REMOVING RANGEAXIS with index " + index + " and ID "+rangeAxis.getId());
+		rangeAxisConfigs.remove(index);
 		fireRangeAxisRemoved(index, rangeAxis);
-
 	}
 
 	public void addPlotConfigurationListener(PlotConfigurationListener l) {
@@ -793,6 +801,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 			if (eventList.size() > 0) {
 				// get new event
 				currentEvent = eventList.get(0);
+				currentEvent.setSource(this.clone());
 
 				debug("GOT NEW CURRENT EVENT: "+currentEvent);
 
@@ -885,13 +894,13 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		if (eventList.size() > 0) {
 			PlotConfigurationChangeEvent plotConfigurationChangeEvent = eventList.get(0);
 			if (plotConfigurationChangeEvent.getType() == PlotConfigurationChangeType.META_CHANGE) {
-				plotConfigurationChangeEvent.addPlotConfigChangeEvent(this.clone(), e);
+				plotConfigurationChangeEvent.addPlotConfigChangeEvent(this, e);
 				debug("ADD EVENT TO META EVENT");
 			} else {
 				List<PlotConfigurationChangeEvent> events = new LinkedList<PlotConfigurationChangeEvent>();
 				events.add(plotConfigurationChangeEvent);
 				events.add(e);
-				PlotConfigurationChangeEvent metaEvent = new PlotConfigurationChangeEvent(this.clone(), events);
+				PlotConfigurationChangeEvent metaEvent = new PlotConfigurationChangeEvent(this, events);
 				eventList.set(0, metaEvent);
 				debug("CREATE NEW META EVENT");
 			}
@@ -906,7 +915,6 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	private void firePlotConfigurationChanged(PlotConfigurationChangeEvent e) {
 		if (!initializing) {
 			debug("Firing a PlotConfigChangeEvent");
-			e.setSource(this.clone());
 			addEventToQueue(e);
 		}
 	}
@@ -916,7 +924,11 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	}
 
 	private void debug(String msg) {
-			StaticDebug.debug("PlotConfig: "+msg);
+		if(cloned_debug){
+			StaticDebug.debug("CLONED PlotConfig("+unique_debug_id+"): "+msg);
+		} else {
+			StaticDebug.debug("PlotConfig("+unique_debug_id+"): "+msg);
+		}
 	}
 
 	@Override
@@ -1067,7 +1079,8 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 
 	public PlotConfiguration clone() {
 		PlotConfiguration clone = new PlotConfiguration(domainConfigManager.clone(), legendConfiguration.clone());
-
+		clone.cloned_debug = true;
+		
 		debug(" Started CLONING");
 
 		clone.initializing = true;

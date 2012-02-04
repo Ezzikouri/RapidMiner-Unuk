@@ -32,9 +32,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+import javax.swing.JPopupMenu;
 import javax.swing.JToggleButton;
-import javax.swing.Popup;
-import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
 
 import com.rapidminer.gui.tools.ResourceAction;
@@ -65,13 +64,27 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 	public enum PopupPosition {
 		HORIZONTAL, VERTICAL
 	}
+	
+	private class ContainerPopupMenu extends JPopupMenu {
+
+		private static final long serialVersionUID = 1L;
+		
+		public ContainerPopupMenu(Component invoker, Component comp, Point point) {
+			this.add(comp);
+			this.setLocation(point);
+			this.setBorder(new JPopupMenu().getBorder());
+			this.setInvoker(invoker);
+			this.setBorderPainted(true);
+		}
+		
+	}
 
 	private static final long serialVersionUID = 1L;
 
 	private final PopupPanel popupComponent;
 	private Component actionSource = null;
 
-	private Popup popup = null;
+	private ContainerPopupMenu popup = null;
 
 	private PopupPosition position = PopupPosition.VERTICAL;
 
@@ -202,13 +215,11 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 		containingWindow = SwingUtilities.windowForComponent(actionSource);
 		containingWindow.addComponentListener(this);
 		
-		PopupFactory factory = PopupFactory.getSharedInstance();
-
 		Point position = calculatePosition(source);
 		popupComponent.setVisible(true);
-		this.popup = factory.getPopup(source, ((Component) popupComponent), position.x, position.y);
-		popup.show();
-		((Component) popupComponent).requestFocus();
+		popup = new ContainerPopupMenu(null, popupComponent, position);
+		popup.setVisible(true);
+		popup.requestFocus();
 		popupComponent.startTracking(containingWindow);
 	}
 
@@ -236,7 +247,7 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 		if (popup != null) {
 			popupComponent.setVisible(false);
 			// hide popup and reset
-			popup.hide();
+			popup.setVisible(false);
 			popup = null;
 
 			return true;

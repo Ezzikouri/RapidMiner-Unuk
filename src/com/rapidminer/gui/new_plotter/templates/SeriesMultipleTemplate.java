@@ -47,6 +47,7 @@ import com.rapidminer.gui.new_plotter.templates.SeriesTemplate.DataTableWithInde
 import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.SeriesMultipleTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
+import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction.AggregationFunctionType;
 
@@ -205,6 +206,7 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 		DimensionConfig domainDimensionConfig = plotConfiguration.getDimensionConfig(PlotDimension.DOMAIN);
 		domainDimensionConfig.setDataTableColumn(indexColumn);
 
+		int indexOfPlots = 0;
 		for (Object plot : plotNames) {
 			String plotName = String.valueOf(plot);
 			RangeAxisConfig newRangeAxisConfig = new RangeAxisConfig(plotName, plotConfiguration);
@@ -216,6 +218,8 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 			sFormat.setLineStyle(LineStyle.SOLID);
 			sFormat.setItemShape(ItemShape.NONE);
 			sFormat.setLineWidth(1.5f);
+			ColorRGB yAxisColor = styleProvider.getColorScheme().getColors().get(indexOfPlots++ % styleProvider.getColorScheme().getColors().size());
+			sFormat.setItemColor(ColorRGB.convertToColor(yAxisColor));
 			valueSource.setSeriesFormat(sFormat);
 			newRangeAxisConfig.addValueSource(valueSource, null);
 

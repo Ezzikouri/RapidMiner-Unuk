@@ -45,6 +45,7 @@ import com.rapidminer.gui.new_plotter.configuration.ValueGrouping.ValueGroupingF
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.templates.gui.HistogrammTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
+import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
@@ -100,7 +101,7 @@ public class HistogramTemplate extends PlotterTemplate {
 	public HistogramTemplate() {
 		currentRangeAxisConfigsList = new LinkedList<RangeAxisConfig>();
 		
-		bins = 11;
+		bins = 40;
 		opaque = 255;
 		
 		useAbsoluteValues = false;
@@ -264,6 +265,7 @@ public class HistogramTemplate extends PlotterTemplate {
 		}
 		
 		try {
+			int indexOfPlots = 0;
 			for (Object plot : plotNames) {
 				String plotName = String.valueOf(plot);
 				
@@ -286,8 +288,8 @@ public class HistogramTemplate extends PlotterTemplate {
 				valueSource.setUseDomainGrouping(true);
 				SeriesFormat sFormat = new SeriesFormat();
 				sFormat.setSeriesType(VisualizationType.BARS);
-//				ColorRGB yAxisColor = styleProvider.getColorScheme().getColors().get(indexOfPlots % styleProvider.getColorScheme().getColors().size());
-//				sFormat.setItemColor(ColorRGB.convertToColor(yAxisColor));
+				ColorRGB yAxisColor = styleProvider.getColorScheme().getColors().get(indexOfPlots++ % styleProvider.getColorScheme().getColors().size());
+				sFormat.setItemColor(ColorRGB.convertToColor(yAxisColor));
 				// TODO: change to alpha value provided by the ColorScheme and remove opaque slider?
 				sFormat.setOpacity(opaque);
 				valueSource.setSeriesFormat(sFormat);

@@ -367,8 +367,8 @@ public class DimensionConfigData {
 
 			if (Double.isNaN(cachedMaxValue)) {
 				updateValueCache();
-				StaticDebug.debug(getDimensionConfig().getDimension() + " min: " + cachedMinValue);
-				StaticDebug.debug(getDimensionConfig().getDimension() + " max: " + cachedMaxValue);
+				debug(getDimensionConfig().getDimension() + " min: " + cachedMinValue);
+				debug(getDimensionConfig().getDimension() + " max: " + cachedMaxValue);
 			}
 
 			effectiveMin = cachedMinValue;
@@ -495,7 +495,7 @@ public class DimensionConfigData {
 		PlotDimension dimension = e.getSource().getDimension();
 		DimensionConfig dimConf = plotInstance.getCurrentPlotConfigurationClone().getDimensionConfig(dimension);
 		if (dimConf == null) {
-			StaticDebug.debug("DimensionConfigData: ### ATTENTION #### DimensionConfig for dimension " + dimension + " is null! Meta change event?");
+			debug("DimensionConfigData: ### ATTENTION #### DimensionConfig for dimension " + dimension + " is null! Meta change event?");
 			return;
 		}
 
@@ -511,10 +511,14 @@ public class DimensionConfigData {
 				invalidateFormatProviders();
 				break;
 			case COLOR_SCHEME:
-				StaticDebug.debug("Color scheme has changed. " + this + " invalidate format providers");
+				debug("Color scheme has changed. " + this + " invalidate format providers");
 				invalidateFormatProviders();
 				break;
 		}
+	}
+
+	private void debug(String string) {
+		StaticDebug.debug("DimensionConfigData: "+getDimensionConfig().getDimension()+ " " +string);
 	}
 
 	public List<PlotConfigurationError> getErrors() {

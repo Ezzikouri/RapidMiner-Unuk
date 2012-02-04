@@ -613,8 +613,11 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				}
 
 				// then set domain axis font
-				categoryPlot.getDomainAxis().setLabelFont(axesFont);
-				categoryPlot.getDomainAxis().setTickLabelFont(axesFont);
+				CategoryAxis domainAxis = categoryPlot.getDomainAxis();
+				if(domainAxis != null) {
+					domainAxis.setLabelFont(axesFont);
+					domainAxis.setTickLabelFont(axesFont);
+				}
 
 			} else {
 				XYPlot xyPlot = (XYPlot) plot;
@@ -630,8 +633,11 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				}
 
 				// then set domain axis font
-				xyPlot.getDomainAxis().setLabelFont(axesFont);
-				xyPlot.getDomainAxis().setTickLabelFont(axesFont);
+				ValueAxis domainAxis = xyPlot.getDomainAxis();
+				if(domainAxis != null) {
+					domainAxis.setLabelFont(axesFont);
+					domainAxis.setTickLabelFont(axesFont);
+				}
 
 			}
 		}
@@ -1297,6 +1303,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 			case RANGE_AXIS_CONFIG_REMOVED:
 			case COLOR_SCHEME:
 			case DATA_TABLE_EXCHANGED:
+			case TRIGGER_REPLOT:
 			case META_CHANGE:
 				processed = replot();
 				break;
@@ -1341,9 +1348,6 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 			case LINK_AND_BRUSH_SELECTION:
 				checkWarnings();
 				processed = true;
-				break;
-			case TRIGGER_REPLOT:
-				processed = replot();
 				break;
 			default:
 				//DONT FORGET TO RETURN TRUE OR FALSE
@@ -1418,7 +1422,10 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 			BasicStroke stroke = new BasicStroke(lineWidth);
 			if (plot instanceof CategoryPlot) {
 				CategoryPlot categoryPlot = (CategoryPlot) plot;
-				categoryPlot.getDomainAxis().setAxisLineStroke(stroke);
+				CategoryAxis domainAxis = categoryPlot.getDomainAxis();
+				if(domainAxis != null) {
+					domainAxis.setAxisLineStroke(stroke);
+				}
 				int rangeAxisCount = categoryPlot.getRangeAxisCount();
 				for (int i = 0; i < rangeAxisCount; ++i) {
 					ValueAxis valueAxis = categoryPlot.getRangeAxis(i);
@@ -1428,7 +1435,10 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				}
 			} else if (plot instanceof XYPlot) {
 				XYPlot xyPlot = (XYPlot) plot;
-				xyPlot.getDomainAxis().setAxisLineStroke(stroke);
+				ValueAxis domainAxis = xyPlot.getDomainAxis();
+				if(domainAxis != null) {
+					domainAxis.setAxisLineStroke(stroke);
+				}
 				int rangeAxisCount = xyPlot.getRangeAxisCount();
 				for (int i = 0; i < rangeAxisCount; ++i) {
 					ValueAxis valueAxis = xyPlot.getRangeAxis(i);

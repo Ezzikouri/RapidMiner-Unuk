@@ -127,7 +127,7 @@ public class RangeAxisConfig implements ValueSourceListener, ValueRangeListener,
 	 */
 	public void addValueSource(int index, ValueSource valueSource, SeriesFormat seriesFormat) { //throws ChartConfigurationException {
 
-		StaticDebug.debug("ADDING VALUE SOURCE " + valueSource + " (id: "+valueSource.getId()+") to " + this.getId());
+		StaticDebug.debug("RangeAxisConfig: ADDING VALUE SOURCE " + valueSource + " (id: "+valueSource.getId()+") to RangeAxis with ID " + this.getId());
 
 		if (seriesFormat != null) {
 			valueSource.setSeriesFormat(seriesFormat);

@@ -493,10 +493,12 @@ public class ChartAxisFactory {
 
 	public static void formatAxis(PlotConfiguration plotConfiguration, Axis axis) {
 		Color axisColor = plotConfiguration.getAxisLineColor();
-		axis.setAxisLinePaint(axisColor);
-		axis.setAxisLineStroke(new BasicStroke(plotConfiguration.getAxisLineWidth()));
-		axis.setLabelPaint(axisColor);
-		axis.setTickLabelPaint(axisColor);
+		if(axis != null) {
+			axis.setAxisLinePaint(axisColor);
+			axis.setAxisLineStroke(new BasicStroke(plotConfiguration.getAxisLineWidth()));
+			axis.setLabelPaint(axisColor);
+			axis.setTickLabelPaint(axisColor);
+		}
 	}
 
 	public static ValueAxis createNumericalDomainAxis(PlotInstance plotInstance) throws ChartPlottimeException {

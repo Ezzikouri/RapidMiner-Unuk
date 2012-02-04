@@ -145,6 +145,16 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		cs = new ColorScheme("Forest", listOfColors);
 		listOfColorSchemes.add(cs);
 		listOfDefaultColorSchemes.add(cs);
+		
+		listOfColors = new LinkedList<ColorRGB>();
+		listOfColors.add(new ColorRGB(0, 0, 0));
+		listOfColors.add(new ColorRGB(204, 204, 204));
+		listOfColors.add(new ColorRGB(255, 255, 255));
+		listOfColors.add(new ColorRGB(102, 102, 102));
+		listOfColors.add(new ColorRGB(51, 51, 51));
+		cs = new ColorScheme("Grayscale", listOfColors, new ColorRGB(204, 204, 204), new ColorRGB(0, 0, 0));
+		listOfColorSchemes.add(cs);
+		listOfDefaultColorSchemes.add(cs);
 		/*
 		 * end default color schemes
 		 */

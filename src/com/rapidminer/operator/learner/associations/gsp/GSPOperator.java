@@ -38,6 +38,7 @@ import com.rapidminer.example.set.SortedExampleSet;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ports.InputPort;
@@ -89,6 +90,8 @@ public class GSPOperator extends Operator {
 	public static final String PARAMETER_MIN_GAP = "min_gap";
 	public static final String PARAMETER_POSITIVE_VALUE = "positive_value";
 	public static final String PARAMETER_MIN_SUPPORT = "min_support";
+	
+	private static final OperatorVersion VERSION_MADE_POSITIVE_CLASS_MANDATORY = new OperatorVersion(5, 2, 0);
 
 	private InputPort exampleSetInput = getInputPorts().createPort("example set");
 	private OutputPort exampleSetOutput = getOutputPorts().createPort("example set");
@@ -439,6 +442,11 @@ public class GSPOperator extends Operator {
 	}
 
 	@Override
+	public OperatorVersion[] getIncompatibleVersionChanges() {
+		return new OperatorVersion[] { VERSION_MADE_POSITIVE_CLASS_MANDATORY };
+	}
+	
+	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 
@@ -466,7 +474,7 @@ public class GSPOperator extends Operator {
 		type.setExpert(false);
 		types.add(type);
 
-		type = new ParameterTypeString(PARAMETER_POSITIVE_VALUE, "This parameter determines, which value of the binominal attributes is treated as positive. Attributes with that value are considered as part of a transaction. If left blank, the example set determines, which is value is used.", true);
+		type = new ParameterTypeString(PARAMETER_POSITIVE_VALUE, "This parameter determines, which value of the binominal attributes is treated as positive. Attributes with that value are considered as part of a transaction. If left blank, the example set determines, which is value is used.", getCompatibilityLevel().isAtMost(VERSION_MADE_POSITIVE_CLASS_MANDATORY));
 		types.add(type);
 
 		return types;

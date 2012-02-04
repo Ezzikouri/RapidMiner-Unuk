@@ -249,6 +249,7 @@ public class RendererService {
 	/**
 	 * Returns the Reportable name for objects of the given class.
 	 * 
+	 * @return the name of the IOObject as specified in the ioobjectsXXX.xml file. Returns null if the object is not registered
 	 */
 	public static String getName(Class<?> clazz) {
 		String result = class2NameMap.get(clazz);
@@ -295,7 +296,11 @@ public class RendererService {
 			}
 			
 			//and show the first candidate found
-			return class2NameMap.get(candidateList.get(0));
+			if (candidateList.isEmpty()) {
+				return null;
+			} else {
+				return class2NameMap.get(candidateList.get(0));
+			}
 		}
 		return result;
 	}

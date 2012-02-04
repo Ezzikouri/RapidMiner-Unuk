@@ -551,7 +551,7 @@ public class ValueSourceData {
 	}
 
 	private Pair<Double, Double> calculateMinMaxWithUtilities() {
-		StaticDebug.debug("ValueSourceData: calculateMinMaxWithUtilities");
+		debug("ValueSourceData: calculateMinMaxWithUtilities");
 		Pair<Double, Double> yMinMax = calculateMinMaxFast();
 		double minValue = yMinMax.getFirst();
 		double maxValue = yMinMax.getSecond();
@@ -585,8 +585,8 @@ public class ValueSourceData {
 
 		Pair<Double, Double> minMaxValues = new Pair<Double, Double>(minValue, maxValue);
 
-		StaticDebug.debug("min: " + minMaxValues.getFirst());
-		StaticDebug.debug("max: " + minMaxValues.getSecond());
+		debug("min: " + minMaxValues.getFirst());
+		debug("max: " + minMaxValues.getSecond());
 
 		return minMaxValues;
 	}
@@ -596,7 +596,7 @@ public class ValueSourceData {
 	 * min value, the second value will hold the max value.
 	 */
 	private Pair<Double, Double> calculateMinMaxFast() {
-		StaticDebug.debug("ValueSourceData: calculateMinMaxFast()");
+		debug("ValueSourceData: calculateMinMaxFast()");
 		Pair<Double, Double> minMaxValues = new Pair<Double, Double>(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
 		// no utility is used.. 
 
@@ -615,8 +615,8 @@ public class ValueSourceData {
 			minMaxValues.setSecond(Double.POSITIVE_INFINITY);
 		}
 
-		StaticDebug.debug("min: " + minMaxValues.getFirst());
-		StaticDebug.debug("max: " + minMaxValues.getSecond());
+		debug("min: " + minMaxValues.getFirst());
+		debug("max: " + minMaxValues.getSecond());
 		return minMaxValues;
 	}
 
@@ -640,7 +640,7 @@ public class ValueSourceData {
 	}
 
 	private void invalidateValueCache() {
-		StaticDebug.debug("ValueSourceData: invalidateValueCache()");
+		debug("ValueSourceData: invalidateValueCache()");
 		cachedSeriesDataForAllGroupCells = null;
 		cachedDistinctValues = null;
 		invalidateMinMaxCache();
@@ -679,7 +679,7 @@ public class ValueSourceData {
 		lastProcessedEvent = e;
 		
 		if(clonedValueSource == null) {
-			StaticDebug.debug("ValueSourceData: ### CAUTION #### ValueSource with ID "+valueSource.getId()+" is null!");
+			debug("ValueSourceData: ### CAUTION #### ValueSource with ID "+valueSource.getId()+" is null!");
 			return;
 		}
 		setValueSource(clonedValueSource);
@@ -702,6 +702,10 @@ public class ValueSourceData {
 
 		}
 
+	}
+
+	private void debug(String string) {
+		StaticDebug.debug("ValueSourceData: "+string);
 	}
 
 	public ValueSource getValueSource() {
