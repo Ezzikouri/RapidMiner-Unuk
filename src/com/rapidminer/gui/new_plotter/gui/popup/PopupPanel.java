@@ -35,6 +35,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.Popup;
 import javax.swing.SwingUtilities;
 
 /**
@@ -65,7 +67,7 @@ public class PopupPanel extends JPanel implements PropertyChangeListener { //, A
 		itemConstraint.weighty = 1.0;
 		itemConstraint.gridwidth = GridBagConstraints.REMAINDER;
 		itemConstraint.insets = new Insets(5, 5, 5, 5);
-
+		this.setBorder(new JPopupMenu().getBorder());
 		this.add(comp, itemConstraint);
 	}
 
@@ -112,8 +114,11 @@ public class PopupPanel extends JPanel implements PropertyChangeListener { //, A
 	/**
 	 * Checks if the focus is still on this component or its child components.
 	 */
-	private boolean isFocusInside(Component newFocusedComp) {
-		if (!SwingUtilities.isDescendingFrom(newFocusedComp, this)) {
+	private boolean isFocusInside(Object newFocusedComp) {
+		if(newFocusedComp instanceof Popup) {
+			return true;
+		}
+		if (newFocusedComp instanceof Component && !SwingUtilities.isDescendingFrom((Component)newFocusedComp, this)) {
 			//Check if focus is on other window
 			if (containingWindow == null) {
 				return false;

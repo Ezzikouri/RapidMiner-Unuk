@@ -1921,7 +1921,7 @@ public class ProcessRenderer extends JPanel {
             if (connectingPortSource != null) {
                 repaint();
                 // We cannot drag when it is an inner sink: dragging means moving the port.
-                if (connectingPortSource.getPorts().getOwner().getOperator() == displayedChain) {
+                if (connectingPortSource.getPorts().getOwner().getOperator() == displayedChain && e.isShiftDown()) {
                     connectingPortSource = null;
                 }
             }
@@ -2002,7 +2002,7 @@ public class ProcessRenderer extends JPanel {
                     ensureHeight(draggingInSubprocess, (int) maxY);
                     repaint();
                 }
-            } else if (draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain) {
+            } else if (draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain && (draggedPort instanceof InputPort || e.isShiftDown() || (hasDragged && connectingPortSource == null))) {
                 // ports are draggeable only if they belong to the displayedChain <-> they are inner sinks our sources
 
                 double diff = e.getY() - mousePositionAtLastEvaluation.getY();
@@ -3175,7 +3175,13 @@ public class ProcessRenderer extends JPanel {
                 if (hoveringPort != port) {
                     hoveringPort = port;
                     if (hoveringPort instanceof OutputPort) {
-                        showStatus("Click to connect, ALT to disconnect.");
+                    	if (hoveringPort.getPorts().getOwner().getOperator() == displayedChain) {
+                    		showStatus("Click or drag to connect, ALT to disconnect, SHIFT + drag to move.");
+                    	} else {
+                    		showStatus("Click or drag to connect, ALT to disconnect.");
+                    	}
+                    } else if (hoveringPort instanceof InputPort && hoveringPort.getPorts().getOwner().getOperator() == displayedChain) {
+                		showStatus("Drag to move.");
                     }
                     setHoveringOperator(null);
                     updateCursor();

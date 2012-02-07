@@ -84,7 +84,7 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 			@Override
 			public void focusLost(FocusEvent e) {
 				if(e.getOppositeComponent() != button) {
-					stopCellEditing();
+					fireEditingStopped();
 				}
 			}			
 			@Override public void focusGained(FocusEvent e) { }
@@ -101,7 +101,6 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				stopCellEditing();
 				buttonPressed();
 			}
 		});
@@ -116,8 +115,9 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 		String initial = value == null ? null : value.toString();
 		ExpressionPropertyDialog dialog = new ExpressionPropertyDialog(type, initial);
 		dialog.setVisible(true);
-		if (dialog.isOk())
+		if (dialog.isOk()) {
 			setText(dialog.getExpression());
+		}
 		fireEditingStopped();
 	}
 

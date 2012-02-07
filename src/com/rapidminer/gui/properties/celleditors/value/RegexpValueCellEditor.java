@@ -60,6 +60,8 @@ public class RegexpValueCellEditor extends AbstractCellEditor implements Propert
 
 	private Operator operator;
 
+	private JButton button;
+
 	public RegexpValueCellEditor(final ParameterTypeRegexp type) {
 		panel.setLayout(new GridBagLayout());
 		panel.setToolTipText(type.getDescription());
@@ -72,7 +74,9 @@ public class RegexpValueCellEditor extends AbstractCellEditor implements Propert
 		textField.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
+				if(e.getOppositeComponent() != button) {
+					fireEditingStopped();
+				}
 			}			
 			@Override public void focusGained(FocusEvent e) { }
 		});
@@ -83,7 +87,7 @@ public class RegexpValueCellEditor extends AbstractCellEditor implements Propert
 		c.weightx = 1;
 		panel.add(textField, c);
 
-		final JButton button = new JButton(new ResourceAction(true, "regexp") {
+		button = new JButton(new ResourceAction(true, "regexp") {
 			private static final long serialVersionUID = 3989811306286704326L;
 
 			public void actionPerformed(ActionEvent e) {

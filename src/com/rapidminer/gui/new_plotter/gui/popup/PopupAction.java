@@ -32,8 +32,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
-import javax.swing.JPopupMenu;
 import javax.swing.JToggleButton;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
 
 import com.rapidminer.gui.tools.ResourceAction;
@@ -65,26 +66,30 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 		HORIZONTAL, VERTICAL
 	}
 	
-	private class ContainerPopupMenu extends JPopupMenu {
-
-		private static final long serialVersionUID = 1L;
-		
-		public ContainerPopupMenu(Component invoker, Component comp, Point point) {
-			this.add(comp);
-			this.setLocation(point);
-			this.setBorder(new JPopupMenu().getBorder());
-			this.setInvoker(invoker);
-			this.setBorderPainted(true);
-		}
-		
-	}
+//	private class ContainerPopupMenu extends ContainerPopup {
+//
+//		private static final long serialVersionUID = 1L;
+//		
+//		public ContainerPopupMenu(Component invoker, Component comp, Point point) {
+//			super()
+//			this.add(comp);
+//			this.setLocation(point);
+//			this.setBorder(new JPopupMenu().getBorder());
+//			this.setInvoker(invoker);
+//			this.setBorderPainted(true);
+//			this.setUndecorated(true);
+//			this.setAlwaysOnTop(true);
+//			this.setLightWeightPopupEnabled(false);
+//		}
+//		
+//	}
 
 	private static final long serialVersionUID = 1L;
 
 	private final PopupPanel popupComponent;
 	private Component actionSource = null;
 
-	private ContainerPopupMenu popup = null;
+	private Popup popup = null;
 
 	private PopupPosition position = PopupPosition.VERTICAL;
 
@@ -217,9 +222,27 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 		
 		Point position = calculatePosition(source);
 		popupComponent.setVisible(true);
-		popup = new ContainerPopupMenu(null, popupComponent, position);
-		popup.setVisible(true);
-		popup.requestFocus();
+//		JDialog invoker = new JDialog();
+//		invoker.setVisible(true);
+//		invoker.setUndecorated(true);
+//invoker.addFocusListener(new FocusListener() {
+//            
+//            @Override
+//            public void focusLost(FocusEvent e) {
+//                popup.setVisible(false);
+//                invoker.setVisible(false);
+//            }
+//            
+//            @Override
+//            public void focusGained(FocusEvent e) {
+//                popup.setVisible(true);
+//                invoker.setVisible(true);
+//            }
+//        });
+		popup = PopupFactory.getSharedInstance().getPopup(containingWindow, popupComponent, position.x, position.y);
+//		popup.setVisible(true);
+		popup.show();
+//		popup.requestFocus();
 		popupComponent.startTracking(containingWindow);
 	}
 
@@ -247,7 +270,8 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 		if (popup != null) {
 			popupComponent.setVisible(false);
 			// hide popup and reset
-			popup.setVisible(false);
+//			popup.setVisible(false);
+			popup.hide();
 			popup = null;
 
 			return true;
