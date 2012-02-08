@@ -48,7 +48,7 @@ import com.rapidminer.parameter.ParameterTypeRegexp;
  * specification of regular expressions. Also provides a button which
  * starts a dialog to edit regular expressions.
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Nils Woehler
  */
 public class RegexpValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 
