@@ -335,6 +335,8 @@ public class ProcessRenderer extends JPanel {
                 }
             } else {
                 mainFrame.getActions().DELETE_OPERATOR_ACTION.actionPerformed(e);
+                setHoveringOperator(null);
+                updateCursor();
             }
         }
     };

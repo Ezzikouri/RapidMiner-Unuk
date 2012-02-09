@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.learner.meta;
 
 import java.util.List;
@@ -41,7 +42,6 @@ import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 
-
 /**  
  * This class uses n+1 inner learners and generates n different models
  * by using the last n learners. The predictions of these n models are
@@ -58,38 +58,44 @@ public class Stacking extends AbstractStacking {
 	public static final String PARAMETER_KEEP_ALL_ATTRIBUTES = "keep_all_attributes";
 
 	public Stacking(OperatorDescription description) {
-		super(description, "Base Learner", "Stacking Model Learner");		
+		super(description, "Base Learner", "Stacking Model Learner");
 		getTransformer().addRule(new MDTransformationRule() {
+
 			public void transformMD() {
-				MetaData unmodifiedMetaData = exampleSetInput.getMetaData().clone();
-				if (unmodifiedMetaData instanceof ExampleSetMetaData) {
-					ExampleSetMetaData emd = (ExampleSetMetaData) unmodifiedMetaData;
-					if (!keepOldAttributes()) {
-						emd.clearRegular();
-					}
-					// constructing new meta attributes
-					List<MetaData> metaDatas = baseModelExtender.getMetaData(true);
-					int numberOfModels = 0;
-					for (MetaData md: metaDatas) {
-						if (PredictionModel.class.isAssignableFrom(md.getObjectClass())) {
-							numberOfModels++;
+				MetaData metaData = exampleSetInput.getMetaData();
+				if (metaData != null) {
+					MetaData unmodifiedMetaData = metaData.clone();
+					if (unmodifiedMetaData instanceof ExampleSetMetaData) {
+						ExampleSetMetaData emd = (ExampleSetMetaData) unmodifiedMetaData;
+						if (!keepOldAttributes()) {
+							emd.clearRegular();
 						}
+						// constructing new meta attributes
+						List<MetaData> metaDatas = baseModelExtender.getMetaData(true);
+						int numberOfModels = 0;
+						for (MetaData md : metaDatas) {
+							if (PredictionModel.class.isAssignableFrom(md.getObjectClass())) {
+								numberOfModels++;
+							}
+						}
+						// adding stacking attributes
+						AttributeMetaData label = emd.getLabelMetaData();
+						for (int i = 0; i < numberOfModels; i++) {
+							AttributeMetaData newRegular = label.copy();
+							newRegular.setName("base_prediction" + i);
+							newRegular.setRole(Attributes.ATTRIBUTE_NAME);
+							emd.addAttribute(newRegular);
+						}
+						stackingExamplesInnerSource.deliverMD(emd);
 					}
-					// adding stacking attributes
-					AttributeMetaData label = emd.getLabelMetaData();
-					for (int i = 0; i < numberOfModels; i++) {
-						AttributeMetaData newRegular = label.copy();
-						newRegular.setName("base_prediction" + i);
-						newRegular.setRole(Attributes.ATTRIBUTE_NAME);
-						emd.addAttribute(newRegular);
-					}
-					stackingExamplesInnerSource.deliverMD(emd);
+					stackingExamplesInnerSource.deliverMD(unmodifiedMetaData);
+				} else {
+					stackingExamplesInnerSource.deliverMD(metaData);
 				}
-				stackingExamplesInnerSource.deliverMD(unmodifiedMetaData);	
 			}
 		});
 		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(1)));
-	}		
+	}
 
 	@Override
 	public String getModelName() {
@@ -104,8 +110,7 @@ public class Stacking extends AbstractStacking {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeBoolean(PARAMETER_KEEP_ALL_ATTRIBUTES, 
-				"Indicates if all attributes (including the original ones) in order to learn the stacked model.", true));
+		types.add(new ParameterTypeBoolean(PARAMETER_KEEP_ALL_ATTRIBUTES, "Indicates if all attributes (including the original ones) in order to learn the stacked model.", true));
 		return types;
 	}
 

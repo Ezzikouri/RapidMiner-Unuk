@@ -65,7 +65,7 @@ public class WizardPropertyTable extends DefaultPropertyTable {
 	 *            A list of String[2] where the first String is the name of the
 	 *            operator and the second is the name of the parameter.
 	 */
-	public void setProcess(Process process, Collection<OperatorParameterPair> parameters) {
+	public boolean setProcess(Process process, Collection<OperatorParameterPair> parameters) {
 		if (process == null) {
 			parameters = new LinkedList<OperatorParameterPair>(); // enforce arraylengths = 0
 		}
@@ -78,12 +78,18 @@ public class WizardPropertyTable extends DefaultPropertyTable {
 		int j = 0;
 		while (i.hasNext()) {
 			OperatorParameterPair parameter = i.next();
-			operators[j] = process.getOperator(parameter.getOperator());
-			parameterTypes[j] = getParameterType(operators[j], parameter.getParameter());
-			getModel().setValueAt(operators[j].getName() + "." + parameterTypes[j].getKey(), j, 0);
+			Operator operator = process.getOperator(parameter.getOperator());
+			operators[j] = operator;
+			ParameterType parameterType = getParameterType(operator, parameter.getParameter());
+			if(operator == null || parameterType == null) {
+				updateTableData(0); //enforce size of 0
+				return false;
+			}
+			parameterTypes[j] = parameterType;
+			getModel().setValueAt(operator.getName() + "." + parameterTypes[j].getKey(), j, 0);
 			Object value = parameterTypes[j].getDefaultValue();
 			try {
-				value = operators[j].getParameters().getParameter(parameterTypes[j].getKey());
+				value = operator.getParameters().getParameter(parameterTypes[j].getKey());
 			} catch (UndefinedParameterError e) {
 				// tries non default value. Fail --> default
 			} 
@@ -97,6 +103,7 @@ public class WizardPropertyTable extends DefaultPropertyTable {
 				setValue(e.getFirstRow(), getModel().getValueAt(e.getFirstRow(), 1));
 			}
 		});
+		return true;
 	}
 
 	private static ParameterType getParameterType(Operator operator, String key) {

@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.preprocessing.filter;
 
 import java.util.HashMap;
@@ -99,7 +100,7 @@ import com.rapidminer.tools.OperatorResourceConsumptionHandler;
  * data set containing all occurring values.
  * </p>
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Nils Woehler
  */
 public class AttributeValueSplit extends AbstractDataProcessing {
 
@@ -107,15 +108,11 @@ public class AttributeValueSplit extends AbstractDataProcessing {
 
 	public static final String PARAMETER_SPLIT_MODE = "split_mode";
 
-	public final static String[] SPLIT_MODES = new String[] { 
-		"ordered_split", 
-		"unordered_split" 
-	};
+	public final static String[] SPLIT_MODES = new String[] { "ordered_split", "unordered_split" };
 
-	public final static int SPLIT_MODE_ORDERED   = 0;
+	public final static int SPLIT_MODE_ORDERED = 0;
 
 	public final static int SPLIT_MODE_UNORDERED = 1;
-
 
 	private AttributeSubsetSelector attributeSubsetSelector = new AttributeSubsetSelector(this, getExampleSetInputPort(), Ontology.NOMINAL);
 
@@ -130,43 +127,76 @@ public class AttributeValueSplit extends AbstractDataProcessing {
 			Pattern splittingPattern = Pattern.compile(splittingRegex);
 			ExampleSetMetaData subset = attributeSubsetSelector.getMetaDataSubset(metaData, false);
 			SetRelation attributeSetRelation = SetRelation.EQUAL;
-			for (AttributeMetaData amd: subset.getAllAttributes()) {
+			for (AttributeMetaData amd : subset.getAllAttributes()) {
 				if (!amd.isSpecial() && amd.isNominal()) {
 					attributeSetRelation = attributeSetRelation.merge(amd.getValueSetRelation());
-					int maxNumber = 0;
-					if (amd.getValueSetRelation() == SetRelation.SUBSET || amd.getValueSetRelation() == SetRelation.UNKNOWN)
-						maxNumber = 3;
-					String[][] valueParts = new String[amd.getValueSet().size()][];
-					int i = 0;
-					for (String value: amd.getValueSet()) {
-						valueParts[i] = splittingPattern.split(value);
-						maxNumber = Math.max(maxNumber, valueParts[i].length);
-						i++;
-					}
+
 					// removing old attribute
 					metaData.removeAttribute(metaData.getAttributeByName(amd.getName()));
-					// creating new attributes
-					for (i = 0; i < maxNumber; i++) {
-						AttributeMetaData newAmd = new AttributeMetaData(amd.getName() + "_" + (i + 1), Ontology.NOMINAL);
-						Set<String> valueSet = new HashSet<String>();
-						for (int value = 0; value < valueParts.length; value++) {
-							if (valueParts[value].length > i)
-								valueSet.add(valueParts[value][i]);
-						}
-						newAmd.setValueSet(valueSet, amd.getValueSetRelation());
-						if (i > 0)
-							newAmd.getNumberOfMissingValues().increaseByUnknownAmount();
-						metaData.addAttribute(newAmd);
+
+					int type = getParameterAsInt(PARAMETER_SPLIT_MODE);
+					switch (type) {
+						case SPLIT_MODE_ORDERED:
+
+							int maxNumber = 0;
+							if (amd.getValueSetRelation() == SetRelation.SUBSET || amd.getValueSetRelation() == SetRelation.UNKNOWN)
+								maxNumber = 3;
+							String[][] valueParts = new String[amd.getValueSet().size()][];
+							int i = 0;
+							for (String value : amd.getValueSet()) {
+								valueParts[i] = splittingPattern.split(value);
+								maxNumber = Math.max(maxNumber, valueParts[i].length);
+								i++;
+							}
+
+							// creating new attributes
+							for (i = 0; i < maxNumber; i++) {
+								AttributeMetaData newAmd = new AttributeMetaData(amd.getName() + "_" + (i + 1), Ontology.NOMINAL);
+								Set<String> valueSet = new HashSet<String>();
+								for (int value = 0; value < valueParts.length; value++) {
+									if (valueParts[value].length > i)
+										valueSet.add(valueParts[value][i]);
+								}
+								newAmd.setValueSet(valueSet, amd.getValueSetRelation());
+								if (i > 0)
+									newAmd.getNumberOfMissingValues().increaseByUnknownAmount();
+								metaData.addAttribute(newAmd);
+							}
+							break;
+						case SPLIT_MODE_UNORDERED:
+							Set<String> splitValuesSet = new HashSet<String>();
+
+							for (String value : amd.getValueSet()) {
+								String[] splitValue = splittingPattern.split(value);
+								for (int k = 0; k < splitValue.length; k++) {
+									splitValuesSet.add(splitValue[k]);
+								}
+							}
+
+							// creating new attributes
+							for (String splitValue : splitValuesSet) {
+								AttributeMetaData newAmd = new AttributeMetaData(amd.getName() + "_" + splitValue, Ontology.NOMINAL);
+								Set<String> valueSet = new HashSet<String>();
+								valueSet.add("true");
+								valueSet.add("false");
+		
+								newAmd.setValueSet(valueSet, amd.getValueSetRelation());
+								metaData.addAttribute(newAmd);
+							}
+						default:
+							break;
 					}
+
 				}
 			}
+
 			metaData.mergeSetRelation(attributeSetRelation);
 		} catch (PatternSyntaxException e) {}
 		return metaData;
 	}
 
 	@Override
-	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		
+	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
 		String splittingRegex = getParameterAsString(PARAMETER_SPLIT_PATTERN);
 		Pattern splittingPattern = null;
 		try {
@@ -179,16 +209,16 @@ public class AttributeValueSplit extends AbstractDataProcessing {
 		for (Attribute attribute : attributeSubsetSelector.getAttributeSubset(exampleSet, false)) {
 			if (attribute.isNominal()) {
 				switch (type) {
-				case SPLIT_MODE_ORDERED:
-					orderedSplit(exampleSet, attribute, splittingPattern);
-					break;
-				case SPLIT_MODE_UNORDERED:
-				default:
-					unorderedSplit(exampleSet, attribute, splittingPattern);
-					break;
+					case SPLIT_MODE_ORDERED:
+						orderedSplit(exampleSet, attribute, splittingPattern);
+						break;
+					case SPLIT_MODE_UNORDERED:
+					default:
+						unorderedSplit(exampleSet, attribute, splittingPattern);
+						break;
 				}
 			}
-		}	
+		}
 
 		return exampleSet;
 	}
@@ -202,12 +232,11 @@ public class AttributeValueSplit extends AbstractDataProcessing {
 			maxNumber = Math.max(maxNumber, parts.length);
 		}
 
-
 		if (maxNumber >= 2) {
 			// create new attributes
 			Attribute[] newAttributes = new Attribute[maxNumber];
 			for (int a = 0; a < maxNumber; a++) {
-				newAttributes[a] = AttributeFactory.createAttribute(attribute.getName() + "_" + (a+1), Ontology.NOMINAL);
+				newAttributes[a] = AttributeFactory.createAttribute(attribute.getName() + "_" + (a + 1), Ontology.NOMINAL);
 				exampleSet.getExampleTable().addAttribute(newAttributes[a]);
 				exampleSet.getAttributes().addRegular(newAttributes[a]);
 			}
@@ -227,7 +256,7 @@ public class AttributeValueSplit extends AbstractDataProcessing {
 					p++;
 				}
 			}
-			exampleSet.getAttributes().remove(attribute);	
+			exampleSet.getAttributes().remove(attribute);
 		}
 	}
 
@@ -246,12 +275,11 @@ public class AttributeValueSplit extends AbstractDataProcessing {
 			}
 		}
 
-
 		if (splitFound) {
 			// create new attributes
 			Attribute[] newAttributes = new Attribute[allValues.size()];
 			Map<String, Integer> indexMap = new HashMap<String, Integer>();
-			int a = 0; 
+			int a = 0;
 			Iterator<String> v = allValues.iterator();
 			while (v.hasNext()) {
 				String value = v.next();
@@ -273,16 +301,16 @@ public class AttributeValueSplit extends AbstractDataProcessing {
 
 				String value = example.getNominalValue(attribute);
 				String[] parts = splittingPattern.split(value);
-				int p = 0;
+//				int p = 0;
 				for (String part : parts) {
 					Attribute newAttribute = newAttributes[indexMap.get(part)];
 					example.setValue(newAttribute, newAttribute.getMapping().mapString("true"));
-					p++;
+//					p++;
 				}
 			}
-			exampleSet.getAttributes().remove(attribute);	
+			exampleSet.getAttributes().remove(attribute);
 		}
-	}	
+	}
 
 	@Override
 	public List<ParameterType> getParameterTypes() {
@@ -293,20 +321,20 @@ public class AttributeValueSplit extends AbstractDataProcessing {
 		type.setExpert(false);
 		types.add(type);
 
-		type = new ParameterTypeCategory(PARAMETER_SPLIT_MODE, "The split mode of this operator, either ordered splits (keeping the original order) or unordered (keeping basket-like information).", SPLIT_MODES, SPLIT_MODE_ORDERED);
+		type = new ParameterTypeCategory(PARAMETER_SPLIT_MODE,
+				"The split mode of this operator, either ordered splits (keeping the original order) or unordered (keeping basket-like information).", SPLIT_MODES,
+				SPLIT_MODE_ORDERED);
 		type.setExpert(false);
 		types.add(type);
 
-
-
 		return types;
 	}
-	
+
 	@Override
 	public boolean writesIntoExistingData() {
 		return false;
 	}
-	
+
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AttributeValueSplit.class, attributeSubsetSelector);

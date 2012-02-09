@@ -117,7 +117,9 @@ public class TemplateWizardDialog extends AbstractWizard {
 				if (process == null || parameters == null) {
 					return false;
 				}
-				propertyTable.setProcess(process, parameters);
+				if(!propertyTable.setProcess(process, parameters)) {
+					return false;
+				}
 				headerLabel.setText(template.getHTMLDescription());
 				return true;
 			}

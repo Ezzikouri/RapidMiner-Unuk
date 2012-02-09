@@ -151,11 +151,16 @@ public class ProcessBranch extends OperatorChain {
 	}
 
 	@Override
-	public void doWork() throws OperatorException {		
+	public void doWork() throws OperatorException {	
+		
+		if(conditionInput.getAnyDataOrNull() == null) {
+			throw new UserError(this, "149", conditionInput.getName());
+		}
+		
 		// creating condition
 		Class conditionClass = null;
 		String selectedConditionName = "";
-
+		
 		selectedConditionName = getParameterAsString(PARAMETER_CONDITION_TYPE);
 		for (int i = 0; i < CONDITION_NAMES.length; i++) {
 			if (selectedConditionName.toLowerCase().equals(CONDITION_NAMES[i].toLowerCase())) {
