@@ -150,7 +150,8 @@ public class HistogrammTemplatePanel extends PlotterTemplatePanel implements Obs
 		gbc.gridy = 3;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.weighty = 0;
-		this.add(absoluteValuesCheckBox, gbc);
+		//TODO: Add again when supported
+//		this.add(absoluteValuesCheckBox, gbc);
 		
 		columnLogCheckBox = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.histogram.plots.log.label"));
 		columnLogCheckBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.histogram.plots.log.tip"));

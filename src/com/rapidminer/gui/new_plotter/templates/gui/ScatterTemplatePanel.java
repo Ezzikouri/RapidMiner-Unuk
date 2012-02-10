@@ -201,7 +201,8 @@ public class ScatterTemplatePanel extends PlotterTemplatePanel implements Observ
 		JLabel jitterLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.scatter.jitter.label"));
 		jitterLabel.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.scatter.jitter.tip"));
 		gbc.gridy = 9;
-		this.add(jitterLabel, gbc);
+		//TODO: Add again when jitter is supported
+//		this.add(jitterLabel, gbc);
 		
 		jitterSlider = new JSlider(0, 100, scatterTemplate.getJitter());
 		jitterSlider.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.scatter.jitter.tip"));
@@ -218,7 +219,8 @@ public class ScatterTemplatePanel extends PlotterTemplatePanel implements Observ
 			}
 		});
 		gbc.gridy = 10;
-		this.add(jitterSlider, gbc);
+		//TODO: Add again when jitter is supported
+//		this.add(jitterSlider, gbc);
 		
 		// fill bottom
 		gbc.gridx = 0;
