@@ -43,7 +43,7 @@ public class InputExistsCondition implements ProcessBranchCondition {
 	public boolean check(ProcessBranch operator, String value) throws OperatorException {
 		Class<? extends IOObject> clazz = operator.getSelectedClass();
 		if (clazz != null) {
-			IOObject object = operator.getConditionInput(clazz);
+			IOObject object = operator.getConditionInputOrNull(clazz);
 			return (object != null);
 		}
 		return false;

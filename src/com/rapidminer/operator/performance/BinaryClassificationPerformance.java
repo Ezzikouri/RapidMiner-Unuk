@@ -27,6 +27,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.Averagable;
 
@@ -191,8 +192,18 @@ public class BinaryClassificationPerformance extends MeasuredPerformance {
 		super.startCounting(eSet, useExampleWeights);
 		this.predictedLabelAttribute = eSet.getAttributes().getPredictedLabel();
 		this.labelAttribute = eSet.getAttributes().getLabel();
-		if (!labelAttribute.isNominal() || (labelAttribute.getMapping().size() != 2 || !predictedLabelAttribute.isNominal() || predictedLabelAttribute.getMapping().size() != 2))
+		if (!labelAttribute.isNominal()) {
+			throw new UserError(null, 120, labelAttribute.getName(), Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(labelAttribute.getValueType()), Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(Ontology.NOMINAL));
+		}
+		if (!predictedLabelAttribute.isNominal()) {
+			throw new UserError(null, 120, predictedLabelAttribute.getName(), Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(predictedLabelAttribute.getValueType()), Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(Ontology.NOMINAL));
+		}
+		if (labelAttribute.getMapping().size() != 2) {
 			throw new UserError(null, 118, new Object[] { "'" + labelAttribute.getName() + "'", Integer.valueOf(labelAttribute.getMapping().getValues().size()), "2 for calculation of '" + getName() + "'" });
+		}
+		if (predictedLabelAttribute.getMapping().size() != 2) {
+			throw new UserError(null, 118, new Object[] { "'" + predictedLabelAttribute.getName() + "'", Integer.valueOf(predictedLabelAttribute.getMapping().getValues().size()), "2 for calculation of '" + getName() + "'" });
+		}
 		if (!labelAttribute.getMapping().equals(predictedLabelAttribute.getMapping())) {
 			throw new UserError(null, 157);
 		}

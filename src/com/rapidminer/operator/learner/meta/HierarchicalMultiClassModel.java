@@ -150,7 +150,7 @@ public class HierarchicalMultiClassModel extends PredictionModel implements Meta
 		performPredictionRecursivly(applySet, root, confidences, outcomes, depths, 0, root.getPartitionId() + 1);
 		
 		// retrieving prediction attributes
-		Attribute labelAttribute = exampleSet.getAttributes().getLabel();
+		Attribute labelAttribute = getTrainingHeader().getAttributes().getLabel();
 		int numberOfLabels = labelAttribute.getMapping().size();
 		Attribute[] confidenceAttributes = new Attribute[numberOfLabels];
 		for (int i = 0; i < numberOfLabels; i++) {

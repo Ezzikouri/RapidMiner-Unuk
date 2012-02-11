@@ -50,7 +50,7 @@ public class AssociationRulesGraphRenderer extends AbstractGraphRenderer {
 		int numberOfRules = rules.getNumberOfRules();
 		if (numberOfRules > 0) {
 			if (numberOfRules > MAX_RULE_NUMBER ) {
-				List<AssociationRule> ruleList = new ArrayList<AssociationRule>();
+				List<AssociationRule> ruleList = new ArrayList<AssociationRule>(numberOfRules);
 				for(int i = 0; i < numberOfRules; ++i) {
 					ruleList.add(rules.getRule(i));
 				}

@@ -243,7 +243,12 @@ public class HistogrammTemplatePanel extends PlotterTemplatePanel implements Obs
 					
 					// update list
 					DefaultListModel modelPlotsList = new DefaultListModel();
-					for (String attName : histogramTemplate.getDataTable().getColumnNames()) {
+					for (int i=0; i<histogramTemplate.getDataTable().getColumnNumber(); i++) {
+						// only show numerical attributes in the list
+						if (!histogramTemplate.getDataTable().isNumerical(i)) {
+							continue;
+						}
+						String attName = histogramTemplate.getDataTable().getColumnName(i);
 						modelPlotsList.addElement(attName);
 					}
 					plotList.removeListSelectionListener(updatePlotListSelectionListener);

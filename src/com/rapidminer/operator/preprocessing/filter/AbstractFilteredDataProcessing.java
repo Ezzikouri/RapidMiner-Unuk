@@ -39,6 +39,7 @@ import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.MetaDataInfo;
+import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.operator.preprocessing.AbstractDataProcessing;
 import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
@@ -75,7 +76,11 @@ public abstract class AbstractFilteredDataProcessing extends AbstractDataProcess
 		Iterator<AttributeMetaData> iterator = workingMetaData.getAllAttributes().iterator();
 		while (iterator.hasNext()) {
 			AttributeMetaData amd = iterator.next();
-			if (!(subsetAmd.containsAttributeName(amd.getName()) == MetaDataInfo.YES)) {
+			String name = amd.getName();
+			MetaDataInfo containsAttributeName = subsetAmd.containsAttributeName(name);
+			
+			if ((subsetAmd.getAttributeSetRelation() == SetRelation.SUBSET && containsAttributeName == MetaDataInfo.NO)
+					|| (subsetAmd.getAttributeSetRelation() != SetRelation.SUBSET && containsAttributeName != MetaDataInfo.YES)) {
 				unusedAttributes.add(amd);
 				iterator.remove();
 			} else if (amd.isSpecial()) {

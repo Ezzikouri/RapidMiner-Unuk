@@ -148,6 +148,9 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 			}
 			IOObjectSerializer.getInstance().serialize(out, ioobject);
 			out.close();
+			if ((conn.getResponseCode() < 200) || (conn.getResponseCode() > 299)) {
+				throw new RepositoryException("Cannot upload object: " + conn.getResponseCode() + ": " + conn.getResponseMessage());
+			}
 			BufferedReader in = null;
 			try {
 				try {

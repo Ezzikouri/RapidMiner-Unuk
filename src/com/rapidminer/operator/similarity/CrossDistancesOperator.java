@@ -97,18 +97,15 @@ public class CrossDistancesOperator extends Operator {
                     // getting types of old id attributes
                     ExampleSetMetaData refMD = (ExampleSetMetaData) referenceSetInput.getMetaData();
                     ExampleSetMetaData requestMD = (ExampleSetMetaData) requestSetInput.getMetaData();
-                    //if (refMD != null && requestMD != null) {
-                        AttributeMetaData refId = refMD.getAttributeByRole(Attributes.ID_NAME);
-                        AttributeMetaData requestId = requestMD.getAttributeByRole(Attributes.ID_NAME);
+                    AttributeMetaData refId = refMD == null ? null : refMD.getAttributeByRole(Attributes.ID_NAME);
+                    AttributeMetaData requestId = requestMD == null ? null : requestMD.getAttributeByRole(Attributes.ID_NAME);
 
-                        ExampleSetMetaData emd = new ExampleSetMetaData();
-                        emd.addAttribute(new AttributeMetaData("request", requestId == null ? Ontology.REAL : requestId.getValueType()));
-                        emd.addAttribute(new AttributeMetaData("document", refId == null ? Ontology.REAL : refId.getValueType()));
-                        emd.addAttribute(new AttributeMetaData("distance", Ontology.REAL));
+                    ExampleSetMetaData emd = new ExampleSetMetaData();
+                    emd.addAttribute(new AttributeMetaData("request", requestId == null ? Ontology.REAL : requestId.getValueType()));
+                    emd.addAttribute(new AttributeMetaData("document", refId == null ? Ontology.REAL : refId.getValueType()));
+                    emd.addAttribute(new AttributeMetaData("distance", Ontology.REAL));
 
-                        return emd;
-//                    } else
-//                        return unmodifiedMetaData;
+                    return emd;
                 } catch (ClassCastException e) {
                     return unmodifiedMetaData;
                 }

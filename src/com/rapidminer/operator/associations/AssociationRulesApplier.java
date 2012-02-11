@@ -94,7 +94,7 @@ public class AssociationRulesApplier extends Operator {
 		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		exampleSet = (ExampleSet) exampleSet.clone();
 		// check
-		Tools.onlyNominalAttributes(exampleSet, "FPGrowth");
+		Tools.maximumTwoNominalAttributes(exampleSet, "Apply Association Rules");
 
 		// retrieving parameter
 		int selectedAggregation = getParameterAsInt(PARAMETER_CONFIDENCE_AGGREGATION);

@@ -23,6 +23,7 @@
 package com.rapidminer.gui.new_plotter.templates;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -32,8 +33,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.rapidminer.datatable.DataTable;
+import com.rapidminer.datatable.DataTableExampleSetAdapter;
+import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.new_plotter.ChartConfigurationException;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
+import com.rapidminer.gui.new_plotter.configuration.DefaultDimensionConfig;
+import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
+import com.rapidminer.gui.new_plotter.configuration.DistinctValueGrouping;
 import com.rapidminer.gui.new_plotter.configuration.EquidistantFixedBinCountBinning;
 import com.rapidminer.gui.new_plotter.configuration.LegendConfiguration.LegendPosition;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
@@ -43,10 +49,11 @@ import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationTy
 import com.rapidminer.gui.new_plotter.configuration.ValueGrouping.GroupingType;
 import com.rapidminer.gui.new_plotter.configuration.ValueGrouping.ValueGroupingFactory;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
+import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.templates.gui.HistogrammTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
-import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
+import com.rapidminer.gui.new_plotter.utility.DataTransformation;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction.AggregationFunctionType;
@@ -71,6 +78,9 @@ public class HistogramTemplate extends PlotterTemplate {
 
 	private static final String Y_AXIS_LOGARITHMIC_ELEMENT = "yAxisLogarithmic";
 
+	
+	/** the original {@link DataTable} */
+	private DataTable modifiedDataTable;
 	
 	/** the current {@link RangeAxisConfig}s */
 	private List<RangeAxisConfig> currentRangeAxisConfigsList;
@@ -172,8 +182,39 @@ public class HistogramTemplate extends PlotterTemplate {
 	
 	@Override
 	protected void dataUpdated(final DataTable dataTable) {
+		currentDataTable = dataTable;
+		
+		// convert to meta information DataTable
+		updateMetaDataTable(currentDataTable);
+		
 		// clear possible existing data
 		currentRangeAxisConfigsList.clear();
+	}
+	
+	/**
+	 * Converts a {@link DataTable} to the meta data {@link DataTable} which is used by the {@link HistogramTemplate}.
+	 * @param dataTable the original {@link DataTable}
+	 */
+	private void updateMetaDataTable(final DataTable dataTable) {
+		List<String> selectedNumericAttributes = new ArrayList<String>(plotNames.length);
+		for (Object name : plotNames) {
+			selectedNumericAttributes.add(String.valueOf(name));
+		}
+		ExampleSet metaSet = DataTransformation.createDePivotizedExampleSet(DataTableExampleSetAdapter.createExampleSetFromDataTable(dataTable), selectedNumericAttributes);
+		// in case of error or no attributes specified
+		if (metaSet == null) {
+			return;
+		}
+		
+		modifiedDataTable = new DataTableExampleSetAdapter(metaSet, null);
+		PlotConfiguration plotConfiguration = new PlotConfiguration(new DataTableColumn(modifiedDataTable, 0));
+		PlotInstance plotInstance = new PlotInstance(plotConfiguration, modifiedDataTable);
+		// only set plotInstance if plotEngine currently displays the HistogramTemplate plotInstance
+		// otherwise we would take another template the plotEngine away
+		if (plotEngine.getPlotInstance() == getPlotInstance()) {
+			plotEngine.setPlotInstance(plotInstance);
+		}
+		setPlotInstance(plotInstance);
 	}
 	
 	/**
@@ -223,6 +264,9 @@ public class HistogramTemplate extends PlotterTemplate {
 	public void setPlotSelection(Object[] plotNames) {
 		this.plotNames = plotNames;
 		
+		// plot selection has changed, update meta information DataTable
+		updateMetaDataTable(currentDataTable);
+		
 		updatePlotConfiguration();
 		setChanged();
 		notifyObservers();
@@ -254,7 +298,9 @@ public class HistogramTemplate extends PlotterTemplate {
 		
 		// remove old config(s)
 		for (RangeAxisConfig rAConfig : currentRangeAxisConfigsList) {
-			plotConfiguration.removeRangeAxisConfig(rAConfig);
+			if (plotConfiguration.getIndexOfRangeAxisConfigById(rAConfig.getId()) != -1) {
+				plotConfiguration.removeRangeAxisConfig(rAConfig);
+			}
 		}
 		currentRangeAxisConfigsList.clear();
 		
@@ -265,42 +311,36 @@ public class HistogramTemplate extends PlotterTemplate {
 		}
 		
 		try {
-			int indexOfPlots = 0;
-			for (Object plot : plotNames) {
-				String plotName = String.valueOf(plot);
-				
-				DataTableColumn aDataTableColumn = new DataTableColumn(currentDataTable, currentDataTable.getColumnIndex(plotName));
-				
-				// set binning
-				EquidistantFixedBinCountBinning newValueGrouping;
-				if(aDataTableColumn.isNominal()) {
-					newValueGrouping = (EquidistantFixedBinCountBinning) ValueGroupingFactory.getValueGrouping(GroupingType.EQUIDISTANT_FIXED_BIN_COUNT, aDataTableColumn, false, DateFormat.getDateTimeInstance());
-				} else {
-					newValueGrouping = (EquidistantFixedBinCountBinning) ValueGroupingFactory.getValueGrouping(GroupingType.EQUIDISTANT_FIXED_BIN_COUNT, aDataTableColumn, false, DateFormat.getDateTimeInstance());
-				}
-				newValueGrouping.setBinCount(bins);
+			DataTableColumn valueTableColumn = new DataTableColumn(modifiedDataTable, modifiedDataTable.getColumnIndex("value"));
+			DataTableColumn attributeTableColumn = new DataTableColumn(modifiedDataTable, modifiedDataTable.getColumnIndex("attribute"));
 
-				plotConfiguration.getDomainConfigManager().setGrouping(newValueGrouping);
-				plotConfiguration.getDomainConfigManager().setDataTableColumn(aDataTableColumn);
-				RangeAxisConfig newRangeAxisConfig = new RangeAxisConfig(plotName, plotConfiguration);
-				ValueSource valueSource;
-				valueSource = new ValueSource(plotConfiguration, aDataTableColumn, AggregationFunctionType.count, true);
-				valueSource.setUseDomainGrouping(true);
-				SeriesFormat sFormat = new SeriesFormat();
-				sFormat.setSeriesType(VisualizationType.BARS);
-				ColorRGB yAxisColor = styleProvider.getColorScheme().getColors().get(indexOfPlots++ % styleProvider.getColorScheme().getColors().size());
-				sFormat.setItemColor(ColorRGB.convertToColor(yAxisColor));
-				// TODO: change to alpha value provided by the ColorScheme and remove opaque slider?
-				sFormat.setOpacity(opaque);
-				valueSource.setSeriesFormat(sFormat);
-				newRangeAxisConfig.addValueSource(valueSource, null);
-				newRangeAxisConfig.setLogarithmicAxis(yAxisLogarithmic);
+			// set binning
+			EquidistantFixedBinCountBinning newValueGrouping;
+			newValueGrouping = (EquidistantFixedBinCountBinning) ValueGroupingFactory.getValueGrouping(GroupingType.EQUIDISTANT_FIXED_BIN_COUNT, valueTableColumn, false, DateFormat.getDateTimeInstance());
+			newValueGrouping.setBinCount(bins);
 
-				// add new config(s)
-				plotConfiguration.addRangeAxisConfig(newRangeAxisConfig);
-				// remember the new config so we can remove it later again
-				currentRangeAxisConfigsList.add(newRangeAxisConfig);
-			}
+			plotConfiguration.getDomainConfigManager().setGrouping(newValueGrouping);
+			plotConfiguration.getDomainConfigManager().setDataTableColumn(valueTableColumn);
+			RangeAxisConfig newRangeAxisConfig = new RangeAxisConfig(null, plotConfiguration);
+			ValueSource valueSource;
+			valueSource = new ValueSource(plotConfiguration, attributeTableColumn, AggregationFunctionType.count, true);
+			valueSource.setUseDomainGrouping(true);
+			SeriesFormat sFormat = new SeriesFormat();
+			sFormat.setSeriesType(VisualizationType.BARS);
+			sFormat.setOpacity(opaque);
+			valueSource.setSeriesFormat(sFormat);
+			newRangeAxisConfig.addValueSource(valueSource, null);
+			newRangeAxisConfig.setLogarithmicAxis(yAxisLogarithmic);
+
+			// add new config(s)
+			plotConfiguration.addRangeAxisConfig(newRangeAxisConfig);
+			// remember the new config so we can remove it later again
+			currentRangeAxisConfigsList.add(newRangeAxisConfig);
+			
+			plotConfiguration.setDimensionConfig(PlotDimension.COLOR, null);
+			DefaultDimensionConfig dimConfig = new DefaultDimensionConfig(plotConfiguration, attributeTableColumn, PlotDimension.COLOR);
+			dimConfig.setGrouping(new DistinctValueGrouping(attributeTableColumn, true, null));
+			plotConfiguration.setDimensionConfig(PlotDimension.COLOR, dimConfig);
 			
 			// general settings
 			plotConfiguration.setAxesFont(styleProvider.getAxesFont());

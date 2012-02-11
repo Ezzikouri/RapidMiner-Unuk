@@ -697,11 +697,16 @@ public class ExpressionParser {
 
         // set result as macro
         if (result != null) {
-            try {
-                macroHandler.addMacro(name, Tools.formatIntegerIfPossible(Double.parseDouble(result.toString())));
-            } catch (NumberFormatException e) {
-                macroHandler.addMacro(name, result.toString());
-            }
+        	if (result instanceof Calendar) {
+        		Calendar calendar = (Calendar)result;
+        		macroHandler.addMacro(name, Tools.formatDateTime(new Date(calendar.getTimeInMillis())));
+        	} else {
+	            try {
+	                macroHandler.addMacro(name, Tools.formatIntegerIfPossible(Double.parseDouble(result.toString())));
+	            } catch (NumberFormatException e) {
+	                macroHandler.addMacro(name, result.toString());
+	            }
+        	}
         }
     }
 

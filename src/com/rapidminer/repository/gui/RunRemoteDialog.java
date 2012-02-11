@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.gui;
 
 import java.awt.GridBagConstraints;
@@ -29,7 +30,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.Action;
@@ -84,23 +84,26 @@ public class RunRemoteDialog extends ButtonDialog {
 	private static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(); //new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
 	private final DatePicker dateField = new DatePicker(new Date(), DATE_FORMAT); // new
-																// JTextField(DATE_FORMAT.format(new
-																// Date()), 30);
+	// JTextField(DATE_FORMAT.format(new
+	// Date()), 30);
 	private final JTextField cronField = new JTextField(30);
 	private final JComboBox repositoryBox = new JComboBox();
 	private static int lastRepositoryIndexSelected = 0;
 	private final JLabel dateLabel = new ResourceLabel("runremotedialog.date");
 	private final JLabel cronLabel = new ResourceLabel("runremotedialog.cronexpression");
 	private final JCheckBox startBox = new JCheckBox(new ResourceAction("runremotedialog.cronstart") {
+
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			enableComponents();
 		}
 	});
 	private final DatePicker startField = new DatePicker(new Date(), DATE_FORMAT);
-	private final DatePicker endField   = new DatePicker(new Date(), DATE_FORMAT);
+	private final DatePicker endField = new DatePicker(new Date(), DATE_FORMAT);
 	private final JCheckBox endBox = new JCheckBox(new ResourceAction("runremotedialog.cronend") {
+
 		private static final long serialVersionUID = 1L;
 
 		@Override
@@ -119,7 +122,7 @@ public class RunRemoteDialog extends ButtonDialog {
 	private final ResourceTabbedPane tabs = new ResourceTabbedPane("runremotedialog");
 
 	private ProcessContext context = new ProcessContext();
-	
+
 	public RunRemoteDialog(Process process) {
 		super("runremotedialog", true);
 		setModal(true);
@@ -129,13 +132,13 @@ public class RunRemoteDialog extends ButtonDialog {
 		startField.setStripTime(false);
 		startField.setKeepTime(true);
 		endField.setStripTime(false);
-		endField.setKeepTime(true);		
-				
+		endField.setKeepTime(true);
+
 		startBox.setSelected(false);
 		endBox.setSelected(false);
-		
+
 		ProcessLocation processLocation = process.getProcessLocation();
-		if ((processLocation != null) && (processLocation instanceof RepositoryProcessLocation)) {			
+		if ((processLocation != null) && (processLocation instanceof RepositoryProcessLocation)) {
 			processField.setText(((RepositoryProcessLocation) processLocation).getRepositoryLocation().getPath());
 		} else {
 			processField.setText("");
@@ -144,13 +147,32 @@ public class RunRemoteDialog extends ButtonDialog {
 
 		final JButton okButton = makeOkButton();
 		final JButton cancelButton = makeCancelButton();
-		
-		repositoryBox.setModel(new DefaultComboBoxModel(RepositoryManager.getInstance(null).getRemoteRepositories().toArray()));
-		if (repositoryBox.getItemCount() < lastRepositoryIndexSelected){
+
+		List<RemoteRepository> remoteRepositories = RepositoryManager.getInstance(null).getRemoteRepositories();
+		DefaultComboBoxModel aModel = new DefaultComboBoxModel(remoteRepositories.toArray());
+		repositoryBox.setModel(aModel);
+		if (repositoryBox.getItemCount() < lastRepositoryIndexSelected) {
 			lastRepositoryIndexSelected = 0;
 		}
-		repositoryBox.setSelectedIndex(lastRepositoryIndexSelected);
+		try {
+			RepositoryLocation repositoryLocation = process.getRepositoryLocation();
+			if (repositoryLocation != null) {
+				Repository repository = repositoryLocation.getRepository();
+				if (repository instanceof RemoteRepository) {
+					repositoryBox.setSelectedItem(repository);
+				} else {
+					repositoryBox.setSelectedIndex(lastRepositoryIndexSelected);
+				}
+			} else {
+				repositoryBox.setSelectedIndex(lastRepositoryIndexSelected);
+			}
+		} catch (RepositoryException e1) {
+			e1.printStackTrace();
+			repositoryBox.setSelectedIndex(lastRepositoryIndexSelected);
+		}
+
 		repositoryBox.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				okButton.setEnabled(repositoryBox.getSelectedItem() != null);
@@ -158,6 +180,7 @@ public class RunRemoteDialog extends ButtonDialog {
 			}
 		});
 		RepositoryManager.getInstance(null).addObserver(new Observer<Repository>() {
+
 			@Override
 			public void update(Observable<Repository> observable, Repository arg) {
 				repositoryBox.setModel(new DefaultComboBoxModel(RepositoryManager.getInstance(null).getRemoteRepositories().toArray()));
@@ -167,28 +190,28 @@ public class RunRemoteDialog extends ButtonDialog {
 				pack();
 			}
 		}, true);
-		
+
 		JPanel schedulePanel = makeSchedulePanel();
 
 		// copy context
-//		List<String> inputRepositoryLocations = new LinkedList<String>();
-//		inputRepositoryLocations.addAll(process.getContext().getInputRepositoryLocations());
-//		context.setInputRepositoryLocations(inputRepositoryLocations);
-//		
-//		List<String> outputRepositoryLocations = new LinkedList<String>();
-//		outputRepositoryLocations.addAll(process.getContext().getOutputRepositoryLocations());
-//		context.setOutputRepositoryLocations(outputRepositoryLocations);
-//
-//		List<Pair<String, String>> macros = new LinkedList<Pair<String,String>>();
-//		for (Pair<String,String> macro : process.getContext().getMacros()) {
-//			macros.add(new Pair<String,String>(macro.getFirst(),macro.getSecond()));
-//		}
-//		context.setMacros(macros);
+		//		List<String> inputRepositoryLocations = new LinkedList<String>();
+		//		inputRepositoryLocations.addAll(process.getContext().getInputRepositoryLocations());
+		//		context.setInputRepositoryLocations(inputRepositoryLocations);
+		//		
+		//		List<String> outputRepositoryLocations = new LinkedList<String>();
+		//		outputRepositoryLocations.addAll(process.getContext().getOutputRepositoryLocations());
+		//		context.setOutputRepositoryLocations(outputRepositoryLocations);
+		//
+		//		List<Pair<String, String>> macros = new LinkedList<Pair<String,String>>();
+		//		for (Pair<String,String> macro : process.getContext().getMacros()) {
+		//			macros.add(new Pair<String,String>(macro.getFirst(),macro.getSecond()));
+		//		}
+		//		context.setMacros(macros);
 
 		ProcessContextEditor contextPanel = new ProcessContextEditor(process, context);
 		tabs.addTabI18N("schedule", schedulePanel);
 		tabs.addTabI18N("context", contextPanel);
-		
+
 		// Buttons		
 		ButtonGroup buttonGroup = new ButtonGroup();
 		buttonGroup.add(nowButton);
@@ -196,20 +219,20 @@ public class RunRemoteDialog extends ButtonDialog {
 		buttonGroup.add(cronButton);
 
 		nowButton.setSelected(true);
-		
+
 		layoutDefault(tabs, NORMAL, okButton, cancelButton);
 		enableComponents();
 		okButton.setEnabled(repositoryBox.getSelectedItem() != null);
 	}
-	
-	private JPanel makeSchedulePanel() {		
+
+	private JPanel makeSchedulePanel() {
 		GridBagConstraints c = new GridBagConstraints();
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
 		c.fill = GridBagConstraints.BOTH;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.weightx = 1;
 		c.weighty = 0;
-		
+
 		// Repository
 		JPanel repositoryPanel = new JPanel(new GridBagLayout());
 		c.insets = new Insets(0, GAP, 0, GAP);
@@ -236,9 +259,11 @@ public class RunRemoteDialog extends ButtonDialog {
 		c.gridwidth = GridBagConstraints.RELATIVE;
 		c.insets = new Insets(0, GAP, GAP, 0);
 		repositoryPanel.add(processField, c);
-				
+
 		JButton selectButton = new JButton(new ResourceAction(true, "repository_select_location") {
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String selected = RepositoryLocationChooser.selectLocation(null, RunRemoteDialog.this);
@@ -261,20 +286,20 @@ public class RunRemoteDialog extends ButtonDialog {
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.insets = new Insets(0, 0, GAP, GAP);
 		repositoryPanel.add(selectButton, c);
-		
+
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1;
 		JPanel dummy = new JPanel();
 		repositoryPanel.add(dummy, c);
-		
-		
-		
+
 		// RIGHT SIDE
 		// Now
 		JPanel schedPanel = new JPanel(new GridBagLayout());
 		nowButton = new JRadioButton(new ResourceAction("runremotedialog.now") {
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				enableComponents();
@@ -287,7 +312,9 @@ public class RunRemoteDialog extends ButtonDialog {
 
 		// Once
 		onceButton = new JRadioButton(new ResourceAction("runremotedialog.once") {
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				enableComponents();
@@ -306,6 +333,7 @@ public class RunRemoteDialog extends ButtonDialog {
 
 		// Cron
 		cronButton = new JRadioButton(new ResourceAction("runremotedialog.cron") {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -323,10 +351,11 @@ public class RunRemoteDialog extends ButtonDialog {
 		c.insets = new Insets(0, 8 * GAP, GAP, 0);
 		c.gridwidth = GridBagConstraints.RELATIVE;
 		schedPanel.add(cronField, c);
-		
+
 		c.insets = new Insets(0, 0, GAP, GAP);
-//		ResourceLabel cronHelp = new ResourceLabel("cron_help");
+		//		ResourceLabel cronHelp = new ResourceLabel("cron_help");
 		JButton cronHelpButton = new JButton(new ResourceAction(true, "cron_help") {
+
 			private static final long serialVersionUID = 1L;
 			{
 				putValue(Action.NAME, "");
@@ -334,14 +363,14 @@ public class RunRemoteDialog extends ButtonDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SwingTools.showMessageDialog("cron_long_help");				
+				SwingTools.showMessageDialog("cron_long_help");
 			}
 		});
 		c.weightx = 0;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		schedPanel.add(cronHelpButton, c);
 		c.weightx = 1;
-		
+
 		c.insets = new Insets(GAP, 8 * GAP, 0, GAP);
 		schedPanel.add(startBox, c);
 		c.insets = new Insets(0, 8 * GAP, GAP, GAP);
@@ -381,18 +410,18 @@ public class RunRemoteDialog extends ButtonDialog {
 			String location = processField.getText();
 			ProcessContextWrapper pcWrapper = new ProcessContextWrapper();
 			for (String loc : context.getInputRepositoryLocations()) {
-				pcWrapper.getInputRepositoryLocations().add(loc);	
-			}			
+				pcWrapper.getInputRepositoryLocations().add(loc);
+			}
 			for (String loc : context.getOutputRepositoryLocations()) {
-				pcWrapper.getOutputRepositoryLocations().add(loc);	
+				pcWrapper.getOutputRepositoryLocations().add(loc);
 			}
 			for (Pair<String, String> macro : context.getMacros()) {
 				final MacroDefinition macroDef = new MacroDefinition();
 				macroDef.setKey(macro.getFirst());
 				macroDef.setValue(macro.getSecond());
-				pcWrapper.getMacros().add(macroDef);	
+				pcWrapper.getMacros().add(macroDef);
 			}
-			
+
 			ExecutionResponse response;
 			if (nowButton.isSelected()) {
 				try {
@@ -413,7 +442,7 @@ public class RunRemoteDialog extends ButtonDialog {
 				try {
 					XMLGregorianCalendar start = startBox.isSelected() ? XMLTools.getXMLGregorianCalendar(startField.getDate()) : null;
 					XMLGregorianCalendar end = endBox.isSelected() ? XMLTools.getXMLGregorianCalendar(endField.getDate()) : null;
-					response = repos.getProcessService().executeProcessCron(location, cronField.getText(), start, end, pcWrapper);				
+					response = repos.getProcessService().executeProcessCron(location, cronField.getText(), start, end, pcWrapper);
 				} catch (RepositoryException e) {
 					SwingTools.showSimpleErrorMessage("error_connecting_to_server ", e);
 					return;

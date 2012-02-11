@@ -169,6 +169,7 @@ public class TemplateChooser {
 		} catch (Exception e) {
 			LogService.getRoot().log(Level.WARNING, "Cannot setup rapid look and feel, using default.", e);
 		}
+		RapidMiner.init();
 		ExampleSet iris = (ExampleSet) ((IOObjectEntry)new RepositoryLocation("//Samples/data/Iris").locateEntry()).retrieveData(null);
 		
 		

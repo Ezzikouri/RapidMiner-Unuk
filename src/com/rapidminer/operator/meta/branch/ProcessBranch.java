@@ -151,11 +151,7 @@ public class ProcessBranch extends OperatorChain {
 	}
 
 	@Override
-	public void doWork() throws OperatorException {	
-		
-		if(conditionInput.getAnyDataOrNull() == null) {
-			throw new UserError(this, "149", conditionInput.getName());
-		}
+	public void doWork() throws OperatorException {		
 		
 		// creating condition
 		Class conditionClass = null;
@@ -221,6 +217,10 @@ public class ProcessBranch extends OperatorChain {
 	}
 
 	public <T extends IOObject> T getConditionInput(Class<T> cls) throws UserError { 
+		return conditionInput.<T>getData(cls);
+	}
+
+	public <T extends IOObject> T getConditionInputOrNull(Class<T> cls) throws UserError { 
 		return conditionInput.<T>getDataOrNull(cls);
 	}
 

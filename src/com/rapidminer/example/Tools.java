@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.example;
 
 import java.util.HashMap;
@@ -46,7 +47,6 @@ import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.RandomGenerator;
 import com.rapidminer.tools.math.sampling.OrderedSamplingWithoutReplacement;
 
-
 /**
  * Provides some tools for calculation of certain measures and feature
  * generation.
@@ -65,7 +65,7 @@ public class Tools {
 		Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
 		while (a.hasNext()) {
 			Attribute attribute = a.next();
-			attributeNames[counter++] = attribute.getName();	
+			attributeNames[counter++] = attribute.getName();
 		}
 		return attributeNames;
 	}
@@ -90,7 +90,6 @@ public class Tools {
 		}
 		return attributeNames;
 	}
-
 
 	// ================================================================================
 	// -------------------- GENERATION --------------------
@@ -140,10 +139,10 @@ public class Tools {
 		exampleSet.getAttributes().setSpecialAttribute(attribute, name);
 		return attribute;
 	}
+
 	public static AttributeMetaData createWeightAttributeMetaData(ExampleSetMetaData emd) {
 		return new AttributeMetaData(Attributes.WEIGHT_NAME, Ontology.REAL, Attributes.WEIGHT_NAME);
 	}
-
 
 	/**
 	 * This method adds a new Weight Attribute initialized with 1.0d for each example to
@@ -159,7 +158,7 @@ public class Tools {
 		exampleSet.getExampleTable().addAttribute(weight);
 		exampleSet.getAttributes().setWeight(weight);
 
-		for (Example example: exampleSet) {
+		for (Example example : exampleSet) {
 			example.setValue(weight, 1d);
 		}
 		return weight;
@@ -240,7 +239,6 @@ public class Tools {
 			}
 		}
 	}
-
 
 	/**
 	 * Returns true if value and block types of the first attribute are subtypes of
@@ -369,6 +367,32 @@ public class Tools {
 	}
 
 	/**
+	 * The attributes all have to be nominal and have a maximum of two values or binominal. 
+	 * 
+	 * @param exampleSet
+	 *            the example set
+	 * @throws OperatorException
+	 * 
+	 */
+	public static void maximumTwoNominalAttributes(ExampleSet exampleSet, String task) throws OperatorException {
+		for (Attribute attribute : exampleSet.getAttributes()) {
+			int valueType = attribute.getValueType();
+			boolean throwError = false;
+			if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NOMINAL)) {
+				throwError = true;
+			}
+			if (valueType == Ontology.NOMINAL) {
+				if (attribute.getMapping().size() > 2) {
+					throwError = true;
+				}
+			}
+			if (throwError) {
+				throw new UserError(null, 114, task, attribute.getName());
+			}
+		}
+	}
+
+	/**
 	 * The example set has to contain labels.
 	 * 
 	 * @param es
@@ -409,7 +433,7 @@ public class Tools {
 				IdTagging idTagging = OperatorService.createOperator(IdTagging.class);
 				idTagging.apply(es);
 			} catch (OperatorCreationException e) {
-				throw new UserError(null, 129);	
+				throw new UserError(null, 129);
 			}
 		}
 	}
@@ -420,7 +444,6 @@ public class Tools {
 		}
 	}
 
-	
 	/**
 	 * The example set has to have nominal labels.
 	 * 
@@ -450,12 +473,12 @@ public class Tools {
 	/** Returns a new example set based on a fresh memory example table sampled from the
 	 *  given set. */
 	public static ExampleSet getLinearSubsetCopy(ExampleSet exampleSet, int size, int offset) {
-		Map<Attribute,String> specialMap = new HashMap<Attribute, String>();
+		Map<Attribute, String> specialMap = new HashMap<Attribute, String>();
 		List<Attribute> attributes = new LinkedList<Attribute>();
 		Iterator<AttributeRole> a = exampleSet.getAttributes().allAttributeRoles();
 		while (a.hasNext()) {
 			AttributeRole role = a.next();
-			Attribute clone = (Attribute)role.getAttribute().clone(); 
+			Attribute clone = (Attribute) role.getAttribute().clone();
 			attributes.add(clone);
 			if (role.isSpecial()) {
 				specialMap.put(clone, role.getSpecialName());
@@ -482,12 +505,12 @@ public class Tools {
 	 *  given set. */
 	public static ExampleSet getShuffledSubsetCopy(ExampleSet exampleSet, int size, RandomGenerator randomGenerator) {
 		int[] selectedIndices = OrderedSamplingWithoutReplacement.getSampledIndices(randomGenerator, exampleSet.size(), size);
-		Map<Attribute,String> specialMap = new HashMap<Attribute, String>();
+		Map<Attribute, String> specialMap = new HashMap<Attribute, String>();
 		List<Attribute> attributes = new LinkedList<Attribute>();
 		Iterator<AttributeRole> a = exampleSet.getAttributes().allAttributeRoles();
 		while (a.hasNext()) {
 			AttributeRole role = a.next();
-			Attribute clone = (Attribute)role.getAttribute().clone(); 
+			Attribute clone = (Attribute) role.getAttribute().clone();
 			attributes.add(clone);
 			if (role.isSpecial()) {
 				specialMap.put(clone, role.getSpecialName());
@@ -509,4 +532,5 @@ public class Tools {
 
 		return table.createExampleSet(specialMap);
 	}
+
 }
