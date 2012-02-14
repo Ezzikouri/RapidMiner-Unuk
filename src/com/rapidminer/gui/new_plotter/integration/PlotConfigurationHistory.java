@@ -26,14 +26,17 @@ package com.rapidminer.gui.new_plotter.integration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
+import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;
 import com.rapidminer.gui.new_plotter.configuration.DefaultDimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.data.DataTableColumnIndex;
+import com.rapidminer.gui.new_plotter.gui.AbstractConfigurationPanel.AttributeType;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ports.ProcessingStep;
 
@@ -45,50 +48,62 @@ import com.rapidminer.operator.ports.ProcessingStep;
  * @author Sebastian Land, Marius Helf
  */
 public final class PlotConfigurationHistory {
-	
-	private static final HashMap<ProcessingStep, PlotConfiguration> settingsHistory = new HashMap<ProcessingStep, PlotConfiguration>();
-	
+
+	private static final HashMap<ProcessingStep, Map<AttributeType, PlotConfiguration>> settingsHistory = new HashMap<ProcessingStep, Map<AttributeType, PlotConfiguration>>();
+
 	/**
 	 * Private ctor - static only class.
 	 */
-	private PlotConfigurationHistory() {};
-	
-	public static PlotConfiguration getPlotConfiguration(IOObject object, DataTable dataTable) {
+	private PlotConfigurationHistory() {
+	};
+
+	public static Map<AttributeType, PlotConfiguration> getPlotConfigurationMap(IOObject object, DataTable dataTable) {
 		List<ProcessingStep> steps = object.getProcessingHistory();
 		ListIterator<ProcessingStep> iterator = steps.listIterator(steps.size());
-		PlotConfiguration plotConfiguration = null;
+		Map<AttributeType, PlotConfiguration> plotConfigMap = new HashMap<AttributeType, PlotConfiguration>();
 		boolean isFirst = false;
 		while (iterator.hasPrevious()) {
 			ProcessingStep step = iterator.previous();
 			if (!isFirst) {
-				plotConfiguration = settingsHistory.get(step);
-				if (plotConfiguration != null) {
-					// Clone and register for last process step
-					if (isPlotConfigurationCompatible(plotConfiguration, dataTable)) {
-						plotConfiguration = plotConfiguration.clone();
-						settingsHistory.put(steps.get(steps.size() - 1), plotConfiguration);
-						return plotConfiguration;
-					} else {
-						// plotConfiguration is not compatible -> crate a new one further down
-						plotConfiguration = null;
-						break;
+				plotConfigMap = settingsHistory.get(step);
+				if (plotConfigMap != null) {
+
+					PlotConfiguration plotConfiguration = plotConfigMap.get(AttributeType.NORMAL);
+					if (plotConfiguration != null) {
+						// Clone and register for last process step
+						if (isPlotConfigurationCompatible(plotConfiguration, dataTable)) {
+							plotConfiguration = plotConfiguration.clone();
+							settingsHistory.put(steps.get(steps.size() - 1), plotConfigMap);
+							return plotConfigMap;
+						} else {
+							// plotConfiguration is not compatible -> crate a new one further down
+							plotConfigMap = null;
+							break;
+						}
 					}
 				}
 			} else {
 				isFirst = false;
 			}
 		}
-		
+
 		// if we didn't find anything: Create new settings and add to history
-		if (plotConfiguration == null) {
-			plotConfiguration = new PlotConfiguration(new DataTableColumn(dataTable, -1));
+		if (plotConfigMap == null) {
+			plotConfigMap = new HashMap<AttributeType, PlotConfiguration>();
+
+			PlotConfiguration plotConfiguration = new PlotConfiguration(new DataTableColumn(dataTable, -1));
+			plotConfigMap.put(AttributeType.NORMAL, plotConfiguration);
+
+			PlotConfiguration metaPlotConfiguration = new PlotConfiguration(new DataTableColumn(null, ValueType.INVALID));
+			plotConfigMap.put(AttributeType.META_DATA, metaPlotConfiguration);
+
 			if (!steps.isEmpty()) {
-				settingsHistory.put(steps.get(steps.size() - 1), plotConfiguration);
+				settingsHistory.put(steps.get(steps.size() - 1), plotConfigMap);
 			}
 		}
-		return plotConfiguration;
+		return plotConfigMap;
 	}
-	
+
 	/**
 	 * Returns <code>true</code> iff all columns used in <code>plotConfiguration</code> are also present
 	 * in <code>dataTable</code> and have compatible value types.
@@ -106,7 +121,7 @@ public final class PlotConfigurationHistory {
 				}
 			}
 		}
-		
+
 		// check if columns from defaultDimensionConfigs are present and compatible in dataTable
 		for (DefaultDimensionConfig defaultDimensionConfig : plotConfiguration.getDefaultDimensionConfigs().values()) {
 			DataTableColumn column = defaultDimensionConfig.getDataTableColumn();
@@ -115,14 +130,14 @@ public final class PlotConfigurationHistory {
 				return false;
 			}
 		}
-		
+
 		// check if columns from domainConfigManager is present and compatible in dataTable
 		DataTableColumn column = plotConfiguration.getDomainConfigManager().getDataTableColumn();
 		DataTableColumnIndex columnIdx = new DataTableColumnIndex(column, dataTable);
 		if (columnIdx.getIndex() < 0) {
 			return false;
 		}
-		
+
 		return true;
 	}
 }

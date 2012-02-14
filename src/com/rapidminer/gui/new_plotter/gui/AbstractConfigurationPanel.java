@@ -21,6 +21,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -42,29 +44,48 @@ import com.rapidminer.gui.tools.SwingTools;
  */
 public abstract class AbstractConfigurationPanel extends JPanel implements PlotConfigurationListener {
 
+	public enum AttributeType {
+		NORMAL, META_DATA
+	}
+
 	private static final long serialVersionUID = 1L;
 
 	private boolean enabled = true;
 
 	private final Insets standardInset = new Insets(0, 5, 5, 5);
 
-	private final PlotInstance plotInstance;
+	private final Map<AttributeType, PlotInstance> typeToInstanceMap = new HashMap<AttributeType, PlotInstance>();
+
+	private AttributeType currentType = AttributeType.NORMAL;
 
 	public AbstractConfigurationPanel(PlotInstance plotInstance) {
 		this.setLayout(new GridBagLayout());
-		this.plotInstance = plotInstance;
+		typeToInstanceMap.put(AttributeType.NORMAL, plotInstance);
 	}
 
 	protected void registerAsPlotConfigurationListener() {
-		this.plotInstance.getMasterPlotConfiguration().addPlotConfigurationListener(this);
+		getPlotInstance().getMasterPlotConfiguration().addPlotConfigurationListener(this);
+	}
+	
+	protected void unregisterAsPlotConfigurationListener() {
+		getPlotInstance().getMasterPlotConfiguration().removePlotConfigurationListener(this);
 	}
 
 	protected PlotConfiguration getPlotConfiguration() {
-		return plotInstance.getMasterPlotConfiguration();
+		return getPlotInstance(currentType).getMasterPlotConfiguration();
 	}
 
 	protected PlotInstance getPlotInstance() {
-		return plotInstance;
+		return typeToInstanceMap.get(currentType);
+	}
+
+	protected void setPlotInstance(PlotInstance instance, AttributeType type) {
+		this.typeToInstanceMap.put(type, instance);
+		this.currentType = type;
+	}
+
+	protected PlotInstance getPlotInstance(AttributeType type) {
+		return typeToInstanceMap.get(type);
 	}
 
 	protected void addTwoComponentRow(JPanel addTarget, JComponent first, JComponent second) {
@@ -193,12 +214,12 @@ public abstract class AbstractConfigurationPanel extends JPanel implements PlotC
 			enabled = true;
 		}
 	}
-	
+
 	protected void processPlotConfigurationMetaChange(PlotConfigurationChangeEvent change) {
 		for (PlotConfigurationChangeEvent e : change.getPlotConfigChangeEvents()) {
 			plotConfigurationChanged(e);
 		}
 	}
-	
+
 	protected abstract void adaptGUI();
 }

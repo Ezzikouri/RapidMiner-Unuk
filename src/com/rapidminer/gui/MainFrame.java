@@ -108,6 +108,7 @@ import com.rapidminer.gui.processeditor.results.ResultDisplay;
 import com.rapidminer.gui.processeditor.results.ResultDisplayTools;
 import com.rapidminer.gui.processeditor.results.TabbedResultDisplay;
 import com.rapidminer.gui.properties.OperatorPropertyPanel;
+import com.rapidminer.gui.security.PasswordManager;
 import com.rapidminer.gui.templates.SaveAsTemplateDialog;
 import com.rapidminer.gui.tools.LoggingViewer;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -387,7 +388,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public final transient Action UNDO_ACTION = new UndoAction(this);
     public final transient Action REDO_ACTION = new RedoAction(this);
     public final transient Action ANOVA_CALCULATOR_ACTION = new AnovaCalculatorAction();
-    // public final transient Action CHECK_FOR_UPDATES_ACTION = new CheckForUpdatesAction();
     public final transient Action CHECK_FOR_JDBC_DRIVERS_ACTION = new CheckForJDBCDriversAction();
     public final transient Action MANAGE_DB_CONNECTIONS_ACTION = new ResourceAction(true, "manage_db_connections") {
         private static final long serialVersionUID = 2457587046500212869L;
@@ -720,6 +720,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         toolsMenu.add(ManageDatabaseDriversDialog.SHOW_DIALOG_ACTION);
         toolsMenu.addSeparator();
         toolsMenu.add(UsageStatsTransmissionDialog.SHOW_STATISTICS_ACTION);
+        //Password Manager
+        toolsMenu.add(PasswordManager.OPEN_WINDOW);
         toolsMenu.add(SETTINGS_ACTION);
         menuBar.add(toolsMenu);
 
@@ -780,6 +782,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         helpMenu.addSeparator();
         helpMenu.add(UpdateDialog.UPDATE_ACTION);
         helpMenu.add(new AboutAction(this));
+
 
         menuBar.add(helpMenu);
 

@@ -31,7 +31,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import com.rapidminer.gui.MainFrame;
-import com.rapidminer.gui.new_plotter.StaticDebug;
 import com.rapidminer.gui.renderer.DefaultTextRenderer;
 import com.rapidminer.gui.renderer.Renderer;
 import com.rapidminer.gui.renderer.RendererService;
