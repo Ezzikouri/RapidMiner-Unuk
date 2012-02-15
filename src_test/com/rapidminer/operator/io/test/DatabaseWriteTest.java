@@ -207,7 +207,7 @@ public class DatabaseWriteTest {
 		ExampleSet exampleSet = reader.read();
 		assertEquals(40, exampleSet.size());
 		assertEquals(17, exampleSet.getAttributes().size());
-		RapidAssert.assertEquals("labor negotiations", exampleSet, laborNegotiationsExampleSet, -1);
+		RapidAssert.assertEquals("labor negotiations", exampleSet, laborNegotiationsExampleSet);
 	}
 
 	private void testCreateTable(DatabaseRef connection) throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
@@ -238,6 +238,6 @@ public class DatabaseWriteTest {
 		readOp.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, tableName);
 		ExampleSet result = readOp.read();
 		
-		RapidAssert.assertEquals(testSetName, testSet, result, -1);
+		RapidAssert.assertEquals(testSetName, testSet, result);
 	}	
 }
