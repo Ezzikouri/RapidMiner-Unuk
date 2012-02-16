@@ -184,7 +184,7 @@ public class RangeAxisConfigPanel extends AbstractConfigurationPanel implements 
 				@Override
 				public void stateChanged(ChangeEvent e) {
 					if (selectedRangeAxisConfig != null) {
-						RangeAxisData selectedRangeAxisData = getPlotInstance().getPlotData().getRangeAxisData(selectedRangeAxisConfig);
+						RangeAxisData selectedRangeAxisData = getCurrentPlotInstance().getPlotData().getRangeAxisData(selectedRangeAxisConfig);
 						Double oldUpperBound = selectedRangeAxisData.getUpperViewBound();
 						Double newUpperBound = (Double) upperBoundSpinner.getValue();
 						if (oldUpperBound != newUpperBound) {
@@ -225,7 +225,7 @@ public class RangeAxisConfigPanel extends AbstractConfigurationPanel implements 
 				public void stateChanged(ChangeEvent e) {
 					if (selectedRangeAxisConfig != null) {
 
-						RangeAxisData selectedRangeAxisData = getPlotInstance().getPlotData().getRangeAxisData(selectedRangeAxisConfig);
+						RangeAxisData selectedRangeAxisData = getCurrentPlotInstance().getPlotData().getRangeAxisData(selectedRangeAxisConfig);
 						Double oldLowerBound = selectedRangeAxisData.getLowerViewBound();
 						Double newLowerBound = (Double) lowerBoundSpinner.getValue();
 						if (oldLowerBound != newLowerBound) {

@@ -115,7 +115,9 @@ public class ValueSourceConfigurationPanel extends AbstractTreeSelectionDependen
 		this.plotConfigurationTree = plotConfigurationTree;
 
 		seriesTypeConfigurationPanel = new SeriesFormatConfigurationPanel(smallIcons, plotConfigurationTree, plotInstance);
+		addPlotInstanceChangeListener(seriesTypeConfigurationPanel);
 		windowConfigurationPanel = new WindowingConfigurationContainer(plotConfigurationTree, plotInstance);
+		addPlotInstanceChangeListener(windowConfigurationPanel);
 
 		createComponents(plotConfigurationTree, th);
 		registerAsPlotConfigurationListener();

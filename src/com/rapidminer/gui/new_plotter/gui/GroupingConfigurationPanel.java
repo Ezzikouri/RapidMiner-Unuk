@@ -42,6 +42,7 @@ import com.rapidminer.gui.new_plotter.gui.groupingpanel.DistinctValueGroupingCar
 import com.rapidminer.gui.new_plotter.gui.groupingpanel.EqualDataFractionCardPanel;
 import com.rapidminer.gui.new_plotter.gui.groupingpanel.EquidistantFixedBinCountCardPanel;
 import com.rapidminer.gui.new_plotter.gui.treenodes.DimensionConfigTreeNode;
+import com.rapidminer.gui.new_plotter.listener.PlotInstanceChangedListener;
 import com.rapidminer.gui.new_plotter.listener.events.PlotConfigurationChangeEvent;
 
 /**
@@ -77,16 +78,19 @@ public class GroupingConfigurationPanel extends AbstractConfigurationPanel imple
 			JPanel groupingCardPanel = null;
 			switch (groupingType) {
 				case EQUAL_DATA_FRACTION:
-					groupingCardPanel = new EqualDataFractionCardPanel(getPlotInstance(), dimension);
+					groupingCardPanel = new EqualDataFractionCardPanel(getCurrentPlotInstance(), dimension);
+					addPlotInstanceChangeListener((PlotInstanceChangedListener) groupingCardPanel);
 					break;
 				case EQUIDISTANT_FIXED_BIN_COUNT:
-					groupingCardPanel = new EquidistantFixedBinCountCardPanel(getPlotInstance(), dimension);
+					groupingCardPanel = new EquidistantFixedBinCountCardPanel(getCurrentPlotInstance(), dimension);
+					addPlotInstanceChangeListener((PlotInstanceChangedListener) groupingCardPanel);
 					break;
 				case NONE:
 					groupingCardPanel = new JPanel();
 					break;
 				case DISTINCT_VALUES:
-					groupingCardPanel = new DistinctValueGroupingCardPanel(getPlotInstance(), dimension);
+					groupingCardPanel = new DistinctValueGroupingCardPanel(getCurrentPlotInstance(), dimension);
+					addPlotInstanceChangeListener((PlotInstanceChangedListener) groupingCardPanel);
 					break;
 				default:
 					throw new RuntimeException("Unknown grouping type " + groupingType);

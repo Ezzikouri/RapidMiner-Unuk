@@ -77,10 +77,16 @@ public class GlobalConfigurationPanel extends AbstractConfigurationPanel {
 	private DefaultComboBoxModel colorsSchemesComboBoxModel;
 	private JComboBox colorSchemesComboBox;
 
+	private ChartTitleConfigurationContainer chartTitleConfigurationContainer;
+
 	public GlobalConfigurationPanel(PlotInstance plotInstance) {
 		super(plotInstance);
 		axisConfigurationContainer = new AxisConfigurationContainer(plotInstance);
+		addPlotInstanceChangeListener(axisConfigurationContainer);
 		legendConfigContainer = new LegendConfigurationPanel(plotInstance);
+		addPlotInstanceChangeListener(legendConfigContainer);
+		chartTitleConfigurationContainer = new ChartTitleConfigurationContainer(getCurrentPlotInstance());
+		addPlotInstanceChangeListener(chartTitleConfigurationContainer);
 		createComponents();
 		registerAsPlotConfigurationListener();
 		adaptGUI();
@@ -111,7 +117,7 @@ public class GlobalConfigurationPanel extends AbstractConfigurationPanel {
 				@Override
 				public void keyReleased(KeyEvent e) {
 					String newTitle = titleTextField.getText();
-					String titleText = getPlotInstance().getMasterPlotConfiguration().getTitleText();
+					String titleText = getCurrentPlotInstance().getMasterPlotConfiguration().getTitleText();
 					if (titleText != null) {
 						if (!titleText.equals(newTitle) || titleText == null && newTitle.length() > 0) {
 							if (newTitle.length() > 0) {
@@ -140,7 +146,6 @@ public class GlobalConfigurationPanel extends AbstractConfigurationPanel {
 			});
 			titleTextField.setPreferredSize(new Dimension(115, 23));
 
-			ChartTitleConfigurationContainer chartTitleConfigurationContainer = new ChartTitleConfigurationContainer(getPlotInstance());
 			titleConfigButton = new JToggleButton(new PopupAction(true, "plotter.configuration_dialog.open_popup", chartTitleConfigurationContainer, PopupPosition.HORIZONTAL));
 
 			addThreeComponentRow(this, titleLabel, titleTextField, titleConfigButton);

@@ -22,6 +22,8 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.Icon;
@@ -35,6 +37,7 @@ import javax.swing.SwingConstants;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.listener.PlotConfigurationListener;
+import com.rapidminer.gui.new_plotter.listener.PlotInstanceChangedListener;
 import com.rapidminer.gui.new_plotter.listener.events.PlotConfigurationChangeEvent;
 import com.rapidminer.gui.tools.SwingTools;
 
@@ -42,11 +45,13 @@ import com.rapidminer.gui.tools.SwingTools;
  * @author Nils Woehler
  * 
  */
-public abstract class AbstractConfigurationPanel extends JPanel implements PlotConfigurationListener {
+public abstract class AbstractConfigurationPanel extends JPanel implements PlotConfigurationListener, PlotInstanceChangedListener {
 
-	public enum AttributeType {
-		NORMAL, META_DATA
+	public enum DatasetTransformationType {
+		ORIGINAL, DE_PIVOTED
 	}
+
+	private transient List<PlotInstanceChangedListener> plotInstanceChangeListener = new LinkedList<PlotInstanceChangedListener>();
 
 	private static final long serialVersionUID = 1L;
 
@@ -54,37 +59,62 @@ public abstract class AbstractConfigurationPanel extends JPanel implements PlotC
 
 	private final Insets standardInset = new Insets(0, 5, 5, 5);
 
-	private final Map<AttributeType, PlotInstance> typeToInstanceMap = new HashMap<AttributeType, PlotInstance>();
+	private final Map<DatasetTransformationType, PlotInstance> typeToInstanceMap = new HashMap<DatasetTransformationType, PlotInstance>();
 
-	private AttributeType currentType = AttributeType.NORMAL;
+	private DatasetTransformationType currentType = DatasetTransformationType.ORIGINAL;
 
 	public AbstractConfigurationPanel(PlotInstance plotInstance) {
 		this.setLayout(new GridBagLayout());
-		typeToInstanceMap.put(AttributeType.NORMAL, plotInstance);
+		typeToInstanceMap.put(DatasetTransformationType.ORIGINAL, plotInstance);
 	}
 
 	protected void registerAsPlotConfigurationListener() {
-		getPlotInstance().getMasterPlotConfiguration().addPlotConfigurationListener(this);
+		getCurrentPlotInstance().getMasterPlotConfiguration().addPlotConfigurationListener(this);
 	}
-	
+
 	protected void unregisterAsPlotConfigurationListener() {
-		getPlotInstance().getMasterPlotConfiguration().removePlotConfigurationListener(this);
+		getCurrentPlotInstance().getMasterPlotConfiguration().removePlotConfigurationListener(this);
 	}
 
 	protected PlotConfiguration getPlotConfiguration() {
 		return getPlotInstance(currentType).getMasterPlotConfiguration();
 	}
 
-	protected PlotInstance getPlotInstance() {
+	protected PlotInstance getCurrentPlotInstance() {
 		return typeToInstanceMap.get(currentType);
 	}
 
-	protected void setPlotInstance(PlotInstance instance, AttributeType type) {
+	protected void setPlotInstance(PlotInstance instance, DatasetTransformationType type) {
+		PlotInstance oldPlotInstance = getCurrentPlotInstance();
 		this.typeToInstanceMap.put(type, instance);
 		this.currentType = type;
+		if(instance != null && oldPlotInstance != null) {
+			informPlotInstanceChangeListener(oldPlotInstance, instance, type);
+		}
 	}
 
-	protected PlotInstance getPlotInstance(AttributeType type) {
+	protected void addPlotInstanceChangeListener(PlotInstanceChangedListener l) {
+		plotInstanceChangeListener.add(l);
+	}
+
+	protected void removePlotInstanceChangeListener(PlotInstanceChangedListener l) {
+		plotInstanceChangeListener.remove(l);
+	}
+
+	protected void informPlotInstanceChangeListener(PlotInstance oldPlotInstance, PlotInstance newPlotInstance, DatasetTransformationType newType) {
+		for (PlotInstanceChangedListener l : plotInstanceChangeListener) {
+			l.plotInstanceChanged(oldPlotInstance, newPlotInstance, newType);
+		}
+	}
+
+	public void plotInstanceChanged(PlotInstance oldPlotInstance, PlotInstance newPlotInstance, DatasetTransformationType newType) {
+		oldPlotInstance.getMasterPlotConfiguration().removePlotConfigurationListener(this);
+		setPlotInstance(newPlotInstance, newType);
+		registerAsPlotConfigurationListener();
+		adaptGUI();
+	}
+
+	protected PlotInstance getPlotInstance(DatasetTransformationType type) {
 		return typeToInstanceMap.get(type);
 	}
 

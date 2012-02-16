@@ -71,7 +71,11 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	private static final String GRADIENT_START_R_ATTRIBUTE = "gradient_start_r";
 
 	private static final String GRADIENT_START_ALPHA_ATTRIBUTE = "gradient_start_alpha";
-
+	
+	private static final String FRAME_BACKGROUND_COLOR_ELEMENT = "frame_background_color";
+	
+	private static final String PLOT_BACKGROUND_COLOR_ELEMENT = "plot_background_color";
+	
 	private static final String COLOR_SCHEME_ELEMENT = "color_scheme";
 
 	private static final String TITLE_FONT_ELEMENT = "title_font";
@@ -109,6 +113,12 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	
 	/** the current title font */
 	private Font titleFont;
+	
+	/** the background color of the frame around the chart */
+	private ColorRGB frameBackgroundColor;
+	
+	/** the chart background color */
+	private ColorRGB plotBackgroundColor;
 	
 	/** the font size for the font buttons */
 	public static final int FONT_SIZE_DEFAULT = 12;
@@ -162,6 +172,9 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		axesFont = new Font("Dialog", Font.PLAIN, 10);
 		legendFont = new Font("Dialog", Font.PLAIN, 10);
 		titleFont = new Font("Dialog", Font.PLAIN, 10);
+		
+		frameBackgroundColor = new ColorRGB(255, 255, 255);
+		plotBackgroundColor = new ColorRGB(255, 255, 255);
 	}
 
 	
@@ -229,6 +242,44 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		
 		setChanged();
 		notifyObservers();
+	}
+	
+	/**
+	 * Sets the {@link ColorRGB} for the frame background around the chart.
+	 * @param frameBackgroundColor
+	 */
+	public void setFrameBackgroundColor(ColorRGB frameBackgroundColor) {
+		if (frameBackgroundColor == null) {
+			throw new IllegalArgumentException("frameBackgroundColor must not be null!");
+		}
+		this.frameBackgroundColor = frameBackgroundColor;
+
+		setChanged();
+		notifyObservers();
+	}
+	
+	/**
+	 * Sets the {@link ColorRGB} for the chart background.
+	 * @param plotBackgroundColor
+	 */
+	public void setPlotBackgroundColor(ColorRGB plotBackgroundColor) {
+		if (plotBackgroundColor == null) {
+			throw new IllegalArgumentException("plotBackgroundColor must not be null!");
+		}
+		this.plotBackgroundColor = plotBackgroundColor;
+
+		setChanged();
+		notifyObservers();
+	}
+	
+	@Override
+	public ColorRGB getFrameBackgroundColor() {
+		return frameBackgroundColor;
+	}
+	
+	@Override
+	public ColorRGB getPlotBackgroundColor() {
+		return plotBackgroundColor;
 	}
 	
 	/**
@@ -390,6 +441,22 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		titleFont.setAttribute(FONT_SIZE_ATTRIBUTE, String.valueOf(getTitleFont().getSize()));
 		styleElement.appendChild(titleFont);
 		
+		// store frame background color
+		Element frameBackgroundColor = document.createElement(FRAME_BACKGROUND_COLOR_ELEMENT);
+		frameBackgroundColor.setAttribute(COLOR_ALPHA_ATTRIBUTE, String.valueOf(getFrameBackgroundColor().getAlpha()));
+		frameBackgroundColor.setAttribute(COLOR_R_ATTRIBUTE, String.valueOf(getFrameBackgroundColor().getR()));
+		frameBackgroundColor.setAttribute(COLOR_G_ATTRIBUTE, String.valueOf(getFrameBackgroundColor().getG()));
+		frameBackgroundColor.setAttribute(COLOR_B_ATTRIBUTE, String.valueOf(getFrameBackgroundColor().getB()));
+		styleElement.appendChild(frameBackgroundColor);
+		
+		// store plot background color
+		Element plotBackgroundColor = document.createElement(PLOT_BACKGROUND_COLOR_ELEMENT);
+		plotBackgroundColor.setAttribute(COLOR_ALPHA_ATTRIBUTE, String.valueOf(getPlotBackgroundColor().getAlpha()));
+		plotBackgroundColor.setAttribute(COLOR_R_ATTRIBUTE, String.valueOf(getPlotBackgroundColor().getR()));
+		plotBackgroundColor.setAttribute(COLOR_G_ATTRIBUTE, String.valueOf(getPlotBackgroundColor().getG()));
+		plotBackgroundColor.setAttribute(COLOR_B_ATTRIBUTE, String.valueOf(getPlotBackgroundColor().getB()));
+		styleElement.appendChild(plotBackgroundColor);
+		
 		// store currently selected color scheme
 		Element selectedColorSchemeElement = document.createElement(COLOR_SCHEME_ELEMENT);
 		selectedColorSchemeElement.setAttribute(SCHEME_NAME_ATTRIBUTE, String.valueOf(getColorScheme().getName()));
@@ -499,6 +566,30 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 						setTitleFont(titleFont);
 					} catch (NumberFormatException e) {
 						LogService.getRoot().warning("Could not restore title font for style provider!");
+					}
+				} else if (setting.getNodeName().equals(FRAME_BACKGROUND_COLOR_ELEMENT)) {
+					try {
+						// load frame background color
+						int alpha = Integer.parseInt(setting.getAttribute(COLOR_ALPHA_ATTRIBUTE));
+						int r = Integer.parseInt(setting.getAttribute(COLOR_R_ATTRIBUTE));
+						int g = Integer.parseInt(setting.getAttribute(COLOR_G_ATTRIBUTE));
+						int b = Integer.parseInt(setting.getAttribute(COLOR_B_ATTRIBUTE));
+						ColorRGB frameBackgroundColor = new ColorRGB(r, g, b, alpha);
+						setFrameBackgroundColor(frameBackgroundColor);
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore frame background color for style provider!");
+					}
+				} else if (setting.getNodeName().equals(PLOT_BACKGROUND_COLOR_ELEMENT)) {
+					try {
+						// load plot background color
+						int alpha = Integer.parseInt(setting.getAttribute(COLOR_ALPHA_ATTRIBUTE));
+						int r = Integer.parseInt(setting.getAttribute(COLOR_R_ATTRIBUTE));
+						int g = Integer.parseInt(setting.getAttribute(COLOR_G_ATTRIBUTE));
+						int b = Integer.parseInt(setting.getAttribute(COLOR_B_ATTRIBUTE));
+						ColorRGB plotBackgroundColor = new ColorRGB(r, g, b, alpha);
+						setPlotBackgroundColor(plotBackgroundColor);
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore plot background color for style provider!");
 					}
 				}
 			}

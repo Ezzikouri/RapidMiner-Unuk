@@ -290,6 +290,8 @@ public class PlotConfigurationTreeModel extends DefaultTreeModel implements Plot
 		if (plotConfig != null) {
 			plotConfig.removePlotConfigurationListener(this);
 		}
+		plotConfig = newPlotConfig;
+		
 		setRoot(new PlotConfigurationTreeNode(newPlotConfig));
 
 		fillNewPlotConfigNode(newPlotConfig);

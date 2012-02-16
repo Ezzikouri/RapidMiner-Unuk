@@ -53,6 +53,7 @@ import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.templates.gui.HistogrammTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
+import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 import com.rapidminer.gui.new_plotter.utility.DataTransformation;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
@@ -208,13 +209,13 @@ public class HistogramTemplate extends PlotterTemplate {
 		
 		modifiedDataTable = new DataTableExampleSetAdapter(metaSet, null);
 		PlotConfiguration plotConfiguration = new PlotConfiguration(new DataTableColumn(modifiedDataTable, 0));
-		PlotInstance plotInstance = new PlotInstance(plotConfiguration, modifiedDataTable);
+		PlotInstance newPlotInstance = new PlotInstance(plotConfiguration, modifiedDataTable);
 		// only set plotInstance if plotEngine currently displays the HistogramTemplate plotInstance
 		// otherwise we would take another template the plotEngine away
 		if (plotEngine.getPlotInstance() == getPlotInstance()) {
-			plotEngine.setPlotInstance(plotInstance);
+			plotEngine.setPlotInstance(newPlotInstance);
 		}
-		setPlotInstance(plotInstance);
+		setPlotInstance(newPlotInstance);
 	}
 	
 	/**
@@ -348,6 +349,8 @@ public class HistogramTemplate extends PlotterTemplate {
 			plotConfiguration.getLegendConfiguration().setLegendFont(styleProvider.getLegendFont());
 			plotConfiguration.addColorSchemeAndSetActive(styleProvider.getColorScheme());
 			plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.BOTTOM);
+			plotConfiguration.setFrameBackgroundColor(ColorRGB.convertToColor(styleProvider.getFrameBackgroundColor()));
+			plotConfiguration.setPlotBackgroundColor(ColorRGB.convertToColor(styleProvider.getPlotBackgroundColor()));
 		} catch (ChartConfigurationException e) {
 			LogService.getRoot().log(Level.WARNING, "Chart could not be configured.", e);
 		} finally {

@@ -1051,9 +1051,7 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
         set.close();
 
         // set up the guessed value types
-        int debugColumnCount = -1; // debug purpose
         for (AttributeColumn column : getAllAttributeColumns()) {
-            debugColumnCount++;
             if (column.numberOfMissings == rowCountFromGuessing) {
                 column.setValueType(Ontology.NOMINAL);
                 // column.activateColumn(false);

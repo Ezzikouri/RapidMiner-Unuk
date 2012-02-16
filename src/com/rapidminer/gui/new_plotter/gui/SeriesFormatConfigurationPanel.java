@@ -50,8 +50,10 @@ public class SeriesFormatConfigurationPanel extends AbstractTreeSelectionDepende
 
 		this.setLayout(new CardLayout());
 		lineChartPanel = new LineChartConfigurationPanel(smallIcons, plotConfigurationTree, plotInstance);
+		addPlotInstanceChangeListener(lineChartPanel);
 		areaAndBarChartPanel = new AreaAndBarChartConfigurationPanel(smallIcons, plotConfigurationTree, plotInstance);
-
+		addPlotInstanceChangeListener(areaAndBarChartPanel);
+		
 		this.add(lineChartPanel, LINES);
 		this.add(areaAndBarChartPanel, AREA_BAR);
 		registerAsPlotConfigurationListener();

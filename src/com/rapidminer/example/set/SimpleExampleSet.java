@@ -121,14 +121,14 @@ public class SimpleExampleSet extends AbstractExampleSet {
 		
 		for (Attribute attribute : regularList) {
 			if ((specialAttributes == null) || (specialAttributes.get(attribute) == null))
-				getAttributes().add(new AttributeRole(attribute));
+				getAttributes().add(new AttributeRole((Attribute) attribute.clone()));
 		}
 		
 		if (specialAttributes != null) {
 			Iterator<Map.Entry<Attribute, String>> s = specialAttributes.entrySet().iterator();
 			while (s.hasNext()) {
 				Map.Entry<Attribute, String> entry = s.next();
-				getAttributes().setSpecialAttribute(entry.getKey(), entry.getValue());
+				getAttributes().setSpecialAttribute((Attribute) entry.getKey().clone(), entry.getValue());
 			}
 		}
 	}

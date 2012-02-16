@@ -31,6 +31,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -38,7 +40,9 @@ import javax.management.RuntimeErrorException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -51,6 +55,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -75,6 +81,7 @@ import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.JFreeChartPlotEngine;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.LinkAndBrushChartPanel;
 import com.rapidminer.gui.new_plotter.gui.cellrenderer.DataTableColumnListCellRenderer;
+import com.rapidminer.gui.new_plotter.gui.cellrenderer.EnumComboBoxCellRenderer;
 import com.rapidminer.gui.new_plotter.gui.dnd.DataTableColumnListTransferHandler;
 import com.rapidminer.gui.new_plotter.gui.dnd.PlotConfigurationTreeTransferHandler;
 import com.rapidminer.gui.new_plotter.gui.treenodes.DimensionConfigTreeNode;
@@ -84,11 +91,13 @@ import com.rapidminer.gui.new_plotter.gui.treenodes.ValueSourceTreeNode;
 import com.rapidminer.gui.new_plotter.listener.DragListener;
 import com.rapidminer.gui.new_plotter.listener.MasterOfDesasterListener;
 import com.rapidminer.gui.new_plotter.listener.PlotConfigurationProcessingListener;
+import com.rapidminer.gui.new_plotter.listener.PlotInstanceChangedListener;
 import com.rapidminer.gui.new_plotter.listener.events.PlotConfigurationChangeEvent;
 import com.rapidminer.gui.new_plotter.utility.DataTransformation;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceLabel;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.I18N;
 
@@ -161,7 +170,7 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 	private JScrollPane plotConfigurationTreeScrollPane;
 
-	private PlotConfigurationTreeTransferHandler plotConfigTreeTransferHandler;
+	private PlotConfigurationTreeTransferHandler plotConfigurationTreeTransferHandler;
 
 	private JPanel leftSideConfigPanel;
 	private JPanel leftSideShowHiddenPanel;
@@ -178,16 +187,20 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 	private JMenuItem removeRangeAxisMenuItem;
 
-	private transient DataTable cachedTransformedDataTable;
+	private transient DataTable cachedDePivotedDataTable;
 
-//	private JComboBox attributeSelectionComboBox;
+	private JComboBox datasetTransformationSelectionComboBox;
+
+	private JButton configureDataSetTransformationButton;
+
+	private PlotConfiguration dePivotedPlotConfig;
 
 	public ChartConfigurationPanel(boolean smallIcons, PlotInstance plotInstance, DataTable dataTable) {
 		super(plotInstance);
 
 		this.smallIcons = smallIcons;
 		this.dataTable = dataTable;
-		this.cachedTransformedDataTable = null;
+		this.cachedDePivotedDataTable = null;
 
 		this.plotEngine = new JFreeChartPlotEngine(plotInstance, true);
 
@@ -204,7 +217,7 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 		masterOfDesaster.addListener(this);
 
 		attributeListTransferHandler.addDragStartListener(this);
-		plotConfigTreeTransferHandler.addDragStartListener(this);
+		plotConfigurationTreeTransferHandler.addDragStartListener(this);
 
 		chartPanel.addLinkAndBrushSelectionListener(plotInstance.getMasterPlotConfiguration());
 
@@ -213,15 +226,20 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 		plotEngine.endInitializing();
 	}
-	
-	public ChartConfigurationPanel(boolean smallIcons, PlotInstance plotInstance, DataTable dataTable, PlotConfiguration metaDataPlotConfig) {
+
+	public ChartConfigurationPanel(boolean smallIcons, PlotInstance plotInstance, DataTable dataTable, PlotConfiguration dePivotedPlotConfig) {
 		this(smallIcons, plotInstance, dataTable);
-		setPlotInstance(getNewMetaDataPlotInstance(metaDataPlotConfig), AttributeType.META_DATA);
-		setPlotInstance(plotInstance, AttributeType.NORMAL);
+		this.dePivotedPlotConfig = dePivotedPlotConfig;
 	}
-	
-	private DataTable getTransformedDataTable() {
-		if (cachedTransformedDataTable == null) {
+
+	/**
+	 * Returns the de-pivoted data table. If grouping attributes is not <code>null</code> a now data table is created in any case.
+	 * If grouping attributes is <code>null</code> the cached datatable, if available, is returned.
+	 * 
+	 * @return <code>null</code> if creating the dePivoted datatable fails, a dePivoted datatable otherwise.
+	 */
+	private DataTable getDePivotedDataTable(Collection<String> selectedNominalToNumericAttributesList) {
+		if (cachedDePivotedDataTable == null || selectedNominalToNumericAttributesList != null) {
 			Vector<DataTableColumn> dataTableColumns = assembleDataTableColumnList(dataTable);
 			List<String> selectedNumericAttributes = new ArrayList<String>();
 			for (DataTableColumn column : dataTableColumns) {
@@ -229,16 +247,18 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 					selectedNumericAttributes.add(column.getName());
 				}
 			}
-			ExampleSet metaSet = DataTransformation.createDePivotizedExampleSet(DataTableExampleSetAdapter.createExampleSetFromDataTable(dataTable),
-					selectedNumericAttributes);
+
+			ExampleSet metaSet = DataTransformation.createDePivotizedExampleSet(DataTableExampleSetAdapter.createExampleSetFromDataTable(dataTable), selectedNumericAttributes,
+					selectedNominalToNumericAttributesList);
+
 			// in case of error or no attributes specified
 			if (metaSet == null) {
 				return null;
 			}
 
-			cachedTransformedDataTable = new DataTableExampleSetAdapter(metaSet, null);
+			cachedDePivotedDataTable = new DataTableExampleSetAdapter(metaSet, null);
 		}
-		return cachedTransformedDataTable;					
+		return cachedDePivotedDataTable;
 	}
 
 	@Override
@@ -301,19 +321,25 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 		}
 	}
-	
-	private PlotInstance getNewMetaDataPlotInstance(PlotConfiguration newPlotConfig) {
+
+	/**
+	 * 
+	 * Returns a new PlotInstance with a dePivoted data table of the original data table. If the transformation could not be achieved,
+	 * <code>null</code> is returned.
+	 * If no plot config for the new PlotInstance is provided a PlotConfiguration with an invalid domain dimension will be created.
+	 */
+	private PlotInstance getNewDePivotedPlotInstance(PlotConfiguration newPlotConfig, Collection<String> selectedNominalToNumericAttributesList) {
 		PlotInstance plotInstance;
-		DataTable transformed = getTransformedDataTable();
-		
-		if(transformed == null) {
+		DataTable transformed = getDePivotedDataTable(selectedNominalToNumericAttributesList);
+
+		if (transformed == null) {
 			return null;
 		}
-		
-		if(newPlotConfig == null) {
-			newPlotConfig = new PlotConfiguration(new DataTableColumn(transformed, -1));
+
+		if (newPlotConfig == null) {
+			newPlotConfig = new PlotConfiguration(new DataTableColumn("-Empty-", ValueType.INVALID));
 		}
-		
+
 		plotInstance = new PlotInstance(newPlotConfig, transformed);
 		return plotInstance;
 	}
@@ -458,74 +484,94 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 		JPanel leftSidePanel = new JPanel(new GridBagLayout());
 
-//		//add attribute selection combobox
-//		{
-//			attributeSelectionComboBox = new JComboBox(AttributeType.values());
-//			itemConstraint = new GridBagConstraints();
-//			itemConstraint.gridwidth = GridBagConstraints.REMAINDER;
-//			itemConstraint.fill = GridBagConstraints.HORIZONTAL;
-//			itemConstraint.insets = standardInsets;
-//
-//			attributeSelectionComboBox.addPopupMenuListener(new PopupMenuListener() {
-//
-//				@Override
-//				public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-//					return;
-//				}
-//
-//				@Override
-//				public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-//					AttributeType type = (AttributeType) attributeSelectionComboBox.getSelectedItem();
-//					
-//					PlotInstance plotInstance = getPlotInstance(type);
-//					if(plotInstance == null) {
-//						plotInstance = getNewMetaDataPlotInstance(null);
-//						if(plotInstance == null) {
-//							SwingTools.showVerySimpleErrorMessage("Could not transform data! Keeping old settings");
-//							return;
-//						}
-//					}
-//					setPlotInstance(plotInstance, type);
-//					
-//					plotEngine.setPlotInstance(plotInstance);
-//					
-//					
-//					Vector<DataTableColumn> columnList = new Vector<DataTableColumn>();
-//					switch(type) {
-//						case META_DATA:
-//							columnList = assembleDataTableColumnList(getTransformedDataTable());
-//							break;
-//						case NORMAL:
-//						default:
-//							columnList = assembleDataTableColumnList(dataTable);
-//					}
-//					
-//					
-//					// adapt attribute list to selection
-//					DefaultListModel<DataTableColumn> attributeListModel = new DefaultListModel<DataTableColumn>();
-//					for(DataTableColumn column : columnList) {
-//						attributeListModel.addElement(column);
-//					}
-//					attributeList.setModel(attributeListModel);
-//
-//					PlotConfiguration currentPlotConfiguration = getPlotConfiguration();
-//					PlotConfigurationTreeNode newRootNode = new PlotConfigurationTreeNode(currentPlotConfiguration);
-//					
-//					// adapt config tree to selection
-//					PlotConfigurationTreeModel newModel = new PlotConfigurationTreeModel(newRootNode, currentPlotConfiguration, plotConfigurationTree);// (PlotConfigurationTreeModel) plotConfigurationTree.getModel();
-//					plotConfigurationTree.setModel(newModel);
-//					plotConfigurationTree.setSelectionPath(new TreePath(plotConfigurationTree.getModel().getRoot()));
-//					plotConfigurationTree.expandAll();
-//				}
-//
-//				@Override
-//				public void popupMenuCanceled(PopupMenuEvent e) {
-//					return;
-//				}
-//			});
-//
-//			leftSidePanel.add(attributeSelectionComboBox, itemConstraint);
-//		}
+		//add attribute selection combobox
+		{
+
+			JPanel datasetTranformationContainerPanel = new JPanel(new GridBagLayout());
+
+			{
+				ResourceLabel datasetTransformationLabel = new ResourceLabel("plotter.datasetTransformation");
+				datasetTransformationLabel.setFont(datasetTransformationLabel.getFont().deriveFont(Font.BOLD));
+
+				itemConstraint = new GridBagConstraints();
+				itemConstraint.gridx = 0;
+				itemConstraint.weightx = 0.0;
+				itemConstraint.gridwidth = 1;
+				itemConstraint.anchor = GridBagConstraints.WEST;
+				itemConstraint.insets = new Insets(0, 0, 0, 5);
+
+				datasetTranformationContainerPanel.add(datasetTransformationLabel, itemConstraint);
+
+				datasetTransformationSelectionComboBox = new JComboBox(DatasetTransformationType.values());
+				itemConstraint = new GridBagConstraints();
+				itemConstraint.gridwidth = GridBagConstraints.REMAINDER;
+				itemConstraint.fill = GridBagConstraints.HORIZONTAL;
+				itemConstraint.insets = standardInsets;
+
+				datasetTransformationSelectionComboBox.addPopupMenuListener(new PopupMenuListener() {
+
+					private int lastSelectedIndex = 0;
+
+					@Override
+					public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+						lastSelectedIndex = datasetTransformationSelectionComboBox.getSelectedIndex();
+						return;
+					}
+
+					@Override
+					public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+						DatasetTransformationType type = (DatasetTransformationType) datasetTransformationSelectionComboBox.getSelectedItem();
+						if (!changeDatatableTransformationType(type, false)) {
+							datasetTransformationSelectionComboBox.setSelectedIndex(lastSelectedIndex);
+						}
+						configureDataSetTransformationButton.setVisible((DatasetTransformationType) datasetTransformationSelectionComboBox.getSelectedItem() != DatasetTransformationType.ORIGINAL);
+					}
+
+					@Override
+					public void popupMenuCanceled(PopupMenuEvent e) {
+						return;
+					}
+				});
+				datasetTransformationSelectionComboBox.setRenderer(new EnumComboBoxCellRenderer("plotter.DatasetTransformationType"));
+
+				itemConstraint = new GridBagConstraints();
+				itemConstraint.gridx = 1;
+				itemConstraint.weightx = 1.0;
+				itemConstraint.gridwidth = GridBagConstraints.RELATIVE;
+				itemConstraint.fill = GridBagConstraints.HORIZONTAL;
+
+				datasetTranformationContainerPanel.add(datasetTransformationSelectionComboBox, itemConstraint);
+
+				configureDataSetTransformationButton = new JButton(new ResourceAction(smallIcons, "plotter.configure_dataset_transformation") {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						DatasetTransformationType type = (DatasetTransformationType) datasetTransformationSelectionComboBox.getSelectedItem();
+						changeDatatableTransformationType(type, true);
+					}
+				});
+
+				itemConstraint = new GridBagConstraints();
+				itemConstraint.gridx = 2;
+				itemConstraint.weightx = 0.0;
+				itemConstraint.gridwidth = GridBagConstraints.REMAINDER; //end row
+				itemConstraint.fill = GridBagConstraints.NONE;
+
+				configureDataSetTransformationButton.setVisible(false);
+
+				datasetTranformationContainerPanel.add(configureDataSetTransformationButton, itemConstraint);
+
+			}
+
+			itemConstraint = new GridBagConstraints();
+			itemConstraint.weightx = 1.0;
+			itemConstraint.gridwidth = GridBagConstraints.REMAINDER; //end row
+			itemConstraint.fill = GridBagConstraints.HORIZONTAL;
+
+			leftSidePanel.add(datasetTranformationContainerPanel, itemConstraint);
+		}
 
 		JLabel attributeListLabel = new ResourceLabel("plotter.configuration_dialog.attribute_list");
 		{
@@ -821,8 +867,8 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 			});
 
 			// create Transferhandler 
-			plotConfigTreeTransferHandler = new PlotConfigurationTreeTransferHandler(plotConfigurationTree);
-			plotConfigurationTree.setTransferHandler(plotConfigTreeTransferHandler);
+			plotConfigurationTreeTransferHandler = new PlotConfigurationTreeTransferHandler(plotConfigurationTree);
+			plotConfigurationTree.setTransferHandler(plotConfigurationTreeTransferHandler);
 
 			plotConfigurationTreeScrollPane = new JScrollPane(plotConfigurationTree);
 			plotConfigurationLabel.setLabelFor(plotConfigurationTree);
@@ -851,27 +897,31 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 			// add global config panel
 			{
-				JPanel globalConfigPanel = new GlobalConfigurationPanel(getPlotInstance());
+				JPanel globalConfigPanel = new GlobalConfigurationPanel(getCurrentPlotInstance());
+				addPlotInstanceChangeListener((PlotInstanceChangedListener) globalConfigPanel);
 				configurationContainerPanel.add(globalConfigPanel, GLOBAL_CONFIG);
 
 			}
 
 			// add range axis config panel
 			{
-				JPanel rangeAxisPanel = new RangeAxisConfigPanel(plotConfigurationTree, getPlotInstance());
+				JPanel rangeAxisPanel = new RangeAxisConfigPanel(plotConfigurationTree, getCurrentPlotInstance());
+				addPlotInstanceChangeListener((PlotInstanceChangedListener) rangeAxisPanel);
 				configurationContainerPanel.add(rangeAxisPanel, RANGE_AXIS_CONFIG);
 
 			}
 
 			// add plot axes config panel
 			{
-				JPanel plotAxesConfigPanel = new ValueSourceConfigurationPanel(smallIcons, plotConfigurationTree, attributeListTransferHandler, getPlotInstance());
+				JPanel plotAxesConfigPanel = new ValueSourceConfigurationPanel(smallIcons, plotConfigurationTree, attributeListTransferHandler, getCurrentPlotInstance());
+				addPlotInstanceChangeListener((PlotInstanceChangedListener) plotAxesConfigPanel);
 				configurationContainerPanel.add(plotAxesConfigPanel, VALUE_SOURCE_CONFIG);
 			}
 
 			// add domain dimension config panel
 			{
-				JPanel domainDimensionPanel = new DimensionConfigPanel(PlotDimension.DOMAIN, plotConfigurationTree, getPlotInstance());
+				JPanel domainDimensionPanel = new DimensionConfigPanel(PlotDimension.DOMAIN, plotConfigurationTree, getCurrentPlotInstance());
+				addPlotInstanceChangeListener((PlotInstanceChangedListener) domainDimensionPanel);
 				configurationContainerPanel.add(domainDimensionPanel, DOMAIN_DIMENSION);
 			}
 
@@ -882,19 +932,22 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 			// add color dimension config panel
 			{
-				JPanel dimensionConfigPanel = new DimensionConfigPanel(PlotDimension.COLOR, plotConfigurationTree, getPlotInstance());
+				JPanel dimensionConfigPanel = new DimensionConfigPanel(PlotDimension.COLOR, plotConfigurationTree, getCurrentPlotInstance());
+				addPlotInstanceChangeListener((PlotInstanceChangedListener) dimensionConfigPanel);
 				configurationContainerPanel.add(dimensionConfigPanel, COLOR_DIMENSION_CONFIG);
 			}
 
 			// add shape dimension config panel
 			{
-				JPanel dimensionConfigPanel = new DimensionConfigPanel(PlotDimension.SHAPE, plotConfigurationTree, getPlotInstance());
+				JPanel dimensionConfigPanel = new DimensionConfigPanel(PlotDimension.SHAPE, plotConfigurationTree, getCurrentPlotInstance());
+				addPlotInstanceChangeListener((PlotInstanceChangedListener) dimensionConfigPanel);
 				configurationContainerPanel.add(dimensionConfigPanel, SHAPE_DIMENSION_CONFIG);
 			}
 
 			// add size dimension config panel
 			{
-				JPanel dimensionConfigPanel = new DimensionConfigPanel(PlotDimension.SIZE, plotConfigurationTree, getPlotInstance());
+				JPanel dimensionConfigPanel = new DimensionConfigPanel(PlotDimension.SIZE, plotConfigurationTree, getCurrentPlotInstance());
+				addPlotInstanceChangeListener((PlotInstanceChangedListener) dimensionConfigPanel);
 				configurationContainerPanel.add(dimensionConfigPanel, SIZE_DIMENSION_CONFIG);
 			}
 
@@ -957,6 +1010,65 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 			dataTableColumnVector.add(new DataTableColumn(dataTable, i));
 		}
 		return dataTableColumnVector;
+	}
+
+	private boolean changeDatatableTransformationType(DatasetTransformationType type, boolean reconfigure) {
+		PlotInstance plotInstance = getPlotInstance(type);
+		if (plotInstance == null || reconfigure) {
+			if (type == DatasetTransformationType.DE_PIVOTED) {
+
+				List<DataTableColumn> columns = new LinkedList<DataTableColumn>();
+
+				// fetch nominal columns
+				Vector<DataTableColumn> dataTableColumns = assembleDataTableColumnList(dataTable);
+				for (DataTableColumn column : dataTableColumns) {
+					if (column.isNominal() && !column.getName().equals("id")) {
+						columns.add(column);
+					}
+				}
+				Collection<String> selectedGroupingAttributeList = null;
+
+				//show grouping attributes configuration dialog if nominal attributes have been found
+				if (!columns.isEmpty()) {
+					AttributeSelectionDialog dialog = new AttributeSelectionDialog(columns);
+					dialog.setVisible(true);
+					if (dialog.wasConfirmed()) {
+						selectedGroupingAttributeList = dialog.getSelectedAttributeNames();
+					} else {
+						return false;
+					}
+				}
+				
+				Collection<String> nominalToNumericalAttributeList = new LinkedList<String>();
+				for (DataTableColumn column : dataTableColumns) {
+					String name = column.getName();
+					if (!selectedGroupingAttributeList.contains(name) && column.isNominal()) {
+						nominalToNumericalAttributeList.add(name);
+					}
+				}
+
+				// if a plotInstance already exists and the data should be reconfigured, save current PlotConfig
+				PlotConfiguration currentPlotConfiguration = null;
+				if (plotInstance != null) {
+					currentPlotConfiguration = plotInstance.getMasterPlotConfiguration();
+				} else {
+					currentPlotConfiguration = dePivotedPlotConfig;
+				}
+
+				plotInstance = getNewDePivotedPlotInstance(currentPlotConfiguration, nominalToNumericalAttributeList);
+
+				if (plotInstance == null) {
+					SwingTools.showVerySimpleErrorMessage("plotter.no_datatable_for_transformation_type", type);
+					return false;
+				}
+			} else {
+				SwingTools.showVerySimpleErrorMessage("plotter.no_datatable_for_transformation_type", type);
+				return false;
+			}
+		}
+
+		plotInstanceChanged(null, plotInstance, type);
+		return true;
 	}
 
 	@Override
@@ -1058,5 +1170,47 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	@Override
 	public void endProcessing() {
 		resetButton.setEnabled(true);
+	}
+
+	@Override
+	public void plotInstanceChanged(PlotInstance oldPlotInstance, PlotInstance newPlotInstance, DatasetTransformationType newType) {
+
+		// remove old listeners
+		unregisterAsPlotConfigurationListener();
+		masterOfDesaster.removeListener(this);
+
+		// change to new PlotInstance
+		setPlotInstance(newPlotInstance, newType);
+
+		// register as listener
+		masterOfDesaster = getCurrentPlotInstance().getMasterOfDesaster();
+		masterOfDesaster.addListener(this);
+		registerAsPlotConfigurationListener();
+
+		// get new attribute list
+		Vector<DataTableColumn> columnList = new Vector<DataTableColumn>();
+		switch (newType) {
+			case DE_PIVOTED:
+				columnList = assembleDataTableColumnList(getDePivotedDataTable(null));
+				break;
+			case ORIGINAL:
+			default:
+				columnList = assembleDataTableColumnList(dataTable);
+		}
+
+		// adapt attribute list to selection
+		DefaultListModel attributeListModel = new DefaultListModel();
+		for (DataTableColumn column : columnList) {
+			attributeListModel.addElement(column);
+		}
+		attributeList.setModel(attributeListModel);
+
+		// adapt config tree to selection
+		PlotConfigurationTreeModel newModel = (PlotConfigurationTreeModel) plotConfigurationTree.getModel();
+		newModel.exchangePlotConfiguration(getPlotConfiguration());
+		plotConfigurationTree.expandAll();
+
+		// tell plotEngine that PlotInstance has changed
+		plotEngine.setPlotInstance(newPlotInstance);
 	}
 }

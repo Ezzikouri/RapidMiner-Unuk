@@ -30,7 +30,7 @@ import com.rapidminer.datatable.DataTableExampleSetAdapter;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
-import com.rapidminer.gui.new_plotter.gui.AbstractConfigurationPanel.AttributeType;
+import com.rapidminer.gui.new_plotter.gui.AbstractConfigurationPanel.DatasetTransformationType;
 import com.rapidminer.gui.new_plotter.gui.ChartConfigurationPanel;
 import com.rapidminer.gui.renderer.AbstractRenderer;
 import com.rapidminer.gui.renderer.DefaultReadable;
@@ -64,8 +64,8 @@ public class ExpertDataTableRenderer extends AbstractRenderer {
 	public Component getVisualizationComponent(Object renderable, IOContainer ioContainer) {
 		ExampleSet exampleSet = (ExampleSet)renderable;
 		DataTableExampleSetAdapter dataTable = new DataTableExampleSetAdapter(exampleSet, null, false);
-		Map<AttributeType,PlotConfiguration> plotConfigurationMap = PlotConfigurationHistory.getPlotConfigurationMap((IOObject)exampleSet, dataTable);
-		PlotInstance plotInstance = new PlotInstance(plotConfigurationMap.get(AttributeType.NORMAL), dataTable);
-		return new ChartConfigurationPanel(true, plotInstance, dataTable, plotConfigurationMap.get(AttributeType.META_DATA));
+		Map<DatasetTransformationType,PlotConfiguration> plotConfigurationMap = PlotConfigurationHistory.getPlotConfigurationMap((IOObject)exampleSet, dataTable);
+		PlotInstance plotInstance = new PlotInstance(plotConfigurationMap.get(DatasetTransformationType.ORIGINAL), dataTable);
+		return new ChartConfigurationPanel(true, plotInstance, dataTable, plotConfigurationMap.get(DatasetTransformationType.DE_PIVOTED));
 	}
 }

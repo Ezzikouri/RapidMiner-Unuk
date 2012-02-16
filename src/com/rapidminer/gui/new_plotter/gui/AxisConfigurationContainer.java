@@ -1,6 +1,6 @@
 /*
- *  RapidMiner
  *
+ *  RapidMiner
  *  Copyright (C) 2001-2011 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:

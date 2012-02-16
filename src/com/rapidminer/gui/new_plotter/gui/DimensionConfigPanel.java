@@ -100,6 +100,7 @@ public class DimensionConfigPanel extends AbstractConfigurationPanel {
 		this.dimension = dimension;
 
 		groupingConfigurationPanel = new GroupingConfigurationPanel(plotConfigurationTree, plotInstance, dimension);
+		addPlotInstanceChangeListener(groupingConfigurationPanel);
 
 		createComponents();
 		registerAsPlotConfigurationListener();
@@ -528,7 +529,7 @@ public class DimensionConfigPanel extends AbstractConfigurationPanel {
 	protected void adaptGUI() {
 
 		DimensionConfig dimensionConfig = getPlotConfiguration().getDimensionConfig(dimension);
-		DataTable dataTable = getPlotInstance().getPlotData().getOriginalDataTable();
+		DataTable dataTable = getCurrentPlotInstance().getPlotData().getOriginalDataTable();
 		if (dimensionConfig != null && dimensionConfig.getDataTableColumn().isValidForDataTable(dataTable)) {
 			enableAllComponents();
 

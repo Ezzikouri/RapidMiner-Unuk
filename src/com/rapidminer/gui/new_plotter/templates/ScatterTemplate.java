@@ -39,6 +39,7 @@ import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.ScatterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
+import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction.AggregationFunctionType;
@@ -375,6 +376,8 @@ public class ScatterTemplate extends PlotterTemplate {
 		plotConfiguration.getLegendConfiguration().setLegendFont(styleProvider.getLegendFont());
 		plotConfiguration.addColorSchemeAndSetActive(styleProvider.getColorScheme());
 		plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.BOTTOM);
+		plotConfiguration.setFrameBackgroundColor(ColorRGB.convertToColor(styleProvider.getFrameBackgroundColor()));
+		plotConfiguration.setPlotBackgroundColor(ColorRGB.convertToColor(styleProvider.getPlotBackgroundColor()));
 		
 		// continue event processing
 		plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);

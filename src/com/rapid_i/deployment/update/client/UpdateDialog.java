@@ -54,8 +54,6 @@ import com.rapidminer.tools.LogService;
  */
 public class UpdateDialog extends ButtonDialog {
 
-	protected static final String PACKAGEID_RAPIDMINER = "rapidminer";
-
 	private static final long serialVersionUID = 1L;
 
 	public static final Action UPDATE_ACTION = new ResourceAction("update_manager") {
@@ -133,8 +131,8 @@ public class UpdateDialog extends ButtonDialog {
 						LogService.getRoot().config("This is a development build. Ignoring update check.");
 					} else {
 						String rmPlatform = Launcher.getPlatform();
-						String latestRMVersion = service.getLatestVersion(PACKAGEID_RAPIDMINER, rmPlatform);
-						PackageDescriptor packageInfo = service.getPackageInfo(PACKAGEID_RAPIDMINER, latestRMVersion, rmPlatform);
+						String latestRMVersion = service.getLatestVersion(UpdateManager.PACKAGEID_RAPIDMINER, rmPlatform);
+						PackageDescriptor packageInfo = service.getPackageInfo(UpdateManager.PACKAGEID_RAPIDMINER, latestRMVersion, rmPlatform);
 						if (packageInfo != null) {
 							descriptors.add(packageInfo);
 						}
@@ -142,7 +140,7 @@ public class UpdateDialog extends ButtonDialog {
 					getProgressListener().setCompleted(30);
 
 					String targetPlatform = "ANY";
-					List<String> extensions = service.getExtensions(PACKAGEID_RAPIDMINER);
+					List<String> extensions = service.getExtensions(UpdateManager.PACKAGEID_RAPIDMINER);
 					int i = 0;
 					for (String extension : extensions) {
 						String version = service.getLatestVersion(extension, targetPlatform);

@@ -131,25 +131,35 @@ public abstract class AbstractExampleTable implements ExampleTable {
 	 * index. If the name is already in use, the attribute will be renamed.
 	 */
 	public int addAttribute(Attribute a) {
-		int index = -1;
-		if (unusedColumnList.size() > 0) {
-			// if seems to be something free: Synchronize and check again
-			synchronized(unusedColumnList) {
-				if (unusedColumnList.size() > 0) {
-					index = unusedColumnList.remove(0);
-					attributes.set(index, a);
-				} else {
-					index = attributes.size();
-					attributes.add(a);	
-				}
-			}
+		
+		if (a == null) {
+			throw new IllegalArgumentException("Attribute must not be null");
 		} else {
-			index = attributes.size();
-			attributes.add(a);	
+			int index = -1;
+			Attribute original = a;
+			a = (Attribute) a.clone();
+
+			if (unusedColumnList.size() > 0) {
+				// if seems to be something free: Synchronize and check again
+				synchronized(unusedColumnList) {
+					if (unusedColumnList.size() > 0) {
+						index = unusedColumnList.remove(0);
+						attributes.set(index, a);
+					} else {
+						index = attributes.size();
+						attributes.add(a);	
+					}
+				}
+			} else {
+				index = attributes.size();
+				attributes.add(a);	
+			}
+
+			a.setTableIndex(index);
+			original.setTableIndex(index);
+			return index;
 		}
-        if (a != null)
-            a.setTableIndex(index);
-		return index;
+		
 	}
 
 	/**

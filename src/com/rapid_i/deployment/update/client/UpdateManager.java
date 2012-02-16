@@ -89,6 +89,9 @@ public class UpdateManager {
     public static final String UPDATESERVICE_URL              = "http://rapidupdate.de:80/UpdateServer";
 
     private final UpdateService service;
+	
+    public static final String PACKAGEID_RAPIDMINER = "rapidminer";
+	
     static final String COMMERCIAL_LICENSE_NAME = "RIC";
 
     public UpdateManager(UpdateService service) {

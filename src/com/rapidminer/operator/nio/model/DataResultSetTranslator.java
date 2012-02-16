@@ -130,6 +130,7 @@ public class DataResultSetTranslator {
 
         // building example table
         MemoryExampleTable exampleTable = new MemoryExampleTable(attributes);
+        attributes = exampleTable.getAttributes();
 
         // now iterate over complete dataResultSet and copy data
         int currentRow = 0; 		// The row in the underlying DataResultSet

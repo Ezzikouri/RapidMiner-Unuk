@@ -235,6 +235,8 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 		plotConfiguration.getLegendConfiguration().setLegendFont(styleProvider.getLegendFont());
 		plotConfiguration.addColorSchemeAndSetActive(styleProvider.getColorScheme());
 		plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.BOTTOM);
+		plotConfiguration.setFrameBackgroundColor(ColorRGB.convertToColor(styleProvider.getFrameBackgroundColor()));
+		plotConfiguration.setPlotBackgroundColor(ColorRGB.convertToColor(styleProvider.getPlotBackgroundColor()));
 		
 		// continue event processing
 		plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);

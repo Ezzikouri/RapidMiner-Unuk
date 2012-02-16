@@ -471,7 +471,6 @@ public class RapidAssert extends Assert {
 				throw new AssertionFailedError("Attribute ordering does not match: " + a1.getName() + "," + a2.getName());
 			}
 			if (a1.isNominal()) {
-				System.out.println(a1.getName() + "(" + expected.getNominalValue(a1) + ") - " + a2.getName() + "(" + actual.getNominalValue(a2) + ")");
 				Assert.assertEquals(MessageFormat.format(message, "nominal", a1.getName()), expected.getNominalValue(a1), actual.getNominalValue(a2));
 			} else {
 				assertEqualsWithRelativeErrorOrBothNaN(MessageFormat.format(message, "numerical", a1.getName()), expected.getValue(a1), actual.getValue(a2));

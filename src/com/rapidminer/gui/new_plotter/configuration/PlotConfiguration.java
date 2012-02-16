@@ -91,7 +91,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	public static final int GUI_PLOTTER_ROWS_MAXIMUM_IF_RAPIDMINER_PROPERTY_NOT_READABLE = 5000;
 
 	private static final String DEFAULT_TITLE_TEXT = null;
-	private static final Font DEFAULT_TITLE_FONT = null;
+	private static final Font DEFAULT_TITLE_FONT = new Font("Arial", Font.PLAIN, 20);
 
 	private static final Color DEFAULT_PLOT_BACKGROUND_COLOR = Color.white;
 	private static final Color DEFAULT_FRAME_BACKGROUND_COLOR = Color.white;

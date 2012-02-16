@@ -422,6 +422,8 @@ public class SeriesTemplate extends PlotterTemplate {
 			plotConfiguration.getLegendConfiguration().setLegendFont(styleProvider.getLegendFont());
 			plotConfiguration.addColorSchemeAndSetActive(styleProvider.getColorScheme());
 			plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.BOTTOM);
+			plotConfiguration.setFrameBackgroundColor(ColorRGB.convertToColor(styleProvider.getFrameBackgroundColor()));
+			plotConfiguration.setPlotBackgroundColor(ColorRGB.convertToColor(styleProvider.getPlotBackgroundColor()));
 		} catch (ChartConfigurationException e) {
 			LogService.getRoot().log(Level.WARNING, "Chart could not be configured.", e);
 		} finally {

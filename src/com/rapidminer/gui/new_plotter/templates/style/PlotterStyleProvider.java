@@ -30,6 +30,8 @@ import javax.swing.JPanel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
+
 /**
  * Abstract class which all style providers for the new plotter templates have to extend.
  * 
@@ -64,6 +66,18 @@ public abstract class PlotterStyleProvider extends Observable {
 	 * @return
 	 */
 	public abstract Font getTitleFont();
+	
+	/**
+	 * Returns the {@link ColorRGB} of the background frame of the chart.
+	 * @return
+	 */
+	public abstract ColorRGB getFrameBackgroundColor();
+	
+	/**
+	 * Returns the {@link ColorRGB} of the plot background.
+	 * @return
+	 */
+	public abstract ColorRGB getPlotBackgroundColor();
 	
 	/**
 	 * Returns a {@link ColorScheme} instance which will be used to color the plot(s).

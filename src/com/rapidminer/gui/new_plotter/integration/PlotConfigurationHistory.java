@@ -36,7 +36,7 @@ import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.data.DataTableColumnIndex;
-import com.rapidminer.gui.new_plotter.gui.AbstractConfigurationPanel.AttributeType;
+import com.rapidminer.gui.new_plotter.gui.AbstractConfigurationPanel.DatasetTransformationType;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ports.ProcessingStep;
 
@@ -49,7 +49,7 @@ import com.rapidminer.operator.ports.ProcessingStep;
  */
 public final class PlotConfigurationHistory {
 
-	private static final HashMap<ProcessingStep, Map<AttributeType, PlotConfiguration>> settingsHistory = new HashMap<ProcessingStep, Map<AttributeType, PlotConfiguration>>();
+	private static final HashMap<ProcessingStep, Map<DatasetTransformationType, PlotConfiguration>> settingsHistory = new HashMap<ProcessingStep, Map<DatasetTransformationType, PlotConfiguration>>();
 
 	/**
 	 * Private ctor - static only class.
@@ -57,10 +57,10 @@ public final class PlotConfigurationHistory {
 	private PlotConfigurationHistory() {
 	};
 
-	public static Map<AttributeType, PlotConfiguration> getPlotConfigurationMap(IOObject object, DataTable dataTable) {
+	public static Map<DatasetTransformationType, PlotConfiguration> getPlotConfigurationMap(IOObject object, DataTable dataTable) {
 		List<ProcessingStep> steps = object.getProcessingHistory();
 		ListIterator<ProcessingStep> iterator = steps.listIterator(steps.size());
-		Map<AttributeType, PlotConfiguration> plotConfigMap = new HashMap<AttributeType, PlotConfiguration>();
+		Map<DatasetTransformationType, PlotConfiguration> plotConfigMap = new HashMap<DatasetTransformationType, PlotConfiguration>();
 		boolean isFirst = false;
 		while (iterator.hasPrevious()) {
 			ProcessingStep step = iterator.previous();
@@ -68,7 +68,7 @@ public final class PlotConfigurationHistory {
 				plotConfigMap = settingsHistory.get(step);
 				if (plotConfigMap != null) {
 
-					PlotConfiguration plotConfiguration = plotConfigMap.get(AttributeType.NORMAL);
+					PlotConfiguration plotConfiguration = plotConfigMap.get(DatasetTransformationType.ORIGINAL);
 					if (plotConfiguration != null) {
 						// Clone and register for last process step
 						if (isPlotConfigurationCompatible(plotConfiguration, dataTable)) {
@@ -88,14 +88,14 @@ public final class PlotConfigurationHistory {
 		}
 
 		// if we didn't find anything: Create new settings and add to history
-		if (plotConfigMap == null) {
-			plotConfigMap = new HashMap<AttributeType, PlotConfiguration>();
+		if (plotConfigMap == null || plotConfigMap.isEmpty()) {
+			plotConfigMap = new HashMap<DatasetTransformationType, PlotConfiguration>();
 
 			PlotConfiguration plotConfiguration = new PlotConfiguration(new DataTableColumn(dataTable, -1));
-			plotConfigMap.put(AttributeType.NORMAL, plotConfiguration);
+			plotConfigMap.put(DatasetTransformationType.ORIGINAL, plotConfiguration);
 
 			PlotConfiguration metaPlotConfiguration = new PlotConfiguration(new DataTableColumn(null, ValueType.INVALID));
-			plotConfigMap.put(AttributeType.META_DATA, metaPlotConfiguration);
+			plotConfigMap.put(DatasetTransformationType.DE_PIVOTED, metaPlotConfiguration);
 
 			if (!steps.isEmpty()) {
 				settingsHistory.put(steps.get(steps.size() - 1), plotConfigMap);
