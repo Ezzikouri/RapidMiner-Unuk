@@ -20,7 +20,7 @@
 	<property name="release.includes" location="${release}/filesToInclude" />
 	<property name="jre32" location="jre/jre32" />
 	<property name="jre64" location="jre/jre64" />
-	
+
 	<property name="junit.reports" location="junit-reports" />
 	<property name="junit.tests.dir" value="" />
 
@@ -75,7 +75,7 @@
 		<!-- FOR Tasks -->
 		<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="ant/ant-contrib-1.0b3.jar" />
 
-        <!-- SCP Tasks -->
+		<!-- SCP Tasks -->
 		<copy file="ant/jsch-0.1.42.jar" todir="${ant.library.dir}" failonerror="false" />
 
 		<mkdir dir="${build}" />
@@ -88,7 +88,7 @@
 	</target>
 
 	<target name="release.prepareDocumentation" depends="init" unless="lock.isDocumentationPrepared">
-		<downloadOperatorDocumentation resourcedir="${resources}" namespace="core" operatorsdocfile="resources/com/rapidminer/resources/i18n/OperatorsCoreDocumentation.xml" operatorsfile="resources/com/rapidminer/resources/OperatorsCore.xml"/>
+		<downloadOperatorDocumentation resourcedir="${resources}" namespace="core" operatorsdocfile="resources/com/rapidminer/resources/i18n/OperatorsCoreDocumentation.xml" operatorsfile="resources/com/rapidminer/resources/OperatorsCore.xml" />
 		<property name="lock.isDocumentationPrepared" value="true" />
 	</target>
 
@@ -119,9 +119,9 @@
 	<target name="build" depends="init, copy-resources" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<echo message="RapidMiner: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner: using Java version: ${java.version}" />
-		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m">
+		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false">
 			<compilerarg value="${compiler.arguments}" />
-			
+
 			<classpath refid="classpath" />
 			<src path="${src}" />
 			<src path="${src_generated}" />
@@ -135,7 +135,7 @@
 		<property name="lock.isBuilt" value="true" />
 	</target>
 
-	<target name="createJar" depends="build, version.updateFiles" description="Generate the lib/rapidminer.jar file">
+	<target name="createJar" depends="build" description="Generate the lib/rapidminer.jar file">
 		<echo message="Creating jar..." />
 		<pathconvert pathsep=" " property="manifest.classpath" refid="rm.classpath" dirsep="/">
 			<map from="${lib}/" to="" />
@@ -170,7 +170,7 @@
 			</manifest>
 		</jar>
 	</target>
-	
+
 	<target name="release.prepare" depends="clean, build" unless="lock.isPrepared" description="Copies all needed files to the release/files directory">
 		<echo message="Preparing Release..." />
 		<mkdir dir="${release.includes}" />
@@ -272,7 +272,7 @@
 			<arg line="installation/launcher.nsi" />
 		</exec>
 	</target>
-	
+
 	<target name="release.makeWin32" depends="release.prepare" description="This creates the installer for the Windows32 platform">
 		<echo message="Releasing Windows32 Installer..." />
 		<!-- Now creating rapidminer.jar and copy from lib to release path -->
@@ -395,6 +395,7 @@
 
 
 	<target name="release" depends="init" description="This will increase the version counter and generate all files with the new version, including update files and javadoc.">
+
 		<!-- testing if release should be built at all -->
 		<input message="Do you really want to create the new release ${rapidminer.longversion}? This will generate all platform install files, javadoc, update files and upload them as well on sourceforge as on the update server." validargs="yes,no" defaultvalue="no" addproperty="release.input">
 		</input>
@@ -406,10 +407,10 @@
 
 		<delete failonerror="false" includeemptydirs="true">
 			<fileset dir="${release}">
-				<include name="**/*"/>
+				<include name="**/*" />
 			</fileset>
 		</delete>
-		
+
 		<ant target="version.updateFiles" />
 		<ant target="javaDoc.makeZip" />
 		<ant target="release.publish" />
@@ -538,17 +539,17 @@
 	<!-- BEGIN Test targets -->
 	<target name="test.compile" depends="test.clean">
 		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m">
-			
+
 			<classpath refid="classpath" />
 			<src path="${src_test}" />
 		</javac>
 	</target>
-	
+
 	<target name="test.clean">
-		<mkdir dir="${junit.reports}"/>
+		<mkdir dir="${junit.reports}" />
 		<delete>
-		  <fileset dir="${build}" includes="**/test/*.class" />
-		  <fileset dir="${junit.reports}" />
+			<fileset dir="${build}" includes="**/test/*.class" />
+			<fileset dir="${junit.reports}" />
 		</delete>
 	</target>
 
@@ -561,8 +562,8 @@
 			<sysproperty key="rapidminer.config.dir" value="${rapidminer.test.config.dir}" />
 			<sysproperty key="java.util.logging.config.file" value="${java.util.logging.config.file}" />
 			<classpath refid="classpath.test" />
-			<formatter type="xml" usefile="true"/>
-			<test name="com.rapidminer.test.AllTests" todir="${junit.reports}"/>
+			<formatter type="xml" usefile="true" />
+			<test name="com.rapidminer.test.AllTests" todir="${junit.reports}" />
 		</junit>
 	</target>
 	<!-- END Test targets -->
@@ -573,7 +574,7 @@
 		<property name="rapidminer.shortversion" value="${rapidminer.version}.${rapidminer.revision}" />
 		<property name="rapidminer.longversion" value="${rapidminer.version}.${rapidminer.revision}.${rapidminer.update}" />
 
-		<ant target="version.updateFiles" />
+		<!-- ant target="version.updateFiles" / -->
 	</target>
 
 	<target name="version.increaseUpdate" description="This might be called seperately to increase the update number of the version.">
@@ -589,37 +590,32 @@
 		<ant target="version.updateFiles" />
 	</target>
 
-	<target name="version.increaseRevision" description="This might be called seperately to increase the revision number of the version.">
-		<echo message="Increasing Revision..." />
-		<propertyfile file="build.properties">
-			<entry type="int" key="rapidminer.revision" operation="+" value="1" pattern="0" />
-			<entry type="int" key="rapidminer.update" operation="=" value="0" pattern="000" />
-		</propertyfile>
-
+	<target name="version.updateFiles">
 		<property name="rapidminer.shortversion" value="${rapidminer.version}.${rapidminer.revision}" />
 		<property name="rapidminer.longversion" value="${rapidminer.version}.${rapidminer.revision}.${rapidminer.update}" />
 
-		<ant target="version.updateFiles" />
-	</target>
-	<target name="version.updateFiles">
 		<!-- Installer version-->
-		<mkdir dir="installation"/>
+		<mkdir dir="installation" />
 		<echo file="installation/version.nsi">
             !define SHORT_VERSION ${rapidminer.shortversion}
             !define LONG_VERSION ${rapidminer.longversion}.0
         </echo>
 
 		<!-- Version.java -->
-		<delete file="${src}/com/rapidminer/RapidMinerVersion.java" />
+		<replaceregexp file="${src}/com/rapidminer/RapidMinerVersion.java" 
+			match="VERSION_STRING = &quot;(.*)&quot;;" 
+			replace="VERSION_STRING = &quot;${rapidminer.longversion}&quot;;" />
 		<echo message="Updating to version ${rapidminer.longversion}" />
-		<copy file="${license}" tofile="${src}/com/rapidminer/RapidMinerVersion.java" />
+		<!--
+		<delete file="${src}/com/rapidminer/RapidMinerVersion.java" />
+		<copy file="${license}" tofile="${src}/com/rapidminer/RapidMinerVersion.java" />		
 		<echo file="${src}/com/rapidminer/RapidMinerVersion.java" append="true">package com.rapidminer;
 			import com.rapidminer.gui.tools.VersionNumber;
 			/** This
            class is generated by the ant target &quot;version.updateFiles&quot; to ensure the correct
            version number in RapidMiner. */ public class RapidMinerVersion extends VersionNumber { 
 			public RapidMinerVersion() {super("${rapidminer.longversion}");}
-			}</echo>
+			}</echo>-->
 	</target>
 
 

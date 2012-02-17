@@ -378,6 +378,7 @@ public class ScatterTemplate extends PlotterTemplate {
 		plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.BOTTOM);
 		plotConfiguration.setFrameBackgroundColor(ColorRGB.convertToColor(styleProvider.getFrameBackgroundColor()));
 		plotConfiguration.setPlotBackgroundColor(ColorRGB.convertToColor(styleProvider.getPlotBackgroundColor()));
+		plotConfiguration.setTitleText(styleProvider.getTitleText());
 		
 		// continue event processing
 		plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);

@@ -92,6 +92,10 @@ public abstract class AbstractConfigurationPanel extends JPanel implements PlotC
 			informPlotInstanceChangeListener(oldPlotInstance, instance, type);
 		}
 	}
+	
+	protected DatasetTransformationType getCurrentTranformationType() {
+		return currentType;
+	}
 
 	protected void addPlotInstanceChangeListener(PlotInstanceChangedListener l) {
 		plotInstanceChangeListener.add(l);

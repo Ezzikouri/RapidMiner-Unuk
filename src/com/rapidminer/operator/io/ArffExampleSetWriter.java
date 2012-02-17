@@ -22,9 +22,7 @@
  */
 package com.rapidminer.operator.io;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Iterator;
@@ -36,9 +34,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.ParameterType;
-import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.tools.io.Encoding;
 
 
@@ -51,7 +47,7 @@ import com.rapidminer.tools.io.Encoding;
  * @rapidminer.index arff
  * @author Ingo Mierswa
  */
-public class ArffExampleSetWriter extends AbstractExampleSetWriter {
+public class ArffExampleSetWriter extends AbstractStreamWriter {
 
     /** The parameter name for &quot;File to save the example set to.&quot; */
     public static final String PARAMETER_EXAMPLE_SET_FILE = "example_set_file";
@@ -59,7 +55,24 @@ public class ArffExampleSetWriter extends AbstractExampleSetWriter {
     public ArffExampleSetWriter(OperatorDescription description) {
         super(description);
     }
-
+    
+    
+    @Override
+	void writeStream(ExampleSet exampleSet, OutputStream outputStream)
+			throws OperatorException {
+    	PrintWriter out = null;
+    	try {
+            out = new PrintWriter(new OutputStreamWriter(outputStream, Encoding.getEncoding(this)));
+            writeArff(exampleSet, out);
+            out.flush();
+        } finally {
+			if (out != null) {
+				out.close();
+			}
+		}
+	}
+    
+/*
     @Override
     public ExampleSet write(ExampleSet exampleSet) throws OperatorException {
         try {
@@ -72,7 +85,7 @@ public class ArffExampleSetWriter extends AbstractExampleSetWriter {
             throw new UserError(this, e, 303, new Object[] { getParameterAsString(PARAMETER_EXAMPLE_SET_FILE), e.getMessage() });
         }
         return exampleSet;
-    }
+    }*/
 
     public static void writeArff(ExampleSet exampleSet, PrintWriter out) {
         // relation
@@ -139,8 +152,23 @@ public class ArffExampleSetWriter extends AbstractExampleSetWriter {
     @Override
     public List<ParameterType> getParameterTypes() {
         List<ParameterType> types = new LinkedList<ParameterType>();
-        types.add(new ParameterTypeFile(PARAMETER_EXAMPLE_SET_FILE, "File to save the example set to.", "arff", false));
+        types.add(makeFileParameterType());
+        //types.add(new ParameterTypeFile(PARAMETER_EXAMPLE_SET_FILE, "File to save the example set to.", "arff", false));
         types.addAll(super.getParameterTypes());
         return types;
     }
+
+	@Override
+	String getFileExtension() {
+		// TODO Auto-generated method stub
+		return "arff";
+	}
+
+	@Override
+	String getFileParameterName() {
+		// TODO Auto-generated method stub
+		return PARAMETER_EXAMPLE_SET_FILE;
+	}
+
+	
 }

@@ -88,6 +88,21 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 
 		setMouseWheelEnabled(false);
 	}
+	
+	public LinkAndBrushChartPanel(JFreeChart chart, int defaultWidth, int defaultHeigth, int minDrawWidth, int minDrawHeigth, boolean zoomOnLinkAndBrush, boolean useBuffer) {
+		super(chart, defaultWidth, defaultHeigth, minDrawWidth, minDrawHeigth, DEFAULT_MAXIMUM_DRAW_WIDTH, DEFAULT_MAXIMUM_DRAW_HEIGHT, 
+				useBuffer, 
+				false,  // copy
+				false,  // properties
+				false,  // save
+				false,  // print
+				false,  // zoom
+				true);   // tooltips
+
+		this.zoomOnLinkAndBrushSelection = zoomOnLinkAndBrush;
+
+		setMouseWheelEnabled(false);
+	}
 
 	/**
 	 * Restores the auto-range calculation on both axes.

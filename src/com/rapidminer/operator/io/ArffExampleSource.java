@@ -23,6 +23,7 @@
 package com.rapidminer.operator.io;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -41,8 +42,11 @@ import java.util.Set;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.nio.model.FilePortHandler;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.Port;
 import com.rapidminer.parameter.ParameterType;
-import com.rapidminer.parameter.ParameterTypeFile;
+import com.rapidminer.parameter.PortProvider;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.StrictDecimalFormat;
 import com.rapidminer.tools.Tools;
@@ -110,6 +114,9 @@ public class ArffExampleSource extends AbstractDataReader {
 
 	/** The parameter name for &quot;The path to the data file.&quot; */
 	public static final String PARAMETER_DATA_FILE = "data_file";
+	
+	private InputPort fileInputPort = getInputPorts().createPort("file");
+	private FilePortHandler filePortHandler = new FilePortHandler(this, fileInputPort, PARAMETER_DATA_FILE);
 
 	static {
 		AbstractReader.registerReaderDescription(new ReaderDescription("arff", ArffExampleSource.class, PARAMETER_DATA_FILE));
@@ -135,7 +142,8 @@ public class ArffExampleSource extends AbstractDataReader {
 			private String[] tokens = null;
 			
 			{
-				inputStream = getParameterAsInputStream(PARAMETER_DATA_FILE);
+				//inputStream = getParameterAsInputStream(PARAMETER_DATA_FILE);
+				inputStream = new FileInputStream(filePortHandler.getSelectedFile());
 				in = new BufferedReader(new InputStreamReader(inputStream, Encoding.getEncoding(ArffExampleSource.this)));
 				tokenizer = createTokenizer(in);
 
@@ -365,7 +373,13 @@ public class ArffExampleSource extends AbstractDataReader {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = new LinkedList<ParameterType>();
-		types.add(new ParameterTypeFile(PARAMETER_DATA_FILE, "The path to the data file.", "arff", false));
+		//types.add(new ParameterTypeFile(PARAMETER_DATA_FILE, "The path to the data file.", "arff", false));
+		types.add(FilePortHandler.makeFileParameterType(this, PARAMETER_DATA_FILE, "arff", new PortProvider() {
+			@Override
+			public Port getPort() {			
+				return fileInputPort;
+			}
+		}));
 		types.addAll(super.getParameterTypes());
 		types.addAll(StrictDecimalFormat.getParameterTypes(this));
 		return types;

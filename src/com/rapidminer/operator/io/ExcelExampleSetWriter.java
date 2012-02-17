@@ -23,7 +23,6 @@
 package com.rapidminer.operator.io;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
@@ -52,7 +51,6 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.ParameterType;
-import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.tools.DateParser;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.io.Encoding;
@@ -64,7 +62,7 @@ import com.rapidminer.tools.io.Encoding;
  *
  * @author Ingo Mierswa
  */
-public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
+public class ExcelExampleSetWriter extends AbstractStreamWriter {
 
 	/** The parameter name for &quot;The Excel spreadsheet file which should be written.&quot; */
 	public static final String PARAMETER_EXCEL_FILE = "excel_file";
@@ -72,7 +70,7 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 	public ExcelExampleSetWriter(OperatorDescription description) {
 		super(description);
 	}
-	
+	/*
 	@Override
 	public ExampleSet write(ExampleSet exampleSet) throws OperatorException {		
 		File file = getParameterAsFile(PARAMETER_EXCEL_FILE, true);
@@ -94,7 +92,7 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 			throw new UserError(this, 303, file.getName(), e.getMessage());
 		}
 		return exampleSet;
-	}
+	}*/
 	
 	public static void write(ExampleSet exampleSet, Charset encoding, OutputStream out) throws IOException, WriteException {
 		try {
@@ -171,8 +169,43 @@ public class ExcelExampleSetWriter extends AbstractExampleSetWriter {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeFile(PARAMETER_EXCEL_FILE, "The Excel spreadsheet file which should be written.", "xls", false));
+		types.add(makeFileParameterType());
 		types.addAll(Encoding.getParameterTypes(this));
 		return types;
+	}
+
+	@Override
+	String getFileExtension() {
+		// TODO Auto-generated method stub
+		return "xls";
+	}
+
+	@Override
+	String getFileParameterName() {
+		// TODO Auto-generated method stub
+		return PARAMETER_EXCEL_FILE;
+	}
+
+	@Override
+	void writeStream(ExampleSet exampleSet, OutputStream outputStream)
+			throws OperatorException {
+		// TODO Auto-generated method stub
+		File file = getParameterAsFile(PARAMETER_EXCEL_FILE, true);
+		
+		WorkbookSettings ws = new WorkbookSettings();
+		Charset encoding = Encoding.getEncoding(this);
+		ws.setEncoding(encoding.name());
+		ws.setLocale(Locale.US);
+
+		try {
+			write(exampleSet, encoding, outputStream);			
+//			WritableWorkbook workbook = Workbook.createWorkbook(file, ws);
+//			WritableSheet s = workbook.createSheet("RapidMiner Data", 0);
+//			writeDataSheet(s, exampleSet);
+//			workbook.write();
+//			workbook.close(); 
+		} catch (Exception e) {
+			throw new UserError(this, 303, file.getName(), e.getMessage());
+		}
 	}
 }

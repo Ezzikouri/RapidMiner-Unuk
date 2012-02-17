@@ -20,14 +20,32 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+package com.rapidminer.parameter.conditions;
 
-package com.rapidminer.test.utils;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.parameter.ParameterHandler;
+import com.rapidminer.parameter.PortProvider;
 
 /**
- * @author Marius Helf
+ * This condition checks whether an {@link OutputPort} of a {@link Operator} is connected or not.
+ * The condition is fulfilled if the {@link OutputPort} is NOT connected.
+ * 
+ * @author Nils Woehler
  *
  */
-public interface Asserter {
-	public void assertEquals(String message, Object expected, Object actual);
-	public Class<?> getAssertable();
+public class OutputPortNotConnectedCondition extends ParameterCondition {
+	
+	private PortProvider portProvider;
+
+    public OutputPortNotConnectedCondition(ParameterHandler handler, PortProvider portProvider, boolean becomeMandatory) {
+        super(handler, becomeMandatory);
+        this.portProvider = portProvider;
+    }
+
+	@Override
+	public boolean isConditionFullfilled() {
+		return !portProvider.getPort().isConnected();
+	}
+
 }

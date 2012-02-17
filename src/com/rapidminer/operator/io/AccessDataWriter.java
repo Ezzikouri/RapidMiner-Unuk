@@ -23,6 +23,7 @@
 package com.rapidminer.operator.io;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,7 +46,7 @@ import com.rapidminer.tools.jdbc.DatabaseHandler;
  * 
  * @author Tobias Malbrecht
  */
-public class AccessDataWriter extends AbstractExampleSetWriter {
+public class AccessDataWriter extends AbstractStreamWriter {
 	
 	public static final String PARAMETER_DATABASE_FILE = "database_file";
 
@@ -97,5 +98,24 @@ public class AccessDataWriter extends AbstractExampleSetWriter {
 		types.add(new ParameterTypeString(PARAMETER_TABLE_NAME, "The name of the table within the Access database to which the data set should be written.", false, false));
 		types.add(new ParameterTypeCategory(PARAMETER_OVERWRITE_MODE, "Indicates if an existing table should be overwritten or if data should be appended.", DatabaseHandler.OVERWRITE_MODES, DatabaseHandler.OVERWRITE_MODE_NONE));
 		return types;
+	}
+
+	@Override
+	String getFileExtension() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	String getFileParameterName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	void writeStream(ExampleSet exampleSet, OutputStream outputStream)
+			throws OperatorException {
+
+		
 	}
 }

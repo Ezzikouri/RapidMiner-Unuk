@@ -188,6 +188,20 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 
 		subscribeAtPlotInstance(plotInstance);
 	}
+	
+	public JFreeChartPlotEngine(PlotInstance plotInstanceForEngine, boolean zoomInOnSelection, boolean useBuffer) {
+
+		this.plotInstance = plotInstanceForEngine;
+		updatingChart = new AtomicBoolean(false);
+
+		chartPanel = new LinkAndBrushChartPanel(new JFreeChart(new CategoryPlot()), 50, 50, 50, 50, zoomInOnSelection, useBuffer);
+		chartPanel.setMinimumDrawWidth(50);
+		chartPanel.setMinimumDrawHeight(50);
+		chartPanel.setMaximumDrawWidth(10000);
+		chartPanel.setMaximumDrawHeight(10000);
+
+		subscribeAtPlotInstance(plotInstance);
+	}
 
 	private void subscribeAtPlotInstance(PlotInstance plotInstance) {
 		initializing = true;

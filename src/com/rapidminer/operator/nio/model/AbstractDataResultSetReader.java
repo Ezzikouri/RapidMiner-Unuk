@@ -23,7 +23,6 @@
 package com.rapidminer.operator.nio.model;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.NumberFormat;
@@ -38,9 +37,9 @@ import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.io.AbstractDataReader.AttributeColumn;
 import com.rapidminer.operator.io.AbstractExampleSource;
 import com.rapidminer.operator.io.ExampleSource;
+import com.rapidminer.operator.io.AbstractDataReader.AttributeColumn;
 import com.rapidminer.operator.nio.file.FileObject;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.Port;
@@ -60,7 +59,6 @@ import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.PortProvider;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
-import com.rapidminer.parameter.conditions.InputPortNotConnectedCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
 
@@ -105,10 +103,10 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	public static final String PARAMETER_ERROR_TOLERANT = "read_not_matching_values_as_missings";
 
 	private InputPort fileInputPort = getInputPorts().createPort("file");
+	private FilePortHandler filePortHandler = new FilePortHandler(this, fileInputPort, this.getFileParameterName());
 
 	public AbstractDataResultSetReader(OperatorDescription description) {
 		super(description);
-
 		fileInputPort.addPrecondition(new SimplePrecondition(fileInputPort, new MetaData(FileObject.class)) {
 			@Override
 			protected boolean isMandatory() {
@@ -190,37 +188,20 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	 *  Which of these options is chosen is determined by the parameter {@link #PARAMETER_DESTINATION_TYPE}. 
 	 *  */
 	public File getSelectedFile() throws OperatorException {
-		if(!fileInputPort.isConnected()){
-			return getParameterAsFile(getFileParameterName());
-		} else {
-			return fileInputPort.getData(FileObject.class).getFile();
-		}
+		return filePortHandler.getSelectedFile();
 	}
 
 
 	/** Same as {@link #getSelectedFile()}, but opens the stream. 
 	 *  */
 	public InputStream openSelectedFile() throws OperatorException, IOException {
-		if(!fileInputPort.isConnected()){
-			return new FileInputStream(getParameterAsFile(getFileParameterName()));
-		} else {
-			return fileInputPort.getData(FileObject.class).openStream();
-		}
+		return filePortHandler.openSelectedFile();
 	}
 
 	/** Same as {@link #getSelectedFile()}, but returns true if file is specified (in the respective way). 
 	 *  */
 	public boolean isFileSpecified() {
-		if(!fileInputPort.isConnected()){
-			return isParameterSet(getFileParameterName());
-		} else {
-			try {
-				return (fileInputPort.getData(IOObject.class) instanceof FileObject);
-			} catch (OperatorException e) {
-				return false;
-			}
-		}
-
+		return filePortHandler.isFileSpecified();
 	}
 
 	/** Returns the name of the {@link ParameterTypeFile} to be added through which the user
@@ -233,15 +214,12 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	/** Creates (but does not add) the file parameter named by {@link #getFileParameterName()} 
 	 *  that depends on whether or not {@link #fileInputPort} is connected. */
 	protected ParameterType makeFileParameterType() {
-		final ParameterTypeFile fileParam = new ParameterTypeFile(getFileParameterName(), "Name of the file to read the data from.", getFileExtension(), true);
-		fileParam.setExpert(false);
-		fileParam.registerDependencyCondition(new InputPortNotConnectedCondition(this, new PortProvider() {
+		return FilePortHandler.makeFileParameterType(this, getFileParameterName(), getFileExtension(), new PortProvider() {
 			@Override
 			public Port getPort() {
 				return fileInputPort;
 			}
-		}, true));
-		return fileParam;
+		});
 	}
 
 	@Override

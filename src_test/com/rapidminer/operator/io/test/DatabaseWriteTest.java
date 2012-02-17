@@ -10,6 +10,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -216,6 +217,12 @@ public class DatabaseWriteTest {
 	}
 	
 	private void testCreateTable(DatabaseRef connection, ExampleSet testSet, String testSetName) throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
+		testSet = (ExampleSet) testSet.clone();
+		// Make all non-special: Will be dropped by DB anyway
+		final Iterator<AttributeRole> allAttributeRoles = testSet.getAttributes().allAttributeRoles();
+		while (allAttributeRoles.hasNext()) {
+			allAttributeRoles.next().setSpecial(null);
+		}
 		final String driverClass = connection.getDriverClass();
 		if (driverClass != null) {
 			Class.forName(driverClass);

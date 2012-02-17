@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.io;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,12 +44,15 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.nio.model.FilePortHandler;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.Port;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
-import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.PortProvider;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.RandomGenerator;
 
@@ -158,6 +162,9 @@ public class XrffExampleSource extends AbstractExampleSource {
 
 	/** The parameter name for &quot;The exact number of samples which should be read (-1 = use sample ratio; if not -1, sample_ratio will not have any effect)&quot; */
 	public static final String PARAMETER_SAMPLE_SIZE = "sample_size";
+	
+	private InputPort fileInputPort = getInputPorts().createPort("file");
+	private FilePortHandler filePortHandler = new FilePortHandler(this, fileInputPort, PARAMETER_DATA_FILE);
 
 	public XrffExampleSource(OperatorDescription description) {
 		super(description);
@@ -176,7 +183,8 @@ public class XrffExampleSource extends AbstractExampleSource {
 		try {
 			Document document = null;
 			try {
-				document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(getParameterAsInputStream(PARAMETER_DATA_FILE));
+				//document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(getParameterAsInputStream(PARAMETER_DATA_FILE));
+				document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new FileInputStream(filePortHandler.getSelectedFile()));
 			} catch (SAXException e1) {
 				throw new IOException(e1.getMessage());
 			} catch (ParserConfigurationException e1) {
@@ -367,7 +375,14 @@ public class XrffExampleSource extends AbstractExampleSource {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		types.add(new ParameterTypeFile(PARAMETER_DATA_FILE, "The path to the data file.", "xrff", false));
+		//types.add(filePortHandler.makeFileParameterType());
+		types.add(FilePortHandler.makeFileParameterType(this, PARAMETER_DATA_FILE, "xrff", new PortProvider() {
+			@Override
+			public Port getPort() {			
+				return fileInputPort;
+			}
+		}));
+		//types.add(new ParameterTypeFile(PARAMETER_DATA_FILE, "The path to the data file.", "xrff", false));
 		types.add(new ParameterTypeString(PARAMETER_ID_ATTRIBUTE, "The (case sensitive) name of the id attribute"));
 		types.add(new ParameterTypeCategory(PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY));
 		types.add(new ParameterTypeString(PARAMETER_DECIMAL_POINT_CHARACTER, "Character that is used as decimal point.", "."));

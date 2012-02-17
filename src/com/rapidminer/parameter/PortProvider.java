@@ -27,7 +27,7 @@ import com.rapidminer.operator.ports.Port;
 
 
 /**
- * This interfaces provides the possibility to retrieve InputPorts during runtime
+ * This interfaces provides the possibility to retrieve Ports during runtime
  * to check for example if the {@link InputPort} is connected or not. 
  * 
  * 
@@ -36,7 +36,7 @@ import com.rapidminer.operator.ports.Port;
  */
 public interface PortProvider {
 
-	/** Returns the desired {@link InputPort}. */
+	/** Returns the desired {@link Port}. */
 	public Port getPort();
 	
 }

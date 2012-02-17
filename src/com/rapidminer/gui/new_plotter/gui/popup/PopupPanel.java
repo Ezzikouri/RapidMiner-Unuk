@@ -54,9 +54,10 @@ public class PopupPanel extends JPanel implements PropertyChangeListener { //, A
 	private static final String PERMANENT_FOCUS_OWNER = "permanentFocusOwner";
 
 	private Window containingWindow;
+	
+//	private Component owner;
 
 	public PopupPanel(Component comp) {
-
 		this.setLayout(new GridBagLayout());
 
 		GridBagConstraints itemConstraint = new GridBagConstraints();
@@ -94,21 +95,25 @@ public class PopupPanel extends JPanel implements PropertyChangeListener { //, A
 	 * 
 	 * @param containingWindow
 	 *            the window that contains the popup
+	 * @param actionSource 
 	 */
-	public void startTracking(Window containingWindow) {
+	public void startTracking(Window containingWindow, Component actionSource) {
 		this.containingWindow = containingWindow;
+//		this.owner = actionSource;
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(PERMANENT_FOCUS_OWNER, this);
-//		Toolkit.getDefaultToolkit().addAWTEventListener(this, AWTEvent.MOUSE_EVENT_MASK);
-
 	}
 
+	public void stopTracking() {
+		this.containingWindow = null;
+//		this.owner = null;
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(PERMANENT_FOCUS_OWNER, this);
+	}
+	
 	private void fireFocusLost() {
 		for (PopupComponentListener l : listenerList) {
 			l.focusLost();
 		}
-		this.containingWindow = null;
-		KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(PERMANENT_FOCUS_OWNER, this);
-//		Toolkit.getDefaultToolkit().removeAWTEventListener(this);
+		stopTracking();
 	}
 
 	/**
@@ -118,6 +123,9 @@ public class PopupPanel extends JPanel implements PropertyChangeListener { //, A
 		if(newFocusedComp instanceof Popup) {
 			return true;
 		}
+//		if(newFocusedComp == owner) {
+//			return true;
+//		}
 		if (newFocusedComp instanceof Component && !SwingUtilities.isDescendingFrom((Component)newFocusedComp, this)) {
 			//Check if focus is on other window
 			if (containingWindow == null) {

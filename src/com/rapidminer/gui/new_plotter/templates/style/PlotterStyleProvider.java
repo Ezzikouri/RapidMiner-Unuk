@@ -50,6 +50,12 @@ public abstract class PlotterStyleProvider extends Observable {
 	public abstract JPanel getStyleProviderPanel();
 	
 	/**
+	 * Returns the {@link String} which the user chose as the chart title.
+	 * @return
+	 */
+	public abstract String getTitleText();
+	
+	/**
 	 * Returns the {@link Font} which the user chose for the axes.
 	 * @return
 	 */
@@ -99,4 +105,11 @@ public abstract class PlotterStyleProvider extends Observable {
 	 * @param styleElement the {@link Element} where all settings are loaded from
 	 */
 	public abstract void loadFromXML(Element styleElement);
+	
+	/**
+	 * Uses all settings from the given {@link PlotterStyleProvider} to overwrite his own settings.
+	 * Does not overwrite the title text.
+	 * @param provider
+	 */
+	public abstract void copySettingsFromPlotterStyleProvider(PlotterStyleProvider provider);
 }

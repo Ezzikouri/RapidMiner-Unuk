@@ -89,8 +89,9 @@ public interface ExampleTable extends Serializable {
 	public void addAttributes(Collection<Attribute> newAttributes);
 
 	/**
-	 * Adds the attribute to the list of attributes assigning it a free column
+	 * Adds a clone of the attribute <code>a</code> to the list of attributes assigning it a free column
 	 * index.
+	 * The column index is also set on <code>a</code>.
 	 */
 	public int addAttribute(Attribute a);
 

@@ -22,6 +22,7 @@
  */
 package com.rapidminer.gui.new_plotter.templates.style;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -29,16 +30,23 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import com.rapidminer.gui.new_plotter.gui.FontDialog;
+import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
+import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.tools.I18N;
 
 /**
@@ -49,6 +57,15 @@ import com.rapidminer.tools.I18N;
  */
 public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 	
+	/** the panel containing all style settings GUI elements */
+	private JPanel stylePanel;
+	
+	/** the label with the style provider description text */
+	private JLabel descriptionLabel;
+	
+	/** the field to input a chart title */
+	private JTextField titleField;
+	
 	/** the axes font change button */
 	private JButton axesFontButton;
 	
@@ -57,6 +74,12 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 	
 	/** the title font change button */
 	private JButton titleFontButton;
+	
+	/** the plot background color button */
+	private JButton plotBackgroundColorButton;
+	
+	/** the frame background color button */
+	private JButton frameBackgroundColorButton;
 	
 	/** the combo box containing the color schemes */
 	private JComboBox colorSchemeComboBox;
@@ -71,71 +94,80 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 	 */
 	public DefaultPlotterStyleProviderGUI(final DefaultPlotterStyleProvider defaultStyleProvider) {
 		defaultStyleProvider.addObserver(this);
+		Dimension prefDimension = new Dimension(120, 25);
 		final Font axesFont = defaultStyleProvider.getAxesFont();
 		final Font titleFont = defaultStyleProvider.getTitleFont();
 		final Font legendFont = defaultStyleProvider.getLegendFont();
 		
 		this.setLayout(new GridBagLayout());
-		GridBagConstraints gbc = new GridBagConstraints();
+		GridBagConstraints outerPanelGBC = new GridBagConstraints();
+		GridBagConstraints stylePanelGBC = new GridBagConstraints();
 		
 		// start layout
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.anchor = GridBagConstraints.WEST;
-		gbc.insets = new Insets(5, 5, 5, 5);
-		gbc.fill = GridBagConstraints.NONE;
-		gbc.weightx = 0;
-		gbc.weighty = 0;
-		JLabel descriptionLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.description.label"));
-		this.add(descriptionLabel, gbc);
+		outerPanelGBC.gridx = 0;
+		outerPanelGBC.gridy = 0;
+		outerPanelGBC.insets = new Insets(2, 0, 5, 0);
+		outerPanelGBC.anchor = GridBagConstraints.NORTH;
+		outerPanelGBC.fill = GridBagConstraints.HORIZONTAL;
+		outerPanelGBC.weightx = 1;
+		outerPanelGBC.weighty = 0;
+		descriptionLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.description.label"));
+		descriptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		this.add(descriptionLabel, outerPanelGBC);
 		
-		gbc.gridx = 0;
-		gbc.gridy = 2;
-		gbc.weightx = 0;
-		gbc.fill = GridBagConstraints.NONE;
-		gbc.gridwidth = 1;
-		JLabel axesLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.axes.label"));
-		this.add(axesLabel, gbc);
+		stylePanel = new JPanel();
+		stylePanel.setLayout(new GridBagLayout());
 		
-		gbc.gridx = 1;
-		gbc.gridy = 2;
-		gbc.weightx = 1;
-		axesFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
-		axesFontButton.setFont(new Font(axesFont.getFamily(), axesFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
-		axesFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.axes.tip"));
-		axesFontButton.setPreferredSize(new Dimension(120, 30));
-		axesFontButton.addActionListener(new ActionListener() {
+		stylePanelGBC.gridx = 0;
+		stylePanelGBC.gridy = 1;
+		stylePanelGBC.weightx = 0;
+		stylePanelGBC.weighty = 0;
+		stylePanelGBC.insets = new Insets(5, 2, 5, 2);
+		stylePanelGBC.anchor = GridBagConstraints.WEST;
+		stylePanelGBC.fill = GridBagConstraints.NONE;
+		JLabel titleLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.title.label"));
+		stylePanel.add(titleLabel, stylePanelGBC);
+		
+		stylePanelGBC.gridx = 1;
+		stylePanelGBC.gridy = 1;
+		stylePanelGBC.weightx = 1;
+		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
+		titleField = new JTextField();
+		titleField.addFocusListener(new FocusAdapter() {
+			
+			@Override
+			public void focusLost(FocusEvent e) {
+				// update title when focus is lost
+				defaultStyleProvider.setTitleText(titleField.getText());
+			}
+		});
+		titleField.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				FontDialog fontDialog = new FontDialog(null, defaultStyleProvider.getAxesFont(), "select_font");
-				fontDialog.setVisible(true);
-				fontDialog.requestFocusInWindow();
-				if (fontDialog.getReturnStatus() == FontDialog.RET_OK) {
-					if (fontDialog.getFont() != null) {
-						Font axesFont = fontDialog.getFont();
-						defaultStyleProvider.setAxesFont(axesFont);
-						axesFontButton.setFont(new Font(axesFont.getName(), axesFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
-					}
-				}
-				fontDialog.dispose();
+				// update title when ENTER is pressed
+				defaultStyleProvider.setTitleText(titleField.getText());
 			}
 		});
-		this.add(axesFontButton, gbc);
+		titleField.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.title.tip"));
+		titleField.setPreferredSize(prefDimension);
+		stylePanel.add(titleField, stylePanelGBC);
 		
-		gbc.gridx = 0;
-		gbc.gridy = 3;
-		gbc.weightx = 0;
-		JLabel titleLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.title.label"));
-		this.add(titleLabel, gbc);
+		stylePanelGBC.gridx = 0;
+		stylePanelGBC.gridy = 2;
+		stylePanelGBC.weightx = 0;
+		stylePanelGBC.fill = GridBagConstraints.NONE;
+		JLabel titleFontLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.title.label"));
+		stylePanel.add(titleFontLabel, stylePanelGBC);
 		
-		gbc.gridx = 1;
-		gbc.gridy = 3;
-		gbc.weightx = 1;
+		stylePanelGBC.gridx = 1;
+		stylePanelGBC.gridy = 2;
+		stylePanelGBC.weightx = 1;
+		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
 		titleFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
 		titleFontButton.setFont(new Font(titleFont.getFamily(), titleFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 		titleFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.title.tip"));
-		titleFontButton.setPreferredSize(new Dimension(120, 30));
+		titleFontButton.setPreferredSize(prefDimension);
 		titleFontButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -153,21 +185,57 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 				fontDialog.dispose();
 			}
 		});
-		this.add(titleFontButton, gbc);
+		stylePanel.add(titleFontButton, stylePanelGBC);
 		
-		gbc.gridx = 0;
-		gbc.gridy = 4;
-		gbc.weightx = 0;
-		JLabel legendLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.legend.label"));
-		this.add(legendLabel, gbc);
+		stylePanelGBC.gridx = 0;
+		stylePanelGBC.gridy = 3;
+		stylePanelGBC.weightx = 0;
+		stylePanelGBC.fill = GridBagConstraints.NONE;
+		JLabel axesFontLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.axes.label"));
+		stylePanel.add(axesFontLabel, stylePanelGBC);
 		
-		gbc.gridx = 1;
-		gbc.gridy = 4;
-		gbc.weightx = 1;
+		stylePanelGBC.gridx = 1;
+		stylePanelGBC.gridy = 3;
+		stylePanelGBC.weightx = 1;
+		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
+		axesFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
+		axesFontButton.setFont(new Font(axesFont.getFamily(), axesFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
+		axesFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.axes.tip"));
+		axesFontButton.setPreferredSize(prefDimension);
+		axesFontButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FontDialog fontDialog = new FontDialog(null, defaultStyleProvider.getAxesFont(), "select_font");
+				fontDialog.setVisible(true);
+				fontDialog.requestFocusInWindow();
+				if (fontDialog.getReturnStatus() == FontDialog.RET_OK) {
+					if (fontDialog.getFont() != null) {
+						Font axesFont = fontDialog.getFont();
+						defaultStyleProvider.setAxesFont(axesFont);
+						axesFontButton.setFont(new Font(axesFont.getName(), axesFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
+					}
+				}
+				fontDialog.dispose();
+			}
+		});
+		stylePanel.add(axesFontButton, stylePanelGBC);
+		
+		stylePanelGBC.gridx = 0;
+		stylePanelGBC.gridy = 4;
+		stylePanelGBC.weightx = 0;
+		stylePanelGBC.fill = GridBagConstraints.NONE;
+		JLabel legendFontLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.legend.label"));
+		stylePanel.add(legendFontLabel, stylePanelGBC);
+		
+		stylePanelGBC.gridx = 1;
+		stylePanelGBC.gridy = 4;
+		stylePanelGBC.weightx = 1;
+		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
 		legendFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
 		legendFontButton.setFont(new Font(legendFont.getFamily(), legendFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 		legendFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.legend.tip"));
-		legendFontButton.setPreferredSize(new Dimension(120, 30));
+		legendFontButton.setPreferredSize(prefDimension);
 		legendFontButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -185,20 +253,22 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 				fontDialog.dispose();
 			}
 		});
-		this.add(legendFontButton, gbc);
+		stylePanel.add(legendFontButton, stylePanelGBC);
 		
-		gbc.gridx = 0;
-		gbc.gridy = 5;
-		gbc.weightx = 0;
+		stylePanelGBC.gridx = 0;
+		stylePanelGBC.gridy = 5;
+		stylePanelGBC.weightx = 0;
+		stylePanelGBC.fill = GridBagConstraints.NONE;
 		JLabel colorLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.colorscheme.label"));
-		this.add(colorLabel, gbc);
+		stylePanel.add(colorLabel, stylePanelGBC);
 		
-		gbc.gridx = 1;
-		gbc.gridy = 5;
-		gbc.weightx = 1;
+		stylePanelGBC.gridx = 1;
+		stylePanelGBC.gridy = 5;
+		stylePanelGBC.weightx = 1;
+		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
 		colorSchemeComboBox = new JComboBox(defaultStyleProvider.getColorSchemes().toArray());
 		colorSchemeComboBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.colorscheme.tip"));
-		colorSchemeComboBox.setPreferredSize(new Dimension(120, 30));
+		colorSchemeComboBox.setPreferredSize(prefDimension);
 		colorSchemeComboBox.addActionListener(new ActionListener() {
 			
 			@Override
@@ -206,18 +276,98 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 				defaultStyleProvider.setSelectedColorSchemeIndex(colorSchemeComboBox.getSelectedIndex());
 			}
 		});
-		this.add(colorSchemeComboBox, gbc);
+		stylePanel.add(colorSchemeComboBox, stylePanelGBC);
+		
+		JLabel plotBackgroundColorLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.plot_bg_color.label"));
+		stylePanelGBC.gridx = 0;
+		stylePanelGBC.gridy = 6;
+		stylePanelGBC.weightx = 0;
+		stylePanelGBC.fill = GridBagConstraints.NONE;
+		stylePanel.add(plotBackgroundColorLabel, stylePanelGBC);
+		
+		stylePanelGBC.gridx = 1;
+		stylePanelGBC.gridy = 6;
+		stylePanelGBC.weightx = 1;
+		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
+		plotBackgroundColorButton = new JButton(new ResourceAction(true, "plotter.configuration_dialog.select_plot_color") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				createPlotBackgroundColorDialog(defaultStyleProvider);
+			}
+		});
+		plotBackgroundColorButton.setPreferredSize(prefDimension);
+		stylePanel.add(plotBackgroundColorButton, stylePanelGBC);
+		
+		JLabel frameBackgroundColorLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.frame_bg_color.label"));
+		stylePanelGBC.gridx = 0;
+		stylePanelGBC.gridy = 7;
+		stylePanelGBC.weightx = 0;
+		stylePanelGBC.fill = GridBagConstraints.NONE;
+		stylePanel.add(frameBackgroundColorLabel, stylePanelGBC);
+		
+		stylePanelGBC.gridx = 1;
+		stylePanelGBC.gridy = 7;
+		stylePanelGBC.weightx = 1;
+		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
+		frameBackgroundColorButton = new JButton(new ResourceAction(true, "plotter.configuration_dialog.select_frame_color") {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				createFrameBackgroundColorDialog(defaultStyleProvider);
+			}
+		});
+		frameBackgroundColorButton.setPreferredSize(prefDimension);
+		stylePanel.add(frameBackgroundColorButton, stylePanelGBC);
 		
 		// fill empty area
-		gbc.gridx = 0;
-		gbc.gridy = 999;
-		gbc.gridwidth = 2;
-		gbc.weightx = 1;
-		gbc.weighty = 1;
-		gbc.fill = GridBagConstraints.BOTH;
-		this.add(new JLabel(), gbc);
+		stylePanelGBC.gridx = 0;
+		stylePanelGBC.gridy = 999;
+		stylePanelGBC.gridwidth = 2;
+		stylePanelGBC.weightx = 1;
+		stylePanelGBC.weighty = 1;
+		stylePanelGBC.fill = GridBagConstraints.BOTH;
+		stylePanel.add(new JLabel(), stylePanelGBC);
+		
+		outerPanelGBC.gridx = 0;
+		outerPanelGBC.gridy = 1;
+		outerPanelGBC.fill = GridBagConstraints.BOTH;
+		outerPanelGBC.weightx = 1;
+		outerPanelGBC.weighty = 1;
+		this.add(stylePanel, stylePanelGBC);
 	}
-
+	
+	/**
+	 * Shows a dialog where the user can select the frame background color.
+	 */
+	private void createFrameBackgroundColorDialog(DefaultPlotterStyleProvider styleProvider) {
+		Color oldColor = ColorRGB.convertToColor(styleProvider.getFrameBackgroundColor());
+		if (oldColor == null) {
+			oldColor = Color.white;
+		}
+		Color newBackgroundColor = JColorChooser.showDialog(null, I18N.getGUILabel("plotter.configuration_dialog.global_config_panel.chart_background_color_title.label"), oldColor);
+		if (newBackgroundColor != null && !(newBackgroundColor.equals(oldColor))) {
+			styleProvider.setFrameBackgroundColor(ColorRGB.convertColorToColorRGB(newBackgroundColor));
+		}
+	}
+	
+	/**
+	 * Shows a dialog where the user can select the plot background color.
+	 */
+	private void createPlotBackgroundColorDialog(DefaultPlotterStyleProvider styleProvider) {
+		Color oldColor = ColorRGB.convertToColor(styleProvider.getPlotBackgroundColor());
+		if (oldColor == null) {
+			oldColor = Color.WHITE;
+		}
+		Color newBackgroundColor = JColorChooser.showDialog(null, I18N.getGUILabel("plotter.configuration_dialog.global_config_panel.plot_background_color_title.label"), oldColor);
+		if (newBackgroundColor != null && !(newBackgroundColor.equals(oldColor))) {
+			styleProvider.setPlotBackgroundColor(ColorRGB.convertColorToColorRGB(newBackgroundColor));
+		}
+	}
 
 	@Override
 	public void update(Observable o, Object arg) {
@@ -234,12 +384,13 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 				colorSchemeComboBox.addActionListener(l);
 			}
 			
-			
 			// update font buttons
 			axesFontButton.setFont(new Font(defaultStyleProvider.getAxesFont().getName(), defaultStyleProvider.getAxesFont().getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 			titleFontButton.setFont(new Font(defaultStyleProvider.getTitleFont().getName(), defaultStyleProvider.getTitleFont().getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 			legendFontButton.setFont(new Font(defaultStyleProvider.getLegendFont().getName(), defaultStyleProvider.getLegendFont().getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 			
+			// update title field
+			titleField.setText(defaultStyleProvider.getTitleText());
 		}
 	}
 

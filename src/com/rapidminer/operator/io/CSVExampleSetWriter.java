@@ -22,9 +22,6 @@
  */
 package com.rapidminer.operator.io;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.sql.Date;
@@ -38,10 +35,8 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
-import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.io.Encoding;
@@ -55,7 +50,7 @@ import com.rapidminer.tools.io.Encoding;
  * 
  * @author Ingo Mierswa
  */
-public class CSVExampleSetWriter extends AbstractExampleSetWriter {
+public class CSVExampleSetWriter extends AbstractStreamWriter {
 
 	/** The parameter name for &quot;The CSV file which should be written.&quot; */
 	public static final String PARAMETER_CSV_FILE = "csv_file";
@@ -85,17 +80,19 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 	}
 
 	@Override
-	public ExampleSet write(ExampleSet exampleSet) throws OperatorException {
+	public void writeStream(ExampleSet exampleSet,
+			java.io.OutputStream outputStream) throws OperatorException {
 		String columnSeparator = getParameterAsString(PARAMETER_COLUMN_SEPARATOR);
-		File file = getParameterAsFile(PARAMETER_CSV_FILE, true);
 		boolean quoteNominalValues = getParameterAsBoolean(PARAMETER_QUOTE_NOMINAL_VALUES);
 		PrintWriter out = null;
 		try {
-			out = new PrintWriter(new OutputStreamWriter(new FileOutputStream(file), Encoding.getEncoding(this)));
+			out = new PrintWriter(new OutputStreamWriter(outputStream, Encoding
+					.getEncoding(this)));
 
 			// write column names
 			if (getParameterAsBoolean(PARAMETER_WRITE_ATTRIBUTE_NAMES)) {
-				Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
+				Iterator<Attribute> a = exampleSet.getAttributes()
+						.allAttributes();
 				boolean first = true;
 				while (a.hasNext()) {
 					if (!first)
@@ -114,7 +111,8 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 
 			// write data
 			for (Example example : exampleSet) {
-				Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
+				Iterator<Attribute> a = exampleSet.getAttributes()
+						.allAttributes();
 				boolean first = true;
 				while (a.hasNext()) {
 					Attribute attribute = a.next();
@@ -122,7 +120,8 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 						out.print(columnSeparator);
 					if (!Double.isNaN(example.getValue(attribute))) {
 						if (attribute.isNominal()) {
-							String stringValue = example.getValueAsString(attribute);
+							String stringValue = example
+									.getValueAsString(attribute);
 							if (quoteNominalValues) {
 								stringValue = stringValue.replaceAll("\"", "'");
 								stringValue = "\"" + stringValue + "\"";
@@ -130,10 +129,12 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 							out.print(stringValue);
 						} else {
 							Double value = example.getValue(attribute);
-							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute
+									.getValueType(), Ontology.DATE_TIME)) {
 								if (getParameterAsBoolean(PARAMETER_FORMAT_DATE)) {
 									Date date = new Date(value.longValue());
-									String s = DateFormat.getInstance().format(date);
+									String s = DateFormat.getInstance().format(
+											date);
 									out.print(s);
 								} else {
 									out.print(value);
@@ -148,15 +149,11 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 				}
 				out.println();
 			}
-		} catch (FileNotFoundException e) {
-			throw new UserError(this, 301, file.getName());
 		} finally {
 			if (out != null) {
 				out.close();
 			}
 		}
-
-		return exampleSet;
 	}
 
 	@Override
@@ -167,12 +164,21 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = new LinkedList<ParameterType>();
-		types.add(new ParameterTypeFile(PARAMETER_CSV_FILE, "The CSV file which should be written.", "csv", false));
-		types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATOR, "The column separator.", ";", false));
-		types.add(new ParameterTypeBoolean(PARAMETER_WRITE_ATTRIBUTE_NAMES,
-				"Indicates if the attribute names should be written as first row.", true, false));
-		types.add(new ParameterTypeBoolean(PARAMETER_QUOTE_NOMINAL_VALUES,
-				"Indicates if nominal values should be quoted with double quotes.", true, false));
+		types.add(makeFileParameterType());
+		// types.add(new ParameterTypeFile(PARAMETER_CSV_FILE,
+		// "The CSV file which should be written.", "csv", false));
+		types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATOR,
+				"The column separator.", ";", false));
+		types
+				.add(new ParameterTypeBoolean(
+						PARAMETER_WRITE_ATTRIBUTE_NAMES,
+						"Indicates if the attribute names should be written as first row.",
+						true, false));
+		types
+				.add(new ParameterTypeBoolean(
+						PARAMETER_QUOTE_NOMINAL_VALUES,
+						"Indicates if nominal values should be quoted with double quotes.",
+						true, false));
 		types
 				.add(new ParameterTypeBoolean(
 						PARAMETER_FORMAT_DATE,
@@ -180,5 +186,17 @@ public class CSVExampleSetWriter extends AbstractExampleSetWriter {
 						true, true));
 		types.addAll(super.getParameterTypes());
 		return types;
+	}
+
+	@Override
+	String getFileParameterName() {
+		// TODO Auto-generated method stub
+		return PARAMETER_CSV_FILE;
+	}
+
+	@Override
+	String getFileExtension() {
+		// TODO Auto-generated method stub
+		return "csv";
 	}
 }

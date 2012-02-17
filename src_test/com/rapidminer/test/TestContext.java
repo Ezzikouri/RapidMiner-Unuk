@@ -150,7 +150,7 @@ public class TestContext {
 
 	            try {
 	            	if (repositoryUrl!=null&&repositoryLocation!=null&&repositoryUser!=null&&repositoryPassword!=null) {
-	            		setRepository(new RemoteRepository(new URL(repositoryUrl), REPOSITORY_ALIAS, repositoryUser, repositoryPassword.toCharArray(), false));
+						setRepository(new RemoteRepository(new URL(repositoryUrl), REPOSITORY_ALIAS, repositoryUser, repositoryPassword.toCharArray(), true));
 	            		setRepositoryLocation(new RepositoryLocation(repositoryLocation));
 	            		RepositoryManager.getInstance(null).addRepository(getRepository());
 	            		setRepositoryPresent(true);

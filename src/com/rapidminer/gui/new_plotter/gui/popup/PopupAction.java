@@ -32,11 +32,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+import javax.swing.JDialog;
 import javax.swing.JToggleButton;
-import javax.swing.Popup;
-import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
 
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 
 /**
@@ -65,38 +65,40 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 	public enum PopupPosition {
 		HORIZONTAL, VERTICAL
 	}
-	
-//	private class ContainerPopupMenu extends ContainerPopup {
-//
-//		private static final long serialVersionUID = 1L;
-//		
-//		public ContainerPopupMenu(Component invoker, Component comp, Point point) {
-//			super()
-//			this.add(comp);
-//			this.setLocation(point);
-//			this.setBorder(new JPopupMenu().getBorder());
-//			this.setInvoker(invoker);
-//			this.setBorderPainted(true);
-//			this.setUndecorated(true);
-//			this.setAlwaysOnTop(true);
-//			this.setLightWeightPopupEnabled(false);
-//		}
-//		
-//	}
+
+	private class ContainerPopupDialog extends JDialog {
+
+		private static final long serialVersionUID = 1L;
+
+		public ContainerPopupDialog(Window owner, Component comp, Point point) {
+			super(owner != null ? owner : RapidMinerGUI.getMainFrame());
+			this.add(comp);
+			this.setLocation(point);
+			//			this.setBorder(new JPopupMenu().getBorder());
+			//			this.setInvoker(invoker);
+			//			this.setBorderPainted(true);
+			this.setUndecorated(true);
+			//			this.setLightWeightPopupEnabled(false);
+			pack();
+		}
+
+	}
 
 	private static final long serialVersionUID = 1L;
 
 	private final PopupPanel popupComponent;
 	private Component actionSource = null;
 
-	private Popup popup = null;
+	private ContainerPopupDialog popup = null;
 
 	private PopupPosition position = PopupPosition.VERTICAL;
 
 	private static final int BORDER_OFFSET = 9;
 
 	private Window containingWindow;
-
+	
+	private long hideTime = 0;
+	
 	public PopupAction(boolean smallIcon, String i18nKey, Component component, Object... i18nArgs) {
 		super(smallIcon, i18nKey, i18nArgs);
 
@@ -127,12 +129,17 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 
 	@Override
 	public synchronized void actionPerformed(ActionEvent e) {
-
-		if (hidePopup()) {
-			return;
+		if(System.currentTimeMillis()-hideTime > 150) {
+			if (hidePopup()) {
+				return;
+			}
+			showPopup((Component) e.getSource());
+		} else {
+			Object source = e.getSource();
+			if(source instanceof JToggleButton) {
+				((JToggleButton) e.getSource()).setSelected(false);
+			}
 		}
-
-		showPopup((Component) e.getSource());
 	}
 
 	private Point calculatePosition(Component source) {
@@ -209,71 +216,56 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 	 */
 	private void showPopup(Component source) {
 
+		actionSource = source;
+		actionSource.addComponentListener(this);
+		
 		if (actionSource instanceof JToggleButton) {
 			JToggleButton toggleSource = (JToggleButton) actionSource;
 			toggleSource.setSelected(true);
 		}
 
-		actionSource = source;
-		actionSource.addComponentListener(this);
-
 		containingWindow = SwingUtilities.windowForComponent(actionSource);
 		containingWindow.addComponentListener(this);
-		
+
 		Point position = calculatePosition(source);
+		popupComponent.setLocation(position);
 		popupComponent.setVisible(true);
-//		JDialog invoker = new JDialog();
-//		invoker.setVisible(true);
-//		invoker.setUndecorated(true);
-//invoker.addFocusListener(new FocusListener() {
-//            
-//            @Override
-//            public void focusLost(FocusEvent e) {
-//                popup.setVisible(false);
-//                invoker.setVisible(false);
-//            }
-//            
-//            @Override
-//            public void focusGained(FocusEvent e) {
-//                popup.setVisible(true);
-//                invoker.setVisible(true);
-//            }
-//        });
-		popup = PopupFactory.getSharedInstance().getPopup(containingWindow, popupComponent, position.x, position.y);
-//		popup.setVisible(true);
-		popup.show();
-//		popup.requestFocus();
-		popupComponent.startTracking(containingWindow);
+		popup = new ContainerPopupDialog(containingWindow, popupComponent, position);
+		popup.setVisible(true);
+		popup.requestFocus();
+		popupComponent.startTracking(containingWindow, actionSource);
 	}
 
 	/**
 	 * Hides the popup component.
 	 */
 	private boolean hidePopup() {
-
 		if (actionSource instanceof JToggleButton) {
 			JToggleButton toggleSource = (JToggleButton) actionSource;
 			toggleSource.setSelected(false);
 		}
 
-		if(containingWindow!=null) {
+		if (containingWindow != null) {
 			containingWindow.removeComponentListener(this);
 			containingWindow = null;
 		}
-		
-		if(actionSource != null) {
+
+		if (actionSource != null) {
 			actionSource.removeComponentListener(this);
 			actionSource = null;
 		}
+
 		
 		// Check if popup is visible
 		if (popup != null) {
 			popupComponent.setVisible(false);
+			popupComponent.stopTracking();
+
 			// hide popup and reset
-//			popup.setVisible(false);
-			popup.hide();
+			popup.dispose();
 			popup = null;
 
+			hideTime = System.currentTimeMillis();
 			return true;
 		}
 
@@ -282,12 +274,15 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 
 	@Override
 	public void focusLost() {
-
-		// if the action source got the 
-		if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() == actionSource) {
-			return;
-		}
-
+		
+//		// if the action source got the focus just return
+//		if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() == actionSource) {
+//			if(actionSource instanceof JToggleButton) {
+//				((JToggleButton) actionSource).setSelected(false);
+//			}
+//			return;
+//		}
+		
 		hidePopup();
 	}
 

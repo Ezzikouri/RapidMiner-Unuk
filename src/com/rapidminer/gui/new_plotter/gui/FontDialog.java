@@ -104,7 +104,7 @@ public class FontDialog extends ButtonDialog {
 	public FontDialog(Component parent, Font font, String i18nKey) {
 		super(i18nKey, true);
 		this.font = font;
-
+		
 		this.setResizable(false);
 		this.addWindowListener(new WindowAdapter() {
 
@@ -394,7 +394,6 @@ public class FontDialog extends ButtonDialog {
 
 	private void okayButtonPerformed() {
 		doClose(RET_OK);
-
 	}
 
 	public Font getFont() {
@@ -444,6 +443,7 @@ public class FontDialog extends ButtonDialog {
 	private void doClose(int retStatus) {
 		returnStatus = retStatus;
 		setVisible(false);
+		dispose();
 	}
 
 	public int getReturnStatus() {

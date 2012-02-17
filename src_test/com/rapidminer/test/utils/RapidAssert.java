@@ -1,8 +1,13 @@
 package com.rapidminer.test.utils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.MessageFormat;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
@@ -17,9 +22,13 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.IOObjectCollection;
+import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.nio.file.FileObject;
 import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.operator.visualization.dependencies.NumericalMatrix;
+import com.rapidminer.tools.Ontology;
+import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.math.Averagable;
 import com.rapidminer.tools.math.AverageVector;
 
@@ -41,7 +50,7 @@ public class RapidAssert extends Assert {
 	 * init asserter registry
 	 */
 	static {
-		ASSERTER_REGISTRY.registerAsserter(PerformanceCriterion.class, new Asserter<PerformanceCriterion>() {
+		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
 			/**
 			 * Tests for equality by testing all averages, standard deviation and variances, as well as the fitness, max fitness 
 			 * and example count.
@@ -51,17 +60,25 @@ public class RapidAssert extends Assert {
 			 * @param actual		actual criterion
 			 */
 			@Override
-			public void assertEquals(String message, PerformanceCriterion expected, PerformanceCriterion actual) {
-				Asserter<? super Averagable> averegableAsserter = ASSERTER_REGISTRY.getAsserterForClass(Averagable.class);
+			public void assertEquals(String message, Object expectedObj, Object actualObj) {
+				PerformanceCriterion expected = (PerformanceCriterion) expectedObj;
+				PerformanceCriterion actual = (PerformanceCriterion) actualObj;
+				
+				Asserter averegableAsserter = ASSERTER_REGISTRY.getAsserterForClass(Averagable.class);
 				averegableAsserter.assertEquals(message , (Averagable)expected, (Averagable)actual);
 				Assert.assertEquals(message + " (fitness is not equal)", expected.getFitness(), actual.getFitness());
 				Assert.assertEquals(message + " (max fitness is not equal)", expected.getMaxFitness(), actual.getMaxFitness());
 				Assert.assertEquals(message + " (example count is not equal)", expected.getExampleCount(), actual.getExampleCount());
 			}
+
+			@Override
+			public Class<?> getAssertable() {
+				return PerformanceCriterion.class;
+			}
 		});
 		
 		
-		ASSERTER_REGISTRY.registerAsserter(Averagable.class, new Asserter<Averagable>() {
+		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
 
 			/**
 			 * Tests for equality by testing all averages, standard deviation and variances.
@@ -71,7 +88,9 @@ public class RapidAssert extends Assert {
 			 * @param actual		actual averagable
 			 */
 			@Override
-			public void assertEquals(String message, Averagable expected, Averagable actual) {
+			public void assertEquals(String message, Object expectedObj, Object actualObj) {
+				Averagable expected = (Averagable) expectedObj;
+				Averagable actual = (Averagable) actualObj;
 
 				Assert.assertEquals(message + " (average is not equal)", expected.getAverage(), actual.getAverage());
 				Assert.assertEquals(message + " (makro average is not equal)", expected.getMakroAverage(), actual.getMakroAverage());
@@ -85,10 +104,15 @@ public class RapidAssert extends Assert {
 				Assert.assertEquals(message + " (variance is not equal)", expected.getVariance(), actual.getVariance());
 
 			}
+
+			@Override
+			public Class<?> getAssertable() {
+				return Averagable.class;
+			}
 		});
 
 
-		ASSERTER_REGISTRY.registerAsserter(AverageVector.class, new Asserter<AverageVector>() {
+		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
 			/**
 			 * Tests the two average vectors for equality by testing the size and each averagable.
 			 * 
@@ -97,7 +121,10 @@ public class RapidAssert extends Assert {
 			 * @param actual		actual vector
 			 */
 			@Override
-			public void assertEquals(String message, AverageVector expected, AverageVector actual) {
+			public void assertEquals(String message, Object expectedObj, Object actualObj) {
+				AverageVector expected = (AverageVector) expectedObj;
+				AverageVector actual = (AverageVector) actualObj;
+				
 				message = message + "Average vectors are not equals";
 				
 				int expSize = expected.getSize();
@@ -110,12 +137,17 @@ public class RapidAssert extends Assert {
 				}
 			}
 
+			@Override
+			public Class<?> getAssertable() {
+				return AverageVector.class;
+			}
+
 
 		});
 
 
 
-		ASSERTER_REGISTRY.registerAsserter(ExampleSet.class, new Asserter<ExampleSet>() {
+		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
 			/**
 			 * Tests two example sets by iterating over all examples.
 			 * 
@@ -123,7 +155,11 @@ public class RapidAssert extends Assert {
 			 * @param expected		expected value
 			 * @param actual		actual value
 			 */
-			public void assertEquals(String message, ExampleSet expected, ExampleSet actual) {
+			@Override
+			public void assertEquals(String message, Object expectedObj, Object actualObj) {
+				ExampleSet expected = (ExampleSet) expectedObj;
+				ExampleSet actual = (ExampleSet) actualObj;
+				
 				message = message + "ExampleSets are not equal";
 				
 				RapidAssert.assertEquals(message, expected.getAttributes(), actual.getAttributes());
@@ -136,10 +172,15 @@ public class RapidAssert extends Assert {
 					row++;
 				}
 			}
+
+			@Override
+			public Class<?> getAssertable() {
+				return ExampleSet.class;
+			}
 		});
 
 
-		ASSERTER_REGISTRY.registerAsserter(IOObjectCollection.class, new Asserter<IOObjectCollection<IOObject>>() {
+		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
 			/**
 			 * Tests the collection of ioobjects
 			 * 
@@ -147,16 +188,26 @@ public class RapidAssert extends Assert {
 			 * @param actual
 			 */
 			@Override
-			public void assertEquals(String message, IOObjectCollection expected, IOObjectCollection actual) {
+			public void assertEquals(String message, Object expectedObj, Object actualObj) {
+				@SuppressWarnings("unchecked")
+				IOObjectCollection<IOObject> expected = (IOObjectCollection) expectedObj;
+				@SuppressWarnings("unchecked")
+				IOObjectCollection<IOObject> actual = (IOObjectCollection) actualObj;
+				
 				message = message + "Collection of IOObjects are not equal: ";
 				Assert.assertEquals(message + " (number of items)", expected.size(), actual.size());
 				RapidAssert.assertEquals(message, expected.getObjects(), actual.getObjects());
 			}
 
+			@Override
+			public Class<?> getAssertable() {
+				return IOObjectCollection.class;
+			}
+
 		});
 
 
-		ASSERTER_REGISTRY.registerAsserter(NumericalMatrix.class, new Asserter<NumericalMatrix>() {
+		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
 			/**
 			 * Test two numerical matrices for equality. This contains tests about the number of columns and rows, as well as column&row names and if
 			 * the matrices are marked as symmetrical and if every value within the matrix is equal.
@@ -166,7 +217,10 @@ public class RapidAssert extends Assert {
 			 * @param actual		actual matrix
 			 */
 			@Override
-			public void assertEquals(String message, NumericalMatrix expected, NumericalMatrix actual) {
+			public void assertEquals(String message, Object expectedObj, Object actualObj) {
+				NumericalMatrix expected = (NumericalMatrix) expectedObj;
+				NumericalMatrix actual = (NumericalMatrix) actualObj;
+				
 				message = message + "Numerical matrices are not equal";
 
 				int expNrOfCols = expected.getNumberOfColumns();
@@ -206,10 +260,15 @@ public class RapidAssert extends Assert {
 
 			}
 
+			@Override
+			public Class<?> getAssertable() {
+				return NumericalMatrix.class;
+			}
+
 
 		});
 		
-		ASSERTER_REGISTRY.registerAsserter(PerformanceVector.class, new Asserter<PerformanceVector>() {
+		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
 			/**
 			 * Tests the two performance vectors for equality by testing the size, the criteria names, the main criterion and each criterion.
 			 * 
@@ -218,7 +277,10 @@ public class RapidAssert extends Assert {
 			 * @param actual		actual vector
 			 */
 			@Override
-			public void assertEquals(String message, PerformanceVector expected, PerformanceVector actual) {
+			public void assertEquals(String message, Object expectedObj, Object actualObj) {
+				PerformanceVector expected = (PerformanceVector) expectedObj;
+				PerformanceVector actual = (PerformanceVector) actualObj;
+				
 				message = message + "Performance vectors are not equal";
 				
 				int expSize = expected.getSize();
@@ -232,6 +294,84 @@ public class RapidAssert extends Assert {
 				for( int i=0; i<size; i++ ) {
 					RapidAssert.assertEquals(message, expected.getCriterion(i), actual.getCriterion(i));
 				}
+			}
+
+			@Override
+			public Class<?> getAssertable() {
+				return PerformanceVector.class;
+			}
+		});
+		
+		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
+			/**
+			 * Tests the two performance vectors for equality by testing the
+			 * size, the criteria names, the main criterion and each criterion.
+			 * 
+			 * @param message
+			 *            message to display if an error occurs
+			 * @param expected
+			 *            expected vector
+			 * @param actual
+			 *            actual vector
+			 */
+			@Override
+			public void assertEquals(String message, Object expectedObj,
+					Object actualObj) throws RuntimeException {
+				FileObject fo1 = (FileObject) expectedObj;
+				FileObject fo2 = (FileObject) actualObj;
+				InputStream is1 = null;
+				InputStream is2 = null;
+				ByteArrayOutputStream bs1 = null;
+				ByteArrayOutputStream bs2 = null;
+				try {
+					is1 = fo1.openStream();
+					is2 = fo2.openStream();
+					bs1 = new ByteArrayOutputStream();
+					bs2 = new ByteArrayOutputStream();
+					Tools.copyStreamSynchronously(is1, bs1, true);
+					Tools.copyStreamSynchronously(is2, bs2, true);
+					byte[] fileData1 = bs1.toByteArray();
+					byte[] fileData2 = bs2.toByteArray();
+					assertArrayEquals("file object data", fileData1, fileData2);
+				} catch (OperatorException e) {
+					throw new RuntimeException("Stream Error");
+				} catch (IOException e) {
+					throw new RuntimeException("Stream Error");
+				} finally {
+					if (is1 != null) {
+						try {
+							is1.close();
+						} catch (IOException e) {
+							// silent
+						}
+					}
+					if (is2 != null) {
+						try {
+							is2.close();
+						} catch (IOException e) {
+							// silent
+						}
+					}
+					if (bs1 != null) {
+						try {
+							bs1.close();
+						} catch (IOException e) {
+							// silent
+						}
+					}
+					if (bs2 != null) {
+						try {
+							bs2.close();
+						} catch (IOException e) {
+							// silent
+						}
+					}
+				}
+			}
+
+			@Override
+			public Class<?> getAssertable() {
+				return FileObject.class;
 			}
 		});
 	}
@@ -320,11 +460,52 @@ public class RapidAssert extends Assert {
 	 */
 	public static void assertEquals(String message, Attribute expected, Attribute actual) {
 		Assert.assertEquals(message + " (attribute name)", expected.getName(), actual.getName());
-		Assert.assertEquals(message + " (attribute type)", expected.getValueType(), actual.getValueType());
-		Assert.assertEquals(message + " (attribute block type)", expected.getBlockType(), actual.getBlockType());
-		Assert.assertEquals(message + " (default value)", expected.getDefault(), actual.getDefault());
+		Assert.assertEquals(message + " (attribute type of attribute '"+expected.getName()+"': expected '" + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(expected.getValueType()) + "' but was '" + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(actual.getValueType()) + "')", expected.getValueType(), actual.getValueType());
+		Assert.assertEquals(message + " (attribute block type of attribute '"+expected.getName()+": expected '" + Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(expected.getBlockType()) + "' but was '" + Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(actual.getBlockType()) + "')", expected.getBlockType(), actual.getBlockType());
+		Assert.assertEquals(message + " (default value of attribute '"+expected.getName()+")", expected.getDefault(), actual.getDefault());
 		if (expected.isNominal()) {
-			assertEquals(message + " (nominal mapping)", expected.getMapping(), actual.getMapping());
+			assertEqualsIgnoreOrder(message + " (nominal mapping of attribute '"+expected.getName()+")", expected.getMapping(), actual.getMapping());
+		}
+	}
+
+	/**
+	 * Tests two nominal mappings for its size and values.
+	 * 
+	 * @param message		message to display if an error occurs
+	 * @param expected		expected value
+	 * @param actual		actual value
+	 * @param ignoreOrder	if <code>true</code> the order of the mappings is not checked, 
+	 * 						but only the size of the mapping and that all values of <code>expected</code> 
+	 * 						are present in <code>actual</code>. 
+	 */
+	public static void assertEquals(String message, NominalMapping expected, NominalMapping actual, boolean ignoreOrder) {
+		if (expected == actual) {
+			return;
+		}
+		Assert.assertTrue((expected == null && actual == null) ||(expected != null && actual != null));
+		if (expected == null) {
+			// also actual == null
+			return;
+		}
+		
+		Assert.assertEquals(message + " (nominal mapping size)", expected.size(), actual.size());
+		
+		List<String> expectedValues = expected.getValues();
+		List<String> actualValues = actual.getValues();
+
+		// check that we have the same values in both mappings:
+		Set<String> expectedValuesSet = new HashSet<String>(expectedValues);
+		Set<String> actualValuesSet = new HashSet<String>(actualValues);
+		Assert.assertEquals(message + " (different nominal values)", expectedValuesSet, actualValuesSet);
+		
+		if (!ignoreOrder) {
+			// check order
+			
+			Iterator<String> expectedIt = expectedValues.iterator();
+			while (expectedIt.hasNext()) {
+				String expectedValue = expectedIt.next();
+				Assert.assertEquals(message + " (index of nominal value '" + expectedValue + "')", expected.mapString(expectedValue), actual.mapString(expectedValue));
+			}
 		}
 	}
 
@@ -335,16 +516,8 @@ public class RapidAssert extends Assert {
 	 * @param expected		expected value
 	 * @param actual		actual value
 	 */
-	public static void assertEquals(String message, NominalMapping expected, NominalMapping actual) {
-		Assert.assertEquals(message + " (nominal mapping size)", expected.size(), actual.size());
-		List<String> v1 = expected.getValues();
-		List<String> v2 = actual.getValues();
-		Assert.assertEquals(message + " (nominal values)", v1, v2);
-		if (v1 != null) { // v2 also != null
-			for (String value : v1) {
-				Assert.assertEquals(message + " (index of nominal value '" + value + "')", expected.getIndex(value), actual.getIndex(value));
-			}
-		}
+	public static void assertEqualsIgnoreOrder(String message, NominalMapping expected, NominalMapping actual) {
+		assertEquals(message, expected, actual, true);
 	}
 
 
@@ -369,6 +542,19 @@ public class RapidAssert extends Assert {
 		}
 	}
 
+	public static void assertArrayEquals(String message, byte[] expected, byte[] actual) {
+		if (expected == null) {
+			junit.framework.Assert.assertEquals((Object) null, actual);
+			return;
+		}
+		if (actual == null) {
+			throw new AssertionFailedError(message + " (expected " + expected.toString() + " , but is null)");
+		}
+		junit.framework.Assert.assertEquals(message + " (array length is not equal)", expected.length, actual.length);
+		for (int i = 0; i < expected.length; i++) {
+			junit.framework.Assert.assertEquals(message, expected[i], actual[i]);
+		}
+	}
 	/**
 	 * Tests all objects in the array.
 	 * 
@@ -489,14 +675,13 @@ public class RapidAssert extends Assert {
 	public static void assertEquals(String message, Attributes expected, Attributes actual) {
 		Assert.assertEquals(message + " (number of attributes)", expected.allSize(), actual.allSize());
 		Iterator<AttributeRole> i = expected.allAttributeRoles();
-		Iterator<AttributeRole> j = expected.allAttributeRoles();
+		Iterator<AttributeRole> j = actual.allAttributeRoles();
 		while (i.hasNext()) {
 			AttributeRole r1 = i.next();
 			AttributeRole r2 = j.next();
 			RapidAssert.assertEquals(message, r1, r2);
 		}
 	}
-
 }
 
 

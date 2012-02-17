@@ -32,6 +32,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.rapidminer.gui.new_plotter.templates.gui.ScatterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 import com.rapidminer.tools.LogService;
 
@@ -72,6 +73,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 
 	private static final String GRADIENT_START_ALPHA_ATTRIBUTE = "gradient_start_alpha";
 	
+	private static final String CHART_TITLE_ELEMENT = "chart_title";
+	
+	private static final String TITLE_ATTRIBUTE = "title";
+	
 	private static final String FRAME_BACKGROUND_COLOR_ELEMENT = "frame_background_color";
 	
 	private static final String PLOT_BACKGROUND_COLOR_ELEMENT = "plot_background_color";
@@ -92,6 +97,9 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	
 	private static final String SCHEME_NAME_ATTRIBUTE = "name";
 	
+	
+	/** if this is set to true, will NOT notify observers about changes. Used for batch updating. */
+	private transient volatile boolean blockUpdates;
 
 	/** the list containing all {@link ColorScheme}s. */
 	private List<ColorScheme> listOfColorSchemes;
@@ -104,6 +112,9 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	
 	/** the index pointing to the currently used color scheme */
 	private int colorSchemeIndex;
+	
+	/** the title of the chart */
+	private String chartTitle;
 	
 	/** the current axes font */
 	private Font axesFont;
@@ -120,6 +131,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	/** the chart background color */
 	private ColorRGB plotBackgroundColor;
 	
+	/** the {@link ScatterTemplatePanel} instance */
+	private transient DefaultPlotterStyleProviderGUI defaultStyleProviderPanel;
+	
+	
 	/** the font size for the font buttons */
 	public static final int FONT_SIZE_DEFAULT = 12;
 	
@@ -132,6 +147,7 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		listOfColorSchemes = new LinkedList<ColorScheme>();
 		listOfDefaultColorSchemes = new LinkedList<ColorScheme>();
 		colorSchemeIndex = 0;
+		blockUpdates = false;
 		
 		/*
 		 * default color schemes are defined here
@@ -169,19 +185,45 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		 * end default color schemes
 		 */
 		
-		axesFont = new Font("Dialog", Font.PLAIN, 10);
-		legendFont = new Font("Dialog", Font.PLAIN, 10);
-		titleFont = new Font("Dialog", Font.PLAIN, 10);
+		axesFont = new Font("Arial", Font.PLAIN, 12);
+		legendFont = new Font("Arial", Font.PLAIN, 12);
+		titleFont = new Font("Arial", Font.PLAIN, 12);
 		
 		frameBackgroundColor = new ColorRGB(255, 255, 255);
 		plotBackgroundColor = new ColorRGB(255, 255, 255);
+		
+		chartTitle = "";
+		
+		defaultStyleProviderPanel = new DefaultPlotterStyleProviderGUI(this);
 	}
 
 	
 
 	@Override
 	public JPanel getStyleProviderPanel() {
-		return new DefaultPlotterStyleProviderGUI(this);
+		return defaultStyleProviderPanel;
+	}
+	
+	@Override
+	public String getTitleText() {
+		return chartTitle;
+	}
+	
+	/**
+	 * Set the chart title.
+	 * @param title
+	 */
+	public void setTitleText(String title) {
+		if (title == null) {
+			throw new IllegalArgumentException("title must not be null!");
+		}
+		
+		this.chartTitle = title;
+		
+		if (!blockUpdates) {
+			setChanged();
+			notifyObservers();
+		}
 	}
 
 	@Override
@@ -200,8 +242,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		
 		this.axesFont = axesFont;
 		
-		setChanged();
-		notifyObservers();
+		if (!blockUpdates) {
+			setChanged();
+			notifyObservers();
+		}
 	}
 
 	@Override
@@ -220,8 +264,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		
 		this.legendFont = legendFont;
 		
-		setChanged();
-		notifyObservers();
+		if (!blockUpdates) {
+			setChanged();
+			notifyObservers();
+		}
 	}
 
 	@Override
@@ -240,8 +286,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		
 		this.titleFont = titleFont;
 		
-		setChanged();
-		notifyObservers();
+		if (!blockUpdates) {
+			setChanged();
+			notifyObservers();
+		}
 	}
 	
 	/**
@@ -254,8 +302,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		}
 		this.frameBackgroundColor = frameBackgroundColor;
 
-		setChanged();
-		notifyObservers();
+		if (!blockUpdates) {
+			setChanged();
+			notifyObservers();
+		}
 	}
 	
 	/**
@@ -268,8 +318,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		}
 		this.plotBackgroundColor = plotBackgroundColor;
 
-		setChanged();
-		notifyObservers();
+		if (!blockUpdates) {
+			setChanged();
+			notifyObservers();
+		}
 	}
 	
 	@Override
@@ -295,8 +347,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		
 		colorSchemeIndex = index;
 		
-		setChanged();
-		notifyObservers();
+		if (!blockUpdates) {
+			setChanged();
+			notifyObservers();
+		}
 	}
 	
 	/**
@@ -370,8 +424,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 			}
 		}
 		
-		setChanged();
-		notifyObservers();
+		if (!blockUpdates) {
+			setChanged();
+			notifyObservers();
+		}
 	}
 	
 	/**
@@ -419,6 +475,11 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	@Override
 	public Element createXML(Document document) {
 		Element styleElement = document.createElement(STYLE_ELEMENT);
+		
+		// store chart title
+		Element chartTitle = document.createElement(CHART_TITLE_ELEMENT);
+		chartTitle.setAttribute(TITLE_ATTRIBUTE, getTitleText());
+		styleElement.appendChild(chartTitle);
 		
 		// store axes font
 		Element axesFont = document.createElement(AXES_FONT_ELEMENT);
@@ -534,6 +595,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 					} catch (NumberFormatException e) {
 						LogService.getRoot().warning("Could not restore color scheme for style provider!");
 					}
+				} else if (setting.getNodeName().equals(CHART_TITLE_ELEMENT)) {
+					// load chart title
+					String title = setting.getAttribute(TITLE_ATTRIBUTE);
+					setTitleText(title);
 				} else if (setting.getNodeName().equals(AXES_FONT_ELEMENT)) {
 					// load axes font
 					try {
@@ -594,5 +659,27 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 				}
 			}
 		}
+	}
+	
+	@Override
+	public void copySettingsFromPlotterStyleProvider(PlotterStyleProvider provider) {
+		// prevent all methods from notifying their listeners about the changes, so we don't do tons of
+		// unecessary updates
+		blockUpdates = true;
+		
+		Font titleFont = provider.getTitleFont();
+		setTitleFont(new Font(titleFont.getName(), titleFont.getStyle(), titleFont.getSize()));
+		Font axesFont = provider.getAxesFont();
+		setAxesFont(new Font(axesFont.getName(), axesFont.getStyle(), axesFont.getSize()));
+		Font legendFont = provider.getLegendFont();
+		setLegendFont(new Font(legendFont.getName(), legendFont.getStyle(), legendFont.getSize()));
+		
+		setSelectedColorScheme(provider.getColorScheme().clone());
+		setFrameBackgroundColor(provider.getFrameBackgroundColor().clone());
+		setPlotBackgroundColor(provider.getPlotBackgroundColor().clone());
+		
+		blockUpdates = false;
+		setChanged();
+		notifyObservers();
 	}
 }

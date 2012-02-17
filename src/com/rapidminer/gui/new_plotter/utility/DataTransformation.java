@@ -78,11 +78,10 @@ public class DataTransformation {
 		if (listOfNumericalAttributes == null) {
 			throw new IllegalArgumentException("listOfNumericalAttributes must not be null!");
 		}
-		if (listOfNumericalAttributes.size() == 0 && selectedNomToNumericAttributesList.size() == 0) {
+		if (listOfNumericalAttributes.size() == 0 && (selectedNomToNumericAttributesList != null && selectedNomToNumericAttributesList.size() == 0)) {
 			return null;
 		}
 		listOfNumericalAttributes.remove("id");
-		selectedNomToNumericAttributesList.remove("id");
 		try {
 			InputStream is = DataTransformation.class.getResourceAsStream("/com/rapidminer/resources/processes/TransformationDepivot.rmp");
 			String transformProcessXML = Tools.readTextFile(is);
@@ -90,6 +89,7 @@ public class DataTransformation {
 			StringBuffer defaultValueBuffer = new StringBuffer();
 			// modify NominalToNumerical to change only nominal values that have been selected
 			if (selectedNomToNumericAttributesList != null) {
+				selectedNomToNumericAttributesList.remove("id");
 				for (String attName : selectedNomToNumericAttributesList) {
 					defaultValueBuffer.append(attName);
 					defaultValueBuffer.append("|");
@@ -114,7 +114,12 @@ public class DataTransformation {
 				defaultValueBuffer.append("|");
 			}
 			// remove last '|' so length -1
-			String numericalValuesString = defaultValueBuffer.substring(0, defaultValueBuffer.length() - 1);
+			String numericalValuesString;
+			if(listOfNumericalAttributes.isEmpty()) {
+				numericalValuesString = ".*";
+			} else {
+				numericalValuesString = defaultValueBuffer.substring(0, defaultValueBuffer.length() - 1);
+			}
 			transformProcessXML = transformProcessXML.replace(TO_REPLACE_WITH_DEPIVOT_ATTRIBUTE_LIST, numericalValuesString);
 			Process transformProcess = new Process(transformProcessXML);
 

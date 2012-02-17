@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.io;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -31,9 +32,12 @@ import com.rapidminer.example.table.DataRowFactory;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.nio.model.FilePortHandler;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.Port;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
-import com.rapidminer.parameter.ParameterTypeFile;
+import com.rapidminer.parameter.PortProvider;
 import com.rapidminer.parameter.UndefinedParameterError;
 
 
@@ -69,6 +73,9 @@ public abstract class BytewiseExampleSource extends AbstractExampleSource {
 	/** The length of a double measured in bytes. */
 	protected static final int LENGTH_DOUBLE = 8;
 		    
+	protected InputPort fileInputPort = getInputPorts().createPort("file");
+	protected FilePortHandler filePortHandler = new FilePortHandler(this, fileInputPort, PARAMETER_FILENAME);
+	
 	public BytewiseExampleSource(OperatorDescription description) {
 		super(description);
 	}
@@ -80,7 +87,8 @@ public abstract class BytewiseExampleSource extends AbstractExampleSource {
         
     	// read file and construct example set
     	try {
-            InputStream inputStream = getParameterAsInputStream(PARAMETER_FILENAME);
+            //InputStream inputStream = getParameterAsInputStream(PARAMETER_FILENAME);
+    		InputStream inputStream = new FileInputStream(filePortHandler.getSelectedFile());
         	result = readStream(inputStream, dataRowFactory);
         	inputStream.close();
     	} catch (IOException e) {
@@ -271,7 +279,13 @@ public abstract class BytewiseExampleSource extends AbstractExampleSource {
     @Override
 	public List<ParameterType> getParameterTypes() {
         List<ParameterType> types = super.getParameterTypes();
-        ParameterType type = new ParameterTypeFile(PARAMETER_FILENAME, "Name of the file to read the data from.", getFileSuffix(), false);
+       //ParameterType type = new ParameterTypeFile(PARAMETER_FILENAME, "Name of the file to read the data from.", getFileSuffix(), false);
+        ParameterType type = FilePortHandler.makeFileParameterType(this, PARAMETER_FILENAME, "arff", new PortProvider() {
+			@Override
+			public Port getPort() {			
+				return fileInputPort;
+			}
+		});
         type.setExpert(false);
         types.add(type);
         type = new ParameterTypeCategory(PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY);

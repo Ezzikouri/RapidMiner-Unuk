@@ -235,15 +235,16 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	/**
 	 * Returns the de-pivoted data table. If grouping attributes is not <code>null</code> a now data table is created in any case.
 	 * If grouping attributes is <code>null</code> the cached datatable, if available, is returned.
+	 * @param selectedNominalToNumericAttributesList2 
 	 * 
 	 * @return <code>null</code> if creating the dePivoted datatable fails, a dePivoted datatable otherwise.
 	 */
-	private DataTable getDePivotedDataTable(Collection<String> selectedNominalToNumericAttributesList) {
-		if (cachedDePivotedDataTable == null || selectedNominalToNumericAttributesList != null) {
+	private DataTable getDePivotedDataTable(Collection<String> excludedNumericalAttributeList, Collection<String> selectedNominalToNumericAttributesList) {
+		if (cachedDePivotedDataTable == null || selectedNominalToNumericAttributesList != null || excludedNumericalAttributeList != null) {
 			Vector<DataTableColumn> dataTableColumns = assembleDataTableColumnList(dataTable);
 			List<String> selectedNumericAttributes = new ArrayList<String>();
 			for (DataTableColumn column : dataTableColumns) {
-				if (column.isNumerical()) {
+				if (column.isNumerical() && !excludedNumericalAttributeList.contains(column.getName())) {
 					selectedNumericAttributes.add(column.getName());
 				}
 			}
@@ -327,10 +328,11 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	 * Returns a new PlotInstance with a dePivoted data table of the original data table. If the transformation could not be achieved,
 	 * <code>null</code> is returned.
 	 * If no plot config for the new PlotInstance is provided a PlotConfiguration with an invalid domain dimension will be created.
+	 * @param nominalToNumericalAttributeList 
 	 */
-	private PlotInstance getNewDePivotedPlotInstance(PlotConfiguration newPlotConfig, Collection<String> selectedNominalToNumericAttributesList) {
+	private PlotInstance getNewDePivotedPlotInstance(PlotConfiguration newPlotConfig, Collection<String> excludedNumericalAttributeList, Collection<String> selectedNominalToNumericAttributesList) {
 		PlotInstance plotInstance;
-		DataTable transformed = getDePivotedDataTable(selectedNominalToNumericAttributesList);
+		DataTable transformed = getDePivotedDataTable(excludedNumericalAttributeList, selectedNominalToNumericAttributesList);
 
 		if (transformed == null) {
 			return null;
@@ -510,21 +512,21 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 				datasetTransformationSelectionComboBox.addPopupMenuListener(new PopupMenuListener() {
 
-					private int lastSelectedIndex = 0;
-
 					@Override
 					public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-						lastSelectedIndex = datasetTransformationSelectionComboBox.getSelectedIndex();
 						return;
 					}
 
 					@Override
 					public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
-						DatasetTransformationType type = (DatasetTransformationType) datasetTransformationSelectionComboBox.getSelectedItem();
-						if (!changeDatatableTransformationType(type, false)) {
-							datasetTransformationSelectionComboBox.setSelectedIndex(lastSelectedIndex);
+						if (datasetTransformationSelectionComboBox.getSelectedItem() != getCurrentTranformationType()) {
+
+							DatasetTransformationType type = (DatasetTransformationType) datasetTransformationSelectionComboBox.getSelectedItem();
+							if (!changeDatatableTransformationType(type, false)) {
+								datasetTransformationSelectionComboBox.setSelectedItem(getCurrentTranformationType());
+							}
+							configureDataSetTransformationButton.setEnabled((DatasetTransformationType) datasetTransformationSelectionComboBox.getSelectedItem() != DatasetTransformationType.ORIGINAL);
 						}
-						configureDataSetTransformationButton.setVisible((DatasetTransformationType) datasetTransformationSelectionComboBox.getSelectedItem() != DatasetTransformationType.ORIGINAL);
 					}
 
 					@Override
@@ -559,7 +561,7 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 				itemConstraint.gridwidth = GridBagConstraints.REMAINDER; //end row
 				itemConstraint.fill = GridBagConstraints.NONE;
 
-				configureDataSetTransformationButton.setVisible(false);
+				configureDataSetTransformationButton.setEnabled(false);
 
 				datasetTranformationContainerPanel.add(configureDataSetTransformationButton, itemConstraint);
 
@@ -1022,28 +1024,35 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 				// fetch nominal columns
 				Vector<DataTableColumn> dataTableColumns = assembleDataTableColumnList(dataTable);
 				for (DataTableColumn column : dataTableColumns) {
-					if (column.isNominal() && !column.getName().equals("id")) {
+					if ((column.isNominal() || column.isNumerical()) && !column.getName().equals("id") && !column.getName().equals("value") && !column.getName().equals("attribute")) {
 						columns.add(column);
 					}
 				}
-				Collection<String> selectedGroupingAttributeList = null;
+				Collection<String> selectedAttributeExclusionList = null;
 
 				//show grouping attributes configuration dialog if nominal attributes have been found
-				if (!columns.isEmpty()) {
-					AttributeSelectionDialog dialog = new AttributeSelectionDialog(columns);
-					dialog.setVisible(true);
-					if (dialog.wasConfirmed()) {
-						selectedGroupingAttributeList = dialog.getSelectedAttributeNames();
-					} else {
-						return false;
-					}
+				AttributeSelectionDialog dialog = new AttributeSelectionDialog(columns);
+				dialog.setVisible(true);
+				if (dialog.wasConfirmed()) {
+					selectedAttributeExclusionList = dialog.getSelectedAttributeNames();
+				} else {
+					return false;
 				}
-				
+
 				Collection<String> nominalToNumericalAttributeList = new LinkedList<String>();
-				for (DataTableColumn column : dataTableColumns) {
-					String name = column.getName();
-					if (!selectedGroupingAttributeList.contains(name) && column.isNominal()) {
-						nominalToNumericalAttributeList.add(name);
+				Collection<String> excludedNumericalAttributesList = new LinkedList<String>();
+				if (selectedAttributeExclusionList != null) {
+					for (DataTableColumn column : dataTableColumns) {
+						String name = column.getName();
+						if (selectedAttributeExclusionList.contains(name)) {
+							if(column.isNumerical()) {
+								excludedNumericalAttributesList.add(name);
+							}
+						} else {
+							if(column.isNominal()) {
+								nominalToNumericalAttributeList.add(name);
+							} 
+						}
 					}
 				}
 
@@ -1055,7 +1064,7 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 					currentPlotConfiguration = dePivotedPlotConfig;
 				}
 
-				plotInstance = getNewDePivotedPlotInstance(currentPlotConfiguration, nominalToNumericalAttributeList);
+				plotInstance = getNewDePivotedPlotInstance(currentPlotConfiguration, excludedNumericalAttributesList, nominalToNumericalAttributeList);
 
 				if (plotInstance == null) {
 					SwingTools.showVerySimpleErrorMessage("plotter.no_datatable_for_transformation_type", type);
@@ -1191,7 +1200,7 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 		Vector<DataTableColumn> columnList = new Vector<DataTableColumn>();
 		switch (newType) {
 			case DE_PIVOTED:
-				columnList = assembleDataTableColumnList(getDePivotedDataTable(null));
+				columnList = assembleDataTableColumnList(getDePivotedDataTable(null, null));
 				break;
 			case ORIGINAL:
 			default:

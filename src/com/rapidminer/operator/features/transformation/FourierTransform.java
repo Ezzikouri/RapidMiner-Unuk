@@ -126,8 +126,6 @@ public class FourierTransform extends AbstractFeatureTransformation {
 		}
 
 		// create FFT values
-		List<Attribute> attributes = new LinkedList<Attribute>();
-		attributes.add(frequencyAttribute);
 		Attribute label = exampleSet.getAttributes().getLabel();
 
 		// add FFT values
@@ -140,7 +138,6 @@ public class FourierTransform extends AbstractFeatureTransformation {
 				// create new attribute and fill table with values
 				Attribute newAttribute = AttributeFactory.createAttribute("fft(" + current.getName() + ")", Ontology.REAL);
 				exampleTable.addAttribute(newAttribute);
-				attributes.add(newAttribute);
 				fillTable(exampleTable, newAttribute, spectrum);
 			}
 		}

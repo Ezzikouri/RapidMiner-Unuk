@@ -26,42 +26,40 @@ package com.rapidminer.test.utils;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.rapidminer.tools.container.Pair;
-
 /**
  * @author Marius Helf
  *
  */
 public class AsserterRegistry {
-	private List<Pair<Class, Asserter>> registeredAsserters = new LinkedList<Pair<Class,Asserter>>();
+	private List<Asserter> registeredAsserters = new LinkedList<Asserter>();
 	
-	public void registerAsserter(Class clazz, Asserter asserter) {
-		registeredAsserters.add(new Pair<Class, Asserter>(clazz, asserter));
+	public void registerAsserter(Asserter asserter) {
+		registeredAsserters.add(asserter);
 	}
 	
-	public <T> Asserter<? super T> getAsserterForObject(T object) {
-		for(Pair<Class, Asserter> classAndAsserter : registeredAsserters) {
-			if (classAndAsserter.getFirst().isInstance(object) ) {
-				return (Asserter<? super T>)classAndAsserter.getSecond();
+	public Asserter getAsserterForObject(Object object) {
+		for(Asserter asserter : registeredAsserters) {
+			if (asserter.getAssertable().isInstance(object) ) {
+				return asserter;
 			}
 		}
 		return null; 
 	}
 	
-	public <T> Asserter<? super T> getAsserterForObjects(T o1, T o2) {
-		for(Pair<Class, Asserter> classAndAsserter : registeredAsserters) {
-			Class clazz = classAndAsserter.getFirst();
+	public Asserter getAsserterForObjects(Object o1, Object o2) {
+		for(Asserter asserter: registeredAsserters) {
+			Class clazz = asserter.getAssertable();
 			if (clazz.isInstance(o1) && clazz.isInstance(o2)) {
-				return (Asserter<? super T>)classAndAsserter.getSecond();
+				return asserter;
 			}
 		}
 		return null; 
 	}
 	
-	public <T> Asserter<? super T> getAsserterForClass(Class<T> clazz) {
-		for(Pair<Class, Asserter> classAndAsserter : registeredAsserters) {
-			if (classAndAsserter.getFirst().isAssignableFrom(clazz) ) {
-				return (Asserter<? super T>)classAndAsserter.getSecond();
+	public Asserter getAsserterForClass(Class clazz) {
+		for(Asserter asserter : registeredAsserters) {
+			if (asserter.getAssertable().isAssignableFrom(clazz) ) {
+				return asserter;
 			}
 		}
 		return null; 
