@@ -23,29 +23,31 @@
 package com.rapidminer.parameter.conditions;
 
 import com.rapidminer.operator.Operator;
-import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.PortProvider;
 
 /**
- * This condition checks whether an {@link OutputPort} of a {@link Operator} is connected or not.
- * The condition is fulfilled if the {@link OutputPort} is NOT connected.
+ * This condition checks whether a {@link InputPort} of a {@link Operator} is connected or not.
+ * The condition is fulfilled if the {@link InputPort} is NOT connected.
  * 
  * @author Nils Woehler
  *
  */
-public class OutputPortNotConnectedCondition extends ParameterCondition {
+public class PortConnectedCondition extends ParameterCondition {
 	
-	private PortProvider portProvider;
+	private final PortProvider portProvider;
+	private final boolean connected;
 
-    public OutputPortNotConnectedCondition(ParameterHandler handler, PortProvider portProvider, boolean becomeMandatory) {
+    public PortConnectedCondition(ParameterHandler handler, PortProvider portProvider, boolean becomeMandatory, boolean connected) {
         super(handler, becomeMandatory);
         this.portProvider = portProvider;
+        this.connected = connected;
     }
 
 	@Override
 	public boolean isConditionFullfilled() {
-		return !portProvider.getPort().isConnected();
+		return portProvider.getPort().isConnected() == connected;
 	}
 
 }

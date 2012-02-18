@@ -88,6 +88,12 @@ public class DatabaseWriteTest {
 		TestContext.get().initRapidMiner(); // for read database operator
 		final Entry entry = new RepositoryLocation(TEST_DATA_LOCATION).locateEntry();
 		this.laborNegotiationsExampleSet = (ExampleSet) ((IOObjectEntry)entry).retrieveData(null);
+		// Make all non-special: Will be dropped by DB anyway
+		final Iterator<AttributeRole> allAttributeRoles = laborNegotiationsExampleSet.getAttributes().allAttributeRoles();
+		while (allAttributeRoles.hasNext()) {
+			allAttributeRoles.next().setSpecial(null);
+		}
+
 		
 		Attribute pos = AttributeFactory.createAttribute("pos", Ontology.NUMERICAL);
 		Attribute neg = AttributeFactory.createAttribute("neg", Ontology.NUMERICAL);
@@ -217,12 +223,6 @@ public class DatabaseWriteTest {
 	}
 	
 	private void testCreateTable(DatabaseRef connection, ExampleSet testSet, String testSetName) throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
-		testSet = (ExampleSet) testSet.clone();
-		// Make all non-special: Will be dropped by DB anyway
-		final Iterator<AttributeRole> allAttributeRoles = testSet.getAttributes().allAttributeRoles();
-		while (allAttributeRoles.hasNext()) {
-			allAttributeRoles.next().setSpecial(null);
-		}
 		final String driverClass = connection.getDriverClass();
 		if (driverClass != null) {
 			Class.forName(driverClass);

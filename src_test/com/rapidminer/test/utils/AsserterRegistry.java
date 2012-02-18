@@ -37,31 +37,46 @@ public class AsserterRegistry {
 		registeredAsserters.add(asserter);
 	}
 	
-	public Asserter getAsserterForObject(Object object) {
+	public List<Asserter> getAsserterForObject(Object object) {
+		List<Asserter> availableAsserters = new LinkedList<Asserter>();
 		for(Asserter asserter : registeredAsserters) {
 			if (asserter.getAssertable().isInstance(object) ) {
-				return asserter;
+				availableAsserters.add(asserter);
 			}
 		}
-		return null; 
+		if(availableAsserters.isEmpty()) {
+			return null; 
+		} else {
+			return availableAsserters;
+		}
 	}
 	
-	public Asserter getAsserterForObjects(Object o1, Object o2) {
+	public List<Asserter> getAsserterForObjects(Object o1, Object o2) {
+		List<Asserter> availableAsserters = new LinkedList<Asserter>();
 		for(Asserter asserter: registeredAsserters) {
 			Class clazz = asserter.getAssertable();
 			if (clazz.isInstance(o1) && clazz.isInstance(o2)) {
-				return asserter;
+				availableAsserters.add(asserter);
 			}
 		}
-		return null; 
+		if(availableAsserters.isEmpty()) {
+			return null; 
+		} else {
+			return availableAsserters;
+		}
 	}
 	
-	public Asserter getAsserterForClass(Class clazz) {
+	public List<Asserter> getAsserterForClass(Class clazz) {
+		List<Asserter> availableAsserters = new LinkedList<Asserter>();
 		for(Asserter asserter : registeredAsserters) {
 			if (asserter.getAssertable().isAssignableFrom(clazz) ) {
-				return asserter;
+				availableAsserters.add(asserter);
 			}
 		}
-		return null; 
+		if(availableAsserters.isEmpty()) {
+			return null; 
+		} else {
+			return availableAsserters;
+		} 
 	}
 }

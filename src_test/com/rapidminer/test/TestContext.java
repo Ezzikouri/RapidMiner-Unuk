@@ -14,6 +14,7 @@ import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.plugin.Plugin;
 
 /**
  * <p>The test context (singleton) is in charge for initializing RapidMiner and determining a
@@ -34,7 +35,7 @@ import com.rapidminer.tools.LogService;
  *  
  *  <p>The alias for the repository will be 'junit'.</p>
  * 
- * @author Marcin Skirzynski
+ * @author Marcin Skirzynski, Nils Woehler
  *
  */
 public class TestContext {
@@ -147,7 +148,9 @@ public class TestContext {
 
 	            RapidMiner.setExecutionMode(ExecutionMode.TEST);
 	            RapidMiner.init();
-
+	            
+	            Plugin.initPluginTests();
+	            
 	            try {
 	            	if (repositoryUrl!=null&&repositoryLocation!=null&&repositoryUser!=null&&repositoryPassword!=null) {
 						setRepository(new RemoteRepository(new URL(repositoryUrl), REPOSITORY_ALIAS, repositoryUser, repositoryPassword.toCharArray(), true));

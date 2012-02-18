@@ -22,7 +22,6 @@
  */
 package com.rapidminer.operator.io;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -32,7 +31,7 @@ import com.rapidminer.example.table.DataRowFactory;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.nio.model.FilePortHandler;
+import com.rapidminer.operator.nio.file.FileInputPortHandler;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.parameter.ParameterType;
@@ -74,7 +73,7 @@ public abstract class BytewiseExampleSource extends AbstractExampleSource {
 	protected static final int LENGTH_DOUBLE = 8;
 		    
 	protected InputPort fileInputPort = getInputPorts().createPort("file");
-	protected FilePortHandler filePortHandler = new FilePortHandler(this, fileInputPort, PARAMETER_FILENAME);
+	protected FileInputPortHandler filePortHandler = new FileInputPortHandler(this, fileInputPort, PARAMETER_FILENAME);
 	
 	public BytewiseExampleSource(OperatorDescription description) {
 		super(description);
@@ -87,17 +86,16 @@ public abstract class BytewiseExampleSource extends AbstractExampleSource {
         
     	// read file and construct example set
     	try {
-            //InputStream inputStream = getParameterAsInputStream(PARAMETER_FILENAME);
-    		InputStream inputStream = new FileInputStream(filePortHandler.getSelectedFile());
+            InputStream inputStream = filePortHandler.openSelectedFile();
         	result = readStream(inputStream, dataRowFactory);
         	inputStream.close();
     	} catch (IOException e) {
-    		throw new UserError(this, 302, getParameter(PARAMETER_FILENAME), e.getMessage());
+    		throw new UserError(this, e, 302, filePortHandler.getSelectedFileDescription(), e.getMessage());
     	}
 
         // verify that the result is not null
         if (result == null) {
-        	throw new UserError(this, 302, getParameter(PARAMETER_FILENAME), UNSPECIFIED_ERROR_MESSAGE);
+        	throw new UserError(this, 302, filePortHandler.getSelectedFileDescription(), UNSPECIFIED_ERROR_MESSAGE);
         }
         
         // verify that the resulting example set is not empty
@@ -279,8 +277,7 @@ public abstract class BytewiseExampleSource extends AbstractExampleSource {
     @Override
 	public List<ParameterType> getParameterTypes() {
         List<ParameterType> types = super.getParameterTypes();
-       //ParameterType type = new ParameterTypeFile(PARAMETER_FILENAME, "Name of the file to read the data from.", getFileSuffix(), false);
-        ParameterType type = FilePortHandler.makeFileParameterType(this, PARAMETER_FILENAME, "arff", new PortProvider() {
+        ParameterType type = FileInputPortHandler.makeFileParameterType(this, PARAMETER_FILENAME, "arff", new PortProvider() {
 			@Override
 			public Port getPort() {			
 				return fileInputPort;

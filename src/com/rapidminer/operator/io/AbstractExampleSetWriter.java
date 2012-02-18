@@ -24,8 +24,6 @@ package com.rapidminer.operator.io;
 
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
-import com.rapidminer.operator.ports.OutputPort;
-import com.rapidminer.operator.ports.metadata.PassThroughRule;
 
 /** 
  * Abstract super type of example set writing operators.

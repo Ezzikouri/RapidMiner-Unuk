@@ -70,29 +70,6 @@ public class ExcelExampleSetWriter extends AbstractStreamWriter {
 	public ExcelExampleSetWriter(OperatorDescription description) {
 		super(description);
 	}
-	/*
-	@Override
-	public ExampleSet write(ExampleSet exampleSet) throws OperatorException {		
-		File file = getParameterAsFile(PARAMETER_EXCEL_FILE, true);
-		
-		WorkbookSettings ws = new WorkbookSettings();
-		Charset encoding = Encoding.getEncoding(this);
-		ws.setEncoding(encoding.name());
-		ws.setLocale(Locale.US);
-
-		try {
-			OutputStream out = new FileOutputStream(file);
-			write(exampleSet, encoding, out);			
-//			WritableWorkbook workbook = Workbook.createWorkbook(file, ws);
-//			WritableSheet s = workbook.createSheet("RapidMiner Data", 0);
-//			writeDataSheet(s, exampleSet);
-//			workbook.write();
-//			workbook.close(); 
-		} catch (Exception e) {
-			throw new UserError(this, 303, file.getName(), e.getMessage());
-		}
-		return exampleSet;
-	}*/
 	
 	public static void write(ExampleSet exampleSet, Charset encoding, OutputStream out) throws IOException, WriteException {
 		try {
@@ -132,7 +109,6 @@ public class ExcelExampleSetWriter extends AbstractStreamWriter {
 		WritableFont wf2 = new WritableFont(WritableFont.ARIAL, 10, WritableFont.NO_BOLD);
 		WritableCellFormat cf2 = new WritableCellFormat(wf2);
 		
-//		DateFormat df = new DateFormat(DateParser.DEFAULT_DATE_FORMAT);
 		DateFormat df = new DateFormat(DateParser.DEFAULT_DATE_TIME_FORMAT);
 
 		WritableCellFormat dfCell = new WritableCellFormat(df);
@@ -176,20 +152,17 @@ public class ExcelExampleSetWriter extends AbstractStreamWriter {
 
 	@Override
 	String getFileExtension() {
-		// TODO Auto-generated method stub
 		return "xls";
 	}
 
 	@Override
 	String getFileParameterName() {
-		// TODO Auto-generated method stub
 		return PARAMETER_EXCEL_FILE;
 	}
 
 	@Override
 	void writeStream(ExampleSet exampleSet, OutputStream outputStream)
 			throws OperatorException {
-		// TODO Auto-generated method stub
 		File file = getParameterAsFile(PARAMETER_EXCEL_FILE, true);
 		
 		WorkbookSettings ws = new WorkbookSettings();
@@ -199,11 +172,6 @@ public class ExcelExampleSetWriter extends AbstractStreamWriter {
 
 		try {
 			write(exampleSet, encoding, outputStream);			
-//			WritableWorkbook workbook = Workbook.createWorkbook(file, ws);
-//			WritableSheet s = workbook.createSheet("RapidMiner Data", 0);
-//			writeDataSheet(s, exampleSet);
-//			workbook.write();
-//			workbook.close(); 
 		} catch (Exception e) {
 			throw new UserError(this, 303, file.getName(), e.getMessage());
 		}

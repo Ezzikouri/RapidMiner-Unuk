@@ -96,7 +96,7 @@ import com.rapidminer.tools.Tools;
  * them with &quot;#&quot;.
  * </p>
  * 
- * @author Simon Fischer, Ingo Mierswa
+ * @author Simon Fischer, Ingo Mierswa, Nils Woehler
  */
 public class Plugin {
 
@@ -769,8 +769,12 @@ public class Plugin {
     public static void initFinalChecks() {
         callPluginInitMethods("initFinalChecks", new Class[] {}, new Object[] {}, false);
     }
+    
+    public static void initPluginTests() {
+    	callPluginInitMethods("initPluginTests",new Class[] {}, new Object[] {}, false);
+    }
 
-    private static void callPluginInitMethods(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
+	private static void callPluginInitMethods(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
         List<Plugin> plugins = getAllPlugins();
         for (Plugin plugin : plugins) {
             plugin.callInitMethod(methodName, arguments, argumentValues, useOriginalJarClassLoader);

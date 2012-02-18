@@ -33,6 +33,8 @@ import com.rapidminer.Process;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessRootOperator;
+import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
@@ -78,9 +80,10 @@ public class DataTransformation {
 		if (listOfNumericalAttributes == null) {
 			throw new IllegalArgumentException("listOfNumericalAttributes must not be null!");
 		}
-		if (listOfNumericalAttributes.size() == 0 && (selectedNomToNumericAttributesList != null && selectedNomToNumericAttributesList.size() == 0)) {
+		if (listOfNumericalAttributes.size() == 0) {
 			return null;
 		}
+		
 		listOfNumericalAttributes.remove("id");
 		try {
 			InputStream is = DataTransformation.class.getResourceAsStream("/com/rapidminer/resources/processes/TransformationDepivot.rmp");
@@ -115,13 +118,13 @@ public class DataTransformation {
 			}
 			// remove last '|' so length -1
 			String numericalValuesString;
-			if(listOfNumericalAttributes.isEmpty()) {
-				numericalValuesString = ".*";
-			} else {
-				numericalValuesString = defaultValueBuffer.substring(0, defaultValueBuffer.length() - 1);
-			}
+			numericalValuesString = defaultValueBuffer.substring(0, defaultValueBuffer.length() - 1);
 			transformProcessXML = transformProcessXML.replace(TO_REPLACE_WITH_DEPIVOT_ATTRIBUTE_LIST, numericalValuesString);
 			Process transformProcess = new Process(transformProcessXML);
+			
+			// disable logging messages
+			ParameterTypeCategory loggingParameterType = (ParameterTypeCategory) transformProcess.getOperator("Process").getParameterType(ProcessRootOperator.PARAMETER_LOGVERBOSITY);
+			loggingParameterType.setDefaultValue(loggingParameterType.getIndex("off"));
 
 			// disable ID generation if ID already exists
 			if (exampleSet.getAttributes().getId() != null) {

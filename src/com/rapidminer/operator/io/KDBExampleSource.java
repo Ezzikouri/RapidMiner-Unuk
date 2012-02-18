@@ -33,7 +33,7 @@ import org.kobjects.jdbc.util.AbstractResultSet;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.nio.model.FilePortHandler;
+import com.rapidminer.operator.nio.file.FileInputPortHandler;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.parameter.ParameterType;
@@ -57,7 +57,7 @@ public abstract class KDBExampleSource extends ResultSetExampleSource {
 	public abstract String getExtension();
 	
 	private InputPort fileInputPort = getInputPorts().createPort("file");
-	private FilePortHandler filePortHandler = new FilePortHandler(this, fileInputPort, PARAMETER_DATA_FILE);
+	private FileInputPortHandler filePortHandler = new FileInputPortHandler(this, fileInputPort, PARAMETER_DATA_FILE);
 	
 	public KDBExampleSource(OperatorDescription description) {
 		super(description);
@@ -69,7 +69,6 @@ public abstract class KDBExampleSource extends ResultSetExampleSource {
 	
 	@Override
 	public ResultSet getResultSet() throws OperatorException {
-		//File dataFile = getParameterAsFile(PARAMETER_DATA_FILE);
 		File dataFile = filePortHandler.getSelectedFile();
 		String dataFileAbsolutePath = dataFile.getAbsolutePath();
 		return TableManager.getResultSet(getFormat() + ":" + dataFileAbsolutePath, TableManager.READ);
@@ -103,8 +102,7 @@ public abstract class KDBExampleSource extends ResultSetExampleSource {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		//types.add(new ParameterTypeFile(PARAMETER_DATA_FILE, "The file containing the data", getExtension(), false));
-		types.add(FilePortHandler.makeFileParameterType(this, PARAMETER_DATA_FILE, "xrff", new PortProvider() {
+		types.add(FileInputPortHandler.makeFileParameterType(this, PARAMETER_DATA_FILE, "xrff", new PortProvider() {
 			@Override
 			public Port getPort() {			
 				return fileInputPort;

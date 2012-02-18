@@ -20,7 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.operator.nio.model;
+package com.rapidminer.operator.nio.file;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +30,6 @@ import java.io.InputStream;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.nio.file.FileObject;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SimplePrecondition;
@@ -38,7 +37,7 @@ import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.PortProvider;
-import com.rapidminer.parameter.conditions.InputPortNotConnectedCondition;
+import com.rapidminer.parameter.conditions.PortConnectedCondition;
 
 
 /**
@@ -46,13 +45,13 @@ import com.rapidminer.parameter.conditions.InputPortNotConnectedCondition;
  * @author Dominik Halfkann
  *
  */
-public class FilePortHandler {
-
+public class FileInputPortHandler {
+	
 	private InputPort fileInputPort;
 	private String fileParameterName;
 	private Operator operator;
 	
-	public FilePortHandler (Operator operator, InputPort fileInputPort, String fileParameterName) {
+	public FileInputPortHandler (Operator operator, InputPort fileInputPort, String fileParameterName) {
 		this.fileInputPort = fileInputPort;
 		this.fileParameterName = fileParameterName;
 		this.operator = operator;
@@ -110,7 +109,30 @@ public class FilePortHandler {
 			String parameterName, String fileExtension, PortProvider portProvider) {
 		final ParameterTypeFile fileParam = new ParameterTypeFile(parameterName, "Name of the file to read the data from.", fileExtension, true);
 		fileParam.setExpert(false);
-		fileParam.registerDependencyCondition(new InputPortNotConnectedCondition(parameterHandler, portProvider, true));
+		fileParam.registerDependencyCondition(new PortConnectedCondition(parameterHandler, portProvider, true, false));
 		return fileParam;
+	}
+
+	/**
+	 * Adds a new (file-)InputPortNotConnectedCondition for a given parameter.
+	 * @param parameter
+	 * @param parameterHandler
+	 * @param portProvider
+	 */
+	public static void addFileDependencyCondition(ParameterType parameter, ParameterHandler parameterHandler, PortProvider portProvider) {
+		parameter.registerDependencyCondition(new PortConnectedCondition(parameterHandler, portProvider, true, false));
+	}
+	
+	/**
+	 * Returns the specified filename or "InputFileObject" if the file OutputPort is connected.
+	 * @return
+	 * @throws OperatorException
+	 */
+	public String getSelectedFileDescription() throws OperatorException {
+		if(!fileInputPort.isConnected()){
+			return operator.getParameterAsString(fileParameterName);
+		} else {
+			return "InputFileObject";
+		}
 	}
 }

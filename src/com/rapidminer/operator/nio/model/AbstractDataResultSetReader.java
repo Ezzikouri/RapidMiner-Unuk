@@ -40,6 +40,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.AbstractExampleSource;
 import com.rapidminer.operator.io.ExampleSource;
 import com.rapidminer.operator.io.AbstractDataReader.AttributeColumn;
+import com.rapidminer.operator.nio.file.FileInputPortHandler;
 import com.rapidminer.operator.nio.file.FileObject;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.Port;
@@ -103,7 +104,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	public static final String PARAMETER_ERROR_TOLERANT = "read_not_matching_values_as_missings";
 
 	private InputPort fileInputPort = getInputPorts().createPort("file");
-	private FilePortHandler filePortHandler = new FilePortHandler(this, fileInputPort, this.getFileParameterName());
+	private FileInputPortHandler filePortHandler = new FileInputPortHandler(this, fileInputPort, this.getFileParameterName());
 
 	public AbstractDataResultSetReader(OperatorDescription description) {
 		super(description);
@@ -214,7 +215,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	/** Creates (but does not add) the file parameter named by {@link #getFileParameterName()} 
 	 *  that depends on whether or not {@link #fileInputPort} is connected. */
 	protected ParameterType makeFileParameterType() {
-		return FilePortHandler.makeFileParameterType(this, getFileParameterName(), getFileExtension(), new PortProvider() {
+		return FileInputPortHandler.makeFileParameterType(this, getFileParameterName(), getFileExtension(), new PortProvider() {
 			@Override
 			public Port getPort() {
 				return fileInputPort;

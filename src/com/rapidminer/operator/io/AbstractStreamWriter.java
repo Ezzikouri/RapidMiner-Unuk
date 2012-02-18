@@ -1,7 +1,6 @@
 package com.rapidminer.operator.io;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,14 +9,13 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.nio.file.BufferedFileObject;
 import com.rapidminer.operator.nio.file.FileObject;
+import com.rapidminer.operator.nio.file.FileOutputPortHandler;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.PortProvider;
-import com.rapidminer.parameter.conditions.OutputPortNotConnectedCondition;
 
 /**
  * Abstract super type of stream writing operators.
@@ -27,6 +25,7 @@ import com.rapidminer.parameter.conditions.OutputPortNotConnectedCondition;
 public abstract class AbstractStreamWriter extends AbstractWriter<ExampleSet> {
 
 	private OutputPort fileOutputPort = getOutputPorts().createPort("file");
+	private FileOutputPortHandler filePortHandler = new FileOutputPortHandler(this, fileOutputPort, getFileParameterName());
 
 	public AbstractStreamWriter(OperatorDescription description) {
 		super(description, ExampleSet.class);
@@ -38,7 +37,7 @@ public abstract class AbstractStreamWriter extends AbstractWriter<ExampleSet> {
 
 		OutputStream outputStream = null;
 		try {
-			outputStream = getOutputStream();
+			outputStream = filePortHandler.openSelectedFile();
 			writeStream(exampleSet, outputStream);
 
 		} finally {
@@ -66,44 +65,12 @@ public abstract class AbstractStreamWriter extends AbstractWriter<ExampleSet> {
 	 * {@link #fileOutputPort} is connected.
 	 */
 	protected ParameterType makeFileParameterType() {
-		final ParameterTypeFile fileParam = new ParameterTypeFile(
-				getFileParameterName(),
-				"Name of the file to write the data in.", getFileExtension(),
-				true);
-		fileParam.setExpert(false);
-		fileParam
-				.registerDependencyCondition(new OutputPortNotConnectedCondition(
-						this, new PortProvider() {
-							@Override
-							public Port getPort() {
-								return fileOutputPort;
-							}
-						}, true));
-		return fileParam;
-	}
-
-	/**
-	 * Returns an OutputStream, depending on whether the {@link #fileOutputPort}
-	 * is connected or a file name is given.
-	 */
-	public OutputStream getOutputStream() throws OperatorException {
-		if (!fileOutputPort.isConnected()) {
-			try {
-				return new FileOutputStream(
-						getParameterAsFile(getFileParameterName()));
-			} catch (FileNotFoundException e) {
-				throw new UserError(this, 301,
-						getParameterAsFile(getFileParameterName()));
+		return FileOutputPortHandler.makeFileParameterType(this, getFileParameterName(), getFileExtension(), new PortProvider() {
+			@Override
+			public Port getPort() {			
+				return fileOutputPort;
 			}
-		} else {
-			return new ByteArrayOutputStream() {
-				@Override
-				public void close() throws IOException {
-					super.close();
-					fileOutputPort.deliver(new BufferedFileObject(this.toByteArray()));
-				}
-			};
-		}
+		});
 	}
 
 	/**

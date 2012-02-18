@@ -45,7 +45,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.PortProvider;
-import com.rapidminer.parameter.conditions.InputPortNotConnectedCondition;
+import com.rapidminer.parameter.conditions.PortConnectedCondition;
 
 /**
  * This operator loops over the entries of a zip file.
@@ -135,12 +135,12 @@ public class ZippedFileIterator extends AbstractFileIterator {
 		ParameterType type;
 
 		type = new ParameterTypeFile(PARAMETER_ZIPFILE, "The zipfile over whose entries this operator iterates.", ".zip", true, false);
-		type.registerDependencyCondition(new InputPortNotConnectedCondition(this, new PortProvider() {
+		type.registerDependencyCondition(new PortConnectedCondition(this, new PortProvider() {
 			@Override
 			public Port getPort() {
 				return fileInputPort;
 			}
-		}, true));
+		}, true, false));
 
 		types.add(type);
 		
