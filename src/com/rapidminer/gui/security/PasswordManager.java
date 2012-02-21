@@ -13,7 +13,7 @@ import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 
-/** The Password Manger is a small tool to manage all the passwords that were saved for different url's. 
+/** The PasswordManger is a small dialog to manage all the passwords that were saved for different url's. 
  * You can show your passwords and delete corresponding entries.
  * A possibility to change the username and password is also included.
  * 
@@ -35,15 +35,16 @@ public class PasswordManager extends ButtonDialog{
 	};
 
 	private static final long serialVersionUID = 1L;
-	//private static final String CACHE_FILE_NAME = "secrets.xml";
 	private JButton showPasswordsButton;
 	private CredentialsTableModel credentialsModel;
+	private Wallet clone;
 
 	public PasswordManager(){
 
 		super("password_manager");
-
-		credentialsModel = new CredentialsTableModel(Wallet.getInstance());
+		this.clone = Wallet.getInstance().clone();
+		
+		credentialsModel = new CredentialsTableModel(clone);
 		final JTable table = new JTable(credentialsModel);
 		JScrollPane scrollPane = new ExtendedJScrollPane(table);
 		scrollPane.setBorder(createBorder());
@@ -56,8 +57,6 @@ public class PasswordManager extends ButtonDialog{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				updateButton();
-				//model.setShowPasswords(true);
-				//main.revalidate();
 			}					
 		};
 
@@ -69,26 +68,26 @@ public class PasswordManager extends ButtonDialog{
 				int[] rows = table.getSelectedRows();
 				for (int i = 0; i<= rows.length - 1; i++) {
 					credentialsModel.removeRow(rows[i]);
-				}
-				//A new XML file is generated to remove the deleted entries.
-				credentialsModel.getWallet().saveCache();
+				}			
 			}
 		};
-
+		
 		JPanel buttonPanel = new JPanel(new BorderLayout());
 		showPasswordsButton = new JButton(showPasswordsAction);
 		showpasswordPanel.add(makeButtonPanel(showPasswordsButton));
 		buttonPanel.add(showpasswordPanel, BorderLayout.WEST);
-		buttonPanel.add(makeButtonPanel(new JButton(removePasswordAction), makeOkButton(), makeCloseButton()), BorderLayout.EAST);
+		buttonPanel.add(makeButtonPanel(new JButton(removePasswordAction), makeOkButton("password_manager_save"),
+				makeCancelButton()), BorderLayout.EAST);
 		layoutDefault(main, buttonPanel, LARGE);
-		//if (model.isShowPasswords()) {
-		//	layoutDefault(main, LARGE, new JButton(removePasswordAction), new JButton(hidePasswords), makeOkButton(), makeCloseButton());	
-		//} else {
-		//	layoutDefault(main, LARGE, new JButton(removePasswordAction), new JButton(showPasswords), makeOkButton(), makeCloseButton());	
-		//}
-
 	}
-
+	
+	@Override
+	protected void ok() {
+		Wallet.setInstance(clone);
+		clone.saveCache();
+		super.ok();
+	}
+	
 
 	private void updateButton(){
 		credentialsModel.setShowPasswords(!credentialsModel.isShowPasswords());
@@ -114,33 +113,6 @@ public class PasswordManager extends ButtonDialog{
 			showPasswordsButton.setAction(hidePasswords);
 		}
 	}
-
-//	//The saveCache() method to save all entries from the hashmap to the secrets.xml file.
-//	private static void saveCache() {
-//		LogService.getRoot().config("Saving secrets file.");
-//		Document doc;
-//		try {
-//			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-//		} catch (ParserConfigurationException e) {
-//			LogService.getRoot().log(Level.WARNING, "Failed to create XML document: "+e, e);
-//			return;
-//		}
-//		Element root = doc.createElement(CACHE_FILE_NAME);
-//		doc.appendChild(root);
-//		for (String i : Wallet.getInstance().getKeys()){
-//			Element entryElem = doc.createElement("secret");
-//			root.appendChild(entryElem);
-//			XMLTools.setTagContents(entryElem, "url", i);
-//			XMLTools.setTagContents(entryElem, "user", Wallet.getInstance().getWallet().get(i).getUsername());
-//			XMLTools.setTagContents(entryElem, "password", Base64.encodeBytes(new String(Wallet.getInstance().getWallet().get(i).getPassword()).getBytes()));
-//		}
-//		File file = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
-//		try {
-//			XMLTools.stream(doc, file, null);
-//		} catch (XMLException e) {
-//			LogService.getRoot().log(Level.WARNING, "Failed to save secrets file: "+e, e);
-//		}
-//	}
 }
 
 

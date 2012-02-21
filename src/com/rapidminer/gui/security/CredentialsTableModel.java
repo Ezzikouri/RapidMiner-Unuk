@@ -5,18 +5,18 @@ import java.util.LinkedList;
 
 import javax.swing.table.AbstractTableModel;
 
-/** An own Tablemodel for the PasswordManager that shows the URL, Login and password (optional). 
+/** An own table model wrapped around a {@link Wallet} used by the {@link PasswordManager} to
+ *  edit user credentials. 
  * 
  * @author Miguel Büscher
  *
  */
-
 public class CredentialsTableModel extends AbstractTableModel {
 
 	private static final long serialVersionUID = 1L;
 
 	private boolean showPasswords;
-	private final Wallet wallet;
+	private Wallet wallet;
 	private LinkedList<String> url = new LinkedList<String>();
 	
 	public CredentialsTableModel(Wallet wallet) {
@@ -47,7 +47,7 @@ public class CredentialsTableModel extends AbstractTableModel {
 		case 1:
 			return userCredential.getUsername(); 
 		case 2:
-			return userCredential.getPassword();
+			return new String(userCredential.getPassword());
 		default: throw new RuntimeException("No such column: " + columnIndex); // cannot happen
 		}		
 	}
@@ -69,10 +69,10 @@ public class CredentialsTableModel extends AbstractTableModel {
     		userCredential.setUser((String) value);
     	} 
     	if (col == 2){
-    		userCredential.setPassword((String) value);
+    		userCredential.setPassword(((String) value).toCharArray());
     	}
     	
-    	Wallet.getInstance().saveCache();
+    	wallet.saveCache();
         fireTableCellUpdated(row, col);
     }
 
@@ -87,7 +87,6 @@ public class CredentialsTableModel extends AbstractTableModel {
 			return "Password";
 		default: throw new RuntimeException("No such column: "+column); // cannot happen
 		}
-//		return super.getColumnName(column);
 	}
 
 	public void setShowPasswords(boolean showPasswords) {
@@ -112,5 +111,4 @@ public class CredentialsTableModel extends AbstractTableModel {
 	public Wallet getWallet() {
 		return wallet;
 	}
-
 }

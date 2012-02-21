@@ -4,6 +4,8 @@ import static junit.framework.Assert.assertEquals;
 
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -81,6 +83,7 @@ public class DatabaseWriteTest {
 	private static final DatabaseRef DB_SQL_SERVER = new DatabaseRef("jdbc:jtds:sqlserver://"+TEST_DB_SERVER+":1433/junit", "junit", "junit", null);// "net.sourceforge.jtds.jdbc.Driver");
 	private static final DatabaseRef DB_MY_SQL = new DatabaseRef("jdbc:mysql://"+TEST_DB_SERVER+":3306/junit", "junit", "junit", null); // "com.mysql.jdbc.Driver");
 	private static final DatabaseRef DB_ORACLE = new DatabaseRef("jdbc:oracle:thin:@"+TEST_DB_SERVER+":1521: ", "junit", "junit", "oracle.jdbc.driver.OracleDriver");
+//	private static final DatabaseRef DB_ORACLE = new DatabaseRef("jdbc:oracle:thin:@"+TEST_DB_SERVER+":1521: ", "junit", "junit", null);
 	private static final DatabaseRef DB_INGRES = new DatabaseRef("jdbc:ingres://192.168.1.7:28047/demodb", "ingres", "vw2010", null);
 	
 	@Before
@@ -104,7 +107,7 @@ public class DatabaseWriteTest {
 		infinityExampleSet = table.createExampleSet();
 	}
 	
-	@Test//@Ignore
+	@Test
 	public void testCreateTableMicrosoftSQLServer() throws SQLException, OperatorException, ClassNotFoundException, OperatorCreationException {
 		testCreateTable(DB_SQL_SERVER);
 	}
@@ -245,6 +248,39 @@ public class DatabaseWriteTest {
 		readOp.setParameter(DatabaseHandler.PARAMETER_TABLE_NAME, tableName);
 		ExampleSet result = readOp.read();
 		
+		testSet = (ExampleSet)testSet.clone();
+		adaptTestSet(connection, testSet);
+		
 		RapidAssert.assertEquals(testSetName, testSet, result);
+	}
+
+	/**
+	 * <p>Modifies the test set to match the particularities of the connection.</p>
+	 * 
+	 * <p>For example the oracle database doesn't know the INTEGER or REAL data types, and thus
+	 * the testset is modified before comparing to contain only NUMERICALs instead of subtypes of NUMERICAL.
+	 * 
+	 * @param connection
+	 * @param testSet
+	 */
+	private void adaptTestSet(DatabaseRef connection, ExampleSet testSet) {
+		if (connection.getUrl().contains("oracle")) {
+			List<Attribute> removableAttributes = new LinkedList<Attribute>();
+			List<Attribute> newAttributes = new LinkedList<Attribute>();
+			for (Attribute oldAttribute : testSet.getAttributes()) {
+				if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.NUMERICAL)) {
+					Attribute newAttribute = AttributeFactory.changeValueType(oldAttribute, Ontology.NUMERICAL);
+					removableAttributes.add(oldAttribute);
+					newAttributes.add(newAttribute);
+				}
+			}
+			Iterator<Attribute> oldIt = removableAttributes.iterator();
+			Iterator<Attribute> newIt = newAttributes.iterator();
+			while (oldIt.hasNext()) {
+				testSet.getAttributes().replace(oldIt.next(), newIt.next());
+			}
+		} else {
+			// do nothing
+		}
 	}	
 }

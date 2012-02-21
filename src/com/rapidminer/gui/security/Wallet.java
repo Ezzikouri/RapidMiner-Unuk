@@ -2,6 +2,7 @@ package com.rapidminer.gui.security;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -17,12 +18,18 @@ import org.w3c.dom.NodeList;
 import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
-/** The Wallet stores all Userdata for the Passwordmanager. 
- * It stores URL, Username and Password in a Hashmap using URL's as key.
- * 
+/** The Wallet stores user credentials (username and passwords). It is used by the
+ *  {@link GlobalAuthenticator} and can be edited with the {@link PasswordManager}.
+ *  {@link UserCredential}s are stored per {@link URL}.
+ *   
+ *  Note: Though this class has a {@link #getInstance()} method, it is not a pure singleton.
+ *  In fact, the {@link PasswordManager} sets a new instance via {@link #setInstance(Wallet)}
+ *  after editing.
+ *  
  * @author Miguel Büscher
  *
  */
@@ -30,16 +37,20 @@ public class Wallet {
 	private static final String CACHE_FILE_NAME = "secrets.xml";
 	private HashMap<String, UserCredential> wallet = new HashMap<String, UserCredential>();
 
-	private static final Wallet INSTANCE = new Wallet();
+	private static Wallet instance = new Wallet();
 	static {
-		INSTANCE.readCache();
+		instance.readCache();		
 	}
 
 	public static Wallet getInstance() {
-		return INSTANCE;
+		return instance;
 	}
 
-	//The readcache method to read data from the secrets.xml file and putting it to the hashmap.
+	public static void setInstance(Wallet wallet) {
+		instance = wallet;		
+	}
+
+	/** Reads the wallet from the secrets.xml file in the user's home directory. */
 	public void readCache() {
 		final File userConfigFile = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
 		if (!userConfigFile.exists()) {
@@ -56,26 +67,41 @@ public class Wallet {
 		}
 		NodeList secretElems = doc.getDocumentElement().getElementsByTagName("secret");
 		UserCredential usercredential;
-		for (int i = 0; i < secretElems.getLength(); i++) {
-			usercredential = new UserCredential();
+		for (int i = 0; i < secretElems.getLength(); i++) {			
 			Element secretElem = (Element) secretElems.item(i);
-			usercredential.setUrl(XMLTools.getTagContents(secretElem, "url"));
-			usercredential.setUser(XMLTools.getTagContents(secretElem, "user"));
+			String url = XMLTools.getTagContents(secretElem, "url");
+			String user = XMLTools.getTagContents(secretElem, "user");
+			char[] password;
 			try {
-				usercredential.setPassword(new String(Base64.decode(XMLTools.getTagContents(secretElem, "password"))));
-
+				password = new String(Base64.decode(XMLTools.getTagContents(secretElem, "password"))).toCharArray();				
 			} catch (IOException e) {
 				LogService.getRoot().log(Level.WARNING, "Failed to read entry in secrets file: "+e, e);
 				continue;
 			}
+			usercredential = new UserCredential(url, user, password);
 			wallet.put(usercredential.getURL(), usercredential); 
 			System.out.println(wallet.get(usercredential.getURL()));
 		}
 
 	}
 
+	public void registerCredentials(UserCredential authentication) {
+		wallet.put(authentication.getURL(), authentication);		
+	}
+
 	public int size() {
 		return wallet.size();
+	}
+
+	/** Deep clone. */
+	@Override
+	public Wallet clone() {
+		Wallet clone = new Wallet();
+		for (String url : this.getKeys()) {
+			UserCredential entry = this.getEntry(url);
+			clone.registerCredentials(entry.clone());
+		}		
+		return clone;
 	}
 	
 	public LinkedList<String> getKeys() {
@@ -86,10 +112,6 @@ public class Wallet {
 		}
 		return keyset;
 	}
-	
-	public HashMap<String, UserCredential> getWallet(){
-		return wallet;
-	}
 
 	public UserCredential getEntry(String url) {
 		return wallet.get(url);
@@ -99,7 +121,7 @@ public class Wallet {
 		wallet.remove(url);
 	}
 	
-	//The saveCache() method to save all entries from the hashmap to the secrets.xml file.
+	/** Saves the wallet to the secrets.xml file in the users home directory. */
 	public void saveCache() {
 		LogService.getRoot().config("Saving secrets file.");
 		Document doc;
@@ -115,8 +137,8 @@ public class Wallet {
 			Element entryElem = doc.createElement("secret");
 			root.appendChild(entryElem);
 			XMLTools.setTagContents(entryElem, "url", i);
-			XMLTools.setTagContents(entryElem, "user", Wallet.getInstance().getWallet().get(i).getUsername());
-			XMLTools.setTagContents(entryElem, "password", Base64.encodeBytes(new String(Wallet.getInstance().getWallet().get(i).getPassword()).getBytes()));
+			XMLTools.setTagContents(entryElem, "user", wallet.get(i).getUsername());
+			XMLTools.setTagContents(entryElem, "password", Base64.encodeBytes(new String(wallet.get(i).getPassword()).getBytes()));
 		}
 		File file = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
 		try {
@@ -125,4 +147,10 @@ public class Wallet {
 			LogService.getRoot().log(Level.WARNING, "Failed to save secrets file: "+e, e);
 		}
 	}
+
+	public void remove(String forUrl) {
+		wallet.remove(forUrl);		
+	}
+
+
 }

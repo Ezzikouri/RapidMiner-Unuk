@@ -25,48 +25,26 @@ package com.rapidminer.gui.tools;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.io.File;
-import java.io.IOException;
 import java.net.PasswordAuthentication;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.logging.Level;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import com.rapidminer.RapidMiner;
+import com.rapidminer.gui.security.UserCredential;
+import com.rapidminer.gui.security.Wallet;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
-import com.rapidminer.io.Base64;
-import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.XMLException;
 
 /** Dialog asking for username and passwords. Answers may be cached (if chosen by user).
  * 
  * @author Simon Fischer
  *
  */
-public class PasswordDialog extends ButtonDialog {
-
-    private static final String CACHE_FILE_NAME = "secrets.xml";
-
-    /** Maps URLs to authentications. */
-    private static Map<String,PasswordAuthentication> CACHE = new HashMap<String,PasswordAuthentication>();
-    static {
-        readCache();
-    }
+public class PasswordDialog extends ButtonDialog{
 
     private static final long serialVersionUID = 1L;
 
@@ -74,20 +52,21 @@ public class PasswordDialog extends ButtonDialog {
     private JPasswordField passwordField = new JPasswordField(20);
     private JCheckBox rememberBox = new JCheckBox(new ResourceActionAdapter("authentication.remember"));
 
-    private PasswordDialog(PasswordAuthentication preset, String url) {
-        this("authentication", preset, url);
+    private PasswordDialog(UserCredential preset) {
+        this("authentication", preset);
     }
 
-    private PasswordDialog(String i18nKey, PasswordAuthentication preset, String url) {
-        super(i18nKey, url);
+    private PasswordDialog(String i18nKey, UserCredential preset) {
+        super(i18nKey, (preset != null) ? preset.getURL() : null);        
         setModal(true);
         if (preset != null) {
-            usernameField.setText(preset.getUserName());
+            usernameField.setText(preset.getUsername());
         }
         if (preset!= null) {
             passwordField.setText(new String(preset.getPassword()));
             rememberBox.setSelected(true);
         }
+        String url = (preset != null) ? preset.getURL() : null;
 
         JPanel main = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -110,15 +89,16 @@ public class PasswordDialog extends ButtonDialog {
         main.add(passwordField, c);
 
         main.add(rememberBox, c);
-
+        
         layoutDefault(main, makeCancelButton(), makeOkButton());
+        
+        
     }
-
     public PasswordAuthentication makeAuthentication() {
         return new PasswordAuthentication(usernameField.getText(), passwordField.getPassword());
     }
 
-    public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh) {
+	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh) {
         return getPasswordAuthentication(forUrl, forceRefresh, false);
     }
 
@@ -127,86 +107,35 @@ public class PasswordDialog extends ButtonDialog {
 			LogService.getRoot().warning("Cannot query password in batch mode. Password was requested for "+forUrl+".");
 			return null;
 		}
-        PasswordAuthentication authentication = CACHE.get(forUrl);
+        UserCredential authentication = Wallet.getInstance().getEntry(forUrl);
         // return immediately if known and desired
         if (hideDialogIfPasswordKnown && !forceRefresh && (authentication != null) && (authentication.getPassword() != null)) {
             LogService.getRoot().config("Reusing cached password for "+forUrl+".");
-            return authentication;
+            return authentication.makePasswordAuthentication();
         }
 
         // clear cache if refresh forced
         if (forceRefresh && authentication != null) {
-            authentication = new PasswordAuthentication(authentication.getUserName(), null);
-            CACHE.put(forUrl, authentication);
+            //authentication = new PasswordAuthentication(authentication.getUserName(), null);
+        	authentication.setPassword(null);
+            Wallet.getInstance().registerCredentials(authentication);
         }
-        final PasswordDialog pd = new PasswordDialog(authentication, forUrl);
+        final PasswordDialog pd = new PasswordDialog(authentication);
         pd.setVisible(true);
         if (pd.wasConfirmed()) {
             PasswordAuthentication result = pd.makeAuthentication();
             if (pd.rememberBox.isSelected()) {
-                CACHE.put(forUrl, result);
+            	UserCredential userCredential = new UserCredential(forUrl, result.getUserName(), result.getPassword());
+            	Wallet.getInstance().registerCredentials(userCredential);
+            	Wallet.getInstance().saveCache();
             } else {
-                CACHE.remove(forUrl);
+            	Wallet.getInstance().remove(forUrl);
+            	Wallet.getInstance().saveCache();
             }
-            saveCache();
+            
             return result;
         } else {
             return null;
-        }
-    }
-
-    private static void saveCache() {
-        LogService.getRoot().config("Saving secrets file.");
-        Document doc;
-        try {
-            doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-        } catch (ParserConfigurationException e) {
-            LogService.getRoot().log(Level.WARNING, "Failed to create XML document: "+e, e);
-            return;
-        }
-        Element root = doc.createElement(CACHE_FILE_NAME);
-        doc.appendChild(root);
-        for (Entry<String, PasswordAuthentication> entry : CACHE.entrySet()) {
-            Element entryElem = doc.createElement("secret");
-            root.appendChild(entryElem);
-            XMLTools.setTagContents(entryElem, "url", entry.getKey());
-            XMLTools.setTagContents(entryElem, "user", entry.getValue().getUserName());
-            XMLTools.setTagContents(entryElem, "password", Base64.encodeBytes(new String(entry.getValue().getPassword()).getBytes()));
-        }
-        File file = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
-        try {
-            XMLTools.stream(doc, file, null);
-        } catch (XMLException e) {
-            LogService.getRoot().log(Level.WARNING, "Failed to save secrets file: "+e, e);
-        }
-    }
-
-    private static void readCache() {
-        final File userConfigFile = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
-        if (!userConfigFile.exists()) {
-            return;
-        }
-        LogService.getRoot().config("Reading secrets file.");
-        Document doc;
-        try {
-            doc = XMLTools.parse(userConfigFile);
-        } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Failed to read secrets file: "+e, e);
-            return;
-        }
-        NodeList secretElems = doc.getDocumentElement().getElementsByTagName("secret");
-        for (int i = 0; i < secretElems.getLength(); i++) {
-            Element secretElem = (Element) secretElems.item(i);
-            String url = XMLTools.getTagContents(secretElem, "url");
-            String user = XMLTools.getTagContents(secretElem, "user");
-            String password;
-            try {
-                password = new String(Base64.decode(XMLTools.getTagContents(secretElem, "password")));
-            } catch (IOException e) {
-                LogService.getRoot().log(Level.WARNING, "Failed to read entry in secrets file: "+e, e);
-                continue;
-            }
-            CACHE.put(url, new PasswordAuthentication(user, password.toCharArray()));
         }
     }
 }

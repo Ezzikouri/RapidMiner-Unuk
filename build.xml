@@ -803,6 +803,18 @@
 <arg value="-extension" />
 <arg value="http://localhost:8080/RAWS/ProcessService?wsdl" />
 </exec>
+
+	<exec executable="wsimport" dir="${basedir}">
+	<arg value="-Xdebug" />
+	<arg value="-keep" />
+	<arg value="-p" />
+	<arg value="com.rapid_i.repository.wsimport.mgt" />
+	<arg value="-s" />
+	<arg file="${src_generated}" />
+	<arg value="-Xnocompile" />
+	<arg value="-extension" />
+	<arg value="http://localhost:8080/RAWS/ManagementService?wsdl" />
+	</exec>
 </target>
 
 <target name="signJars" depends="createJar" description="Don't forget to add jarsign.alias and jarsign.storepass to the file server.properties">

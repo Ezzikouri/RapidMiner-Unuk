@@ -29,12 +29,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.namespace.QName;
+import javax.xml.ws.BindingProvider;
+
 import com.rapid_i.repository.wsimport.ExecutionResponse;
 import com.rapid_i.repository.wsimport.ProcessResponse;
 import com.rapid_i.repository.wsimport.ProcessService;
 import com.rapid_i.repository.wsimport.ProcessStackTrace;
 import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
 import com.rapid_i.repository.wsimport.RepositoryService;
+import com.rapid_i.repository.wsimport.mgt.ManagementService;
+import com.rapid_i.repository.wsimport.mgt.ManagementServiceService;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
@@ -92,6 +97,10 @@ public class RapidAnalyticsCLTool {
 		System.out.println(RapidAnalyticsCLTool.class.getName()+" [OPTIONS]");
 		System.out.println("   --check-state");
 		System.out.println("       Check state and exit with code 0 if server is up, state 1 if server does not respond or causes an error.");
+		System.out.println("   --wait-for-start=TIME");
+		System.out.println("       As --check-state but wait at most TIME seconds until the server is up.");
+		System.out.println("   --check-setup");
+		System.out.println("       Check setup of RapidAnalytics.");
 		System.out.println("   --url=URL ");
 		System.out.println("       Base URL of the RapidAnalytics installation.");
 		System.out.println("   --user=USER ");
@@ -106,6 +115,8 @@ public class RapidAnalyticsCLTool {
 		System.out.println("       Manually specify process ID (for --watch). Unnecessary for --execute process.");
 		System.out.println("   --delay=MILLIS");
 		System.out.println("       Loop delay in milliseconds when --watch is enabled.");
+		System.out.println("   --set-property=KEY=VALUE");
+		System.out.println("       Sets a global RapidAnalytics property.");
 	}
 
 	private boolean isArgumentSet(String argName) {
@@ -164,7 +175,85 @@ public class RapidAnalyticsCLTool {
 			return;
 		}
 		
+		if (isArgumentSet("wait-for-start")) {
+			int waitForStart = getArgumentInt("wait-for-start", 120);
+			long startTime = System.currentTimeMillis();
+			long waitUntil = startTime + 1000 * waitForStart;		
+			Exception lastException;
+			do {
+				System.err.println("Checking server "+url);
+				try {
+					getManagementService(url, user, password);
 
+					System.err.println("Server "+url+" is up.");
+					System.exit(0);
+					return;
+				} catch (Exception e) {
+					lastException = e;
+					System.err.println("Server is not yet up: "+e);
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e1) {
+					}
+				}
+			} while (System.currentTimeMillis() < waitUntil);
+			System.err.println("Server at "+url+" did not come up within "+waitForStart+"s.");
+			if (lastException != null) {
+				System.err.println("Last exception was: "+lastException);
+				lastException.printStackTrace();
+			}
+			System.exit(1);
+			return;
+		}
+		 
+		if (isArgumentSet("set-property")) {
+			String property = getArgument("set-property", null);
+			if (property == null) {
+				System.err.println("Argument of --set-property must be of the form KEY=VALUE");
+				System.exit(1);
+				return;
+			}
+			String[] split = property.split("=", 2);
+			if (split.length != 2) {
+				System.err.println("Argument of --set-property must be of the form KEY=VALUE");
+				System.exit(1);
+				return;				
+			}
+			String key = split[0];
+			String value = split[1];
+			try {
+				ManagementService managementService = getManagementService(url, user, password);
+				System.err.println("Setting "+key+" to value '"+value+"'");
+				managementService.setGlobalProperty(key, value);
+				System.exit(0);
+			} catch (Exception e) {
+				System.err.println("Failed to set property: "+e);
+				e.printStackTrace();
+				System.exit(1);
+			}			
+			return;
+		}
+
+		if (isArgumentSet("check-setup")) {
+			try {
+				ManagementService managementService = getManagementService(url, user, password);
+				System.err.println("Checking RapidAnalytics setup.");
+				if (managementService.checkSetup()) {
+					System.err.println("Setup is ok.");
+					System.exit(0);	
+				} else {
+					System.err.println("Setup is incomplete.");
+					System.exit(1);
+				}				
+			} catch (Exception e) {
+				System.err.println("Failed to set property: "+e);
+				e.printStackTrace();
+				System.exit(1);
+			}			
+
+			return;
+		}
+		
 		delay = getArgumentInt("delay", 1000);
 		if ("true".equals(getArgument("watch", "false"))) {
 			watch = true;
@@ -220,6 +309,18 @@ public class RapidAnalyticsCLTool {
 				System.exit(0);
 			}
 		}		
+	}
+
+	private ManagementService getManagementService(String url, String user, String password) throws MalformedURLException {
+		ManagementServiceService mgtServiceService = new ManagementServiceService(new URL(url+"/RAWS/ManagementService?wsdl"),  
+				new QName("http://service.web.rapidanalytics.de/", "ManagementServiceService"));
+
+		ManagementService managementServicePort = mgtServiceService.getManagementServicePort();
+
+		BindingProvider bp = (BindingProvider) managementServicePort;
+		bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, user);
+		bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, new String(password));
+		return managementServicePort;
 	}
 	
 	private int getJobId(int jobId, ProcessService processService) {
