@@ -21,7 +21,7 @@
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
 
-package com.rapidminer.test.utils;
+package com.rapidminer.test_utils;
 
 import java.util.LinkedList;
 import java.util.List;

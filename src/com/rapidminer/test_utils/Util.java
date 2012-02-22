@@ -1,4 +1,4 @@
-package com.rapidminer.test.utils;
+package com.rapidminer.test_utils;
 
 import java.util.ArrayList;
 import java.util.Collection;

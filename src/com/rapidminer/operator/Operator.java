@@ -1393,6 +1393,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
                 } catch (MalformedRepositoryLocationException e) {
                     throw new UserError(this, e, 319, e.getMessage());
                 }
+                result.setAccessor(process.getRepositoryAccessor());
                 return result;
             } else {
                 throw new UserError(this, 320, loc);

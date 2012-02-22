@@ -1,5 +1,5 @@
 
-package com.rapidminer.test.utils;
+package com.rapidminer.test_utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,6 +25,8 @@ import com.rapidminer.example.table.SparseDataRow;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.IOObjectCollection;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.meta.ParameterSet;
+import com.rapidminer.operator.meta.ParameterValue;
 import com.rapidminer.operator.nio.file.FileObject;
 import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
@@ -51,6 +53,35 @@ public class RapidAssert extends Assert {
 	 * init asserter registry
 	 */
 	static {
+		/* asserter for ParameterSet */
+		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
+			
+			@Override
+			public Class<?> getAssertable() {
+				return ParameterSet.class;
+			}
+			
+			@Override
+			public void assertEquals(String message, Object expectedObj, Object actualObj) {
+				ParameterSet expected = (ParameterSet) expectedObj;
+				ParameterSet actual = (ParameterSet) actualObj;
+				
+				RapidAssert.assertEquals(message + " (performance vectors do not match)", expected.getPerformance(), actual.getPerformance());
+				
+				Iterator<ParameterValue> expectedIt = expected.getParameterValues();
+				Iterator<ParameterValue> actualIt = actual.getParameterValues();
+				
+				while (expectedIt.hasNext()) {
+					assertTrue(message + "(expected parameter vector is longer than actual parameter vector)", actualIt.hasNext());
+					ParameterValue expectedParValue = expectedIt.next();
+					ParameterValue actualParValue = actualIt.next();
+					RapidAssert.assertEquals(message + " (parameter values)", expectedParValue, actualParValue);
+				}
+				assertFalse(message + "(expected parameter vector is shorter than actual parameter vector)", actualIt.hasNext());
+			}
+		});
+		
+		/* asserter for PerformanceCriterion */
 		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
 
 			/**
@@ -703,5 +734,11 @@ public class RapidAssert extends Assert {
 			AttributeRole actualRole = actualRoleIt.next();
 			RapidAssert.assertEquals(message, expectedRole, actualRole, compareDefaultValues);
 		}
+	}
+	
+	public static void assertEquals(String message, ParameterValue expected, ParameterValue actual) {
+		Assert.assertEquals(message + " - operator", expected.getOperator(), actual.getOperator());
+		Assert.assertEquals(message + " - parameterKey", expected.getParameterKey(), actual.getParameterKey());
+		Assert.assertEquals(message + " - parameterValue", expected.getParameterValue(), actual.getParameterValue());
 	}
 }

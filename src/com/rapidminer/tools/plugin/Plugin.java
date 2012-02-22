@@ -760,6 +760,7 @@ public class Plugin {
      */
     public static void initPlugins() {
         callPluginInitMethods("initPlugin", new Class[] {}, new Object[] {}, false);
+        initPluginTests();
     }
 
     public static void initPluginUpdateManager() {
@@ -770,7 +771,7 @@ public class Plugin {
         callPluginInitMethods("initFinalChecks", new Class[] {}, new Object[] {}, false);
     }
     
-    public static void initPluginTests() {
+    private static void initPluginTests() {
     	callPluginInitMethods("initPluginTests",new Class[] {}, new Object[] {}, false);
     }
 

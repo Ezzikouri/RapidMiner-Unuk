@@ -27,7 +27,7 @@ import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.test.TestContext;
-import com.rapidminer.test.utils.RapidAssert;
+import com.rapidminer.test_utils.RapidAssert;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;

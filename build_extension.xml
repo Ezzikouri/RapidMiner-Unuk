@@ -54,6 +54,7 @@
     </path>
     <path id="build.classpath">
         <pathelement location="${build.build}" />
+        <pathelement location="${test.build.build}" />
         <path refid="build.libraries" />
         <pathelement location="${java.home}/jre/lib/rt.jar" />
         <pathelement location="${java.home}/../jre/lib/rt.jar" />
@@ -97,8 +98,10 @@
     <target name="clean" unless="lock.isCleaned" description="Delete the build directory, java doc, rapidminer.jar, plugin files">
         <echo message="Cleaning..." />
         <delete dir="${build.build}" />
+        <delete dir="${test.build.build}" />
         <delete dir="${javadoc.targetDir}" />
         <mkdir dir="${build.build}" />
+        <mkdir dir="${test.build.build}" />
         <mkdir dir="${javadoc.targetDir}" />
         <delete>
             <fileset dir="${release.targetDir}" includes="rapidminer-${extension.name}-${extension.version}*.*" />
@@ -117,7 +120,7 @@
     </target>
 
     <target name="build" depends="init, copy-resources" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
-        <!-- testing if rapid miner must be build beforehand -->
+        <!-- testing if rapid miner must be built beforehand -->
         <available file="${rm.lib}/rapidminer.jar" property="build.rmAvailable" />
         <antcall target="build.rm" />
 
@@ -154,6 +157,7 @@
 
     <target name="build.rm" unless="build.rmAvailable" description="This target will build the rapidminer, if not already done.">
         <ant antfile="${rm.dir}/build.xml" target="createJar" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
+        <ant antfile="${rm.dir}/build.xml" target="test.compile" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
     </target>
 
 	<target name="createJar" depends="clean, build, version.get" unless="lock.isJared" description="Generate the jar file">

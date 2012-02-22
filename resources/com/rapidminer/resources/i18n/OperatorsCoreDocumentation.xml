@@ -6608,6 +6608,30 @@
         <help>&lt;p&gt;      This operator can be used to change the role of an attribute of the       input &lt;i&gt;ExampleSet&lt;/i&gt;. If you want to change the attribute name you       should use the     &lt;/p&gt;    &lt;a href="rm://opdoc/rename"&gt;Rename&lt;/a&gt;  operator.    &lt;p&gt;      The target role indicates if the attribute is a regular attribute (used       by learning operators) or a special attribute (e.g. a label or id       attribute). The following target attribute types are possible:    &lt;/p&gt;    &lt;ul&gt;      &lt;li&gt;        &lt;b&gt;regular: &lt;/b&gt;only regular attributes are used as input variables         for learning tasks      &lt;/li&gt;      &lt;li&gt;        &lt;b&gt;id:&lt;/b&gt; the id attribute for the example set      &lt;/li&gt;      &lt;li&gt;        &lt;b&gt;label:&lt;/b&gt; target attribute for learning      &lt;/li&gt;      &lt;li&gt;        &lt;b&gt;prediction:&lt;/b&gt; predicted attribute, i.e. the predictions of a         learning scheme      &lt;/li&gt;      &lt;li&gt;        &lt;b&gt;cluster:&lt;/b&gt; indicates the membership to a cluster      &lt;/li&gt;      &lt;li&gt;        &lt;b&gt;weight: &lt;/b&gt;indicates the weight of the example      &lt;/li&gt;      &lt;li&gt;        &lt;b&gt;batch:&lt;/b&gt; indicates the membership to an example batch      &lt;/li&gt;    &lt;/ul&gt;    &lt;p&gt;      Users can also define own attribute types by simply using the desired       name.    &lt;/p&gt;    &lt;p&gt;          &lt;/p&gt;    &lt;p&gt;      &lt;b&gt;Please be aware that roles have to be unique!&lt;/b&gt; Assigning a non       regular role the second time will cause the first attribute to be       dropped from the example set. If you want to keep this attribute, you       have to change it's role first.    &lt;/p&gt;</help>
     <key>set_role</key>
   </operator>
+  <operator>
+    <name>Move Repository Entry</name>
+    <synopsis></synopsis>
+    <help></help>
+    <key>move_repository_entry</key>
+  </operator>
+  <operator>
+    <name>Copy Repository Entry</name>
+    <synopsis></synopsis>
+    <help></help>
+    <key>copy_repository_entry</key>
+  </operator>
+  <operator>
+    <name>Rename Repository Entry</name>
+    <synopsis></synopsis>
+    <help></help>
+    <key>rename_repository_entry</key>
+  </operator>
+  <operator>
+    <name>Delete Repository Entry</name>
+    <synopsis></synopsis>
+    <help></help>
+    <key>delete_repository_entry</key>
+  </operator>
     <operator>
         <name>Generate Products</name>
         <synopsis>Creates all products based on the attributes specified by

@@ -1,6 +1,6 @@
 package com.rapidminer.test;
 
-import static com.rapidminer.test.utils.RapidAssert.assertArrayEquals;
+import static com.rapidminer.test_utils.RapidAssert.assertArrayEquals;
 import static junit.framework.Assert.assertEquals;
 
 import java.util.LinkedList;

@@ -49,7 +49,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapid_i.repository.wsimport.ProcessService;
 import com.rapid_i.repository.wsimport.ProcessService_Service;
 import com.rapid_i.repository.wsimport.RepositoryService;
@@ -59,13 +58,9 @@ import com.rapidminer.gui.tools.PasswordDialog;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLTools;
-import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
-import com.rapidminer.repository.IOObjectEntry;
-import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.Repository;
-import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryListener;
 import com.rapidminer.repository.RepositoryManager;
@@ -248,37 +243,38 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public Entry locate(String string) throws RepositoryException {
-		Entry cached = cachedEntries.get(string);
-		if (cached != null) {
-			return cached;
-		}
-		Entry firstTry = RepositoryManager.getInstance(null).locate(this, string, true);
-		if (firstTry != null) {
-			return firstTry;
-		}
-
-		if (!string.startsWith("/")) {
-			string = "/" + string;
-		}
-
-		EntryResponse response = getRepositoryService().getEntry(string);
-		if (response.getStatus() != RepositoryConstants.OK) {
-			if (response.getStatus() == RepositoryConstants.NO_SUCH_ENTRY) {
-				return null;
-			}
-			throw new RepositoryException(response.getErrorMessage());
-		}
-		if (response.getType().equals(Folder.TYPE_NAME)) {
-			return new RemoteFolder(response, null, this);
-		} else if (response.getType().equals(ProcessEntry.TYPE_NAME)) {
-			return new RemoteProcessEntry(response, null, this);
-		} else if (response.getType().equals(IOObjectEntry.TYPE_NAME)) {
-			return new RemoteIOObjectEntry(response, null, this);
-		} else if (response.getType().equals(BlobEntry.TYPE_NAME)) {
-			return new RemoteBlobEntry(response, null, this);
-		} else {
-			throw new RepositoryException("Unknown entry type: " + response.getType());
-		}
+		return RepositoryManager.getInstance(null).locate(this, string, false);
+//		Entry cached = cachedEntries.get(string);
+//		if (cached != null) {
+//			return cached;
+//		}
+//		Entry firstTry = RepositoryManager.getInstance(null).locate(this, string, true);
+//		if (firstTry != null) {
+//			return firstTry;
+//		}
+//
+//		if (!string.startsWith("/")) {
+//			string = "/" + string;
+//		}
+//
+//		EntryResponse response = getRepositoryService().getEntry(string);
+//		if (response.getStatus() != RepositoryConstants.OK) {
+//			if (response.getStatus() == RepositoryConstants.NO_SUCH_ENTRY) {
+//				return null;
+//			}
+//			throw new RepositoryException(response.getErrorMessage());
+//		}
+//		if (response.getType().equals(Folder.TYPE_NAME)) {
+//			return new RemoteFolder(response, null, this);
+//		} else if (response.getType().equals(ProcessEntry.TYPE_NAME)) {
+//			return new RemoteProcessEntry(response, null, this);
+//		} else if (response.getType().equals(IOObjectEntry.TYPE_NAME)) {
+//			return new RemoteIOObjectEntry(response, null, this);
+//		} else if (response.getType().equals(BlobEntry.TYPE_NAME)) {
+//			return new RemoteBlobEntry(response, null, this);
+//		} else {
+//			throw new RepositoryException("Unknown entry type: " + response.getType());
+//		}
 	}
 
 	@Override
@@ -414,6 +410,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	public HttpURLConnection getHTTPConnection(String pathInfo, boolean preAuthHeader) throws IOException {
 		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), pathInfo).openConnection();
+		conn.setRequestProperty("Accept-Charset", "UTF-8"); 
 		if (preAuthHeader) {
 			String userpass = username + ":" + new String(password);
 			String basicAuth = "Basic " + new String(Base64.encodeBytes(userpass.getBytes()));

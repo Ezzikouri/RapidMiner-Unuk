@@ -36,6 +36,7 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
 import com.rapidminer.operator.OperatorDescription;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
@@ -81,9 +82,27 @@ public class MissingValueReplenishment extends ValueReplenishment {
     private static final int VALUE = 5;
 
     private static final String[] REPLENISHMENT_NAMES = { "none", "minimum", "maximum", "average", "zero", "value" };
+    
+	public static final OperatorVersion VERSION_ROUND_ON_INTEGER_ATTRIBUTES = new OperatorVersion(5,2,0);
+	
+
 
     public MissingValueReplenishment(OperatorDescription description) {
         super(description);
+    }
+    
+    /* (non-Javadoc)
+     * @see com.rapidminer.operator.Operator#getIncompatibleVersionChanges()
+     */
+    @Override
+    public OperatorVersion[] getIncompatibleVersionChanges() {
+    	OperatorVersion[] oldIncompatibleVersionChanges = super.getIncompatibleVersionChanges();
+    	OperatorVersion[] newIncompatibleVersionChanges = new OperatorVersion[oldIncompatibleVersionChanges.length+1];
+    	for (int i = 0; i < oldIncompatibleVersionChanges.length; ++i) {
+    		newIncompatibleVersionChanges[i] = oldIncompatibleVersionChanges[i];
+    	}
+    	newIncompatibleVersionChanges[newIncompatibleVersionChanges.length-1] = VERSION_ROUND_ON_INTEGER_ATTRIBUTES;
+    	return newIncompatibleVersionChanges;
     }
     
     private static boolean doesReplenishmentSupportValueType(int replenishment, int valueType) {
@@ -195,8 +214,10 @@ public class MissingValueReplenishment extends ValueReplenishment {
                 final double mode = exampleSet.getStatistics(attribute, Statistics.MODE);
                 return mode;
             } else {
-                final double mode = exampleSet.getStatistics(attribute, Statistics.AVERAGE);
-                return mode;
+                double average = exampleSet.getStatistics(attribute, Statistics.AVERAGE);
+                
+            	average = getProperlyRoundedValue(attribute, average);
+                return average;
             }
         case ZERO:
             return 0.0d;
@@ -220,9 +241,17 @@ public class MissingValueReplenishment extends ValueReplenishment {
                 }
             } else if (attribute.isNominal()) {
                 return attribute.getMapping().mapString(valueString);
-            } else {
+            } else {	// any numerical type
                 try {
-                    return Double.parseDouble(valueString);
+                    double value = Double.parseDouble(valueString);
+                    
+                    if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.INTEGER) && !getCompatibilityLevel().isAtMost(VERSION_ROUND_ON_INTEGER_ATTRIBUTES)) {
+                    	if (value != Math.round(value)) {
+                            throw new UserError(this, 225, PARAMETER_REPLENISHMENT_VALUE, valueString);
+                    	}
+                    }
+                    
+					return value;
                 } catch (NumberFormatException e) {
                     throw new UserError(this, 211, PARAMETER_REPLENISHMENT_VALUE, valueString);
                 }
@@ -232,7 +261,24 @@ public class MissingValueReplenishment extends ValueReplenishment {
         }
     }
 
-    @Override
+    /**
+	 * @param attribute
+	 * @param average2
+	 * @return
+	 */
+	private double getProperlyRoundedValue(Attribute attribute, double value) {
+    	if (getCompatibilityLevel().isAtMost(VERSION_ROUND_ON_INTEGER_ATTRIBUTES)) {
+    		return value;
+    	} else {
+    		if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.INTEGER)) {
+    			return Math.round(value);
+    		} else {
+    			return value;
+    		}
+    	}
+	}
+	
+	@Override
     public List<ParameterType> getParameterTypes() {
         List<ParameterType> types = super.getParameterTypes();
         ParameterTypeString type = new ParameterTypeString(PARAMETER_REPLENISHMENT_VALUE, "This value is used for some of the replenishment types.", true, false);

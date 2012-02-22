@@ -20,14 +20,33 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+package com.rapidminer.operator.repository;
 
-package com.rapidminer.test.utils;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorDescription;
+import com.rapidminer.operator.ports.DummyPortPairExtender;
+import com.rapidminer.operator.ports.PortPairExtender;
+
 
 /**
- * @author Marius Helf
+ * Abstract Operator for Repository Management. It just provides dummy input and output ports with a pass through rule for MD.
+ * 
+ * @author Nils Woehler
  *
  */
-public interface Asserter {
-	public void assertEquals(String message, Object expected, Object actual);
-	public Class<?> getAssertable();
+public abstract class RepositoryManagerOperator extends Operator {
+
+	private PortPairExtender dummyPorts = new DummyPortPairExtender("through", getInputPorts(), getOutputPorts());
+	
+	/**
+	 * @param description
+	 */
+	public RepositoryManagerOperator(OperatorDescription description) {
+		super(description);
+		
+		dummyPorts.start();
+		
+		getTransformer().addRule(dummyPorts.makePassThroughRule());
+	}
+	
 }

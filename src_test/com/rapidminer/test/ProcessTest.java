@@ -9,8 +9,8 @@ import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.test.utils.RapidAssert;
-import com.rapidminer.test.utils.Util;
+import com.rapidminer.test_utils.RapidAssert;
+import com.rapidminer.test_utils.Util;
 
 /**
  * <p>Tests a single process by doing a run of the process and testing if the output

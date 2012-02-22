@@ -1138,9 +1138,6 @@ public class Tools {
                 out.write(buffer, 0, length);
             }
             out.flush();
-            if (closeOutputStream) {
-                out.close();
-            }
         } finally {
             if (closeOutputStream && out != null) {
                 try {

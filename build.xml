@@ -9,6 +9,7 @@
 	<property name="lib" location="lib" />
 	<property name="pluginslib" location="lib/plugins" />
 	<property name="build" location="build" />
+	<property name="test.build" location="build_test" />
 	<property name="installation.dir" location="installation" />
 	<property name="javadoc" location="javadoc" />
 	<property name="scripts" location="scripts" />
@@ -59,7 +60,7 @@
 		<pathelement location="${build}" />
 	</path>
 	<path id="classpath.test">
-		<pathelement location="${build}" />
+		<pathelement location="${test.build}" />
 		<path refid="classpath" />
 	</path>
 
@@ -79,6 +80,7 @@
 		<copy file="ant/jsch-0.1.42.jar" todir="${ant.library.dir}" failonerror="false" />
 
 		<mkdir dir="${build}" />
+		<mkdir dir="${test.build}" />
 		<mkdir dir="${pluginslib}" />
 		<echo file="${pluginslib}/Readme.txt">Copy downloaded plugins into this directory.</echo>
 		<mkdir dir="${javadoc}" />
@@ -95,6 +97,7 @@
 	<target name="clean" unless="lock.isCleaned" description="Delete the build directory, java doc, rapidminer.jar">
 		<echo message="Cleaning..." />
 		<delete dir="${build}" />
+		<delete dir="${test.build}" />
 		<delete dir="${javadoc}" />
 		<mkdir dir="${build}" />
 		<mkdir dir="${javadoc}" />
@@ -538,17 +541,18 @@
 
 	<!-- BEGIN Test targets -->
 	<target name="test.compile" depends="test.clean">
-		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m">
+		<javac debug="${compiler.debug}" destdir="${test.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m">
 
 			<classpath refid="classpath" />
 			<src path="${src_test}" />
+			<src path="${src}/com/rapidminer/test_utils" />
 		</javac>
 	</target>
 
 	<target name="test.clean">
 		<mkdir dir="${junit.reports}" />
 		<delete>
-			<fileset dir="${build}" includes="**/test/*.class" />
+			<fileset dir="${test.build}" includes="**/test/*.class" />
 			<fileset dir="${junit.reports}" />
 		</delete>
 	</target>
@@ -563,6 +567,7 @@
 			<sysproperty key="java.util.logging.config.file" value="${java.util.logging.config.file}" />
 			<classpath refid="classpath.test" />
 			<formatter type="xml" usefile="true" />
+			<!-- <formatter type="plain" usefile="false" /> -->
 			<test name="com.rapidminer.test.AllTests" todir="${junit.reports}" />
 		</junit>
 	</target>

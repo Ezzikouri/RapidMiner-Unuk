@@ -14,7 +14,6 @@ import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.plugin.Plugin;
 
 /**
  * <p>The test context (singleton) is in charge for initializing RapidMiner and determining a
@@ -149,8 +148,6 @@ public class TestContext {
 	            RapidMiner.setExecutionMode(ExecutionMode.TEST);
 	            RapidMiner.init();
 	            
-	            Plugin.initPluginTests();
-	            
 	            try {
 	            	if (repositoryUrl!=null&&repositoryLocation!=null&&repositoryUser!=null&&repositoryPassword!=null) {
 						setRepository(new RemoteRepository(new URL(repositoryUrl), REPOSITORY_ALIAS, repositoryUser, repositoryPassword.toCharArray(), true));
@@ -168,6 +165,10 @@ public class TestContext {
 	            	}
 	            } catch (Exception e) {
 	            	setRepositoryPresent(false);
+//	            	System.out.println("url: " + repositoryUrl);
+//	            	System.out.println("user: " + repositoryUser);
+//	            	System.out.println("pass: " + repositoryPassword);
+//	            	System.out.println("loca: " + repositoryLocation);
 	                throw new RuntimeException("Failed to intialize test repository", e);
 	            }
 

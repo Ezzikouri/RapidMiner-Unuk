@@ -37,6 +37,7 @@ import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
+import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 /**
@@ -157,7 +158,7 @@ public abstract class RemoteEntry implements Entry {
 	@Override
 	public void delete() throws RepositoryException {				
 		Response response = getRepository().getRepositoryService().deleteEntry(getLocation().getPath());
-		if (response.getStatus() != 0) {
+		if ((response.getStatus() != 0) && (response.getStatus() != RepositoryConstants.NO_SUCH_ENTRY)) {
 			throw new RepositoryException(response.getErrorMessage());
 		}
 		((RemoteFolder)getContainingFolder()).removeChild(this);
@@ -165,11 +166,17 @@ public abstract class RemoteEntry implements Entry {
 	
 	@Override
 	public boolean move(Folder newParent) throws RepositoryException {
-		Response response = getRepository().getRepositoryService().move(getPath(), ((RemoteFolder) newParent).getPath());
+		String oldPath = getPath();
+		String newPath = ((RemoteFolder) newParent).getPath();
+		EntryResponse response = getRepository().getRepositoryService().move(oldPath, newPath);
 		if (response.getStatus() != 0) {
 			throw new RepositoryException(response.getErrorMessage());
+		} else {
+			this.location = response.getLocation();
 		}
-		containingFolder.removeChild(this);
+		if (containingFolder != null) {
+			containingFolder.removeChild(this);
+		}
 		if (this instanceof Folder) {
 			((RemoteFolder)newParent).getSubfolders().add((Folder) this);
 		} else {
