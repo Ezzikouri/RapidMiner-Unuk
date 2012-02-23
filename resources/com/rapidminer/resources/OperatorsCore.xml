@@ -499,6 +499,28 @@
                <class>com.rapidminer.operator.macros.UnsetMacroOperator</class>
             </operator>
          </group>
+         <group key="repository_management">
+	      	<operator>
+	      		<key>move_repository_entry</key>
+	      		<class>com.rapidminer.operator.repository.RepositoryEntryMoveOperator</class>
+	      		<icon>data_out.png</icon>
+	      	</operator>
+	      	<operator>
+	      		<key>copy_repository_entry</key>
+	      		<class>com.rapidminer.operator.repository.RepositoryEntryCopyOperator</class>
+	      		<icon>data_copy.png</icon>
+	      	</operator>
+	      	<operator>
+	      		<key>delete_repository_entry</key>
+	      		<class>com.rapidminer.operator.repository.RepositoryEntryDeleteOperator</class>
+	      		<icon>data_delete.png</icon>
+	      	</operator>
+	      	<operator>
+	      		<key>rename_repository_entry</key>
+	      		<class>com.rapidminer.operator.repository.RepositoryEntryRenameOperator</class>
+	      		<icon>data_edit.png</icon>
+	      	</operator>
+      	</group>
          <group key="logging">
             <icon>data_scroll.png</icon>
             <operator>
@@ -687,28 +709,6 @@
                <replaces>MemoryCleanUp</replaces>
             </operator>
          </group>
-      </group>
-      <group key="repository_management">
-      	<operator>
-      		<key>move_repository_entry</key>
-      		<class>com.rapidminer.operator.repository.RepositoryEntryMoveOperator</class>
-      		<icon>data_out.png</icon>
-      	</operator>
-      	<operator>
-      		<key>copy_repository_entry</key>
-      		<class>com.rapidminer.operator.repository.RepositoryEntryCopyOperator</class>
-      		<icon>data_copy.png</icon>
-      	</operator>
-      	<operator>
-      		<key>delete_repository_entry</key>
-      		<class>com.rapidminer.operator.repository.RepositoryEntryDeleteOperator</class>
-      		<icon>data_delete.png</icon>
-      	</operator>
-      	<operator>
-      		<key>rename_repository_entry</key>
-      		<class>com.rapidminer.operator.repository.RepositoryEntryRenameOperator</class>
-      		<icon>data_edit.png</icon>
-      	</operator>
       </group>
       <group key="repository_access">
          <operator>

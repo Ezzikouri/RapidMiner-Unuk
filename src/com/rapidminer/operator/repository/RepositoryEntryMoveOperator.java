@@ -23,18 +23,10 @@
 
 package com.rapidminer.operator.repository;
 
-import java.util.List;
-
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.parameter.ParameterType;
-import com.rapidminer.parameter.ParameterTypeBoolean;
-import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
-import com.rapidminer.repository.Entry;
-import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 
 /**
@@ -45,11 +37,7 @@ import com.rapidminer.repository.RepositoryManager;
  * @author Nils Woehler
  *
  */
-public class RepositoryEntryMoveOperator extends RepositoryManagerOperator {
-
-	public static final String ELEMENT_TO_MOVE = "file_to_move";
-	public static final String DESTINATION = "destination";
-	public static final String OVERWRITE = "overwrite";
+public class RepositoryEntryMoveOperator extends AbstractRepositoryEntryRelocationOperator {
 
 	public RepositoryEntryMoveOperator(OperatorDescription description) {
 		super(description);
@@ -57,59 +45,16 @@ public class RepositoryEntryMoveOperator extends RepositoryManagerOperator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		RepositoryLocation repoLoc = getParameterAsRepositoryLocation(ELEMENT_TO_MOVE);
 
-		boolean overwrite = getParameterAsBoolean(OVERWRITE);
-
-		RepositoryManager repoMan = RepositoryManager.getInstance(repoLoc.getAccessor());
-
-		Folder destination;
-
-		// fetch destination folder
-		RepositoryLocation destinationRepoLoc = getParameterAsRepositoryLocation(DESTINATION);
-		try {
-			Entry destEntry = destinationRepoLoc.locateEntry();
-			if(destEntry != null && !(destEntry instanceof Folder)) {
-				throw new UserError(this, "311", destinationRepoLoc);
-			}
-			destination = (Folder) destEntry;
-		} catch (RepositoryException e1) {
-			throw new UserError(this, e1, "302", destinationRepoLoc, e1.getMessage());
-		}
-
-		// if folder does net exists, create it
-		if (destination == null) {
-			try {
-				destinationRepoLoc.createFoldersRecursively();
-			} catch (RepositoryException e1) {
-				throw new UserError(this, e1, "311", destinationRepoLoc);
-			}
-			
-			try {
-				destination = (Folder) destinationRepoLoc.locateEntry();
-			} catch (RepositoryException e1) {
-				throw new UserError(this, e1, "302", destinationRepoLoc, e1.getMessage());
-			}
-		}
+		super.doWork();
+		
+		RepositoryManager repoMan = RepositoryManager.getInstance(null);
 
 		try {
 			// move repository element to new destination
-			repoMan.move(repoLoc, destination, null, overwrite);
+			repoMan.move(getFromRepositoryLocation(), getDestinationFolder(), getDestinationName(), null);
 		} catch (RepositoryException e) {
-			throw new UserError(this, e, "repository_management.move_repository_entry", repoLoc, e.getMessage());
+			throw new UserError(this, e, "repository_management.move_repository_entry", getFromRepositoryLocation(), e.getMessage());
 		}
-		super.doWork();
 	}
-
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-
-		types.add(new ParameterTypeRepositoryLocation(ELEMENT_TO_MOVE, "Entry that should be moved", true, true, false));
-		types.add(new ParameterTypeRepositoryLocation(DESTINATION, "Destination folder for move action", false, true, false));
-		types.add(new ParameterTypeBoolean(OVERWRITE, "Overwrite entry at move destination?", false, false));
-
-		return types;
-	}
-
 }

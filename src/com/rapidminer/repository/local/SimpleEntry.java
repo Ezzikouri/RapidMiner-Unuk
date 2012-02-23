@@ -138,8 +138,15 @@ public abstract class SimpleEntry implements Entry {
 		}
 	}
 
-	boolean moveFile(File file, File targetDirectory) {
-		return file.renameTo(new File(targetDirectory, file.getName()));
+	/**
+	 * Moves the file to a new location. If newName is null the old name will be used.
+	 */
+	boolean moveFile(File file, File targetDirectory, String newName) {
+		String name = newName;
+		if(name == null) {
+			name = file.getName();
+		}
+		return file.renameTo(new File(targetDirectory, name));
 	}
 	
 	@Override
@@ -149,13 +156,27 @@ public abstract class SimpleEntry implements Entry {
 		this.containingFolder.addChild(this);
 		return true;
 	}
+	
+	@Override
+	public boolean move(Folder newParent, String newName) {
+
+		this.containingFolder.removeChild(this);
+
+		if (newName != null) {
+			this.name = newName;		
+		}
+
+		this.containingFolder = (SimpleFolder)newParent;
+		this.containingFolder.addChild(this);
+		
+		return true;
+	}
 
 	/* Properties
 	 * We store the owner in a properties file because there is no system independent way
 	 * of determining the user.
 	 * TODO: Check if Java 7 has such a feature.
 	 */
-	
 	private void loadProperties() {
 		File propertiesFile = getPropertiesFile();
 		if ((propertiesFile != null) && propertiesFile.exists()) {

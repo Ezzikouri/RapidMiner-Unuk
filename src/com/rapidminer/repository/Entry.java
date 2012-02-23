@@ -31,7 +31,7 @@ import com.rapidminer.operator.io.RepositorySource;
 /** An entry in a repository. Can be either a folder or a data entry (leaf).
  *  This is either a view on the local file system or a view on a remote repository.
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Nils Woehler
  *
  */
 public interface Entry {
@@ -61,6 +61,14 @@ public interface Entry {
 	 *  using a sequence of copy and delete.
 	 * @throws RepositoryException */
 	public boolean move(Folder newParent) throws RepositoryException;
+	
+	/** Needs to be implemented only for folders in the same repository. 
+	 *  Moving between different repositories is implemented by 
+	 *  {@link RepositoryManager#move(RepositoryLocation, Folder, com.rapidminer.tools.ProgressListener)}
+	 *  using a sequence of copy and delete.
+	 *  @param newName New name for moved entry. If moved entry shouldn't be renamed: newName=null.
+	 * @throws RepositoryException */
+	public boolean move(Folder newParent, String newName) throws RepositoryException;
 	
 	/** Returns the folder containing this entry. */
 	public Folder getContainingFolder();

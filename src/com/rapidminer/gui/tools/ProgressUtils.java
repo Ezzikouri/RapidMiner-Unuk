@@ -34,6 +34,8 @@ import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.rapidminer.gui.ApplicationFrame;
+
 /**
  * Some utils for the creation of a modal progress monitor dialog.
  *
@@ -52,6 +54,9 @@ public class ProgressUtils {
 		public MonitorListener(Window owner, String title, ProgressMonitor monitor, boolean modal) {
 			this.title = title;
 			this.owner = owner;
+			if (owner == null) {
+				owner = ApplicationFrame.getApplicationFrame();
+			}
 			this.monitor = monitor;
 			this.modal = modal;
 		}

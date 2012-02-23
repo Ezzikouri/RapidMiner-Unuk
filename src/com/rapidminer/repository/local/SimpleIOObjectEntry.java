@@ -227,10 +227,17 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	
 	@Override
 	public boolean move(Folder newParent) {	
-		moveFile(getDataFile(), ((SimpleFolder)newParent).getFile());
-		moveFile(getMetaDataFile(), ((SimpleFolder)newParent).getFile());
+		moveFile(getDataFile(), ((SimpleFolder)newParent).getFile(), null);
+		moveFile(getMetaDataFile(), ((SimpleFolder)newParent).getFile(), null);
 		return super.move(newParent);
-	};
+	}
+	
+	@Override
+	public boolean move(Folder newParent, String newName) {	
+		moveFile(getDataFile(), ((SimpleFolder)newParent).getFile(), newName);
+		moveFile(getMetaDataFile(), ((SimpleFolder)newParent).getFile(), newName);
+		return super.move(newParent, newName);
+	}
 
 	@Override
 	public long getDate() {

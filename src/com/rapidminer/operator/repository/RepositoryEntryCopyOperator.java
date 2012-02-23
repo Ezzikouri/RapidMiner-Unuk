@@ -23,18 +23,10 @@
 
 package com.rapidminer.operator.repository;
 
-import java.util.List;
-
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.parameter.ParameterType;
-import com.rapidminer.parameter.ParameterTypeBoolean;
-import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
-import com.rapidminer.repository.Entry;
-import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 
 /**
@@ -45,11 +37,7 @@ import com.rapidminer.repository.RepositoryManager;
  * @author Nils Woehler
  *
  */
-public class RepositoryEntryCopyOperator extends RepositoryManagerOperator {
-
-	public static final String ELEMENT_TO_COPY = "file_to_copy";
-	public static final String DESTINATION = "destination";
-	public static final String OVERWRITE = "overwrite";
+public class RepositoryEntryCopyOperator extends AbstractRepositoryEntryRelocationOperator {
 
 	public RepositoryEntryCopyOperator(OperatorDescription description) {
 		super(description);
@@ -57,58 +45,16 @@ public class RepositoryEntryCopyOperator extends RepositoryManagerOperator {
 
 	@Override
 	public void doWork() throws OperatorException {
-		RepositoryLocation repoLoc = getParameterAsRepositoryLocation(ELEMENT_TO_COPY);
-
-		RepositoryManager repoMan = RepositoryManager.getInstance(repoLoc.getAccessor());
-
-		boolean overwrite = getParameterAsBoolean(OVERWRITE);
-
-		// fetch destination folder
-		Folder destination;
-		RepositoryLocation destinationRepoLoc = getParameterAsRepositoryLocation(DESTINATION);
-		try {
-			Entry destEntry = destinationRepoLoc.locateEntry();
-			if(destEntry != null && !(destEntry instanceof Folder)) {
-				throw new UserError(this, "311", destinationRepoLoc);
-			}
-			destination = (Folder) destEntry;
-		} catch (RepositoryException e1) {
-			throw new UserError(this, e1, "302", destinationRepoLoc, e1.getMessage());
-		}
-
-		// if destination folder does not exists, create a new one recursively
-		if (destination == null) {
-			try {
-				destinationRepoLoc.createFoldersRecursively();
-			} catch (RepositoryException e1) {
-				throw new UserError(this, e1, "311", destinationRepoLoc);
-			}
-			try {
-				destination = (Folder) destinationRepoLoc.locateEntry();
-			} catch (RepositoryException e1) {
-				throw new UserError(this, e1, "302", destinationRepoLoc, e1.getMessage());
-			}
-		}
-		
-		// finally try to copy the repository element to the new destination
-		try {
-			repoMan.copy(repoLoc, destination, null, overwrite);
-		} catch (RepositoryException e) {
-			throw new UserError(this, e, "repository_management.copy_repository_entry", repoLoc, e.getMessage());
-		}
-
 		super.doWork();
-	}
+		
+		RepositoryManager repoMan = RepositoryManager.getInstance(null);
 
-	@Override
-	public List<ParameterType> getParameterTypes() {
-		List<ParameterType> types = super.getParameterTypes();
-
-		types.add(new ParameterTypeRepositoryLocation(ELEMENT_TO_COPY, "Entry that should be copied", true, true, false));
-		types.add(new ParameterTypeRepositoryLocation(DESTINATION, "Copy destination folder", false, true, false));
-		types.add(new ParameterTypeBoolean(OVERWRITE, "Overwrite entry at copy destination?", false, false));
-
-		return types;
+		// try to copy the repository element to the new destination
+		try {
+			repoMan.copy(getFromRepositoryLocation(), getDestinationFolder(), getDestinationName(), null);
+		} catch (RepositoryException e) {
+			throw new UserError(this, e, "repository_management.copy_repository_entry", getFromRepositoryLocation(), e.getMessage());
+		}
 	}
 
 }

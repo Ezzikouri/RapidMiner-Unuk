@@ -24,6 +24,7 @@ package com.rapidminer.repository.remote;
 
 import java.io.PrintStream;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +44,8 @@ import com.rapid_i.repository.wsimport.mgt.ManagementServiceService;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.GlobalAuthenticator;
+import com.rapidminer.tools.GlobalAuthenticator.URLAuthenticator;
 import com.rapidminer.tools.Tools;
 
 /** This class can be used to access a RapidAnalytics installation from a remote machine.
@@ -149,15 +152,28 @@ public class RapidAnalyticsCLTool {
 	}
 	
 	public void run() throws IllegalArgumentException, MalformedURLException, RepositoryException {
-		String url = getArgument("url", "http://localhost:8080");
-		String user = getArgument("user", "admin");
-		String password = getArgument("password", "changeit");
+		final String url = getArgument("url", "http://localhost:8080");
+		final String user = getArgument("user", "admin");
+		final String password = getArgument("password", "changeit");
 
+		
 		System.err.println("Using RapidAnalytics server at "+url+"...");
 		RemoteRepository repository = new RemoteRepository(new URL(url), 
-				"Temp", user, password.toCharArray(), true);
+				"Temp", user, password.toCharArray(), true);		
 		RepositoryManager.getInstance(null).addRepository(repository);
-
+//
+//		GlobalAuthenticator.registerServerAuthenticator(new URLAuthenticator() {
+//			@Override
+//			public String getName() {
+//				return "Dummy command line authenticator";
+//			}
+//			
+//			@Override
+//			public PasswordAuthentication getAuthentication(URL url) {
+//				return new PasswordAuthentication(user, password.toCharArray());
+//			}
+//		});
+		
 		if (isArgumentSet("check-state")) {
 			long startTime;
 			try {

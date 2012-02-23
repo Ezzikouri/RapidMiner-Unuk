@@ -109,6 +109,11 @@ public class DBConnectionConverterFolder implements Folder {
 	public boolean move(Folder newParent) throws RepositoryException {
 		throw new RepositoryException("Cannot move connection entry.");
 	}
+	
+	@Override
+	public boolean move(Folder newParent, String newName) throws RepositoryException {
+		throw new RepositoryException("Cannot move connection entry.");
+	}
 
 	@Override
 	public Folder getContainingFolder() {

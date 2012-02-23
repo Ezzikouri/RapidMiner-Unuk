@@ -41,7 +41,7 @@ import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 /**
- * @author Simon Fischer
+ * @author Simon Fischer, Nils Woehler
  */
 public abstract class RemoteEntry implements Entry {
 
@@ -188,6 +188,44 @@ public abstract class RemoteEntry implements Entry {
 	}
 	
 	@Override
+	public boolean move(Folder newParent, String newName) throws RepositoryException {
+		String oldPath = getPath();
+		String newPath;
+		if (newName != null) {
+			try {
+				newPath = new RepositoryLocation(newParent.getLocation(), newName).getPath();
+			} catch (MalformedRepositoryLocationException e) {
+				throw new RepositoryException(e.getMessage(), e);
+			}
+		} else {
+			newPath = newParent.getLocation().getPath();
+		}
+		EntryResponse response = getRepository().getRepositoryService().move(oldPath, newPath);
+		if (response.getStatus() != 0) {
+			throw new RepositoryException(response.getErrorMessage());
+		} else {
+			this.location = response.getLocation();
+			int lastSlash = this.location.lastIndexOf('/');
+			if (lastSlash == -1) {
+				this.name = this.location;
+			} else {
+				this.name = this.location.substring(lastSlash+1);
+			}
+		}
+		if (containingFolder != null) {
+			containingFolder.removeChild(this);
+		}
+		if (this instanceof Folder) {
+			((RemoteFolder)newParent).getSubfolders().add((Folder) this);
+		} else {
+			((RemoteFolder)newParent).getDataEntries().add((DataEntry) this);
+		}		
+		this.containingFolder = (RemoteFolder) newParent;
+		getRepository().fireEntryAdded(this, newParent);
+		return true;
+	}
+	
+	@Override
 	public Collection<Action> getCustomActions() {
 		List<Action> actions= new LinkedList<Action>();
 		actions.add(new AccessRightsAction(this));
@@ -202,5 +240,10 @@ public abstract class RemoteEntry implements Entry {
 
 	public void setAccessRights(List<AccessRights> accessRights) throws RepositoryException {
 		getRepository().getRepositoryService().setAccessRights(getPath(), accessRights);		
+	}
+	
+	@Override
+	public String toString() {
+		return getLocation().toString();
 	}
 }

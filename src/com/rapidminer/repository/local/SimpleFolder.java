@@ -77,8 +77,14 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 
 	@Override
 	public boolean move(Folder newParent) {
-		moveFile(getFile(), ((SimpleFolder) newParent).getFile());
+		moveFile(getFile(), ((SimpleFolder) newParent).getFile(), null);
 		return super.move(newParent);
+	}
+	
+	@Override
+	public boolean move(Folder newParent, String newName) {
+		moveFile(getFile(), ((SimpleFolder) newParent).getFile(), newName);
+		return super.move(newParent, newName);
 	}
 
 	protected File getFile() {

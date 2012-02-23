@@ -261,6 +261,21 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	}
 	
 	@Override
+	public boolean move(Folder newParent, String newName) throws RepositoryException {
+		boolean wasLoaded = !willBlock();
+		folders = null;
+		entries = null;
+		readOnly  = false;
+		forbidden = false;
+		boolean success = super.move(newParent, newName);
+		if (wasLoaded) {
+			ensureLoaded();
+			getRepository().fireRefreshed(this);
+		}
+		return success;
+	}
+	
+	@Override
 	public boolean rename(String newName) throws RepositoryException {
 		boolean wasLoaded = !willBlock();
 		folders = null;

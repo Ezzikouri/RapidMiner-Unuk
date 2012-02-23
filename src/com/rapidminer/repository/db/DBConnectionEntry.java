@@ -110,6 +110,11 @@ public class DBConnectionEntry implements IOObjectEntry {
 	public boolean move(Folder newParent) throws RepositoryException {
 		throw new RepositoryException("Cannot move items in connection entry.");
 	}
+	
+	@Override
+	public boolean move(Folder newParent, String newName) throws RepositoryException {
+		throw new RepositoryException("Cannot move items in connection entry.");
+	}
 
 	@Override
 	public Folder getContainingFolder() {

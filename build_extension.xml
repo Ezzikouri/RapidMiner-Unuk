@@ -54,7 +54,6 @@
     </path>
     <path id="build.classpath">
         <pathelement location="${build.build}" />
-        <pathelement location="${test.build.build}" />
         <path refid="build.libraries" />
         <pathelement location="${java.home}/jre/lib/rt.jar" />
         <pathelement location="${java.home}/../jre/lib/rt.jar" />
@@ -98,10 +97,8 @@
     <target name="clean" unless="lock.isCleaned" description="Delete the build directory, java doc, rapidminer.jar, plugin files">
         <echo message="Cleaning..." />
         <delete dir="${build.build}" />
-        <delete dir="${test.build.build}" />
         <delete dir="${javadoc.targetDir}" />
         <mkdir dir="${build.build}" />
-        <mkdir dir="${test.build.build}" />
         <mkdir dir="${javadoc.targetDir}" />
         <delete>
             <fileset dir="${release.targetDir}" includes="rapidminer-${extension.name}-${extension.version}*.*" />

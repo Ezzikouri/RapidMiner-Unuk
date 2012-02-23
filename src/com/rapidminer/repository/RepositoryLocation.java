@@ -69,6 +69,7 @@ public class RepositoryLocation {
      *  folder.
      * @throws MalformedRepositoryLocationException */
     public RepositoryLocation(RepositoryLocation parent, String childName) throws MalformedRepositoryLocationException {
+    	this.accessor = parent.accessor;
         if (isAbsolute(childName)) {
             initializeFromAbsoluteLocation(childName);
         } else if (childName.startsWith(""+SEPARATOR)) {

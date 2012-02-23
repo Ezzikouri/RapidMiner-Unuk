@@ -41,9 +41,9 @@ import com.rapidminer.repository.RepositoryLocation;
  * @author Nils Woehler
  *
  */
-public class RepositoryEntryDeleteOperator extends RepositoryManagerOperator {
+public class RepositoryEntryDeleteOperator extends AbstractRepositoryManagerOperator {
 
-	public static final String ELEMENT_TO_DELETE = "element_to_delete";
+	public static final String ELEMENT_TO_DELETE = "entry_to_delete";
 
 	public RepositoryEntryDeleteOperator(OperatorDescription description) {
 		super(description);
@@ -51,6 +51,8 @@ public class RepositoryEntryDeleteOperator extends RepositoryManagerOperator {
 
 	@Override
 	public void doWork() throws OperatorException {
+		super.doWork();
+		
 		RepositoryLocation repoLoc = getParameterAsRepositoryLocation(ELEMENT_TO_DELETE);
 
 		Entry locateEntry;
@@ -58,6 +60,9 @@ public class RepositoryEntryDeleteOperator extends RepositoryManagerOperator {
 			locateEntry = repoLoc.locateEntry();
 		} catch (RepositoryException e1) {
 			throw new UserError(this, e1, "302", repoLoc, e1.getMessage());
+		}
+		if(locateEntry == null) {
+			return;
 		}
 		try {
 			locateEntry.delete();

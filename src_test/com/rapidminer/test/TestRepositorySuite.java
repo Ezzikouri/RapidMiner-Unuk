@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -81,11 +82,37 @@ public class TestRepositorySuite extends TestCase {
 		}, ProcessEntry.class);
 		
 		for( ProcessEntry entry : entries ) {
-			Process process = new RepositoryProcessLocation(entry.getLocation()).load(null);
-			suite.addTest(new ProcessTest(process));
+			RepositoryLocation processLocation = entry.getLocation();
+			if (isTestLocation(processLocation)) {
+				Process process = new RepositoryProcessLocation(processLocation).load(null);
+				suite.addTest(new ProcessTest(process));
+			}
 		}
 		
 		return suite;
 	}
 	
+	/**
+	 * @param processLocation
+	 * @return
+	 */
+	private static boolean isTestLocation(RepositoryLocation processLocation) {
+		TestContext testContext = TestContext.get();
+		String exclusionPattern = testContext.getProcessExclusionPattern();
+		if (exclusionPattern == null) {
+			return true;
+		} else {
+			String locationString = processLocation.getAbsoluteLocation();
+			String repositoryLocation = testContext.getRepositoryLocation().getAbsoluteLocation();
+			if (!repositoryLocation.endsWith("/")) {
+				repositoryLocation = repositoryLocation + "/";
+			}
+			locationString = locationString.replace(repositoryLocation, "");
+			boolean exclude = Pattern.matches(exclusionPattern, locationString);
+			if (exclude) {
+				LogService.getRoot().log(Level.WARNING, "Process matched by exclusion pattern - ignored (" + locationString + ")");
+			}
+			return !exclude;
+		}
+	}
 }

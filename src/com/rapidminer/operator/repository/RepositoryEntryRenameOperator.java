@@ -45,9 +45,9 @@ import com.rapidminer.repository.RepositoryLocation;
  * @author Nils Woehler
  *
  */
-public class RepositoryEntryRenameOperator extends RepositoryManagerOperator {
+public class RepositoryEntryRenameOperator extends AbstractRepositoryManagerOperator {
 
-	public static final String ELEMENT_TO_RENAME = "element_to_rename";
+	public static final String ELEMENT_TO_RENAME = "entry_to_rename";
 	public static final String NEW_ELEMENT_NAME = "new_name";
 	public static final String OVERWRITE = "overwrite";
 
@@ -58,6 +58,8 @@ public class RepositoryEntryRenameOperator extends RepositoryManagerOperator {
 	@Override
 	public void doWork() throws OperatorException {
 
+		super.doWork();
+		
 		//fetch parameters
 		RepositoryLocation repoLoc = getParameterAsRepositoryLocation(ELEMENT_TO_RENAME);
 		String newName = getParameterAsString(NEW_ELEMENT_NAME);

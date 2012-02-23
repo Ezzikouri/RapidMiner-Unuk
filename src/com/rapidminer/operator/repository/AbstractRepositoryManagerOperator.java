@@ -24,6 +24,7 @@ package com.rapidminer.operator.repository;
 
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
+import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ports.DummyPortPairExtender;
 import com.rapidminer.operator.ports.PortPairExtender;
 
@@ -34,19 +35,24 @@ import com.rapidminer.operator.ports.PortPairExtender;
  * @author Nils Woehler
  *
  */
-public abstract class RepositoryManagerOperator extends Operator {
+public abstract class AbstractRepositoryManagerOperator extends Operator {
 
 	private PortPairExtender dummyPorts = new DummyPortPairExtender("through", getInputPorts(), getOutputPorts());
 	
 	/**
 	 * @param description
 	 */
-	public RepositoryManagerOperator(OperatorDescription description) {
+	public AbstractRepositoryManagerOperator(OperatorDescription description) {
 		super(description);
 		
 		dummyPorts.start();
 		
 		getTransformer().addRule(dummyPorts.makePassThroughRule());
+	}
+	
+	@Override
+	public void doWork() throws OperatorException {
+		dummyPorts.passDataThrough();
 	}
 	
 }

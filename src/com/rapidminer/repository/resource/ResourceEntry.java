@@ -89,6 +89,11 @@ public abstract class ResourceEntry implements Entry {
 	public boolean move(Folder newParent) throws RepositoryException {
 		throw new RepositoryException("Repository is read only.");
 	}
+	
+	@Override 
+	public boolean move(Folder newParent, String newName) throws RepositoryException {
+		throw new RepositoryException("Repository is read only.");
+	}
 
 	@Override
 	public boolean rename(String newName) throws RepositoryException {

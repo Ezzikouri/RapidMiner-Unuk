@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.rapidminer.repository.BlobEntry;
+import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.RepositoryException;
 
 /**
@@ -68,6 +69,18 @@ public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 	public boolean rename(String newName) {
 		renameFile(getFile(), newName);
 		return super.rename(newName);
+	}
+	
+	@Override
+	public boolean move(Folder newParent) {	
+		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), null);
+		return super.move(newParent);
+	}
+	
+	@Override
+	public boolean move(Folder newParent, String newName) {	
+		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), newName);
+		return super.move(newParent, newName);
 	}
 
 	@Override

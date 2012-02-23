@@ -360,26 +360,19 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		}
 	}
 
-	/** Copies an entry to a given destination folder. If elements already exists at destination a prefix ("Copy of ...") is appended. */
+	/** Copies an entry to a given destination folder. */
 	public void copy(RepositoryLocation source, Folder destination, ProgressListener listener) throws RepositoryException {
-		copy(source, destination, listener, false, false);
+		copy(source, destination, null, listener);
 	}
 
-	/** Copies an entry to a given destination folder. If elements already exists and overwrite is <code>true</code>, all existing elements will be
-	 * overwritten. If overwrite is <code>false</code> a exception will be thrown.
-	 */
-	public void copy(RepositoryLocation source, Folder destination, ProgressListener listener, boolean overwrite) throws RepositoryException {
-		copy(source, destination, listener, overwrite, true);
-	}
-
-	private void copy(RepositoryLocation source, Folder destination, ProgressListener listener, boolean overwrite, boolean throwExceptionInsteadOfAddingPrefix)
-			throws RepositoryException {
+	/** Copies an entry to a given destination folder with the name newName. If newName is null the old name will be kept. */
+	public void copy(RepositoryLocation source, Folder destination, String newName, ProgressListener listener) throws RepositoryException {
 		if (listener != null) {
 			listener.setTotal(100000);
 			listener.setCompleted(0);
 		}
 		try {
-			copy(source, destination, listener, 0, 100000, overwrite, throwExceptionInsteadOfAddingPrefix);
+			copy(source, destination, newName, listener, 0, 100000);
 		} finally {
 			if (listener != null) {
 				listener.complete();
@@ -387,33 +380,28 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		}
 	}
 
-	private void copy(RepositoryLocation source, Folder destination, ProgressListener listener, int minProgress, int maxProgress, boolean overwrite,
-			boolean throwExceptionInsteadOfAddingPrefix) throws RepositoryException {
+	private void copy(RepositoryLocation source, Folder destination, String newName, ProgressListener listener, int minProgress, int maxProgress) throws RepositoryException {
 		Entry entry = source.locateEntry();
 		if (entry == null) {
 			throw new RepositoryException("No such entry: " + source);
 		}
-		copy(entry, destination, listener, minProgress, maxProgress, overwrite, throwExceptionInsteadOfAddingPrefix);
+		copy(entry, destination, newName, listener, minProgress, maxProgress);
 	}
 
-	private void copy(Entry entry, Folder destination, ProgressListener listener, int minProgress, int maxProgress, boolean overwrite, boolean throwExceptionInsteadOfAddingPrefix)
-			throws RepositoryException {
+	private void copy(Entry entry, Folder destination, String newName, ProgressListener listener, int minProgress, int maxProgress) throws RepositoryException {
 		if (listener != null) {
 			listener.setMessage(entry.getName());
 		}
-		String newName = entry.getName();
+
+		if (newName == null) {
+			newName = entry.getName();
+		}
+
 		if (destination.containsEntry(newName)) {
-			if (overwrite) {
-				deleteExistingDataEntry(destination, newName);
-			} else {
-				if (throwExceptionInsteadOfAddingPrefix) {
-					throw new RepositoryException("Element with name '" + newName + "' already exists in destination folder");
-				}
-				newName = "Copy of " + newName;
-				int i = 1;
-				while (destination.containsEntry(newName)) {
-					newName = "Copy " + (i++) + " of " + newName;
-				}
+			newName = "Copy of " + newName;
+			int i = 1;
+			while (destination.containsEntry(newName)) {
+				newName = "Copy " + (i++) + " of " + newName;
 			}
 		}
 		if (entry instanceof ProcessEntry) {
@@ -451,7 +439,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				throw new RepositoryException(e);
 			}
 		} else if (entry instanceof Folder) {
-			Folder destinationFolder = destination.createFolder(entry.getName());
+			Folder destinationFolder = destination.createFolder(newName);
 			List<Entry> allChildren = new LinkedList<Entry>();
 			allChildren.addAll(((Folder) entry).getSubfolders());
 			allChildren.addAll(((Folder) entry).getDataEntries());
@@ -460,8 +448,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			int progressDiff = maxProgress - minProgress;
 			int i = 0;
 			for (Entry child : allChildren) {
-				copy(child, destinationFolder, listener, progressStart + i * progressDiff / count, progressStart + (i + 1) * progressDiff / count, overwrite,
-						throwExceptionInsteadOfAddingPrefix);
+				copy(child, destinationFolder, null, listener, progressStart + i * progressDiff / count, progressStart + (i + 1) * progressDiff / count);
 				i++;
 			}
 		} else {
@@ -469,75 +456,37 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		}
 	}
 
-	/** Moves an entry to a given destination folder. Throws an exception if element with same name already exists at destination folder.*/
-	public void move(RepositoryLocation source, Folder destination, ProgressListener l) throws RepositoryException {
-		move(source, destination, l, false);
+	/** Moves an entry to a given destination folder. */
+	public void move(RepositoryLocation source, Folder destination, ProgressListener listener) throws RepositoryException {
+		move(source, destination, null, listener);
 	}
 
-	/**
-	 * Moves an entry to a given destination folder.
-	 * 
-	 * @param overwrite If <code>true</code> tries to delete already existing elements at destination folder. 
-	 * If <code>false</code> throws an exception if element with same name already exists at destination folder.
-	 */
-	public void move(RepositoryLocation source, Folder destination, ProgressListener listener, boolean overwrite) throws RepositoryException {
+	/** Moves an entry to a given destination folder with the name newName. */
+	public void move(RepositoryLocation source, Folder destination, String newName, ProgressListener listener) throws RepositoryException {
 		Entry entry = source.locateEntry();
 		if (entry == null) {
-			throw new RepositoryException("No such entry: '" + source + "'");
+			throw new RepositoryException("No such entry: " + source);
 		} else {
 			if (destination.getLocation().getRepository() != source.getRepository()) {
-				copy(source, destination, listener, overwrite);
+				copy(source, destination, newName, listener);
 				entry.delete();
 			} else {
-				String newName = source.getName();
+				if (newName == null) {
+					newName = source.getName();
+				}
 				if (destination.containsEntry(newName)) {
-					if (overwrite) {
-						deleteExistingDataEntry(destination, newName);
-					} else {
-						throw new RepositoryException("Destination contains element with name: '" + newName + "' and overwriting is not allowed.");
-					}
+					throw new RepositoryException("Destination contains element with name: " + newName);
 				}
 				if (listener != null) {
 					listener.setTotal(100);
 					listener.setCompleted(10);
 				}
-				entry.move(destination);
+				entry.move(destination, newName);
 				if (listener != null) {
 					listener.setCompleted(100);
 					listener.complete();
 				}
 			}
-		}
-	}
-
-	/**
-	 * Deletes an existing {@link DataEntry} with name newName. If {@link DataEntry} does not exist a RepositoryException is thrown.
-	 */
-	private void deleteExistingDataEntry(Folder destination, String newName) throws RepositoryException {
-		List<DataEntry> dataEntries = destination.getDataEntries();
-
-		boolean deleted = false;
-		for (DataEntry dataEntry : dataEntries) {
-			if (dataEntry.getName().equals(newName)) {
-				dataEntry.delete();
-				deleted = true;
-				break;
-			}
-		}
-
-		if (!deleted) {
-			List<Folder> subfolders = destination.getSubfolders();
-			for (Folder subfolder : subfolders) {
-				if (subfolder.getName().equals(newName)) {
-					subfolder.delete();
-					deleted = true;
-					break;
-				}
-			}
-		}
-
-		if (!deleted) {
-			throw new RepositoryException("Could not delete already existing element " + newName + " at move destination " + destination);
 		}
 	}
 
@@ -615,5 +564,4 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			}
 		}
 	}
-
 }

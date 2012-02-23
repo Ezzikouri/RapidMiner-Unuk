@@ -83,7 +83,7 @@ public class MissingValueReplenishment extends ValueReplenishment {
 
     private static final String[] REPLENISHMENT_NAMES = { "none", "minimum", "maximum", "average", "zero", "value" };
     
-	public static final OperatorVersion VERSION_ROUND_ON_INTEGER_ATTRIBUTES = new OperatorVersion(5,2,0);
+	public static final OperatorVersion VERSION_BEFORE_ROUND_ON_INTEGER_ATTRIBUTES = new OperatorVersion(5,2,0);
 	
 
 
@@ -101,7 +101,7 @@ public class MissingValueReplenishment extends ValueReplenishment {
     	for (int i = 0; i < oldIncompatibleVersionChanges.length; ++i) {
     		newIncompatibleVersionChanges[i] = oldIncompatibleVersionChanges[i];
     	}
-    	newIncompatibleVersionChanges[newIncompatibleVersionChanges.length-1] = VERSION_ROUND_ON_INTEGER_ATTRIBUTES;
+    	newIncompatibleVersionChanges[newIncompatibleVersionChanges.length-1] = VERSION_BEFORE_ROUND_ON_INTEGER_ATTRIBUTES;
     	return newIncompatibleVersionChanges;
     }
     
@@ -245,7 +245,7 @@ public class MissingValueReplenishment extends ValueReplenishment {
                 try {
                     double value = Double.parseDouble(valueString);
                     
-                    if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.INTEGER) && !getCompatibilityLevel().isAtMost(VERSION_ROUND_ON_INTEGER_ATTRIBUTES)) {
+                    if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.INTEGER) && !getCompatibilityLevel().isAtMost(VERSION_BEFORE_ROUND_ON_INTEGER_ATTRIBUTES)) {
                     	if (value != Math.round(value)) {
                             throw new UserError(this, 225, PARAMETER_REPLENISHMENT_VALUE, valueString);
                     	}
@@ -267,7 +267,7 @@ public class MissingValueReplenishment extends ValueReplenishment {
 	 * @return
 	 */
 	private double getProperlyRoundedValue(Attribute attribute, double value) {
-    	if (getCompatibilityLevel().isAtMost(VERSION_ROUND_ON_INTEGER_ATTRIBUTES)) {
+    	if (getCompatibilityLevel().isAtMost(VERSION_BEFORE_ROUND_ON_INTEGER_ATTRIBUTES)) {
     		return value;
     	} else {
     		if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.INTEGER)) {
