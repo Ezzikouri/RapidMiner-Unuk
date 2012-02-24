@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.operator.repository;
 
 import com.rapidminer.operator.OperatorDescription;
@@ -30,9 +29,11 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
 
 /**
- * An Operator to copy repository entries to another repository location. If the destination folder does not exists yet it is created recursively.
- * The user can select the entry that should be copied, a new location for the entry and whether overwriting should be allowed or not.
- * If overwriting is not allowed (default case) a user error is thrown if there already exists an element with the same name at the desired new location.
+ * Copies an entry to a new parent folder. If destinationLocation references a folder, the entry at oldLocation is copied to that folder. 
+ * If it references an existing entry and overwriting is not enabled (default case), an exception is raised. 
+ * If overwriting is enabled the existing entry will be overwritten. 
+ * <p>If it references a location which does not exist, say, "/root/folder/leaf", 
+ * but the parent exists (in this case "/root/folder"), a new entry named by the last path component (in this case "leaf") is created.
  * 
  * @author Nils Woehler
  *

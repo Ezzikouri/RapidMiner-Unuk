@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -32,7 +32,7 @@ public interface RepositoryListener extends EventListener {
 
 	public void entryAdded(Entry newEntry, Folder parent);
 	
-	public void entryRenamed(Entry entry);
+	public void entryChanged(Entry entry);
 	
 	public void entryRemoved(Entry removedEntry, Folder parent, int oldIndex);
 

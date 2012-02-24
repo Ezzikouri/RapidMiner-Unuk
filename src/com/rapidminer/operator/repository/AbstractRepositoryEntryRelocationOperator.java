@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.operator.repository;
 
 import java.util.List;
@@ -43,8 +42,8 @@ import com.rapidminer.repository.RepositoryLocation;
  */
 public class AbstractRepositoryEntryRelocationOperator extends AbstractRepositoryManagerOperator {
 
-	public static final String SOURCE = "from";
-	public static final String DESTINATION = "to";
+	public static final String SOURCE = "source entry";
+	public static final String DESTINATION = "destination";
 	public static final String OVERWRITE = "overwrite";
 	private Folder destinationFolder;
 	private String destinationName;

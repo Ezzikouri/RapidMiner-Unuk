@@ -556,8 +556,13 @@
 			<fileset dir="${junit.reports}" />
 		</delete>
 	</target>
+	
+    <target name="test.init.test_class" unless="rapidminer.test.test_class">
+       <property name="rapidminer.test.test_class" value="com.rapidminer.test.AllTests" />
+    </target>
 
-	<target name="test" depends="test.compile">
+
+	<target name="test" depends="test.compile, test.init.test_class">
 		<junit>
 			<sysproperty key="rapidminer.test.repository.url" value="${rapidminer.test.repository.url}" />
 			<sysproperty key="rapidminer.test.repository.location" value="${rapidminer.test.repository.location}" />
@@ -568,7 +573,7 @@
 			<classpath refid="classpath.test" />
 			<formatter type="xml" usefile="true" />
 			<!-- <formatter type="plain" usefile="false" /> -->
-			<test name="com.rapidminer.test.AllTests" todir="${junit.reports}" />
+			<test name="${rapidminer.test.test_class}" todir="${junit.reports}" />
 		</junit>
 	</target>
 	<!-- END Test targets -->

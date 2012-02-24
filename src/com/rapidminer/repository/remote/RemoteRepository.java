@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -203,13 +203,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	@Override
 	public boolean rename(String newName) {
 		this.setAlias(newName);
-		fireEntryRenamed(this);
+		fireEntryChanged(this);
 		return true;
 	}
 
-	protected void fireEntryRenamed(Entry entry) {
+	protected void fireEntryChanged(Entry entry) {
 		for (RepositoryListener l : listeners.getListeners(RepositoryListener.class)) {
-			l.entryRenamed(entry);
+			l.entryChanged(entry);
 		}
 	}
 

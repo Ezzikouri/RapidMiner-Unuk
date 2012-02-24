@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -62,7 +62,7 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 			conn.setDoOutput(false);
 			conn.setDoInput(true);
 			try {
-				mimeType = conn.getContentType();
+				mimeType = conn.getContentType();				
 				return conn.getInputStream();
 			} catch (IOException e) {
 				throw new RepositoryException("Cannot download object: " + conn.getResponseCode()+": "+conn.getResponseMessage(), e);	
@@ -108,12 +108,20 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 				public void close() throws IOException {
 					super.close();
 					out.close();
+					
 					int code = conn.getResponseCode();
 					String error = conn.getResponseMessage();
 					if ((code < 200) || (code >= 300)) {						
 						throw new IOException("Upload failed. Server responded with code "+code+": "+error);
 					} else {
 						LogService.getRoot().info("Uploaded blob. ("+code+": "+error+")");
+						try {
+							EntryResponse entryResponse = getRepository().getRepositoryService().getEntry(getPath());
+							extractData(entryResponse);
+							RemoteBlobEntry.this.getRepository().fireEntryChanged(RemoteBlobEntry.this);
+						} catch (RepositoryException e) {
+							throw new IOException("Failed to refresh data after upload: "+e, e);
+						}					
 					}
 				}
 				

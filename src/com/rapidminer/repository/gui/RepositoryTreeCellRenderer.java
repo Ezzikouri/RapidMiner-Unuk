@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -91,7 +91,7 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 					state.append(", ").append(DATE_FORMAT.format(new Date(date)));
 				}
 				long size = ((DataEntry) entry).getSize();
-				if (size >= 0) {
+				if (size > 0) {
 					state.append(" &ndash; ").append(Tools.formatBytes(size));
 				}
 			}			

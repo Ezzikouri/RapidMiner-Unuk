@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -29,13 +29,22 @@ import com.rapidminer.repository.DataEntry;
  */
 public abstract class RemoteDataEntry extends RemoteEntry implements DataEntry {
 		
-	private final int revision;
-	private final String type;
-	private final long size;
+	private int revision;
+	private String type;
+	private long size;
 	private long date;
 	
 	RemoteDataEntry(EntryResponse response, RemoteFolder container, RemoteRepository repository) {
 		super(response, container, repository);
+		extractData(response);
+	}
+
+	/**
+	 * @param response
+	 */
+	@Override
+	protected void extractData(EntryResponse response) {
+		super.extractData(response);
 		this.revision = response.getLatestRevision();
 		this.type = response.getType();
 		this.size = response.getSize();

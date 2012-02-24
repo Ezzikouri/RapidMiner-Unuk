@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.new_plotter.engine.jfreechart.renderer;
 
 import java.awt.BasicStroke;
@@ -32,7 +31,9 @@ import org.jfree.chart.renderer.category.StatisticalLineAndShapeRenderer;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.RenderFormatDelegate;
 import com.rapidminer.gui.new_plotter.listener.RenderFormatDelegateChangeListener;
-
+/**
+ * @author Marius Helf
+ */
 public class FormattedStatisticalLineAndShapeRenderer extends StatisticalLineAndShapeRenderer implements FormattedRenderer, RenderFormatDelegateChangeListener {
 	private static final long serialVersionUID = 1L;
 	

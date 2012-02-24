@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -49,7 +49,7 @@ public abstract class RemoteEntry implements Entry {
 	
 	private RemoteRepository repository;	
 	private RemoteFolder containingFolder;	
-	private final String owner;	
+	private String owner;	
 	private String location;
 	private String name;
 	
@@ -68,8 +68,7 @@ public abstract class RemoteEntry implements Entry {
 	}
 	
 	RemoteEntry(EntryResponse response, RemoteFolder container, RemoteRepository repository) {
-		this.location = response.getLocation();
-		this.owner = response.getUser();
+		extractData(response);
 		this.containingFolder = container;
 		this.repository = repository;
 		if (location == null) {
@@ -84,6 +83,14 @@ public abstract class RemoteEntry implements Entry {
 		if (repository != null) {
 			repository.register(this);
 		}
+	}
+
+	/**
+	 * Extracts the relevant data for this entry from the server's response. Called from constructor and during refresh.
+	 */
+	protected void extractData(EntryResponse response) {
+		this.location = response.getLocation();
+		this.owner = response.getUser();
 	}
 	
 	void setRepository(RemoteRepository repository) {
@@ -127,7 +134,7 @@ public abstract class RemoteEntry implements Entry {
 			} else {
 				this.name = this.location.substring(lastSlash+1);
 			}
-			getRepository().fireEntryRenamed(this);
+			getRepository().fireEntryChanged(this);
 			return true;
 		} else {
 			throw new RepositoryException(response.getErrorMessage());

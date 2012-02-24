@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -84,7 +84,7 @@ public class RepositoryTreeModel implements TreeModel {
 			}
 		}		
 		@Override
-		public void entryRenamed(Entry entry) {
+		public void entryChanged(Entry entry) {
 			TreeModelEvent e = makeChangeEvent(entry);				
 			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 				l.treeNodesChanged(e);

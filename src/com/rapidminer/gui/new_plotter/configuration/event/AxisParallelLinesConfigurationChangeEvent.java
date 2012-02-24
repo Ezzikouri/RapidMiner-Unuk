@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2011 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,13 +20,15 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.new_plotter.configuration.event;
 
 import com.rapidminer.gui.new_plotter.configuration.AxisParallelLineConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.AxisParallelLinesConfiguration;
 import com.rapidminer.gui.new_plotter.event.AxisParallelLineConfigurationChangeEvent;
 
+/**
+ * @author Marius Helf
+ */
 public class AxisParallelLinesConfigurationChangeEvent {
 	public enum AxisParallelLineConfigurationsChangeType {
 		LINE_ADDED,
