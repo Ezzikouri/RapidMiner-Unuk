@@ -73,11 +73,7 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 			super(owner != null ? owner : RapidMinerGUI.getMainFrame());
 			this.add(comp);
 			this.setLocation(point);
-			//			this.setBorder(new JPopupMenu().getBorder());
-			//			this.setInvoker(invoker);
-			//			this.setBorderPainted(true);
 			this.setUndecorated(true);
-			//			this.setLightWeightPopupEnabled(false);
 			pack();
 		}
 
@@ -271,17 +267,7 @@ public class PopupAction extends ResourceAction implements PopupComponentListene
 		return false;
 	}
 
-	@Override
 	public void focusLost() {
-		
-//		// if the action source got the focus just return
-//		if (KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner() == actionSource) {
-//			if(actionSource instanceof JToggleButton) {
-//				((JToggleButton) actionSource).setSelected(false);
-//			}
-//			return;
-//		}
-		
 		hidePopup();
 	}
 

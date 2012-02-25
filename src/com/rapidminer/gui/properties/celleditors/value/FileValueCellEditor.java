@@ -52,7 +52,7 @@ import com.rapidminer.parameter.ParameterTypeFile;
  * directory, the button automatically opens a file chooser for directories.
  * 
  * @see com.rapidminer.gui.properties.celleditors.value.AttributeFileValueCellEditor
- * @author Simon Fischer, Ingo Mierswa
+ * @author Simon Fischer, Ingo Mierswa, Nils Woehler
  */
 public abstract class FileValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 
@@ -80,7 +80,13 @@ public abstract class FileValueCellEditor extends AbstractCellEditor implements 
 		textField.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
+				// The event is only fired if the focus loss is permamently,
+				// i.e. it is not fired if the user e.g. just switched to another window.
+				// Otherwise any changes made after switching back to rapidminer would
+				// not be saved for the same reasons as stated above.
+				if(!e.isTemporary()) {
+					fireEditingStopped();
+				}
 			}			
 			@Override public void focusGained(FocusEvent e) { }
 		});

@@ -277,7 +277,9 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
+				if(!e.isTemporary()) {
+					fireEditingStopped();
+				}
 			}
 		});
 		((JTextField) editorComponent).setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -368,7 +370,9 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
+				if(!e.isTemporary()) {
+					fireEditingStopped();
+				}
 			}
 		});
 		((JTextField) editorComponent).setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -458,7 +462,9 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
+				if(!e.isTemporary()) {
+					fireEditingStopped();
+				}
 			}
 		});
 		this.delegate = new EditorDelegate() {
@@ -505,7 +511,9 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
+				if(!e.isTemporary()) {
+					fireEditingStopped();
+				}
 			}
 		});
 	}
@@ -520,7 +528,9 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
+				if(!e.isTemporary()) {
+					fireEditingStopped();
+				}
 			}
 		});
 		this.delegate = new EditorDelegate() {

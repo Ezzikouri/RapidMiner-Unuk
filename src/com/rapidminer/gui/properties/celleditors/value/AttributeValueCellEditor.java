@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -50,14 +51,13 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 		super(new AttributeComboBox(type));
 		final JComboBox comboBox = (JComboBox) editorComponent;
 		final JTextComponent textField = (JTextComponent) comboBox.getEditor().getEditorComponent();
-		
-		
+
 		comboBox.removeItemListener(this.delegate);
 		comboBox.setEditable(true);
 		comboBox.removeActionListener(delegate); // this is important since we are replacing the original delegate
-		
 
 		this.delegate = new EditorDelegate() {
+
 			private static final long serialVersionUID = -5592150438626222295L;
 
 			@Override
@@ -96,14 +96,22 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 		comboBox.addActionListener(delegate);
 
 		textField.addFocusListener(new FocusAdapter() {
+
 			@Override
 			public void focusLost(FocusEvent e) {
-				comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
+				// The event is only fired if the focus loss is permamently,
+				// i.e. it is not fired if the user e.g. just switched to another window.
+				// Otherwise any changes made after switching back to rapidminer would
+				// not be saved for the same reasons as stated above.
+				if (!e.isTemporary()) {
+					comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
+				}
 				super.focusLost(e);
 			}
 		});
 
 		textField.addKeyListener(new KeyAdapter() {
+
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {

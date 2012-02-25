@@ -28,9 +28,12 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
 import javax.swing.AbstractCellEditor;
+import javax.swing.ComboBoxEditor;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.plaf.basic.BasicComboBoxEditor;
 
 import com.rapidminer.gui.properties.PropertyPanel;
 import com.rapidminer.operator.Operator;
@@ -52,8 +55,37 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 
 	private Operator operator;
 
+	private final FocusListener focusListener;
+
 	public ParameterTupelCellEditor(ParameterTypeTupel type) {
 		types = type.getParameterTypes();
+		focusListener = new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent e) {
+				// fire only if the focus didn't move to another descendant of the containing panel. If this check
+				// would not be included, fireEditingStopped() would prevent switching between tupel components.
+				// Additionally, the event is only fired if the focus loss is permamently,
+				// i.e. it is not fired if the user e.g. just switched to another window.
+				// Otherwise any changes made after switching back to rapidminer would
+				// not be saved for the same reasons as stated above.
+				Component oppositeComponent = e.getOppositeComponent();		
+//				if(oppositeComponent != null) {
+//					System.out.println("New focus component: "+oppositeComponent.getClass()+ ", old component: "+e.getSource().getClass());
+//				} else {
+//					System.out.println("New focus component: 'null', old component: "+e.getSource().getClass());
+//				}
+				if((oppositeComponent == null || !SwingUtilities.isDescendingFrom(oppositeComponent, panel)) && !e.isTemporary()) {
+//					System.out.println("Fire editing stopped!");
+					fireEditingStopped();
+				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+			}
+		};
+		
 	}
 
 	@Override
@@ -103,34 +135,6 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 		editors = new PropertyValueCellEditor[types.length];
 		for (int i = 0; i < types.length; i++) {
 			editors[i] = PropertyPanel.instantiateValueCellEditor(types[i], operator);
-			
-			// This prevented from switching between both CellRenderes, see Line 145 for fix
-//			editors[i].addCellEditorListener(new CellEditorListener() {
-//
-//				@Override
-//				public void editingCanceled(ChangeEvent e) {
-//					Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-//					boolean descendingFrom = (focusOwner == null) || SwingUtilities.isDescendingFrom(focusOwner, panel);
-//					if (!descendingFrom) {
-//						System.out.println("Fire editing stopped! Focus owner: "+focusOwner);
-//						fireEditingCanceled();
-//					} else {
-//						System.out.println("Is descending from Panel: "+focusOwner);
-//					}
-//				}
-//
-//				@Override
-//				public void editingStopped(ChangeEvent e) {
-//					Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-//					boolean descendingFrom =  (focusOwner == null) || SwingUtilities.isDescendingFrom(focusOwner, panel);
-//					if (!descendingFrom) {
-//						System.out.println("Fire editing stopped! Focus owner: "+focusOwner);
-//						fireEditingStopped();//
-//					} else {
-//						System.out.println("Is descending from Panel: "+focusOwner);
-//					}
-//				}
-//			});
 		}
 
 		// building panel
@@ -138,20 +142,14 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 		panel.setLayout(new GridLayout(1, editors.length));
 		for (int i = 0; i < types.length; i++) {
 			Component editorComponent = editors[i].getTableCellEditorComponent(null, values[i], false, 0, 0);
-			editorComponent.addFocusListener(new FocusListener() {
-				
-				@Override
-				public void focusLost(FocusEvent e) {
-					Component oppositeComponent = e.getOppositeComponent();
-					if(oppositeComponent == null || !SwingUtilities.isDescendingFrom(oppositeComponent, panel)) {
-						fireEditingStopped();
-					}
+			if(editorComponent instanceof JComboBox && ((JComboBox) editorComponent).isEditable()) {
+				ComboBoxEditor editor = ((JComboBox) editorComponent).getEditor();
+				if(editor instanceof BasicComboBoxEditor) {
+					editor.getEditorComponent().addFocusListener(focusListener);
 				}
-				
-				@Override
-				public void focusGained(FocusEvent e) {
-				}
-			});
+			} else {
+				editorComponent.addFocusListener(focusListener);
+			}
 			panel.add(editorComponent);
 		}
 	}

@@ -604,15 +604,12 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 
 	/**
 	 * Returns true iff this {@link ValueSource} suggests to sample the data if it is large.
-	 * Large is defined as being larger than the RapidMiner property rapidminer.gui.plotter.rows.maximum. 
+	 * Large is defined as being larger than the RapidMiner property rapidminer.gui.plotter.rows.maximum.<br> 
 	 * 
-	 * Currently this function returns true for non-aggregated scatter plots, or for any plot with distinct
-	 * value aggregation.
+	 * Currently this function returns true for non-aggregated scatter plots and false otherwise.
 	 */
 	public boolean isSamplingSuggested() {
 		if (!isUsingDomainGrouping()) {
-			return true;
-		} else if (isUsingDomainGrouping() && (getDomainConfig().getGrouping() instanceof DistinctValueGrouping)) {
 			return true;
 		} else {
 			return false;

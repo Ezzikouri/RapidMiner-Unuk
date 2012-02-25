@@ -74,7 +74,15 @@ public class RegexpValueCellEditor extends AbstractCellEditor implements Propert
 		textField.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(e.getOppositeComponent() != button) {
+				// fire only if the focus didn't move to the button. If this check
+				// would not be included, fireEditingStopped() would prevent the button's
+				// ActionEvent from being fired. The user would have to click a second time to
+				// trigger the button action.
+				// Additionally, the event is only fired if the focus loss is permamently,
+				// i.e. it is not fired if the user e.g. just switched to another window.
+				// Otherwise any changes made after switching back to rapidminer would
+				// not be saved for the same reasons as stated above.
+				if(e.getOppositeComponent() != button && !e.isTemporary()) {
 					fireEditingStopped();
 				}
 			}			

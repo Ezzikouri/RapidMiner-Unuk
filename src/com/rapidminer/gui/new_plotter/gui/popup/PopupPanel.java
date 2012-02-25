@@ -44,7 +44,7 @@ import javax.swing.SwingUtilities;
  * @author Nils Woehler
  * 
  */
-public class PopupPanel extends JPanel implements PropertyChangeListener { //, AWTEventListener {
+public class PopupPanel extends JPanel implements PropertyChangeListener { 
 
 	private static final long serialVersionUID = 1L;
 
@@ -54,8 +54,6 @@ public class PopupPanel extends JPanel implements PropertyChangeListener { //, A
 
 	private Window containingWindow;
 	
-//	private Component owner;
-
 	public PopupPanel(Component comp) {
 		this.setLayout(new GridBagLayout());
 
@@ -98,13 +96,11 @@ public class PopupPanel extends JPanel implements PropertyChangeListener { //, A
 	 */
 	public void startTracking(Window containingWindow, Component actionSource) {
 		this.containingWindow = containingWindow;
-//		this.owner = actionSource;
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(PERMANENT_FOCUS_OWNER, this);
 	}
 
 	public void stopTracking() {
 		this.containingWindow = null;
-//		this.owner = null;
 		KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener(PERMANENT_FOCUS_OWNER, this);
 	}
 	
@@ -122,9 +118,6 @@ public class PopupPanel extends JPanel implements PropertyChangeListener { //, A
 		if(newFocusedComp instanceof Popup) {
 			return true;
 		}
-//		if(newFocusedComp == owner) {
-//			return true;
-//		}
 		if (newFocusedComp instanceof Component && !SwingUtilities.isDescendingFrom((Component)newFocusedComp, this)) {
 			//Check if focus is on other window
 			if (containingWindow == null) {
@@ -140,18 +133,4 @@ public class PopupPanel extends JPanel implements PropertyChangeListener { //, A
 		}
 		return true;
 	}
-
-//	@Override
-//	public void eventDispatched(AWTEvent event) {
-//		if (event instanceof MouseEvent) {
-//			MouseEvent evt = (MouseEvent) event;
-//			if (evt.getID() == MouseEvent.MOUSE_PRESSED) {
-//				Point clicked = evt.getPoint();
-//				SwingUtilities.convertPointFromScreen(clicked, this);
-//				if (!contains(clicked)) {
-//					fireFocusLost();
-//				}
-//			}
-//		}
-//	}
 }

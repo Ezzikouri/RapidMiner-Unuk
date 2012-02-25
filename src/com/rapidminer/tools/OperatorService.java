@@ -416,7 +416,7 @@ public class OperatorService {
      */
     public static void registerOperator(OperatorDescription description, OperatorDocBundle bundle) throws OperatorCreationException {
         // check if this operator was not registered earlier
-        OperatorDescription oldDescription = KEYS_TO_DESCRIPTIONS.get(description.getName());
+        OperatorDescription oldDescription = KEYS_TO_DESCRIPTIONS.get(description.getKey());
         if (oldDescription != null) {
             LogService.getRoot().warning("Operator key '" + description.getKey() + "' was already registered for class " + oldDescription.getOperatorClass().getName() + ". Overwriting with " + description.getOperatorClass() + ".");
         }
