@@ -26,6 +26,7 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 
 import javax.swing.JComponent;
 
@@ -49,9 +50,9 @@ public class I18N {
 		if (localeLanguage != null) {
             locale = new Locale(localeLanguage);
 			Locale.setDefault(locale);
-            LogService.getRoot().config("Set default locale to "+locale);
+            LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.I18N.set_locale_to", locale);	
         } else {
-        	LogService.getRoot().config("No local set. Taking default system locale "+locale);
+        	LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.I18N.using_default_locale", locale);
         }
 		JComponent.setDefaultLocale(locale);
 		

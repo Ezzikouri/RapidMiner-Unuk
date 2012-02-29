@@ -78,9 +78,9 @@ public class DistanceMeasureHelper {
 		try {
 			measure = DistanceMeasures.createMeasure(operator);
 		} catch (UndefinedParameterError e) {
-			operator.getLog().log("While updating distance measute: " + e.toString(), LogService.ERROR);
+			operator.getLogger().warning("While updating distance measure: " + e.toString());
 		} catch (OperatorException e) {
-			operator.getLog().log("While updating distance measute: " + e.toString(), LogService.ERROR);
+			operator.getLogger().warning("While updating distance measure: " + e.toString());
 		}
 		if (measure != null) {
 			measure.installAdditionalPorts(operator.getInputPorts(), operator);

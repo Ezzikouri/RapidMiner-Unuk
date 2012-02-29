@@ -262,6 +262,9 @@ public class RapidMiner {
 
 	/** The name of the property indicating the preferred globally used time zone. */
 	public static final String PROPERTY_RAPIDMINER_GENERAL_TIME_ZONE = "rapidminer.general.timezone";
+	
+	/** The maximum number of working threads that should be used by processes. */
+	public static final String PROPERTY_RAPIDMINER_GENERAL_NUMBER_OF_THREADS = "rapidminer.general.number_of_threads";
 
 	// ---  INIT PROPERTIES  ---
 
@@ -367,6 +370,8 @@ public class RapidMiner {
 
 		ParameterService.registerParameter(new ParameterTypeBoolean(CapabilityProvider.PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN,
 				"Indicates if only a warning should be made if learning capabilities are not fulfilled (instead of breaking the process).", false));
+
+		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_NUMBER_OF_THREADS, "The maximum number of threads that a RapidMiner process is allowed to use.", 0, Integer.MAX_VALUE, 0), "general");
 
 		// INIT
 		//		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_INIT_JDBC_LIB, "Load JDBC drivers from lib dir?", true));

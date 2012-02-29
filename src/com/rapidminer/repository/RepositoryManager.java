@@ -470,9 +470,6 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				copy(source, destination, newName, listener);
 				entry.delete();
 			} else {
-				if (newName == null) {
-					newName = source.getName();
-				}
 				if (destination.containsEntry(newName)) {
 					throw new RepositoryException("Destination contains element with name: " + newName);
 				}
@@ -480,7 +477,11 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 					listener.setTotal(100);
 					listener.setCompleted(10);
 				}
-				entry.move(destination, newName);
+				if(newName == null) {
+					entry.move(destination);
+				} else {
+					entry.move(destination, newName);
+				}
 				if (listener != null) {
 					listener.setCompleted(100);
 					listener.complete();

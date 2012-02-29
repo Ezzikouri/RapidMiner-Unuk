@@ -217,7 +217,7 @@ public class DataResultSetTranslator {
         ExampleSet exampleSet = exampleTable.createExampleSet();
         Attributes exampleSetAttributes = exampleSet.getAttributes();
         int attributeIndex = 0;
-        for (Attribute attribute : attributes) {
+        for (Attribute attribute : exampleSetAttributes) {
             // if user defined names have been found, rename accordingly
             final ColumnMetaData cmd = configuration.getColumnMetaData(attributeColumns[attributeIndex]);
             if (!cmd.isSelected()) {

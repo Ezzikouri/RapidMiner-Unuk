@@ -135,7 +135,7 @@ public class LogService extends WrapperLoggingHandler {
 	/** The prefix used to indicate the global logger. */
     public static final String GLOBAL_PREFIX = "$gG^g";
     
-	private static final Logger GLOBAL_LOGGER = Logger.getLogger("com.rapidminer");
+	private static final Logger GLOBAL_LOGGER = Logger.getLogger("com.rapidminer", "com.rapidminer.resources.i18n.LogMessages");
 	private static final LogService GLOBAL_LOGGING = new LogService(GLOBAL_LOGGER);
  
 	// ------ methods for init -------
