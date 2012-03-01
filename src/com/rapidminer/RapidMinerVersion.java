@@ -29,7 +29,7 @@ import com.rapidminer.gui.tools.VersionNumber;
  * correct version number in RapidMiner.
  */
 public class RapidMinerVersion extends VersionNumber {
-	private static final String VERSION_STRING = "5.2.001";
+	private static final String VERSION_STRING = "5.2.002";
 	public RapidMinerVersion() {
 		super(VERSION_STRING);
 	}

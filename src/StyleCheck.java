@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2010 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2012 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -498,7 +498,7 @@ public class StyleCheck {
 	/** Checks all Java files for a version tag. */
 	private static class LicenseChecker extends JavaFileChecker {
 
-		private static String LICENSE_LINE = "Copyright (C) 2001-2011";
+		private static String LICENSE_LINE = "Copyright (C) 2001-2012";
 
 		@Override
 		public void performCheck(File file) throws Exception {

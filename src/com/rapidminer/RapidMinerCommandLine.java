@@ -44,7 +44,7 @@ import com.rapidminer.tools.usagestats.UsageStatistics;
  */
 public class RapidMinerCommandLine extends RapidMiner implements BreakpointListener {
 
-    private static final String LICENSE = "RapidMiner version " + RapidMiner.getLongVersion() + ", Copyright (C) 2001-2008" + Tools.getLineSeparator() + "RapidMiner comes with ABSOLUTELY NO WARRANTY; This is free software," + Tools.getLineSeparator() + "and you are welcome to redistribute it under certain conditions;" + Tools.getLineSeparator() + "see license information in the file named LICENSE.";
+    private static final String LICENSE = "RapidMiner version " + RapidMiner.getLongVersion() + ", Copyright (C) 2001-2012" + Tools.getLineSeparator() + "RapidMiner comes with ABSOLUTELY NO WARRANTY; This is free software," + Tools.getLineSeparator() + "and you are welcome to redistribute it under certain conditions;" + Tools.getLineSeparator() + "see license information in the file named LICENSE.";
 
     private String repositoryLocation = null;
     private boolean readFromFile = false;

@@ -271,7 +271,7 @@
 	</target>
 
 	<target name="release.makeWin32Launcher">
-		<exec executable="makensis.exe">
+		<exec executable="${makensis}">
 			<arg line="installation/launcher.nsi" />
 		</exec>
 	</target>
@@ -286,7 +286,7 @@
 		<copy file="${lib}/launcher.jar" todir="${release.files}/lib" />
 
 		<!-- Now build launcher: Will generate release/files/RapidMiner.exe -->
-		<exec executable="makensis.exe">
+		<exec executable="${makensis}">
 			<arg line="installation/launcher.nsi" />
 		</exec>
 
@@ -296,7 +296,7 @@
 		</copy>
 
 		<!-- Now build installer: Will generate release/rapidminer-${SHORT_VERSION}x32-install.exe -->
-		<exec executable="makensis.exe">
+		<exec executable="${makensis}">
 			<arg line="installation/installer.nsi" />
 		</exec>
 		<!-- rename it to long version-->
@@ -320,7 +320,7 @@
 		<copy file="${lib}/launcher.jar" todir="${release.files}/lib" />
 
 		<!-- Now build launcher: Will generate release/files/RapidMiner.exe -->
-		<exec executable="makensis.exe">
+		<exec executable="${makensis}">
 			<arg line="installation/launcher_x64.nsi" />
 		</exec>
 
@@ -330,7 +330,7 @@
 		</copy>
 
 		<!-- Now build installer: Will generate release/rapidminer-${SHORT_VERSION}x64-install.exe -->
-		<exec executable="makensis.exe">
+		<exec executable="${makensis}">
 			<arg line="installation/installer_x64.nsi" />
 		</exec>
 		<!-- rename it to long version-->
@@ -443,7 +443,7 @@
 		<copy file="${lib}/launcher.jar" todir="${release.files}/lib" />
 
 		<!-- Now build launcher: Will generate release/files/RapidMiner.exe -->
-		<exec executable="makensis.exe">
+		<exec executable="${makensis}">
 			<arg line="installation/launcher.nsi" />
 		</exec>
 
@@ -477,7 +477,7 @@
 		<copy file="${lib}/launcher.jar" todir="${release.files}/lib" />
 
 		<!-- Now build launcher: Will generate release/files/RapidMiner.exe -->
-		<exec executable="makensis.exe">
+		<exec executable="${makensis}">
 			<arg line="installation/launcher_x64.nsi" />
 		</exec>
 

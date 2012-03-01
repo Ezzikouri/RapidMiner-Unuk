@@ -196,9 +196,9 @@ public class RVMLearner extends AbstractKernelBasedLearner {
 			ClassificationProblem problem	= new ClassificationProblem(x, c, kernels);
 
 			if (RVMType.equals("Classification-RVM")) {
-				RVMClassification RVM		= new RVMClassification(problem, parameter);
+				RVMClassification RVM = new RVMClassification(problem, parameter);
 				try {
-					model						= RVM.learn();
+					model = RVM.learn();
 				} catch (ArrayIndexOutOfBoundsException e) {
 					throw new UserError(this, 924);
 				}
@@ -209,14 +209,22 @@ public class RVMLearner extends AbstractKernelBasedLearner {
 
 			/** Regression problem */
 
-			RegressionProblem problem		= new RegressionProblem(x, t, kernels);
+			RegressionProblem problem = new RegressionProblem(x, t, kernels);
 
 			if (RVMType.equals("Regression-RVM")) {
-				RVMRegression RVM			= new RVMRegression(problem, parameter);
-				model						= RVM.learn();
+				RVMRegression RVM = new RVMRegression(problem, parameter);
+				try {
+					model = RVM.learn();
+				} catch (ArrayIndexOutOfBoundsException e) {
+					throw new UserError(this, 924);
+				}
 			} else if (RVMType.equals("Constructive-Regression-RVM")) {
 				ConstructiveRegression RVM	= new ConstructiveRegression(problem, parameter, getParameterAsBoolean(RandomGenerator.PARAMETER_USE_LOCAL_RANDOM_SEED), getParameterAsInt(RandomGenerator.PARAMETER_LOCAL_RANDOM_SEED));
-				model						= RVM.learn();
+				try {
+					model = RVM.learn();
+				} catch (ArrayIndexOutOfBoundsException e) {
+					throw new UserError(this, 924);
+				}
 			} else {
 				throw new UserError(this, 207, new Object[] { RVMType, "rvm_type", "only one of the regression types can be used for the given regression problem" });
 			}

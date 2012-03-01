@@ -604,7 +604,7 @@ public class SwingTools {
     public static void showSimpleErrorMessage(final String key, final Throwable e, final boolean displayExceptionMessage,  final Object... arguments) {
         // if debug mode is enabled, send exception to logger
         if ("true".equals(ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE))) {
-            LogService.getRoot().log(Level.WARNING, e.getMessage(), e);
+            LogService.getRoot().log(Level.WARNING, "Error: "+e.getMessage(), e);
         }
         if (SwingUtilities.isEventDispatchThread()) {
             ExtendedErrorDialog dialog = new ExtendedErrorDialog(key, e, displayExceptionMessage, arguments);

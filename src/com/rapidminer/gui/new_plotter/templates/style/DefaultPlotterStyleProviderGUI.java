@@ -23,7 +23,6 @@
 package com.rapidminer.gui.new_plotter.templates.style;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -42,7 +41,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 
 import com.rapidminer.gui.new_plotter.gui.FontDialog;
 import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
@@ -94,7 +92,6 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 	 */
 	public DefaultPlotterStyleProviderGUI(final DefaultPlotterStyleProvider defaultStyleProvider) {
 		defaultStyleProvider.addObserver(this);
-		Dimension prefDimension = new Dimension(120, 25);
 		final Font axesFont = defaultStyleProvider.getAxesFont();
 		final Font titleFont = defaultStyleProvider.getTitleFont();
 		final Font legendFont = defaultStyleProvider.getLegendFont();
@@ -106,13 +103,12 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		// start layout
 		outerPanelGBC.gridx = 0;
 		outerPanelGBC.gridy = 0;
-		outerPanelGBC.insets = new Insets(2, 0, 5, 0);
+		outerPanelGBC.insets = new Insets(1, 4, 5, 2);
 		outerPanelGBC.anchor = GridBagConstraints.NORTH;
 		outerPanelGBC.fill = GridBagConstraints.HORIZONTAL;
 		outerPanelGBC.weightx = 1;
 		outerPanelGBC.weighty = 0;
 		descriptionLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.description.label"));
-		descriptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		this.add(descriptionLabel, outerPanelGBC);
 		
 		stylePanel = new JPanel();
@@ -150,7 +146,6 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 			}
 		});
 		titleField.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.title.tip"));
-		titleField.setPreferredSize(prefDimension);
 		stylePanel.add(titleField, stylePanelGBC);
 		
 		stylePanelGBC.gridx = 0;
@@ -167,7 +162,6 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		titleFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
 		titleFontButton.setFont(new Font(titleFont.getFamily(), titleFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 		titleFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.title.tip"));
-		titleFontButton.setPreferredSize(prefDimension);
 		titleFontButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -201,7 +195,6 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		axesFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
 		axesFontButton.setFont(new Font(axesFont.getFamily(), axesFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 		axesFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.axes.tip"));
-		axesFontButton.setPreferredSize(prefDimension);
 		axesFontButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -235,7 +228,6 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		legendFontButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.button.label"));
 		legendFontButton.setFont(new Font(legendFont.getFamily(), legendFont.getStyle(), DefaultPlotterStyleProvider.FONT_SIZE_DEFAULT));
 		legendFontButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.font.legend.tip"));
-		legendFontButton.setPreferredSize(prefDimension);
 		legendFontButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -268,7 +260,6 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
 		colorSchemeComboBox = new JComboBox(defaultStyleProvider.getColorSchemes().toArray());
 		colorSchemeComboBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.colorscheme.tip"));
-		colorSchemeComboBox.setPreferredSize(prefDimension);
 		colorSchemeComboBox.addActionListener(new ActionListener() {
 			
 			@Override
@@ -298,7 +289,6 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 				createPlotBackgroundColorDialog(defaultStyleProvider);
 			}
 		});
-		plotBackgroundColorButton.setPreferredSize(prefDimension);
 		stylePanel.add(plotBackgroundColorButton, stylePanelGBC);
 		
 		JLabel frameBackgroundColorLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.frame_bg_color.label"));
@@ -321,7 +311,6 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 				createFrameBackgroundColorDialog(defaultStyleProvider);
 			}
 		});
-		frameBackgroundColorButton.setPreferredSize(prefDimension);
 		stylePanel.add(frameBackgroundColorButton, stylePanelGBC);
 		
 		// fill empty area
@@ -338,6 +327,7 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		outerPanelGBC.fill = GridBagConstraints.BOTH;
 		outerPanelGBC.weightx = 1;
 		outerPanelGBC.weighty = 1;
+		outerPanelGBC.insets = new Insets(0, 0, 0, 0);
 		this.add(stylePanel, stylePanelGBC);
 	}
 	

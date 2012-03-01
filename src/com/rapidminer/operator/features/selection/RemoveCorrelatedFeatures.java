@@ -32,28 +32,33 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.ValueDouble;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
+import com.rapidminer.tools.RandomGenerator;
 import com.rapidminer.tools.Tools;
 
-
 /**
- * <p>Removes (un-) correlated features due to the selected filter relation. The
- * procedure is quadratic in number of attributes. In order to get more stable 
- * results, the original, random, and reverse order of attributes is available.</p>
+ * <p>
+ * Removes (un-) correlated features due to the selected filter relation. The
+ * procedure is quadratic in number of attributes. In order to get more stable
+ * results, the original, random, and reverse order of attributes is available.
+ * </p>
  * 
- * <p>Please note that this operator might fail in some cases when the attributes
- * should be filtered out, e.g. it might not be able to remove for example all 
- * negative correlated features. The reason for this behaviour seems to be that 
- * for the complete m x m - matrix of correlations (for m attributes) the 
- * correlations will not be recalculated and hence not checked if one of the 
- * attributes of the current pair was already marked for removal. That means 
- * for three attributes a1, a2, and a3 that it might be that a2 was already ruled 
- * out by the negative correlation with a1 and is now not able to rule out a3 any 
- * longer.</p>
+ * <p>
+ * Please note that this operator might fail in some cases when the attributes
+ * should be filtered out, e.g. it might not be able to remove for example all
+ * negative correlated features. The reason for this behaviour seems to be that
+ * for the complete m x m - matrix of correlations (for m attributes) the
+ * correlations will not be recalculated and hence not checked if one of the
+ * attributes of the current pair was already marked for removal. That means for
+ * three attributes a1, a2, and a3 that it might be that a2 was already ruled
+ * out by the negative correlation with a1 and is now not able to rule out a3
+ * any longer.
+ * </p>
  * 
  * <p>
  * The used correlation function is the Pearson correlation.
@@ -63,17 +68,31 @@ import com.rapidminer.tools.Tools;
  */
 public class RemoveCorrelatedFeatures extends AbstractFeatureSelection {
 
-	/** The parameter name for &quot;Use this correlation for the filter relation.&quot; */
+	/**
+	 * The parameter name for &quot;Use this correlation for the filter
+	 * relation.&quot;
+	 */
 	public static final String PARAMETER_CORRELATION = "correlation";
 
-	/** The parameter name for &quot;Removes one of two features if their correlation fulfill this relation.&quot; */
+	/**
+	 * The parameter name for &quot;Removes one of two features if their
+	 * correlation fulfill this relation.&quot;
+	 */
 	public static final String PARAMETER_FILTER_RELATION = "filter_relation";
 
-	/** The parameter name for &quot;The algorithm takes this attribute order to calculate correlation and filter.&quot; */
+	/**
+	 * The parameter name for &quot;The algorithm takes this attribute order to
+	 * calculate correlation and filter.&quot;
+	 */
 	public static final String PARAMETER_ATTRIBUTE_ORDER = "attribute_order";
 
-	/** The parameter name for &quot;Indicates if the absolute value of the correlations should be used for comparison.&quot; */
+	/**
+	 * The parameter name for &quot;Indicates if the absolute value of the
+	 * correlations should be used for comparison.&quot;
+	 */
 	public static final String PARAMETER_USE_ABSOLUTE_CORRELATION = "use_absolute_correlation";
+
+	public static final OperatorVersion VERSION_DETERMINISTIC_RANDOM_NUMBERS = new OperatorVersion(5, 2, 1);
 
 	private static final String[] ORDER = new String[] { "original", "random", "reverse" };
 
@@ -82,7 +101,6 @@ public class RemoveCorrelatedFeatures extends AbstractFeatureSelection {
 	private static final int ORDER_RANDOM = 1;
 
 	private static final int ORDER_REVERSE = 2;
-
 
 	private static final String[] FILTER_RELATIONS = new String[] { "greater", "greater equals", "equals", "less equals", "less" };
 
@@ -96,11 +114,14 @@ public class RemoveCorrelatedFeatures extends AbstractFeatureSelection {
 
 	private static final int LESS = 4;
 
-	/** The number of removed features (for logging as value, see constructor.)*/
+	/** The number of removed features (for logging as value, see constructor.) */
 	private int removedFeatures = 0;
 
 	public RemoveCorrelatedFeatures(OperatorDescription description) {
 		super(description);
+		
+		
+		
 		addValue(new ValueDouble("features_removed", "Number of removed features") {
 			@Override
 			public double getDoubleValue() {
@@ -110,7 +131,7 @@ public class RemoveCorrelatedFeatures extends AbstractFeatureSelection {
 	}
 
 	@Override
-	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		 
+	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
 		exampleSet.recalculateAllAttributeStatistics();
 
 		double[] means = new double[exampleSet.getAttributes().size()];
@@ -152,8 +173,15 @@ public class RemoveCorrelatedFeatures extends AbstractFeatureSelection {
 
 			int vindex;
 			for (int i = 0; i < exampleSet.getAttributes().size(); i++) {
-				vindex = (int) Math.floor(Math.random() * vector.size());
-				attributeIndex[i] = vector.remove(vindex).intValue();
+				RandomGenerator randomGenerator = RandomGenerator.getRandomGenerator(this);
+
+				if (getCompatibilityLevel().isAtMost(VERSION_DETERMINISTIC_RANDOM_NUMBERS)) {
+					vindex = (int) Math.floor(Math.random() * vector.size());
+					attributeIndex[i] = vector.remove(vindex).intValue();
+				} else {
+					vindex = randomGenerator.nextInt(vector.size());
+					attributeIndex[i] = vector.remove(vindex);
+				}
 			}
 		} else if (order == ORDER_REVERSE) {
 			for (int i = 0; i < exampleSet.getAttributes().size(); i++) {
@@ -191,7 +219,7 @@ public class RemoveCorrelatedFeatures extends AbstractFeatureSelection {
 
 				if (fulfillRelation(correlation, threshold, relation)) {
 					removeFeature[attributeIndex[j]] = true;
-					String first  = allAttributes[attributeIndex[i]].getName();
+					String first = allAttributes[attributeIndex[i]].getName();
 					String second = allAttributes[attributeIndex[j]].getName();
 					log("Removed Attribute : " + second + " --> correlation(" + first + "," + second + ")=" + correlation);
 				}
@@ -259,7 +287,7 @@ public class RemoveCorrelatedFeatures extends AbstractFeatureSelection {
 
 		return correlation;
 	}
-	
+
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
@@ -272,6 +300,18 @@ public class RemoveCorrelatedFeatures extends AbstractFeatureSelection {
 		types.add(type);
 		type = new ParameterTypeBoolean(PARAMETER_USE_ABSOLUTE_CORRELATION, "Indicates if the absolute value of the correlations should be used for comparison.", true);
 		types.add(type);
+		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 		return types;
 	}
+	
+    @Override
+    public OperatorVersion[] getIncompatibleVersionChanges() {
+    	OperatorVersion[] incompatibleVersionChanges = super.getIncompatibleVersionChanges();
+    	OperatorVersion[] newIncompatibleVersionChanges = new OperatorVersion[incompatibleVersionChanges.length + 1];
+    	for (int i = 0; i < incompatibleVersionChanges.length; ++i) {
+    		newIncompatibleVersionChanges[i] = incompatibleVersionChanges[i];
+    	}
+    	newIncompatibleVersionChanges[newIncompatibleVersionChanges.length-1] = VERSION_DETERMINISTIC_RANDOM_NUMBERS;
+    	return newIncompatibleVersionChanges;
+    }
 }

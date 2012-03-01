@@ -33,7 +33,13 @@ public class LearnerTest extends TestCase {
 
 	private static final int NUM_EXAMPLES = 100;
 	
+	/** Seed for creating random numbers. -1 means "random" random seed. */
+	private static long RANDOM_SEED = -1;
+	
 	private OperatorDescription opDesc;	
+	
+	private Random random;
+
 	
 	public LearnerTest(OperatorDescription opDesc) {
 		super("learnerTest");
@@ -44,6 +50,12 @@ public class LearnerTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		TestContext.get().initRapidMiner();
+		
+		if (RANDOM_SEED == -1) {
+			random = new Random();
+		} else {
+			random = new Random(RANDOM_SEED);
+		}
 	}
 
 	@Override
@@ -107,7 +119,6 @@ public class LearnerTest extends TestCase {
 		att.getMapping().mapString("negative");
 		exTable.addAttribute(att);
 		DataRowReader dataRowReader = exTable.getDataRowReader();
-		Random random = new Random();
 		while (dataRowReader.hasNext()) {
 			DataRow row = dataRowReader.next();
 			row.set(att, random.nextInt(2));
@@ -123,7 +134,6 @@ public class LearnerTest extends TestCase {
 		att.getMapping().mapString("four");
 		exTable.addAttribute(att);
 		DataRowReader dataRowReader = exTable.getDataRowReader();
-		Random random = new Random();
 		while (dataRowReader.hasNext()) {
 			DataRow row = dataRowReader.next();
 			row.set(att, random.nextInt(4));
@@ -137,7 +147,7 @@ public class LearnerTest extends TestCase {
 		DataRowReader dataRowReader = exTable.getDataRowReader();
 		while (dataRowReader.hasNext()) {
 			DataRow row = dataRowReader.next();
-			row.set(att, Math.random()*10d-5d);
+			row.set(att, random.nextDouble()*10d-5d);
 		}
 		return att;
 	}
