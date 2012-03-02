@@ -39,6 +39,7 @@ import com.rapidminer.operator.learner.PredictionModel;
 
 
 /**
+ *  @author Tobias Malbrecht, Sebastian Land
  */
 @Deprecated
 public class HierarchicalModel extends PredictionModel implements MetaModel {

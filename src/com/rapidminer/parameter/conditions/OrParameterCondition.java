@@ -32,6 +32,11 @@ import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.tools.XMLException;
 
+/**
+ * 
+ * @author Sebastian Land
+ *
+ */
 public class OrParameterCondition extends ParameterCondition {
 	public static final String ELEMENT_CONDITIONS = "SubConditions";
 	public static final String ELEMENT_CONDITION = "Condition";

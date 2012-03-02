@@ -128,6 +128,7 @@ public class ScatterTemplate extends PlotterTemplate {
 	protected void dataUpdated(final DataTable dataTable) {
 		// clear possible existing data
 		currentRangeAxisConfig = null;
+		scatterPanel.updatePlotInstance(getPlotInstance());
 	}
 
 	/**

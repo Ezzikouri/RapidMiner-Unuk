@@ -164,4 +164,9 @@ public class ResourceFolder extends ResourceEntry implements Folder {
 		return Folder.TYPE_NAME;
 	}
 
+	@Override
+	public boolean canRefreshChild(String childName) throws RepositoryException {
+		return containsEntry(childName);
+	}
+
 }

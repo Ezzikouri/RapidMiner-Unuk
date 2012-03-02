@@ -213,4 +213,10 @@ public class DBConnectionFolder implements Folder {
 			}
 		}		
 	}
+	
+	@Override
+	public boolean canRefreshChild(String childName) throws RepositoryException {
+		return containsEntry(childName);
+	}
+
 }

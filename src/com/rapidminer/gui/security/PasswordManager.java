@@ -39,7 +39,7 @@ import com.rapidminer.gui.tools.dialogs.ButtonDialog;
  * You can show your passwords and delete corresponding entries.
  * A possibility to change the username and password is also included.
  * 
- * @author Miguel Büscher
+ * @author Miguel Bï¿½scher
  *
  */
 public class PasswordManager extends ButtonDialog{

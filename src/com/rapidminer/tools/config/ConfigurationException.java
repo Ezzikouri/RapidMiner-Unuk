@@ -22,6 +22,11 @@
  */
 package com.rapidminer.tools.config;
 
+/**
+ * 
+ * @author Simon Fischer
+ *
+ */
 public class ConfigurationException extends Exception {
 
 	private static final long serialVersionUID = 1L;

@@ -26,7 +26,10 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/** Type information as reported by database meta data {@link DatabaseMetaData#getTypeInfo()}. */
+/** Type information as reported by database meta data {@link DatabaseMetaData#getTypeInfo()}. 
+ * 
+ * @author Simon Fischer
+ * */
 public class DataTypeSyntaxInformation {
 	private final String literalPrefix;
 	private final String literalSuffix;

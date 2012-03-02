@@ -396,11 +396,12 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			newName = entry.getName();
 		}
 
-		if (destination.containsEntry(newName)) {
+		String originalName = newName;
+		if (destination.containsEntry(newName)) {			
 			newName = "Copy of " + newName;
-			int i = 1;
+			int i = 2;
 			while (destination.containsEntry(newName)) {
-				newName = "Copy " + (i++) + " of " + newName;
+				newName = "Copy " + (i++) + " of " + originalName;
 			}
 		}
 		if (entry instanceof ProcessEntry) {
@@ -513,23 +514,51 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				return null;
 			}
 			if (index == splitted.length - 1) {
-				List<Entry> all = new LinkedList<Entry>();
-				all.addAll(folder.getSubfolders());
-				all.addAll(folder.getDataEntries());
-				for (Entry child : all) {
-					if (child.getName().equals(splitted[index])) {
-						return child;
+				int retryCount = 0;
+				while (retryCount <= 1) {
+					List<Entry> all = new LinkedList<Entry>();
+					all.addAll(folder.getSubfolders());
+					all.addAll(folder.getDataEntries());
+					for (Entry child : all) {
+						if (child.getName().equals(splitted[index])) {
+							return child;
+						}
 					}
-				}
-				return null;
-			} else {
-				boolean found = false;
-				for (Folder subfolder : folder.getSubfolders()) {
-					if (subfolder.getName().equals(splitted[index])) {
-						folder = subfolder;
-						found = true;
+					// missed entry -> refresh and try again
+					if (folder.canRefreshChild(splitted[index])) {
+						folder.refresh();
+					} else {
 						break;
 					}
+					retryCount++;
+				}
+
+				
+				return null;
+			} else {
+				int retryCount = 0;
+				boolean found = false;
+				while (retryCount <= 1) {
+					for (Folder subfolder : folder.getSubfolders()) {
+						if (subfolder.getName().equals(splitted[index])) {
+							folder = subfolder;
+							found = true;
+							break;
+						}
+					}					
+					if (found) {
+						// found in 1st round
+						break;
+					} else {
+						// missed entry -> refresh and try again
+						if (folder.canRefreshChild(splitted[index])) {
+							folder.refresh();
+						} else {
+							break;
+						}
+						retryCount++;
+					}
+					
 				}
 				if (!found) {
 					return null;

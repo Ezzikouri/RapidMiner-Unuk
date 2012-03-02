@@ -26,6 +26,7 @@ import java.util.Observer;
 
 import javax.swing.JPanel;
 
+import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.templates.PlotterTemplate;
 
 /**
@@ -46,4 +47,10 @@ public abstract class PlotterTemplatePanel extends JPanel implements Observer {
 	public PlotterTemplatePanel(final PlotterTemplate template) {
 		template.addObserver(this);
 	}
+	
+	/**
+	 * Call this method each time the {@link PlotInstance} changes.
+	 * @param plotInstance
+	 */
+	public abstract void updatePlotInstance(final PlotInstance plotInstance);
 }

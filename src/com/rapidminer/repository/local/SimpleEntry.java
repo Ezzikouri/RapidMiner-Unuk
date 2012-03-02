@@ -40,17 +40,20 @@ import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.LogService;
+
 /**
  * @author Simon Fischer
  */
 public abstract class SimpleEntry implements Entry {
+
+	protected static final String PROPERTIES_SUFFIX = ".properties";
 
 	private Properties properties;
 
 	private String name;
 	private LocalRepository repository;
 	private SimpleFolder containingFolder;
-	
+
 	SimpleEntry(String name, SimpleFolder containingFolder, LocalRepository repository) {
 		this.name = name;
 		this.repository = repository;
@@ -60,7 +63,7 @@ public abstract class SimpleEntry implements Entry {
 	protected LocalRepository getRepository() {
 		return repository;
 	}
-	
+
 	protected void setRepository(LocalRepository repository) {
 		this.repository = repository;
 	}
@@ -69,7 +72,7 @@ public abstract class SimpleEntry implements Entry {
 	void setName(String name) {
 		this.name = name;
 	}
-	
+
 	@Override
 	public Folder getContainingFolder() {
 		return containingFolder;
@@ -77,14 +80,14 @@ public abstract class SimpleEntry implements Entry {
 
 	@Override
 	public boolean isReadOnly() {
-		return false;	
+		return false;
 	}
-	
+
 	@Override
 	public String getName() {
 		return name;
 	}
-	
+
 	@Override
 	public boolean rename(String newName) {
 		renameFile(getPropertiesFile(), newName);
@@ -92,22 +95,22 @@ public abstract class SimpleEntry implements Entry {
 		getRepository().fireEntryRenamed(this);
 		return true;
 	}
-	
+
 	@Override
 	public String toString() {
 		return getName();
 	}
-	
+
 	@Override
 	public boolean willBlock() {
 		return false;
 	}
-	
+
 	@Override
 	public String getOwner() {
 		return getProperty("owner");
 	}
-	
+
 	@Override
 	public RepositoryLocation getLocation() {
 		try {
@@ -120,12 +123,12 @@ public abstract class SimpleEntry implements Entry {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	/** Renames the file, keeping the extension and directory unchanged. 
 	 *  If the file does not exist, returns silently. */
 	void renameFile(File file2, String newBaseName) {
 		if (!file2.exists()) {
-			LogService.getRoot().warning("Cannot rename "+file2+": does not exist.");
+			LogService.getRoot().warning("Cannot rename " + file2 + ": does not exist.");
 			return;
 		}
 		String name = file2.getName();
@@ -133,40 +136,54 @@ public abstract class SimpleEntry implements Entry {
 		if (dot == -1) {
 			file2.renameTo(new File(file2.getParentFile(), newBaseName));
 		} else {
-			String extension = name.substring(dot+1);
+			String extension = name.substring(dot + 1);
 			file2.renameTo(new File(file2.getParentFile(), newBaseName + "." + extension));
 		}
 	}
 
 	/**
-	 * Moves the file to a new location. If newName is null the old name will be used.
+	 * Moves a file to the new target directory without renaming it.
 	 */
-	boolean moveFile(File file, File targetDirectory, String newName) {
-		String name = newName;
-		if(name == null) {
+	boolean moveFile(File file, File targetDirectory) {
+		return file.renameTo(new File(targetDirectory, file.getName()));
+	}
+
+	/**
+	 * Moves the file to a new location.
+	 *  
+	 * @param newEntryName The {@link Entry}'s new name (without file extension). If newEntryName is null the old name will be used.
+	 * @param extensionSuffix The {@link Entry}'s extension suffix. Will be used if newEntryName is not null to keep the correct suffix.
+	 */
+	boolean moveFile(File file, File targetDirectory, String newEntryName, String extensionSuffix) {
+		String name;
+		if (newEntryName == null) {
 			name = file.getName();
+		} else {
+			name = newEntryName + extensionSuffix;
 		}
 		return file.renameTo(new File(targetDirectory, name));
 	}
-	
+
 	@Override
 	public boolean move(Folder newParent) {
+		moveFile(getPropertiesFile(), ((SimpleFolder)newParent).getFile());
 		this.containingFolder.removeChild(this);
-		this.containingFolder = (SimpleFolder)newParent;
+		this.containingFolder = (SimpleFolder) newParent;
 		this.containingFolder.addChild(this);
 		return true;
 	}
-	
+
 	@Override
 	public boolean move(Folder newParent, String newName) {
+		moveFile(getPropertiesFile(), ((SimpleFolder)newParent).getFile(), newName, PROPERTIES_SUFFIX);
 
 		this.containingFolder.removeChild(this);
 
 		if (newName != null) {
-			this.name = newName;		
+			this.name = newName;
 		}
 
-		this.containingFolder = (SimpleFolder)newParent;
+		this.containingFolder = (SimpleFolder) newParent;
 		this.containingFolder.addChild(this);
 		
 		return true;
@@ -181,20 +198,20 @@ public abstract class SimpleEntry implements Entry {
 		File propertiesFile = getPropertiesFile();
 		if ((propertiesFile != null) && propertiesFile.exists()) {
 			InputStream in;
-			try {			
+			try {
 				in = new FileInputStream(propertiesFile);
 			} catch (FileNotFoundException e) {
-				LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from "+propertiesFile+": "+e, e);
+				LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from " + propertiesFile + ": " + e, e);
 				return;
-			}		
+			}
 			try {
 				this.properties.loadFromXML(in);
 			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from "+propertiesFile+": "+e, e);
+				LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from " + propertiesFile + ": " + e, e);
 			} finally {
 				try {
 					in.close();
-				} catch (IOException e) { }
+				} catch (IOException e) {}
 			}
 		}
 	}
@@ -204,23 +221,23 @@ public abstract class SimpleEntry implements Entry {
 		if (propertiesFile != null) {
 			FileOutputStream os;
 			try {
-				os = new FileOutputStream(propertiesFile);				
+				os = new FileOutputStream(propertiesFile);
 			} catch (FileNotFoundException e1) {
-				LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to "+propertiesFile+": "+e1, e1);
+				LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to " + propertiesFile + ": " + e1, e1);
 				return;
 			}
 			try {
-				properties.storeToXML(os, "Properties of repository entry "+getName());
+				properties.storeToXML(os, "Properties of repository entry " + getName());
 			} catch (IOException e) {
-				LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to "+propertiesFile+": "+e, e);
+				LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to " + propertiesFile + ": " + e, e);
 			} finally {
 				try {
 					os.close();
-				} catch (IOException e) { }
+				} catch (IOException e) {}
 			}
 		}
 	}
-	
+
 	private synchronized Properties getProperties() {
 		if (properties == null) {
 			properties = new Properties();
@@ -242,27 +259,27 @@ public abstract class SimpleEntry implements Entry {
 	protected String getProperty(String key) {
 		return getProperties().getProperty(key);
 	}
-	
+
 	private File getPropertiesFile() {
 		if (getContainingFolder() != null) {
-			return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+".properties");
+			return new File(((SimpleFolder) getContainingFolder()).getFile(), getName() + PROPERTIES_SUFFIX);
 		} else {
-			return new File(getRepository().getRoot(), getName()+".properties");
+			return new File(getRepository().getRoot(), getName() + PROPERTIES_SUFFIX);
 		}
 	}
-	
+
 	@Override
 	public void delete() throws RepositoryException {
 		File propFile = getPropertiesFile();
 		if (propFile.exists()) {
 			propFile.delete();
 		}
-		SimpleFolder parent = (SimpleFolder)getContainingFolder();
+		SimpleFolder parent = (SimpleFolder) getContainingFolder();
 		if (parent != null) {
 			parent.removeChild(this);
 		}
 	}
-	
+
 	@Override
 	public Collection<Action> getCustomActions() {
 		return null;

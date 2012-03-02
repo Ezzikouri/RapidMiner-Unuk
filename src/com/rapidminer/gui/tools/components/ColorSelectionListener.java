@@ -24,6 +24,11 @@ package com.rapidminer.gui.tools.components;
 
 import java.awt.Color;
 
+/**
+ * 
+ * @author Ingo Mierswa
+ *
+ */
 public interface ColorSelectionListener {
 
 	public void colorSelected(Color color);

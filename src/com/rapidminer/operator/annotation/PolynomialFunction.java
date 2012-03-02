@@ -27,7 +27,10 @@ import java.text.NumberFormat;
 
 /** Only highest order terms taken into account. Functions can be of the form
  * 
- *    c * log(n)^d1 * n^d2 * log(m)^*d3 * m^d4 
+ *    c * log(n)^d1 * n^d2 * log(m)^*d3 * m^d4
+ *    
+ *     
+ * @author Simon Fischer
  */
 public class PolynomialFunction {
 		 

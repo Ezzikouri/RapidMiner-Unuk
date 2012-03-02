@@ -22,6 +22,9 @@
  */
 package com.rapidminer.operator.nio.model;
 
+/**
+ * @author Simon Fischer
+ */
 public class ParseException extends Exception {
 
 	private static final long serialVersionUID = 1L;

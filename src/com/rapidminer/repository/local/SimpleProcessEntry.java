@@ -35,6 +35,8 @@ import com.rapidminer.tools.Tools;
 public class SimpleProcessEntry extends SimpleDataEntry implements ProcessEntry {
 
 
+	private static final String RMP_SUFFIX = ".rmp";
+
 	SimpleProcessEntry(String name, SimpleFolder containingFolder, LocalRepository repository) {
 		super(name, containingFolder, repository);
 	}
@@ -58,7 +60,7 @@ public class SimpleProcessEntry extends SimpleDataEntry implements ProcessEntry 
 	}
 
 	private File getFile() {
-		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+".rmp");
+		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+RMP_SUFFIX);
 	}
 
 	@Override
@@ -95,13 +97,13 @@ public class SimpleProcessEntry extends SimpleDataEntry implements ProcessEntry 
 	
 	@Override
 	public boolean move(Folder newParent) {		
-		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), null);
+		moveFile(getFile(), ((SimpleFolder)newParent).getFile());
 		return super.move(newParent);
 	}
 	
 	@Override
 	public boolean move(Folder newParent, String newName) {	
-		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), newName);
+		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), newName, RMP_SUFFIX);
 		return super.move(newParent, newName);
 	}
 

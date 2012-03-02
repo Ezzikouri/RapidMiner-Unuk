@@ -54,6 +54,9 @@ import com.rapidminer.tools.ProgressListener;
  */
 public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntry {
 	
+	private static final String MD_SUFFIX = ".md";
+	private static final String IOO_SUFFIX = ".ioo";
+
 	private static final String PROPERTY_IOOBJECT_CLASS = "ioobject-class";
 	
 	private SoftReference<MetaData> metaData = null;	
@@ -64,11 +67,11 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	}
 	
 	private File getDataFile() {
-		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+".ioo");
+		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+IOO_SUFFIX);
 	}
 
 	protected File getMetaDataFile() {
-		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+".md");
+		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+MD_SUFFIX);
 	}
 
 	@Override
@@ -227,15 +230,15 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	
 	@Override
 	public boolean move(Folder newParent) {	
-		moveFile(getDataFile(), ((SimpleFolder)newParent).getFile(), null);
-		moveFile(getMetaDataFile(), ((SimpleFolder)newParent).getFile(), null);
+		moveFile(getDataFile(), ((SimpleFolder)newParent).getFile());
+		moveFile(getMetaDataFile(), ((SimpleFolder)newParent).getFile());
 		return super.move(newParent);
 	}
 	
 	@Override
 	public boolean move(Folder newParent, String newName) {	
-		moveFile(getDataFile(), ((SimpleFolder)newParent).getFile(), newName);
-		moveFile(getMetaDataFile(), ((SimpleFolder)newParent).getFile(), newName);
+		moveFile(getDataFile(), ((SimpleFolder)newParent).getFile(), newName, IOO_SUFFIX);
+		moveFile(getMetaDataFile(), ((SimpleFolder)newParent).getFile(), newName, MD_SUFFIX);
 		return super.move(newParent, newName);
 	}
 

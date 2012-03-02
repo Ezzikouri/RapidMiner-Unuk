@@ -77,13 +77,13 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 
 	@Override
 	public boolean move(Folder newParent) {
-		moveFile(getFile(), ((SimpleFolder) newParent).getFile(), null);
+		moveFile(getFile(), ((SimpleFolder) newParent).getFile());
 		return super.move(newParent);
 	}
 	
 	@Override
 	public boolean move(Folder newParent, String newName) {
-		moveFile(getFile(), ((SimpleFolder) newParent).getFile(), newName);
+		moveFile(getFile(), ((SimpleFolder) newParent).getFile(), newName, "");
 		return super.move(newParent, newName);
 	}
 
@@ -252,5 +252,11 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 		}
 		getRepository().fireEntryAdded(entry, this);
 		return entry;
+	}
+
+	@Override
+	public boolean canRefreshChild(String childName) throws RepositoryException {
+		// check existence of properties file
+		return new File(getFile(), childName+SimpleEntry.PROPERTIES_SUFFIX).exists();
 	}
 }

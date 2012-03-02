@@ -26,7 +26,7 @@ import java.net.PasswordAuthentication;
 
 /** The user credentials stored in a {@link Wallet}. Each username belongs to one URL. 
  * 
- * @author Miguel Büscher
+ * @author Miguel Bï¿½scher
  *
  */
 public class UserCredential {

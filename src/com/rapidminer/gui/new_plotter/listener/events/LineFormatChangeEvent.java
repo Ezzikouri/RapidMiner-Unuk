@@ -27,6 +27,10 @@ import java.awt.Color;
 import com.rapidminer.gui.new_plotter.configuration.LineFormat;
 import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 
+/**
+ * @author Marius Helf
+ *
+ */
 public class LineFormatChangeEvent {
 	enum LineFormatChangeType {
 		WIDTH, 

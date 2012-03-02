@@ -22,6 +22,11 @@
  */
 package com.rapidminer.tools.math.function;
 
+/**
+ * 
+ * @author Ingo Mierswa
+ *
+ */
 public class FunctionDescription {
 
 	public static final int UNLIMITED_NUMBER_OF_ARGUMENTS = -1;

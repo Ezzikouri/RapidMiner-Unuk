@@ -29,6 +29,7 @@ import com.rapidminer.repository.gui.RepositoryTree;
 /**
  * This action renames the selected entry.
  *
+ * @author Simon Fischer
  */
 public class RenameAction extends AbstractRepositoryAction<Entry> {
 	

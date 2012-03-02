@@ -26,6 +26,11 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.table.DataRow;
 
+/**
+ * 
+ * @author Sebastian Land
+ *
+ */
 public interface Aggregator {
     /**
      * This will count the given example to the group this {@link Aggregator} belongs to.

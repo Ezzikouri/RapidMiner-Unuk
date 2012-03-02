@@ -22,6 +22,11 @@
  */
 package com.rapidminer.tools.math.function;
 
+/**
+ * 
+ * @author Marco Boeck
+ *
+ */
 public abstract class ExpressionParserConstants {
 	
 	// general purpose constants

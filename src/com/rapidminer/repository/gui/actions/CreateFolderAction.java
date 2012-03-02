@@ -30,6 +30,7 @@ import com.rapidminer.repository.gui.RepositoryTree;
 /**
  * This action creates a new folder.
  *
+ * @author Simon Fischer
  */
 public class CreateFolderAction extends AbstractRepositoryAction<Folder> {
 	

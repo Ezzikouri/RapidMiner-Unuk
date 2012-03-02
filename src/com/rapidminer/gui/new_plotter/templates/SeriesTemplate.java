@@ -344,6 +344,7 @@ public class SeriesTemplate extends PlotterTemplate {
 		
 		// clear possible existing data
 		currentRangeAxisConfigsList.clear();
+		seriesPanel.updatePlotInstance(getPlotInstance());
 	}
 	
 	public static String getI18NName() {

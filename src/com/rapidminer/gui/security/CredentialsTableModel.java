@@ -30,7 +30,7 @@ import javax.swing.table.AbstractTableModel;
 /** An own table model wrapped around a {@link Wallet} used by the {@link PasswordManager} to
  *  edit user credentials. 
  * 
- * @author Miguel Büscher
+ * @author Miguel Bï¿½scher
  *
  */
 public class CredentialsTableModel extends AbstractTableModel {

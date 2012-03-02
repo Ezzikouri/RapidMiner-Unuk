@@ -62,6 +62,11 @@ import com.rapidminer.parameter.ParameterTypeExpression;
 import com.rapidminer.tools.math.function.ExpressionParser;
 import com.rapidminer.tools.math.function.FunctionDescription;
 
+/**
+ * 
+ * @author Ingo Mierswa, Marco Boeck
+ *
+ */
 public class ExpressionPropertyDialog extends PropertyDialog {
 
 	private static final long serialVersionUID = 5567661137372752202L;

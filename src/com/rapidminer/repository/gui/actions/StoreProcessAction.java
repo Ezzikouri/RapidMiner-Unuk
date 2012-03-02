@@ -38,6 +38,7 @@ import com.rapidminer.repository.gui.RepositoryTree;
 /**
  * This action stores the current process at the selected entry.
  *
+ * @author Simon Fischer
  */
 public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 	

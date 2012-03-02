@@ -28,6 +28,8 @@ import com.rapidminer.repository.gui.RepositoryTree;
 
 /**
  * This action configures the selected repository.
+ * 
+ *  @author Simon Fischer
  *
  */
 public class ConfigureRepositoryAction extends AbstractRepositoryAction<Repository> {

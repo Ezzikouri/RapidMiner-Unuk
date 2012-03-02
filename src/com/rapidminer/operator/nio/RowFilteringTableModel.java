@@ -29,6 +29,11 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
+/** Removes rows from a table model.
+ * 
+ * @author Simon Fischer
+ *
+ */
 public class RowFilteringTableModel extends AbstractTableModel {
 
 	private static final long serialVersionUID = 1L;

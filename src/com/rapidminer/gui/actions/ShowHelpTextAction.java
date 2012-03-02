@@ -26,6 +26,11 @@ import java.awt.event.ActionEvent;
 
 import com.rapidminer.gui.OperatorDocViewer;
 
+/**
+ * 
+ * @author Miguel Buescher
+ *
+ */
 public class ShowHelpTextAction extends ToggleAction {
 
 	private final OperatorDocViewer operatorDocViewer;

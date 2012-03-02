@@ -34,6 +34,7 @@ import com.rapidminer.repository.gui.RepositoryTree;
 /**
  * This action copies from the selected location.
  *
+ * @author Simon Fischer
  */
 public class CopyLocationAction extends AbstractRepositoryAction<Entry> {
 	

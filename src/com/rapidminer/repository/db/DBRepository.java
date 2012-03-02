@@ -265,4 +265,9 @@ public class DBRepository implements Repository {
 		return CONVERTERS;
 	}
 
+	@Override
+	public boolean canRefreshChild(String childName) throws RepositoryException {
+		return containsEntry(childName);
+	}
+
 }

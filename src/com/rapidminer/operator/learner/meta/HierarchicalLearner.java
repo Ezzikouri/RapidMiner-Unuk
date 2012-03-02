@@ -45,6 +45,7 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.tools.RandomGenerator;
 
 /**
+ *  @author Tobias Malbrecht, Sebastian Land
  */
 @Deprecated
 public class HierarchicalLearner extends AbstractMetaLearner {

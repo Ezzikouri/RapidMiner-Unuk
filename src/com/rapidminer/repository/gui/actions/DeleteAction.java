@@ -30,6 +30,7 @@ import com.rapidminer.repository.gui.RepositoryTree;
 /**
  * This action deletes the selected entry.
  *
+ * @author Simon Fischer
  */
 public class DeleteAction extends AbstractRepositoryAction<Entry> {
 	
@@ -46,7 +47,7 @@ public class DeleteAction extends AbstractRepositoryAction<Entry> {
 			try {
 				entry.delete();
 			} catch (Exception e1) {
-				SwingTools.showSimpleErrorMessage("cannot_delete_entry", e1);
+				SwingTools.showSimpleErrorMessage("cannot_delete_entry", e1, entry.getLocation());
 			}
 		}
 	}

@@ -32,6 +32,7 @@ import com.rapidminer.repository.gui.RepositoryTree;
 /**
  * This action is the standard copy action.
  *
+ * @author Simon Fischer
  */
 public class CopyEntryRepositoryAction extends AbstractRepositoryAction<Entry> {
 

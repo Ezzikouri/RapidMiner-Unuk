@@ -36,6 +36,11 @@ import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 
+/**
+ * 
+ * @author Marcin Skirzynski
+ *
+ */
 public class Util {
 	
 	/**

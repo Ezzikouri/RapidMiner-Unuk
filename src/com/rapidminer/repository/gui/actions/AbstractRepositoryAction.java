@@ -31,6 +31,8 @@ import com.rapidminer.repository.gui.RepositoryTree;
 /**
  * Abstract superclass of actions that are executed on subclasses of {@link Entry}.
  * Automatically enables/disables itself.
+ * 
+ *  @author Simon Fischer
  */
 public abstract class AbstractRepositoryAction<T extends Entry> extends ResourceAction {
 

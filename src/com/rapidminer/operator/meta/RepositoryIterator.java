@@ -40,6 +40,11 @@ import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 
+/** Operator to iterate over entries in a repository.
+ * 
+ * @author Vaclav Uher
+ *
+ */
 public class RepositoryIterator extends AbstractRepositoryIterator {
 
 	public static final String PARAMETER_DIRECTORY = "repository_folder";

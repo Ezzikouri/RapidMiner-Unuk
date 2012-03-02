@@ -28,6 +28,9 @@ import com.rapidminer.gui.OperatorDocLoader;
 import com.rapidminer.gui.OperatorDocViewer;
 import com.rapidminer.gui.tools.ResourceAction;
 
+/**
+ * @author Miguel Buescher 
+ */
 public class RefreshHelpTextFromWikiAction extends ResourceAction {
 
 	private static final long serialVersionUID = 1L;

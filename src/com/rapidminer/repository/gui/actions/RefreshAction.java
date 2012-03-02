@@ -30,6 +30,7 @@ import com.rapidminer.repository.gui.RepositoryTree;
 /**
  * This action refreshes the selected entry.
  *
+ * @author Simon Fischer
  */
 public class RefreshAction extends AbstractRepositoryAction<Folder> {
 	

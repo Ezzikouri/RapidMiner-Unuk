@@ -25,6 +25,11 @@ package com.rapidminer.tools.parameter;
 import java.util.Map;
 
 
+/**
+ * 
+ * @author Sebastian Land
+ *
+ */
 public interface ParameterWriter {
     /**
      * This method will be called whenever the parameters will be saved.

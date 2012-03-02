@@ -158,12 +158,12 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	}
 
 	@Override
-	public void refresh() throws RepositoryException {
+	public void refresh() throws RepositoryException {		
 		folders = null;
 		entries = null;
 		readOnly  = false;
 		forbidden = false;
-		ensureLoaded();
+		ensureLoaded();		
 		getRepository().fireRefreshed(this);
 	}
 
@@ -231,6 +231,13 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	void removeChild(RemoteEntry remoteEntry) {
 		if (remoteEntry instanceof Folder) {
 			int index = folders.indexOf(remoteEntry);
+//			Folder to
+//			for (Folder folder : folders) {
+//				index++;
+//				if (folder.getName().equals(remoteEntry.getName())) {
+//					break;
+//				}				
+//			}
 			folders.remove(remoteEntry);
 			getRepository().fireEntryRemoved(remoteEntry, this, index);
 		} else {
@@ -293,5 +300,11 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 //		}
 		getRepository().fireRefreshed(this);
 		return success;
+	}
+
+	@Override
+	public boolean canRefreshChild(String childName) throws RepositoryException {
+		EntryResponse entryResponse = getRepository().getRepositoryService().getEntry(getPath()+RepositoryLocation.SEPARATOR+childName);
+		return entryResponse.getStatus() == RepositoryConstants.OK;
 	}
 }

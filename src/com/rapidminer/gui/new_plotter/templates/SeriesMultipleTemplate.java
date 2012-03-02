@@ -163,6 +163,7 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 
 		// clear possible existing data
 		currentRangeAxisConfigsList.clear();
+		seriesMultiplePanel.updatePlotInstance(getPlotInstance());
 	}
 	
 	public static String getI18NName() {

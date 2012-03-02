@@ -27,6 +27,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
@@ -41,8 +42,14 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.rapidminer.gui.new_plotter.ConfigurationChangeResponse;
+import com.rapidminer.gui.new_plotter.MasterOfDesaster;
+import com.rapidminer.gui.new_plotter.PlotConfigurationError;
+import com.rapidminer.gui.new_plotter.data.PlotInstance;
+import com.rapidminer.gui.new_plotter.listener.MasterOfDesasterListener;
 import com.rapidminer.gui.new_plotter.templates.ScatterTemplate;
 import com.rapidminer.gui.new_plotter.templates.actions.ExportImageAction;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.I18N;
 
 /**
@@ -76,6 +83,15 @@ public class ScatterTemplatePanel extends PlotterTemplatePanel implements Observ
 	
 	/** slider to control the jitter */
 	private JSlider jitterSlider;
+	
+	/** this label indicates a chart config error */
+	private JLabel errorIndicatorLabel;
+	
+	/** the {@link MasterOfDesasterListener} */
+	private MasterOfDesasterListener listener;
+	
+	/** the current {@link PlotInstance} */
+	private PlotInstance currentPlotInstance;
 	
 //	/** checkbox for rotating labels */
 //	private JCheckBox rotateLabelsCheckBox;
@@ -113,6 +129,14 @@ public class ScatterTemplatePanel extends PlotterTemplatePanel implements Observ
 		xAxisLabel.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.scatter.xaxis.column.tip"));
 		this.add(xAxisLabel, gbc);
 		
+		gbc.gridx = 1;
+		gbc.anchor = GridBagConstraints.EAST;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.weightx = 0;
+		errorIndicatorLabel = new JLabel();
+		errorIndicatorLabel.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_ok.icon")));
+		this.add(errorIndicatorLabel, gbc);
+		
 		xAxisComboBox = new JComboBox();
 		xAxisComboBox.addActionListener(new ActionListener() {
 			
@@ -122,7 +146,12 @@ public class ScatterTemplatePanel extends PlotterTemplatePanel implements Observ
 			}
 		});
 		xAxisComboBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.scatter.xaxis.column.tip"));
+		gbc.gridx = 0;
 		gbc.gridy = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.weightx = 1;
+		gbc.gridwidth = 2;
 		this.add(xAxisComboBox, gbc);
 		
 		xAxisLogCheckBox = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.scatter.xaxis.log.label"));
@@ -295,6 +324,54 @@ public class ScatterTemplatePanel extends PlotterTemplatePanel implements Observ
 				
 			});
 		}
+	}
+
+	@Override
+	public void updatePlotInstance(final PlotInstance plotInstance) {
+		if (listener == null) {
+			listener = new MasterOfDesasterListener() {
+				
+				@Override
+				public void masterOfDesasterChanged(final MasterOfDesaster masterOfDesaster) {
+					List<PlotConfigurationError> errors = plotInstance.getErrors();
+					List<ConfigurationChangeResponse> configurationChangeResponses = masterOfDesaster.getConfigurationChangeResponses();
+					if (errors.isEmpty() && configurationChangeResponses.isEmpty()) {
+						SwingUtilities.invokeLater(new Runnable() {
+							
+							@Override
+							public void run() {
+								errorIndicatorLabel.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_ok.icon")));
+							}
+							
+						});
+					} else {
+						SwingUtilities.invokeLater(new Runnable() {
+							
+							@Override
+							public void run() {
+								errorIndicatorLabel.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_error.icon")));
+							}
+							
+						});
+					}
+					SwingUtilities.invokeLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							errorIndicatorLabel.setToolTipText(masterOfDesaster.toHtmlString());
+						}
+						
+					});
+				}
+			};
+		}
+		
+		// remove listener from previous plotInstance, add to new one
+		if (currentPlotInstance != null) {
+			currentPlotInstance.getMasterOfDesaster().removeListener(listener);
+		}
+		plotInstance.getMasterOfDesaster().addListener(listener);
+		currentPlotInstance = plotInstance;
 	}
 
 }

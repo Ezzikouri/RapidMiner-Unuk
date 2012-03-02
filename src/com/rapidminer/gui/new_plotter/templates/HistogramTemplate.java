@@ -190,6 +190,7 @@ public class HistogramTemplate extends PlotterTemplate {
 		
 		// clear possible existing data
 		currentRangeAxisConfigsList.clear();
+		histogramPanel.updatePlotInstance(getPlotInstance());
 	}
 	
 	/**
@@ -216,6 +217,7 @@ public class HistogramTemplate extends PlotterTemplate {
 			plotEngine.setPlotInstance(newPlotInstance);
 		}
 		setPlotInstance(newPlotInstance);
+		histogramPanel.updatePlotInstance(newPlotInstance);
 	}
 	
 	/**

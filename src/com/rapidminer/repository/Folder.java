@@ -52,4 +52,10 @@ public interface Folder extends Entry {
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException;
 
 	public BlobEntry createBlobEntry(String name) throws RepositoryException;
+
+	/** Returns true iff a child with the given name exists and a {@link #refresh()} 
+	 *  would find this entry (or it is already loaded).
+	 * @throws RepositoryException 
+	 */
+	public boolean canRefreshChild(String childName) throws RepositoryException;
 }

@@ -32,6 +32,7 @@ import com.rapidminer.repository.gui.RepositoryTree;
 /**
  * This action is the standard paste action.
  *
+ * @author Simon Fischer
  */
 public class PasteEntryRepositoryAction extends AbstractRepositoryAction<Entry> {
 

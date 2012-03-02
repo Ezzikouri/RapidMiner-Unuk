@@ -41,12 +41,14 @@ import com.rapidminer.repository.RepositoryException;
  */
 public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 
+	private static final String BLOB_SUFFIX = ".blob";
+
 	SimpleBlobEntry(String name, SimpleFolder containingFolder,	LocalRepository localRepository) {
 		super(name, containingFolder, localRepository);
 	}
 
 	private File getFile() {
-		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+".blob");
+		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+BLOB_SUFFIX);
 	}
 	
 	@Override
@@ -73,13 +75,13 @@ public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 	
 	@Override
 	public boolean move(Folder newParent) {	
-		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), null);
+		moveFile(getFile(), ((SimpleFolder)newParent).getFile());
 		return super.move(newParent);
 	}
 	
 	@Override
 	public boolean move(Folder newParent, String newName) {	
-		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), newName);
+		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), newName, BLOB_SUFFIX);
 		return super.move(newParent, newName);
 	}
 

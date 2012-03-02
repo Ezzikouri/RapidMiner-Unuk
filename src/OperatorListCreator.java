@@ -1,5 +1,4 @@
 /*
- /*
  *  RapidMiner
  *
  *  Copyright (C) 2001-2012 by Rapid-I and the contributors

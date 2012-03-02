@@ -64,6 +64,9 @@ public class OpenAction extends ResourceAction {
 		
 	/** Loads the data held by the given entry (in the background) and opens it as a result. */
 	public static void showAsResult(final IOObjectEntry data) {
+		if (data == null) {
+			throw new IllegalArgumentException("data entry must not be null");
+		}
 		final ProgressThread downloadProgressThread = new ProgressThread("download_from_repository") {
 			public void run() {
 				try {

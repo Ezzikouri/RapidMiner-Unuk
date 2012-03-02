@@ -28,6 +28,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
@@ -43,9 +44,15 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.rapidminer.gui.new_plotter.ConfigurationChangeResponse;
+import com.rapidminer.gui.new_plotter.MasterOfDesaster;
+import com.rapidminer.gui.new_plotter.PlotConfigurationError;
+import com.rapidminer.gui.new_plotter.data.PlotInstance;
+import com.rapidminer.gui.new_plotter.listener.MasterOfDesasterListener;
 import com.rapidminer.gui.new_plotter.templates.SeriesTemplate;
 import com.rapidminer.gui.new_plotter.templates.actions.ExportImageAction;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.I18N;
 
 /**
@@ -73,6 +80,15 @@ public class SeriesTemplatePanel extends PlotterTemplatePanel implements Observe
 	
 	/** the plot list selection listener */
 	private ListSelectionListener updatePlotListSelectionListener;
+	
+	/** this label indicates a chart config error */
+	private JLabel errorIndicatorLabel;
+	
+	/** the {@link MasterOfDesasterListener} */
+	private MasterOfDesasterListener listener;
+	
+	/** the current {@link PlotInstance} */
+	private PlotInstance currentPlotInstance;
 	
 //	/** checkbox for rotating labels */
 //	private JCheckBox rotateLabelsCheckBox;
@@ -115,10 +131,18 @@ public class SeriesTemplatePanel extends PlotterTemplatePanel implements Observe
 		gbc.anchor = GridBagConstraints.NORTH;
 		gbc.weightx = 1;
 		gbc.weighty = 0;
-		gbc.insets = new Insets(10, 5, 2, 5);
+		gbc.insets = new Insets(2, 5, 2, 5);
 		JLabel lowerBoundLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.series.lower_bound.column.label"));
 		lowerBoundLabel.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.series.lower_bound.column.tip"));
 		this.add(lowerBoundLabel, gbc);
+		
+		gbc.gridx = 1;
+		gbc.anchor = GridBagConstraints.EAST;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.weightx = 0;
+		errorIndicatorLabel = new JLabel();
+		errorIndicatorLabel.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_ok.icon")));
+		this.add(errorIndicatorLabel, gbc);
 		
 		lowerBoundComboBox = new JComboBox();
 		lowerBoundComboBox.addActionListener(new ActionListener() {
@@ -130,7 +154,12 @@ public class SeriesTemplatePanel extends PlotterTemplatePanel implements Observe
 		});
 		lowerBoundComboBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.series.lower_bound.column.tip"));
 		gbc.insets = new Insets(2, 5, 2, 5);
+		gbc.gridx = 0;
 		gbc.gridy = 1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.NORTH;
+		gbc.weightx = 1;
+		gbc.gridwidth = 2;
 		this.add(lowerBoundComboBox, gbc);
 		
 		JLabel upperBoundLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.series.upper_bound.column.label"));
@@ -259,6 +288,54 @@ public class SeriesTemplatePanel extends PlotterTemplatePanel implements Observe
 				
 			});
 		}
+	}
+
+	@Override
+	public void updatePlotInstance(final PlotInstance plotInstance) {
+		if (listener == null) {
+			listener = new MasterOfDesasterListener() {
+				
+				@Override
+				public void masterOfDesasterChanged(final MasterOfDesaster masterOfDesaster) {
+					List<PlotConfigurationError> errors = plotInstance.getErrors();
+					List<ConfigurationChangeResponse> configurationChangeResponses = masterOfDesaster.getConfigurationChangeResponses();
+					if (errors.isEmpty() && configurationChangeResponses.isEmpty()) {
+						SwingUtilities.invokeLater(new Runnable() {
+							
+							@Override
+							public void run() {
+								errorIndicatorLabel.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_ok.icon")));
+							}
+							
+						});
+					} else {
+						SwingUtilities.invokeLater(new Runnable() {
+							
+							@Override
+							public void run() {
+								errorIndicatorLabel.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_error.icon")));
+							}
+							
+						});
+					}
+					SwingUtilities.invokeLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							errorIndicatorLabel.setToolTipText(masterOfDesaster.toHtmlString());
+						}
+						
+					});
+				}
+			};
+		}
+		
+		// remove listener from previous plotInstance, add to new one
+		if (currentPlotInstance != null) {
+			currentPlotInstance.getMasterOfDesaster().removeListener(listener);
+		}
+		plotInstance.getMasterOfDesaster().addListener(listener);
+		currentPlotInstance = plotInstance;
 	}
 
 }

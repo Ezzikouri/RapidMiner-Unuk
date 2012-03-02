@@ -157,7 +157,12 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 								proResponse.getProcessLocation());
 						RepositoryLocation ioLoc = new RepositoryLocation(procLoc.parent(), ((OutputLocation)selection).getLocation());
 
-						OpenAction.showAsResult((IOObjectEntry)ioLoc.locateEntry());
+						IOObjectEntry locatedEntry = (IOObjectEntry)ioLoc.locateEntry();
+						if (locatedEntry == null) { // may happen if entry has been deleted in the meantime
+							SwingTools.showVerySimpleErrorMessage("cannot_find_repository_location", ioLoc.toString());
+							return;
+						}
+						OpenAction.showAsResult(locatedEntry);
 					} catch (Exception e1) {
 						SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", e1);
 					}					
