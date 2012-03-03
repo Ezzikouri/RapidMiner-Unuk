@@ -58,6 +58,9 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 	/** if true, will not update plot configuration despite changes */
 	protected transient boolean suspendUpdates;
 	
+	/** the GUI used to display the given template */
+	protected transient PlotterTemplatePanel guiPanel;
+	
 	
 	public static final String TEMPLATE_ELEMENT = "template";
 
@@ -101,7 +104,9 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 	 * Gets the {@link PlotterTemplatePanel} which can be used to configurate the {@link PlotterTemplate}.
 	 * @return the configuration {@link PlotterTemplatePanel}
 	 */
-	public abstract PlotterTemplatePanel getTemplateConfigurationPanel();
+	public PlotterTemplatePanel getTemplateConfigurationPanel() {
+		return guiPanel;
+	}
 	
 	/**
 	 * Gets the {@link PlotConfiguration} object used to setup the plotter for this specific chart type.
@@ -134,6 +139,9 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 		}
 		
 		this.plotInstance = plotInstance;
+		if (guiPanel != null) {
+			guiPanel.updatePlotInstance(plotInstance);
+		}
 	}
 	
 	/**

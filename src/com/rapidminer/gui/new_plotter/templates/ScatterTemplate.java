@@ -35,10 +35,9 @@ import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
-import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.ScatterTemplatePanel;
-import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
+import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction.AggregationFunctionType;
@@ -90,9 +89,6 @@ public class ScatterTemplate extends PlotterTemplate {
 	/** the jitter value for the plot */
 	private int jitter;
 	
-	/** the {@link ScatterTemplatePanel} instance */
-	private transient ScatterTemplatePanel scatterPanel;
-	
 	
 	/**
 	 * Creates a new {@link ScatterTemplate}. This template allows easy configuration of the scatter
@@ -111,7 +107,7 @@ public class ScatterTemplate extends PlotterTemplate {
 
 		jitter = 0;
 		
-		scatterPanel = new ScatterTemplatePanel(this);
+		guiPanel = new ScatterTemplatePanel(this);
 	}
 
 	@Override
@@ -120,15 +116,9 @@ public class ScatterTemplate extends PlotterTemplate {
 	}
 
 	@Override
-	public PlotterTemplatePanel getTemplateConfigurationPanel() {
-		return scatterPanel;
-	}
-
-	@Override
 	protected void dataUpdated(final DataTable dataTable) {
 		// clear possible existing data
 		currentRangeAxisConfig = null;
-		scatterPanel.updatePlotInstance(getPlotInstance());
 	}
 
 	/**

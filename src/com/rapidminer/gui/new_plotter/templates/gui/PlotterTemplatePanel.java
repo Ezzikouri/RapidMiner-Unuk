@@ -22,12 +22,25 @@
  */
 package com.rapidminer.gui.new_plotter.templates.gui;
 
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.Observer;
 
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 
+import com.rapidminer.gui.new_plotter.ConfigurationChangeResponse;
+import com.rapidminer.gui.new_plotter.MasterOfDesaster;
+import com.rapidminer.gui.new_plotter.PlotConfigurationError;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
+import com.rapidminer.gui.new_plotter.listener.MasterOfDesasterListener;
 import com.rapidminer.gui.new_plotter.templates.PlotterTemplate;
+import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.tools.I18N;
 
 /**
  * This class is the abstract superclass for all {@link PlotterTemplate} GUIs.
@@ -37,6 +50,16 @@ import com.rapidminer.gui.new_plotter.templates.PlotterTemplate;
  */
 public abstract class PlotterTemplatePanel extends JPanel implements Observer {
 	
+	/** this label indicates a chart config error */
+	protected JLabel errorIndicatorLabel;
+
+	/** the {@link MasterOfDesasterListener} */
+	private MasterOfDesasterListener listener;
+	
+	/** the current {@link PlotInstance} */
+	private PlotInstance currentPlotInstance;
+	
+	
 	private static final long serialVersionUID = -7451641816924895335L;
 	
 	
@@ -45,12 +68,62 @@ public abstract class PlotterTemplatePanel extends JPanel implements Observer {
 	 * the {@link PlotterTemplate}.
 	 */
 	public PlotterTemplatePanel(final PlotterTemplate template) {
+		errorIndicatorLabel = new JLabel();
+		errorIndicatorLabel.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_ok.icon")));
+		// show the tooltip longer for the errorIndicator
+		errorIndicatorLabel.addMouseListener(new MouseAdapter() {
+
+			private int defaultDismissDelay;
+
+			public void mouseEntered(MouseEvent me) {
+				defaultDismissDelay = ToolTipManager.sharedInstance().getDismissDelay();
+				ToolTipManager.sharedInstance().setDismissDelay(60000);
+			}
+
+			public void mouseExited(MouseEvent me) {
+				ToolTipManager.sharedInstance().setDismissDelay(defaultDismissDelay);
+			}
+		});
+		
 		template.addObserver(this);
 	}
 	
 	/**
-	 * Call this method each time the {@link PlotInstance} changes.
-	 * @param plotInstance
+	 * This method is called each time the {@link PlotInstance} changes.
+	 * @param plotInstance the new {@link PlotInstance}
 	 */
-	public abstract void updatePlotInstance(final PlotInstance plotInstance);
+	public void updatePlotInstance(final PlotInstance plotInstance) {
+		if (listener == null) {
+			listener = new MasterOfDesasterListener() {
+				
+				@Override
+				public void masterOfDesasterChanged(final MasterOfDesaster masterOfDesaster) {
+					List<PlotConfigurationError> errors = plotInstance.getErrors();
+					List<ConfigurationChangeResponse> configurationChangeResponses = masterOfDesaster.getConfigurationChangeResponses();
+					final ImageIcon newIcon;
+					if (errors.isEmpty() && configurationChangeResponses.isEmpty()) {
+						newIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_ok.icon"));
+					} else {
+						newIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_error.icon"));
+					}
+					SwingUtilities.invokeLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							errorIndicatorLabel.setIcon(newIcon);
+							errorIndicatorLabel.setToolTipText(masterOfDesaster.toHtmlString());
+						}
+						
+					});
+				}
+			};
+		}
+		
+		// remove listener from previous plotInstance, add to new one
+		if (currentPlotInstance != null) {
+			currentPlotInstance.getMasterOfDesaster().removeListener(listener);
+		}
+		plotInstance.getMasterOfDesaster().addListener(listener);
+		currentPlotInstance = plotInstance;
+	}
 }

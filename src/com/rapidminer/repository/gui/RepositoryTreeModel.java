@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.TreeModelEvent;
@@ -36,6 +37,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.Repository;
@@ -57,7 +59,10 @@ public class RepositoryTreeModel implements TreeModel {
 
 	private final EventListenerList listeners = new EventListenerList();
 
+	private JTree parentTree = null;
+
 	private final RepositoryListener repositoryListener = new RepositoryListener() {
+
 		private TreeModelEvent makeChangeEvent(Entry entry) {
 			TreePath path = getPathTo(entry.getContainingFolder());
 			int index;
@@ -68,34 +73,80 @@ public class RepositoryTreeModel implements TreeModel {
 			}
 			return new TreeModelEvent(RepositoryTreeModel.this, path, new int[] { index }, new Object[] { entry });
 		}
+
 		@Override
 		public void entryAdded(Entry newEntry, Folder parent) {
 			TreeModelEvent e = makeChangeEvent(newEntry);
 			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 				l.treeNodesInserted(e);
-			}				
+			}
 		}
+
 		@Override
 		public void entryRemoved(Entry removedEntry, Folder parent, int index) {
 			TreePath path = getPathTo(parent);
 			TreeModelEvent e = new TreeModelEvent(RepositoryTreeModel.this, path, new int[] { index }, new Object[] { removedEntry });
+			boolean pathSaved = false;
+			if (parentTree != null) {
+				pathSaved = createPostRemoveEventSelectionPath(removedEntry, parent, index, path);
+			}
 			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 				l.treeNodesRemoved(e);
 			}
-		}		
+			if (parentTree != null && pathSaved) {
+				TreeUtil.restoreSelectionPath(parentTree);
+			}
+		}
+
+		private boolean createPostRemoveEventSelectionPath(Entry removedEntry, Folder parent, int index, TreePath path) {
+			TreePath savedPath = path;
+			List<DataEntry> dataEntries;
+			List<Folder> subfolders;
+			try {
+				subfolders = parent.getSubfolders();
+				dataEntries = parent.getDataEntries();
+			} catch (RepositoryException e1) {
+				return false; // could not fetch subfolders or data entries -> dont save tree path 
+			}
+			int nextSelectionIndex = index - 1;
+			if (removedEntry instanceof Folder) {
+				if (nextSelectionIndex >= 0) {
+					savedPath = savedPath.pathByAddingChild(subfolders.get(nextSelectionIndex));
+				}
+			} else {
+				if (nextSelectionIndex > 0) {
+					if (nextSelectionIndex < subfolders.size()) {
+						savedPath = savedPath.pathByAddingChild(subfolders.get(nextSelectionIndex));
+					} else {
+						savedPath= savedPath.pathByAddingChild(dataEntries.get(nextSelectionIndex-subfolders.size()));
+					}
+				}
+			}
+			TreeUtil.saveSelectionPath(savedPath);
+			return true;
+		}
+
 		@Override
 		public void entryChanged(Entry entry) {
-			TreeModelEvent e = makeChangeEvent(entry);				
+			TreeModelEvent e = makeChangeEvent(entry);
 			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 				l.treeNodesChanged(e);
-			}				
+			}
 		}
+
 		@Override
 		public void folderRefreshed(Folder folder) {
-			TreeModelEvent e = makeChangeEvent(folder);				
+			TreeModelEvent e = makeChangeEvent(folder);
+			if (parentTree != null) {
+				TreeUtil.saveExpansionState(parentTree);
+			}
 			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 				l.treeStructureChanged(e);
-			}				
+			}
+			if (parentTree != null) {
+				TreeUtil.restoreExpansionState(parentTree);
+			}
+
 		}
 	};
 
@@ -104,7 +155,7 @@ public class RepositoryTreeModel implements TreeModel {
 	public RepositoryTreeModel(final RepositoryManager root) {
 		this(root, false);
 	}
-	
+
 	public RepositoryTreeModel(final RepositoryManager root, final boolean onlyFolders) {
 		this.root = root;
 		this.onlyFolders = onlyFolders;
@@ -112,6 +163,7 @@ public class RepositoryTreeModel implements TreeModel {
 			repository.addRepositoryListener(repositoryListener);
 		}
 		root.addObserver(new Observer<Repository>() {
+
 			@Override
 			public void update(Observable<Repository> observable, Repository arg) {
 				for (Repository repository : root.getRepositories()) {
@@ -122,18 +174,18 @@ public class RepositoryTreeModel implements TreeModel {
 				for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 					l.treeStructureChanged(e);
 				}
-			}			
+			}
 		}, true);
 	}
 
-	TreePath getPathTo(Entry entry) {	
+	TreePath getPathTo(Entry entry) {
 		if (entry == null) {
 			return new TreePath(root);
 		}
 		if (entry.getContainingFolder() == null) {
 			return new TreePath(root).pathByAddingChild(entry);
 		} else {
-			return getPathTo(entry.getContainingFolder()).pathByAddingChild(entry);		
+			return getPathTo(entry.getContainingFolder()).pathByAddingChild(entry);
 		}
 	}
 
@@ -147,12 +199,16 @@ public class RepositoryTreeModel implements TreeModel {
 		listeners.remove(TreeModelListener.class, l);
 	}
 
+	public void setParentTree(JTree tree) {
+		parentTree = tree;
+	}
+
 	@Override
 	public Object getChild(Object parent, int index) {
 		if (parent instanceof RepositoryManager) {
-			return ((RepositoryManager)parent).getRepositories().get(index);
+			return ((RepositoryManager) parent).getRepositories().get(index);
 		} else if (parent instanceof Folder) {
-			Folder folder = (Folder)parent;
+			Folder folder = (Folder) parent;
 			if (folder.willBlock()) {
 				unblock(folder);
 				return "Pending...";
@@ -167,7 +223,7 @@ public class RepositoryTreeModel implements TreeModel {
 						return folder.getDataEntries().get(index - numFolders);
 					}
 				} catch (RepositoryException e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot get children of "+folder.getName()+": "+e, e);
+					LogService.getRoot().log(Level.WARNING, "Cannot get children of " + folder.getName() + ": " + e, e);
 					return null;
 				}
 			}
@@ -183,12 +239,13 @@ public class RepositoryTreeModel implements TreeModel {
 	private void unblock(final Folder folder) {
 		if (pendingFolders.contains(folder)) {
 			return;
-		} 
+		}
 		pendingFolders.add(folder);
 
-		new Thread("wait-for-"+folder.getName()) {
+		new Thread("wait-for-" + folder.getName()) {
+
 			@Override
-			public void run() {			
+			public void run() {
 
 				final List<Entry> children = new LinkedList<Entry>();
 				try {
@@ -198,21 +255,22 @@ public class RepositoryTreeModel implements TreeModel {
 					SwingTools.showSimpleErrorMessage("error_fetching_folder_contents_from_server", e);
 				} finally {
 					SwingUtilities.invokeLater(new Runnable() {
+
 						public void run() {
-							TreeModelEvent removeEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), new int[] {0}, new Object[] { "Pending..." });					
+							TreeModelEvent removeEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), new int[] { 0 }, new Object[] { "Pending..." });
 							for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 								l.treeNodesRemoved(removeEvent);
 							}
 
-							int index[] = new int[children.size()];	
+							int index[] = new int[children.size()];
 							for (int i = 0; i < index.length; i++) {
 								index[i] = i;
 							}
-							Object[] childArray = children.toArray();				
-							TreeModelEvent insertEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), index, childArray);					
+							Object[] childArray = children.toArray();
+							TreeModelEvent insertEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), index, childArray);
 							for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 								l.treeNodesInserted(insertEvent);
-							}		
+							}
 						}
 					});
 				}
@@ -224,13 +282,13 @@ public class RepositoryTreeModel implements TreeModel {
 	@Override
 	public int getChildCount(Object parent) {
 		if (parent instanceof RepositoryManager) {
-			return ((RepositoryManager)parent).getRepositories().size();
+			return ((RepositoryManager) parent).getRepositories().size();
 		} else if (parent instanceof Folder) {
-			Folder folder = (Folder)parent;
+			Folder folder = (Folder) parent;
 			if (folder.willBlock()) {
 				unblock(folder);
 				return 1; // "Pending...."
-			} else {				
+			} else {
 				try {
 					if (onlyFolders) {
 						return folder.getSubfolders().size();
@@ -238,7 +296,7 @@ public class RepositoryTreeModel implements TreeModel {
 						return folder.getSubfolders().size() + folder.getDataEntries().size();
 					}
 				} catch (RepositoryException e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot get child count for "+folder.getName()+": "+e, e);
+					LogService.getRoot().log(Level.WARNING, "Cannot get child count for " + folder.getName() + ": " + e, e);
 					return 0;
 				}
 			}
@@ -250,9 +308,9 @@ public class RepositoryTreeModel implements TreeModel {
 	@Override
 	public int getIndexOfChild(Object parent, Object child) {
 		if (parent instanceof RepositoryManager) {
-			return ((RepositoryManager)parent).getRepositories().indexOf(child);			
+			return ((RepositoryManager) parent).getRepositories().indexOf(child);
 		} else if (parent instanceof Folder) {
-			Folder folder = (Folder)parent;
+			Folder folder = (Folder) parent;
 			try {
 				if (child instanceof Folder) {
 					return folder.getSubfolders().indexOf(child);
@@ -260,9 +318,9 @@ public class RepositoryTreeModel implements TreeModel {
 					return folder.getDataEntries().indexOf(child) + folder.getSubfolders().size();
 				} else {
 					return -1;
-				}	
+				}
 			} catch (RepositoryException e) {
-				LogService.getRoot().log(Level.WARNING, "Cannot get child index for "+folder.getName()+": "+e, e);
+				LogService.getRoot().log(Level.WARNING, "Cannot get child index for " + folder.getName() + ": " + e, e);
 				return -1;
 			}
 		} else {
@@ -271,7 +329,7 @@ public class RepositoryTreeModel implements TreeModel {
 	}
 
 	@Override
-	public Object getRoot() {		
+	public Object getRoot() {
 		return root;
 	}
 
@@ -283,7 +341,7 @@ public class RepositoryTreeModel implements TreeModel {
 	@Override
 	public void valueForPathChanged(TreePath path, Object newValue) {
 		try {
-			((Entry)path.getLastPathComponent()).rename(newValue.toString());
+			((Entry) path.getLastPathComponent()).rename(newValue.toString());
 		} catch (Exception e) {
 			SwingTools.showSimpleErrorMessage("error_rename", e, e.toString());
 		}

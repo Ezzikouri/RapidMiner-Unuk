@@ -61,6 +61,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 
+import com.rapidminer.gui.ApplicationFrame;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
@@ -378,7 +379,7 @@ public class ToolTipWindow {
     }
 
     private void makeDialog(boolean undecorated, Point point) {
-        currentDialog = new JDialog(owner != null ? owner : RapidMinerGUI.getMainFrame());
+        currentDialog = new JDialog(owner != null ? owner : ApplicationFrame.getApplicationFrame());
         if (undecorated) {
             //currentDialog.setModal(true);
             currentDialog.setUndecorated(true);

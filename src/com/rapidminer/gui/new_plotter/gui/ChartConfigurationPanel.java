@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.new_plotter.gui;
 
 import java.awt.CardLayout;
@@ -272,19 +273,11 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 	@Override
 	public void print(Graphics g) {
-		//		ChartPanel panel = new ChartPanel(null);
-		//
-		//		if (dialog == null) {
-		//			dialog = new DimensionDialog();
-		//		}
-		//		dialog.setVisible(true);
-		//		if (dialog.getReturnValue() == JOptionPane.CANCEL_OPTION) {
-		chartPanel.print(g);
-		//		}
-		//		panel.setSize(dialog.getUserDimension());
-		//		panel.setChart(plotEngine.getCurrentChart());
-		//
-		//		panel.print(g);
+		Dimension printSize =  getSize();
+		LinkAndBrushChartPanel printPanel = new LinkAndBrushChartPanel(null, printSize.width, printSize.height, 1, 1, true, false);
+		printPanel.setSize(printSize);
+		printPanel.setChart(plotEngine.getCurrentChart());
+		printPanel.print(g);
 	}
 
 	private void createPopups() {
@@ -338,7 +331,8 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	 * If no plot config for the new PlotInstance is provided a PlotConfiguration with an invalid domain dimension will be created.
 	 * @param nominalToNumericalAttributeList 
 	 */
-	private PlotInstance getNewDePivotedPlotInstance(PlotConfiguration newPlotConfig, Collection<String> excludedNumericalAttributeList, Collection<String> selectedNominalToNumericAttributesList) {
+	private PlotInstance getNewDePivotedPlotInstance(PlotConfiguration newPlotConfig, Collection<String> excludedNumericalAttributeList,
+			Collection<String> selectedNominalToNumericAttributesList) {
 		PlotInstance plotInstance;
 		DataTable transformed = getDePivotedDataTable(excludedNumericalAttributeList, selectedNominalToNumericAttributesList);
 
@@ -1032,7 +1026,8 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 				// fetch nominal columns
 				Vector<DataTableColumn> dataTableColumns = assembleDataTableColumnList(dataTable);
 				for (DataTableColumn column : dataTableColumns) {
-					if ((column.isNominal() || column.isNumerical()) && !column.getName().equals("id") && !column.getName().equals("value") && !column.getName().equals("attribute")) {
+					if ((column.isNominal() || column.isNumerical()) && !column.getName().equals("id") && !column.getName().equals("value")
+							&& !column.getName().equals("attribute")) {
 						columns.add(column);
 					}
 				}
@@ -1053,13 +1048,13 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 					for (DataTableColumn column : dataTableColumns) {
 						String name = column.getName();
 						if (selectedAttributeExclusionList.contains(name)) {
-							if(column.isNumerical()) {
+							if (column.isNumerical()) {
 								excludedNumericalAttributesList.add(name);
 							}
 						} else {
-							if(column.isNominal()) {
+							if (column.isNominal()) {
 								nominalToNumericalAttributeList.add(name);
-							} 
+							}
 						}
 					}
 				}

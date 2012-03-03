@@ -42,16 +42,15 @@ import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
-import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.SeriesTemplatePanel;
-import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
+import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction.AggregationFunctionType;
@@ -221,9 +220,6 @@ public class SeriesTemplate extends PlotterTemplate {
 	/** the names of the plots to show */
 	private Object[] plotNames;
 	
-	/** the {@link SeriesTemplatePanel} instance */
-	private transient SeriesTemplatePanel seriesPanel;
-	
 	
 	/**
 	 * Creates a new {@link SeriesTemplate}. This template allows easy configuration
@@ -239,17 +235,12 @@ public class SeriesTemplate extends PlotterTemplate {
 		indexName = noSelection;
 		plotNames = new Object[0];
 		
-		seriesPanel = new SeriesTemplatePanel(this);
+		guiPanel = new SeriesTemplatePanel(this);
 	}
 	
 	@Override
 	public String getChartType() {
 		return SeriesTemplate.getI18NName();
-	}
-
-	@Override
-	public PlotterTemplatePanel getTemplateConfigurationPanel() {
-		return seriesPanel;
 	}
 	
 	/**
@@ -344,7 +335,6 @@ public class SeriesTemplate extends PlotterTemplate {
 		
 		// clear possible existing data
 		currentRangeAxisConfigsList.clear();
-		seriesPanel.updatePlotInstance(getPlotInstance());
 	}
 	
 	public static String getI18NName() {

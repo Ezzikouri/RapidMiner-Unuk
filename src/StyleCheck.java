@@ -43,7 +43,7 @@ import com.rapidminer.tools.Tools;
  * program might give useful informations like the totalClasses number of lines
  * or the classes written by a particular author.
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Simon Fischer, Marius Helf
  * @version $Id: StyleCheck.java,v 2.18.2.1 2009-04-05 10:45:20 ingomierswa Exp
  *          $
  */
@@ -563,8 +563,8 @@ public class StyleCheck {
 				String line = null;
 				int lineNumber = 0;
 				while (((line = in.readLine()) != null) && (lineNumber < licenseLines.length)) {
-					if (!line.equals(licenseLines[lineNumber])) {
-						System.out.println(formatFilename(file) + ": missing or wrong license");
+					if (!line.trim().equals(licenseLines[lineNumber].trim())) {
+						System.out.println(formatFilename(file) + ": missing or wrong license (failed in line "+ lineNumber +": '" + line + "')");
 						return false;
 					}
 					lineNumber++;

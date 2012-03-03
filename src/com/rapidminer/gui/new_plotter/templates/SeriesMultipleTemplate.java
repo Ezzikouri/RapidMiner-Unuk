@@ -43,10 +43,9 @@ import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationTy
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.templates.SeriesTemplate.DataTableWithIndexDelegate;
-import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.gui.SeriesMultipleTemplatePanel;
-import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
+import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.math.function.aggregation.AbstractAggregationFunction.AggregationFunctionType;
 
@@ -77,9 +76,6 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 	/** the names of the plots to show */
 	private Object[] plotNames;
 	
-	/** the {@link SeriesMultipleTemplatePanel} instance */
-	private transient SeriesMultipleTemplatePanel seriesMultiplePanel;
-	
 
 	/**
 	 * Creates a new {@link SeriesMultipleTemplate}. This template allows easy configuration of the
@@ -93,17 +89,12 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 		indexName = noSelection;
 		plotNames = new Object[0];
 		
-		seriesMultiplePanel = new SeriesMultipleTemplatePanel(this);
+		guiPanel = new SeriesMultipleTemplatePanel(this);
 	}
 
 	@Override
 	public String getChartType() {
 		return SeriesMultipleTemplate.getI18NName();
-	}
-
-	@Override
-	public PlotterTemplatePanel getTemplateConfigurationPanel() {
-		return seriesMultiplePanel;
 	}
 
 	/**
@@ -163,7 +154,6 @@ public class SeriesMultipleTemplate extends PlotterTemplate {
 
 		// clear possible existing data
 		currentRangeAxisConfigsList.clear();
-		seriesMultiplePanel.updatePlotInstance(getPlotInstance());
 	}
 	
 	public static String getI18NName() {

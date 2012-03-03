@@ -67,7 +67,7 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 				false,  // print
 				false,  // zoom
 				true);   // tooltips
-
+		
 		this.zoomOnLinkAndBrushSelection = zoomOnLinkAndBrushSelection;
 		setInitialDelay(200);
 
@@ -84,7 +84,8 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 				true);   // tooltips
 
 		this.zoomOnLinkAndBrushSelection = zoomOnLinkAndBrush;
-
+		setInitialDelay(200);
+		
 		setMouseWheelEnabled(false);
 	}
 	

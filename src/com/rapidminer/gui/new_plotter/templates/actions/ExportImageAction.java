@@ -30,7 +30,9 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 
+import javax.swing.ImageIcon;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -42,7 +44,6 @@ import javax.swing.JSeparator;
 import javax.swing.JTextField;
 
 import org.freehep.util.export.ExportDialog;
-import org.jfree.chart.ChartPanel;
 
 import com.rapidminer.gui.ApplicationFrame;
 import com.rapidminer.gui.new_plotter.templates.PlotterTemplate;
@@ -325,23 +326,18 @@ public class ExportImageAction extends ResourceAction {
 	 * Opens the plot export options.
 	 */
 	public static synchronized void exportPlot(PlotterTemplate template) {
-//		try {
-			ChartPanel panel = new ChartPanel(null);
-			
-			if (dialog == null) {
-				dialog = new DimensionDialog();
-			}
-			dialog.setVisible(true);
-			if (dialog.getReturnValue() == JOptionPane.CANCEL_OPTION) {
-				return;
-			}
-			panel.setSize(dialog.getUserDimension());
-			panel.setChart(template.getPlotEngine().getCurrentChart()); 
-			
-			ExportDialog exportDialog = new ExportDialog("RapidMiner");
-			exportDialog.showExportDialog(ApplicationFrame.getApplicationFrame(), "Save Image...", panel, "plot");
-//		} catch (ChartPlottimeException e) {
-//			LogService.getRoot().log(Level.WARNING, I18N.getMessage(I18N.getGUIBundle(), "gui.action.export_newplotter_image.error.label"));
-//		}
+		if (dialog == null) {
+			dialog = new DimensionDialog();
+		}
+		dialog.setVisible(true);
+		if (dialog.getReturnValue() == JOptionPane.CANCEL_OPTION) {
+			return;
+		}
+		BufferedImage bufferedImageChart = template.getPlotEngine().getCurrentChart().createBufferedImage(dialog.getUserWidth(), dialog.getUserHeight());
+		JLabel chartLabel = new JLabel(new ImageIcon(bufferedImageChart));
+		chartLabel.setSize(dialog.getUserDimension());
+
+		ExportDialog exportDialog = new ExportDialog("RapidMiner");
+		exportDialog.showExportDialog(ApplicationFrame.getApplicationFrame(), "Save Image...", chartLabel, "plot");
 	}
 }

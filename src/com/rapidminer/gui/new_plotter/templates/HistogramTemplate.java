@@ -51,9 +51,8 @@ import com.rapidminer.gui.new_plotter.configuration.ValueGrouping.ValueGroupingF
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.templates.gui.HistogrammTemplatePanel;
-import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
-import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
+import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.gui.new_plotter.utility.DataTransformation;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
@@ -101,9 +100,6 @@ public class HistogramTemplate extends PlotterTemplate {
 	/** determines if the range (Y) axis should be logarithmic */
 	private boolean yAxisLogarithmic;
 	
-	/** the {@link HistogrammTemplatePanel} instance */
-	private transient HistogrammTemplatePanel histogramPanel;
-	
 	
 	/**
 	 * Creates a new {@link HistogramTemplate}. This template allows easy configuration
@@ -120,17 +116,12 @@ public class HistogramTemplate extends PlotterTemplate {
 		
 		plotNames = new Object[0];
 		
-		histogramPanel = new HistogrammTemplatePanel(this);
+		guiPanel = new HistogrammTemplatePanel(this);
 	}
 
 	@Override
 	public String getChartType() {
 		return HistogramTemplate.getI18NName();
-	}
-
-	@Override
-	public PlotterTemplatePanel getTemplateConfigurationPanel() {
-		return histogramPanel;
 	}
 	
 	/**
@@ -190,7 +181,6 @@ public class HistogramTemplate extends PlotterTemplate {
 		
 		// clear possible existing data
 		currentRangeAxisConfigsList.clear();
-		histogramPanel.updatePlotInstance(getPlotInstance());
 	}
 	
 	/**
@@ -217,7 +207,6 @@ public class HistogramTemplate extends PlotterTemplate {
 			plotEngine.setPlotInstance(newPlotInstance);
 		}
 		setPlotInstance(newPlotInstance);
-		histogramPanel.updatePlotInstance(newPlotInstance);
 	}
 	
 	/**
