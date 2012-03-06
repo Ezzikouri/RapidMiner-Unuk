@@ -22,40 +22,19 @@
  */
 package com.rapidminer.operator.ports.impl;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.logging.Level;
-
 import com.rapidminer.operator.IOObject;
-import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
-import com.rapidminer.operator.ports.MetaDataChangeListener;
-import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.Ports;
-import com.rapidminer.operator.ports.metadata.CompatibilityLevel;
-import com.rapidminer.operator.ports.metadata.MetaData;
-import com.rapidminer.operator.ports.metadata.Precondition;
-import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 
 /**  
- *  The default implmentation of an {@link InputPort}
+ *  The default implementation of an {@link InputPort}
  *  
  * @author Simon Fischer, Sebastian Land
  *
  */
-public class InputPortImpl extends AbstractPort implements InputPort {
-
-	private final Collection<MetaDataChangeListener> metaDataChangeListeners = new LinkedList<MetaDataChangeListener>();
-	
-	private final Collection<Precondition> preconditions = new LinkedList<Precondition>();
-
-	private MetaData metaData;
-	
-	/** The port to which this port is connected. */
-	private OutputPort sourceOutputPort;
+public class InputPortImpl extends AbstractInputPort {
 
 	/** Use the factory method {@link InputPorts#createPort()} to create InputPorts. */
 	protected InputPortImpl(Ports<? extends Port> owner, String name, boolean simulatesStack) {
@@ -63,121 +42,8 @@ public class InputPortImpl extends AbstractPort implements InputPort {
 	}
 
 	@Override
-	public void clear(int clearFlags) {		
-		super.clear(clearFlags);		
-		if ((clearFlags & CLEAR_METADATA) > 0) {
-			this.metaData = null;
-			informListenersOfChange(null);
-		}
-	}
-
-	@Override
 	public void receive(IOObject object) {		
 		setData(object);
 	}
-
-	@Override
-	public void receiveMD(MetaData metaData) {
-		assert(this.metaData != null);
-		this.metaData = metaData;	
-		informListenersOfChange(metaData);
-	}
-
-	@Override
-	public MetaData getMetaData() {
-		return metaData;
-	}
-
-	void connect(OutputPort outputPort) {
-		this.sourceOutputPort = outputPort;
-		fireUpdate(this);
-	}
-
-	@Override
-	public OutputPort getSource() {		
-		return sourceOutputPort;
-	}
-
-
-
-	@Override
-	public void addPrecondition(Precondition precondition) {
-		preconditions.add(precondition);
-
-	}
-
-	@Override
-	public void checkPreconditions() {
-		MetaData metaData = getMetaData();
-		for (Precondition precondition : preconditions) {
-			try {
-				precondition.check(metaData);
-			} catch (Exception e) {
-				getPorts().getOwner().getOperator().getLogger().log(Level.WARNING, "Error checking preconditions at "+getSpec()+": "+e, e);
-				this.addError(new SimpleMetaDataError(Severity.WARNING, this, "exception_checking_precondition", e.toString()));
-			}
-		}		
-	}
-
-	@Override
-	public String getPreconditionDescription() {
-		StringBuilder buf = new StringBuilder();
-		buf.append(getName());
-		buf.append(": ");
-		for (Precondition precondition : preconditions) {
-			buf.append(precondition.getDescription());
-		}
-		return buf.toString();
-	}
-
-	@Override
-	public boolean isInputCompatible(MetaData input, CompatibilityLevel level) {
-		for (Precondition precondition : preconditions) {
-			if (!precondition.isCompatible(input, level)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	@Override
-	public String getDescription() {
-		StringBuilder b = new StringBuilder();
-		boolean first = true;
-		for (Precondition precondition : preconditions) {
-			if (!first) {
-				b.append(", ");				
-			} else {
-				first = false;
-			}
-			b.append(precondition.getDescription());
-		}
-		return b.toString();
-	}
-
-	@Override
-	public boolean isConnected() {
-		return (sourceOutputPort != null);
-	}
-
-	@Override
-	public Collection<Precondition> getAllPreconditions() {
-		return Collections.unmodifiableCollection(preconditions);		
-	}
-
-	@Override
-	public synchronized void registerMetaDataChangeListener(MetaDataChangeListener listener) {
-		metaDataChangeListeners.add(listener);
-	}
-
-	@Override
-	public synchronized void removeMetaDataChangeListener(MetaDataChangeListener listener) {
-		metaDataChangeListeners.remove(listener);
-	}
 	
-	private synchronized void informListenersOfChange(MetaData metaData) {		
-		for (MetaDataChangeListener listener: metaDataChangeListeners) {
-			listener.informMetaDataChanged(metaData);
-		}
-	}
 }

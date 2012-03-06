@@ -101,14 +101,14 @@ public class OutputPortImpl extends AbstractPort implements OutputPort {
 			}
 		}		
 		this.connectedTo = inputPort;
-		((InputPortImpl)inputPort).connect(this);
+		((AbstractInputPort)inputPort).connect(this);
 		fireUpdate(this);
 	}
 
 	@Override
 	public void disconnect() throws PortException {
 		assertConnected();
-		((InputPortImpl)this.connectedTo).connect(null);
+		((AbstractInputPort)this.connectedTo).connect(null);
 		this.connectedTo.receive(null);
 		this.connectedTo.receiveMD(null);
 		this.connectedTo = null;

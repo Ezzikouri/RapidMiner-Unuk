@@ -74,7 +74,7 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
 
     @Deprecated
     @Override    
-    public final <T extends IOObject> T getData() throws UserError {
+    public <T extends IOObject> T getData() throws UserError {
         T data = this.<T>getDataOrNull();
         if (data == null) {
             throw new UserError(getPorts().getOwner().getOperator(), 149, getSpec() + (isConnected() ? " (connected)" : " (disconnected)"));
@@ -84,7 +84,7 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
     }
 
     @Override
-    public final IOObject getAnyDataOrNull() {
+    public IOObject getAnyDataOrNull() {
         if (hardDataReference != null) {
             return hardDataReference;
         } else {
@@ -93,7 +93,7 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
     }
 
     @Override
-    public final <T extends IOObject> T getData(Class<T> desiredClass) throws UserError {
+    public <T extends IOObject> T getData(Class<T> desiredClass) throws UserError {
     	IOObject data = getAnyDataOrNull();
     	if (data == null) {
             throw new UserError(getPorts().getOwner().getOperator(), 149, getSpec() + (isConnected() ? " (connected)" : " (disconnected)"));
@@ -105,7 +105,7 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
     }
 
     @Override
-    public final <T extends IOObject> T getDataOrNull(Class<T> desiredClass) throws UserError {
+    public <T extends IOObject> T getDataOrNull(Class<T> desiredClass) throws UserError {
         IOObject data = getAnyDataOrNull();
         if (data == null) {
         	return null;
@@ -119,7 +119,7 @@ public abstract class AbstractPort extends AbstractObservable<Port> implements P
     @SuppressWarnings("unchecked")
 	@Deprecated
     @Override
-    public final <T extends IOObject> T getDataOrNull() throws UserError {
+    public <T extends IOObject> T getDataOrNull() throws UserError {
         IOObject data = getAnyDataOrNull();
         return (T) data;
     }
