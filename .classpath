@@ -59,5 +59,6 @@
 	<classpathentry kind="lib" path="lib/groovy-all-1.7.7.jar"/>
 	<classpathentry kind="lib" path="lib/ivy-2.2.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/xmlpull.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

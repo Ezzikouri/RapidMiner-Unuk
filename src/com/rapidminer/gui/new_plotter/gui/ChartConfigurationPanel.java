@@ -274,10 +274,17 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	@Override
 	public void print(Graphics g) {
 		Dimension printSize =  getSize();
+		
+		// draws good vector graphics but all bitmap images are misshapen
 		LinkAndBrushChartPanel printPanel = new LinkAndBrushChartPanel(null, printSize.width, printSize.height, 1, 1, true, false);
 		printPanel.setSize(printSize);
 		printPanel.setChart(plotEngine.getCurrentChart());
 		printPanel.print(g);
+		
+		// draws good bitmap images but all vector graphics are misshapen
+//		JLabel printLabel = new JLabel(new ImageIcon(createBufferedImage));
+//		printLabel.setSize(printSize);
+//		printLabel.print(g);
 	}
 
 	private void createPopups() {
