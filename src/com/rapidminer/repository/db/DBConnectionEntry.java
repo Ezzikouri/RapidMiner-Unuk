@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.swing.Action;
 
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -59,6 +60,10 @@ public class DBConnectionEntry implements IOObjectEntry {
 		this.converter = converter;
 		this.tableName = tableName;
 		metaData = converter.convertMetaData(folder.getConnectionEntry(), tableName, columns);
+		if (tableName.getComment() != null) {
+			metaData.getAnnotations().setAnnotation(Annotations.KEY_COMMENT, tableName.getComment());
+		}
+		metaData.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, tableName.toString());
 	}
 
 	@Override
@@ -148,7 +153,12 @@ public class DBConnectionEntry implements IOObjectEntry {
 	@Override
 	public IOObject retrieveData(ProgressListener l) throws RepositoryException {		
 		try {
-			return converter.convert(folder.getConnectionEntry(), tableName);
+			final IOObject result = converter.convert(folder.getConnectionEntry(), tableName);
+			result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, tableName.toString());
+			if (tableName.getComment() != null) {
+				result.getAnnotations().setAnnotation(Annotations.KEY_COMMENT, tableName.getComment());
+			}			
+			return result;
 		} catch (Exception e) {
 			throw new RepositoryException("Failed to read data: "+e, e);
 		}

@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -39,6 +40,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -272,19 +274,24 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	}
 
 	@Override
-	public void print(Graphics g) {
-		Dimension printSize =  getSize();
-		
-		// draws good vector graphics but all bitmap images are misshapen
-		LinkAndBrushChartPanel printPanel = new LinkAndBrushChartPanel(null, printSize.width, printSize.height, 1, 1, true, false);
+	public void print(Graphics pg) {
+
+		final Dimension printSize = getSize();
+
+		JPanel printPanel = new JPanel() {
+
+			private static final long serialVersionUID = 7315234075649335574L;
+
+			@Override
+			public void paintComponent(Graphics g) {
+				Graphics2D g2 = (Graphics2D) g;
+				Rectangle2D chartArea = new Rectangle2D.Double(0.0, 0.0, printSize.width, printSize.height);
+				plotEngine.getCurrentChart().draw(g2, chartArea);
+			}
+		};
 		printPanel.setSize(printSize);
-		printPanel.setChart(plotEngine.getCurrentChart());
-		printPanel.print(g);
-		
-		// draws good bitmap images but all vector graphics are misshapen
-//		JLabel printLabel = new JLabel(new ImageIcon(createBufferedImage));
-//		printLabel.setSize(printSize);
-//		printLabel.print(g);
+
+		printPanel.print(pg);
 	}
 
 	private void createPopups() {

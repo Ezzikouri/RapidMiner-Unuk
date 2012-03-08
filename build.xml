@@ -521,19 +521,19 @@
 	<target name="update.publish" depends="init" description="This will generate a new update and upload files for all platforms.">
 		<echo message="Publishing update ${rapidminer.longversion} using ${server.update.user} to update server..." />
 		<echo message="...Platform Independent" />
-		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/ANY?force=true" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.update.user}" password="${server.update.password}" />
+		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/ANY" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.update.user}" password="${server.update.password}" />
 		<echo message="...Windows 32" />
-		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/WIN32?force=true" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x32.zip" username="${server.update.user}" password="${server.update.password}" />
+		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/WIN32" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x32.zip" username="${server.update.user}" password="${server.update.password}" />
 		<echo message="...Windows 64" />
-		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/WIN64?force=true" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x64.zip" username="${server.update.user}" password="${server.update.password}" />
+		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/WIN64" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x64.zip" username="${server.update.user}" password="${server.update.password}" />
 
 		<echo message="Publishing update ${rapidminer.longversion} using ${server.marketplace.user} to Marketplace..." />
 		<echo message="...Platform Independent" />
-		<put targetUrl="${server.marketplace.url}/rapidminer/${rapidminer.longversion}/ANY?force=true" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.update.user}" password="${server.marketplace.password}" />
+		<put targetUrl="${server.marketplace.url}/rapidminer/${rapidminer.longversion}/ANY" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 		<echo message="...Windows 32" />
-		<put targetUrl="${server.marketplace.url}/rapidminer/${rapidminer.longversion}/WIN32?force=true" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x32.zip" username="${server.update.user}" password="${server.marketplace.password}" />
+		<put targetUrl="${server.marketplace.url}/rapidminer/${rapidminer.longversion}/WIN32" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x32.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 		<echo message="...Windows 64" />
-		<put targetUrl="${server.marketplace.url}/rapidminer/${rapidminer.longversion}/WIN64?force=true" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x64.zip" username="${server.update.user}" password="${server.marketplace.password}" />
+		<put targetUrl="${server.marketplace.url}/rapidminer/${rapidminer.longversion}/WIN64" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x64.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 
 	</target>
 

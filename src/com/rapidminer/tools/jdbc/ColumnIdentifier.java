@@ -34,15 +34,17 @@ public class ColumnIdentifier {
 	private final String columnName;
 	private final int sqlType;
 	private final String sqlTypeName;
+	private final String remarks;
 
 	private DatabaseHandler databaseHandler;
 	
-	public ColumnIdentifier(DatabaseHandler databaseHandler, TableName tableName, String columnName, int sqlType, String sqlTypeName) {
+	public ColumnIdentifier(DatabaseHandler databaseHandler, TableName tableName, String columnName, int sqlType, String sqlTypeName, String remarks) {
 		this.tableName = tableName;
 		this.columnName = columnName;
 		this.databaseHandler = databaseHandler;
 		this.sqlType = sqlType;
 		this.sqlTypeName = sqlTypeName;
+		this.remarks = remarks;
 	}
 	
 	public TableName getTableName() {
@@ -87,6 +89,13 @@ public class ColumnIdentifier {
 //			properties.getIdentifierQuoteClose();
 		}
 	}	
+	
+	/**
+	 * @return the columns remarks. Maybe <code>null</code>.
+	 */
+	public String getRemarks() {
+		return remarks;
+	}
 	
 	@Override
 	public String toString() {

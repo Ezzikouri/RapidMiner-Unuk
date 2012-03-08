@@ -24,15 +24,16 @@ package com.rapidminer.gui.new_plotter.templates.actions;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
+import java.awt.geom.Rectangle2D;
 
-import javax.swing.ImageIcon;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -247,6 +248,7 @@ public class ExportImageAction extends ResourceAction {
 				
 				@Override
 				public void actionPerformed(ActionEvent e) {
+					DimensionDialog.this.returnVal = JOptionPane.CANCEL_OPTION;
 					DimensionDialog.this.dispose();
 				}
 			});
@@ -313,7 +315,7 @@ public class ExportImageAction extends ResourceAction {
 	
 	
 	public ExportImageAction(PlotterTemplate template) {
-		super("export_newplotter_image");
+		super(true, "export_newplotter_image");
 		this.template = template;
 		setEnabled(true);
 	}
@@ -325,7 +327,7 @@ public class ExportImageAction extends ResourceAction {
 	/**
 	 * Opens the plot export options.
 	 */
-	public static synchronized void exportPlot(PlotterTemplate template) {
+	public static synchronized void exportPlot(final PlotterTemplate template) {
 		if (dialog == null) {
 			dialog = new DimensionDialog();
 		}
@@ -333,11 +335,21 @@ public class ExportImageAction extends ResourceAction {
 		if (dialog.getReturnValue() == JOptionPane.CANCEL_OPTION) {
 			return;
 		}
-		BufferedImage bufferedImageChart = template.getPlotEngine().getCurrentChart().createBufferedImage(dialog.getUserWidth(), dialog.getUserHeight());
-		JLabel chartLabel = new JLabel(new ImageIcon(bufferedImageChart));
-		chartLabel.setSize(dialog.getUserDimension());
+		
+		JPanel outerPanel = new JPanel() {
+			
+			private static final long serialVersionUID = 7315234075649335574L;
 
+			@Override
+			public void paintComponent(Graphics g) {
+				Graphics2D g2 = (Graphics2D) g;
+				Rectangle2D chartArea = new Rectangle2D.Double(0.0, 0.0, dialog.getUserWidth(), dialog.getUserHeight());
+				template.getPlotEngine().getCurrentChart().draw(g2, chartArea);
+			}
+		};
+		outerPanel.setSize(dialog.getUserDimension());
+		
 		ExportDialog exportDialog = new ExportDialog("RapidMiner");
-		exportDialog.showExportDialog(ApplicationFrame.getApplicationFrame(), "Save Image...", chartLabel, "plot");
+		exportDialog.showExportDialog(ApplicationFrame.getApplicationFrame(), "Save Image...", outerPanel, "plot");
 	}
 }

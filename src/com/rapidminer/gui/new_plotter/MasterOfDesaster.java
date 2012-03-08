@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.new_plotter;
 
 import java.lang.ref.WeakReference;
@@ -57,36 +58,36 @@ public class MasterOfDesaster {
 
 	private void removeEmptyResponses() {
 		List<ConfigurationChangeResponse> copy = new LinkedList<ConfigurationChangeResponse>(configChangeResponseList);
-		for(ConfigurationChangeResponse change : copy) {
-			if(change.isEmpty()) {
+		for (ConfigurationChangeResponse change : copy) {
+			if (change.isEmpty()) {
 				configChangeResponseList.remove(change);
 			}
 		}
 	}
-	
+
 	public void clearWarnings() {
-		for(ConfigurationChangeResponse change : configChangeResponseList) {
+		for (ConfigurationChangeResponse change : configChangeResponseList) {
 			change.clearWarnings();
 		}
 		removeEmptyResponses();
 		fireChanged();
 	}
-	
+
 	public void clearErrors() {
-		for(ConfigurationChangeResponse change : configChangeResponseList) {
+		for (ConfigurationChangeResponse change : configChangeResponseList) {
 			change.clearErrors();
 		}
 		removeEmptyResponses();
 		fireChanged();
 	}
-	
+
 	public void removeConfigurationChangeResponse(ConfigurationChangeResponse response) {
 		configChangeResponseList.remove(response);
 		fireChanged();
 	}
 
 	public void registerConfigurationChangeResponse(ConfigurationChangeResponse error) {
-		if(calculating) {
+		if (calculating) {
 			calculating = false;
 		}
 		configChangeResponseList.add(error);
@@ -98,6 +99,11 @@ public class MasterOfDesaster {
 	}
 
 	private void fireChanged() {
+
+		//copy listeners
+		List<WeakReference<MasterOfDesasterListener>> listeners = new LinkedList<WeakReference<MasterOfDesasterListener>>();
+		listeners.addAll(this.listeners);
+		
 		Iterator<WeakReference<MasterOfDesasterListener>> it = listeners.iterator();
 		while (it.hasNext()) {
 			MasterOfDesasterListener listener = it.next().get();
@@ -141,13 +147,13 @@ public class MasterOfDesaster {
 	public String toHtmlString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("<html>");
-		if(calculating) {
+		if (calculating) {
 			builder.append("<div style=\"color:#0066CC;\">");
 			builder.append("<img valign=\"middle\" style=\"vertical-align:middle;\" src=\"" + CALCULATING_ICON_URL + "\"/>&nbsp;");
 			builder.append(CALCULATE_LABEL);
 			builder.append("</div>");
 			return builder.toString();
-		} 
+		}
 		if (configChangeResponseList.size() > 0) {
 			for (ConfigurationChangeResponse response : configChangeResponseList) {
 				if (response != null) {
@@ -168,7 +174,7 @@ public class MasterOfDesaster {
 	 * 
 	 */
 	public void setCalculating(boolean calculating) {
-		this.calculating  = calculating;
+		this.calculating = calculating;
 		fireChanged();
 	}
 }

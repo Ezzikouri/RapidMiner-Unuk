@@ -23,8 +23,10 @@
 package com.rapidminer.tools.jdbc;
 
 
-/** Reference to a database tabnle with name, schema, and database
+/** Reference to a database table with name, schema, and database
  * 
+ *  This class can actually contain more meta data, including comments. 
+ *  
  * @author Simon Fischer
  *
  */
@@ -33,6 +35,8 @@ public class TableName {
 	private final String tableName;
 	private final String schema;
 	private final String catalog;
+	
+	private String comment;
 	
 	/** Uses default schema and catalog. */
 	public TableName(String tableName) {
@@ -99,5 +103,15 @@ public class TableName {
 	public String toString() {	
 		return (schema != null) ?  (schema+"."+tableName) : tableName;
 	}
-	
+
+	public void setComment(String comment) {
+		if ((comment != null) && comment.isEmpty()) {
+			comment = null;
+		}
+		this.comment = comment;
+	}
+
+	public String getComment() {
+		return comment;
+	}
 }

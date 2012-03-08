@@ -890,12 +890,22 @@ public class DatabaseHandler {
         //ResultSet tableNames = metaData.getTables(null, null, "%", types);
         ResultSet tableNames = metaData.getTables(null, null, null, types);
         List<TableName> tableNameList = new LinkedList<TableName>();
+        
+//        for (int i = 0; i < tableNames.getMetaData().getColumnCount(); i++) {
+//        	System.out.println("Col: "+tableNames.getMetaData().getColumnName(i+1));
+//        }
+        
         while (tableNames.next()) {
             String tableName = tableNames.getString("TABLE_NAME");
             String tableSchem = tableNames.getString("TABLE_SCHEM");
-            String tableCat = tableNames.getString("TABLE_CAT");            
+            String tableCat = tableNames.getString("TABLE_CAT");
+            
+            String remark = tableNames.getString("REMARKS");
+            
             //tableNameList.add(tableCat+"."+tableSchem+"."+tableName);
-            tableNameList.add(new TableName(tableName, tableSchem, tableCat));
+            final TableName tableNameObject = new TableName(tableName, tableSchem, tableCat);
+            tableNameObject.setComment(remark);
+			tableNameList.add(tableNameObject);
         }
         tableNames.close();
 
@@ -939,10 +949,15 @@ public class DatabaseHandler {
                 columnResult = metaData.getColumns(tableName.getCatalog(), tableName.getSchema(), tableName.getTableName(), "%");
                 List<ColumnIdentifier> result = new LinkedList<ColumnIdentifier>();
                 while (columnResult.next()) {
+                	String remarks = columnResult.getString("REMARKS");
+                	if(remarks != null && remarks.isEmpty()) {
+                		remarks = null;
+                	}
                     result.add(new ColumnIdentifier(this, tableName,
                             columnResult.getString("COLUMN_NAME"),
                             columnResult.getInt("DATA_TYPE"),
-                            columnResult.getString("TYPE_NAME")));
+                            columnResult.getString("TYPE_NAME"),
+                            remarks));
                 }
                 //columnResult.close();
                 return result;
@@ -957,7 +972,8 @@ public class DatabaseHandler {
                     result.add(new ColumnIdentifier(this, tableName,
                             resultSetMetaData.getColumnName(i+1),
                             resultSetMetaData.getColumnType(i+1),
-                            resultSetMetaData.getColumnTypeName(i+1)));
+                            resultSetMetaData.getColumnTypeName(i+1),
+                            null));
                 }
                 return result;
             }
