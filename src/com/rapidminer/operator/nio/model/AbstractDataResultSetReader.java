@@ -116,6 +116,10 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 		});
 	}
 
+	public InputPort getFileInputPort() {
+		return fileInputPort;
+	}
+	
 	@Override
 	public ExampleSet createExampleSet() throws OperatorException {
 		// loading data result set

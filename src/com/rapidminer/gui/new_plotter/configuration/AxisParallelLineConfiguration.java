@@ -107,6 +107,6 @@ public class AxisParallelLineConfiguration implements LineFormatListener, Clonea
 	public AxisParallelLineConfiguration clone() {
 		AxisParallelLineConfiguration clone = new AxisParallelLineConfiguration(this.value, this.labelVisible);
 		clone.format = format.clone();
-		return clone();
+		return clone;
 	}
 }

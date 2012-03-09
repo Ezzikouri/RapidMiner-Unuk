@@ -48,7 +48,7 @@ public class AxisParallelLinesConfiguration implements AxisParallelLineConfigura
 		AxisParallelLineConfiguration line = new AxisParallelLineConfiguration(value, labelVisible);
 		line.getFormat().setStyle(style);
 		line.getFormat().setWidth(width);
-		lineConfigurations.add(line);
+		addLine(line);
 	}
 	
 	public void addLine(AxisParallelLineConfiguration line) {

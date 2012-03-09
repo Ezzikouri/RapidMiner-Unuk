@@ -69,7 +69,8 @@ public class FileInputPortHandler {
 	 *  Which of these options is chosen is determined by the parameter {@link #PARAMETER_DESTINATION_TYPE}. 
 	 *  */
 	public File getSelectedFile() throws OperatorException {
-		if(!fileInputPort.isConnected()){
+		if(!(fileInputPort.isConnected() || 
+				(fileInputPort.getPorts().getOwner().getOperator().getProcess() == null) && (fileInputPort.getAnyDataOrNull() != null))) {
 			return operator.getParameterAsFile(fileParameterName);
 		} else {
 			return fileInputPort.getData(FileObject.class).getFile();
@@ -79,7 +80,8 @@ public class FileInputPortHandler {
 	/** Same as {@link #getSelectedFile()}, but opens the stream. 
 	 *  */
 	public InputStream openSelectedFile() throws OperatorException, IOException {
-		if(!fileInputPort.isConnected()){
+		if(!(fileInputPort.isConnected() || 
+				(fileInputPort.getPorts().getOwner().getOperator().getProcess() == null) && (fileInputPort.getAnyDataOrNull() != null))) {
 			return new FileInputStream(operator.getParameterAsFile(fileParameterName));
 		} else {
 			return fileInputPort.getData(FileObject.class).openStream();
@@ -89,7 +91,8 @@ public class FileInputPortHandler {
 	/** Same as {@link #getSelectedFile()}, but returns true if file is specified (in the respective way). 
 	 *  */
 	public boolean isFileSpecified() {
-		if(!fileInputPort.isConnected()){
+		if(!(fileInputPort.isConnected() || 
+				(fileInputPort.getPorts().getOwner().getOperator().getProcess() == null) && (fileInputPort.getAnyDataOrNull() != null))) {
 			return operator.isParameterSet(fileParameterName);
 		} else {
 			try {

@@ -29,7 +29,6 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
@@ -257,8 +256,7 @@ public class ExportImageAction extends ResourceAction {
 			// misc settings
 			this.setMinimumSize(new Dimension(250, 150));
 			// center dialog
-			this.setLocation(Toolkit.getDefaultToolkit().getScreenSize().width/2 - this.getSize().width/2,
-					Toolkit.getDefaultToolkit().getScreenSize().height/2 - this.getSize().height/2);
+			this.setLocationRelativeTo(null);
 			this.setTitle(I18N.getMessage(I18N.getGUIBundle(), "gui.action.export_newplotter_image.title.label"));
 			this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			this.setModal(true);
@@ -298,9 +296,12 @@ public class ExportImageAction extends ResourceAction {
 			return height;
 		}
 		
-		@Override
-		public void setVisible(boolean visible) {
-			super.setVisible(visible);
+		/**
+		 * Shows the dialog.
+		 */
+		public void showDialog() {
+			returnVal = JOptionPane.CANCEL_OPTION;
+			setVisible(true);
 			okButton.requestFocusInWindow();
 		}
 	}
@@ -331,7 +332,7 @@ public class ExportImageAction extends ResourceAction {
 		if (dialog == null) {
 			dialog = new DimensionDialog();
 		}
-		dialog.setVisible(true);
+		dialog.showDialog();
 		if (dialog.getReturnValue() == JOptionPane.CANCEL_OPTION) {
 			return;
 		}
