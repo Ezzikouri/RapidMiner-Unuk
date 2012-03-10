@@ -22,8 +22,10 @@
  */
 package com.rapidminer.gui.new_plotter.templates;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import org.w3c.dom.Document;
@@ -39,6 +41,8 @@ import com.rapidminer.gui.new_plotter.configuration.DimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
 import com.rapidminer.gui.new_plotter.configuration.LegendConfiguration.LegendPosition;
 import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
+import com.rapidminer.gui.new_plotter.configuration.AxisParallelLineConfiguration;
+import com.rapidminer.gui.new_plotter.configuration.AxisParallelLinesConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
@@ -208,6 +212,9 @@ public class SeriesTemplate extends PlotterTemplate {
 	/** the current {@link RangeAxisConfig}s */
 	private List<RangeAxisConfig> currentRangeAxisConfigsList;
 	
+	/** the AxisParallelLinesConfigurations map of the last removed {@link RangeAxisConfig}s */
+	private Map<String, AxisParallelLinesConfiguration> oldRangeAxisCrosshairLinesMap;
+	
 	/** the name of the upper bound column */
 	private String upperBoundName;
 	
@@ -227,6 +234,7 @@ public class SeriesTemplate extends PlotterTemplate {
 	 */
 	public SeriesTemplate() {
 		currentRangeAxisConfigsList = new LinkedList<RangeAxisConfig>();
+		oldRangeAxisCrosshairLinesMap = new HashMap<String, AxisParallelLinesConfiguration>();
 		
 		// value when "None" is selected
 		String noSelection = I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.column.empty_selection.label");
@@ -357,6 +365,8 @@ public class SeriesTemplate extends PlotterTemplate {
 		// remove old config(s)
 		for (RangeAxisConfig rAConfig : currentRangeAxisConfigsList) {
 			plotConfiguration.removeRangeAxisConfig(rAConfig);
+			// save crosshair lines
+			oldRangeAxisCrosshairLinesMap.put(rAConfig.getLabel(), rAConfig.getCrossHairLines());
 		}
 		currentRangeAxisConfigsList.clear();
 		
@@ -405,6 +415,13 @@ public class SeriesTemplate extends PlotterTemplate {
 				plotConfiguration.addRangeAxisConfig(newRangeAxisConfig);
 				// remember the new config so we can remove it later again
 				currentRangeAxisConfigsList.add(newRangeAxisConfig);
+				// restore crosshairs
+				if (oldRangeAxisCrosshairLinesMap.get(newRangeAxisConfig.getLabel()) != null) {
+					for (AxisParallelLineConfiguration lineConfig : oldRangeAxisCrosshairLinesMap.get(newRangeAxisConfig.getLabel()).getLines()) {
+						newRangeAxisConfig.getCrossHairLines().addLine(lineConfig);
+					}
+					oldRangeAxisCrosshairLinesMap.put(newRangeAxisConfig.getLabel(), null);
+				}
 			}
 			
 			// general settings

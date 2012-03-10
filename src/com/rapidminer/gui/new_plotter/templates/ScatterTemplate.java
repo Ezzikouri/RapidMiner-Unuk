@@ -27,6 +27,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.rapidminer.datatable.DataTable;
+import com.rapidminer.gui.new_plotter.configuration.AxisParallelLineConfiguration;
+import com.rapidminer.gui.new_plotter.configuration.AxisParallelLinesConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DefaultDimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
@@ -64,7 +66,10 @@ public class ScatterTemplate extends PlotterTemplate {
 
 	private static final String X_AXIS_COLUMN_ELEMENT = "xAxisColumn";
 	
-
+	
+	/** the AxisParallelLinesConfiguration of the last removed {@link RangeAxisConfig} */
+	private AxisParallelLinesConfiguration oldRangeAxisCrossHairLines;
+	
 	/** the current {@link RangeAxisConfig} */
 	private RangeAxisConfig currentRangeAxisConfig;
 
@@ -315,6 +320,8 @@ public class ScatterTemplate extends PlotterTemplate {
 		} else {
 			// remove config
 			if (currentRangeAxisConfig != null) {
+				// save crosshair lines
+				oldRangeAxisCrossHairLines = currentRangeAxisConfig.getCrossHairLines();
 				plotConfiguration.removeRangeAxisConfig(currentRangeAxisConfig);
 				currentRangeAxisConfig = null;
 			}
@@ -335,15 +342,23 @@ public class ScatterTemplate extends PlotterTemplate {
 
 			// remove old config
 			if (currentRangeAxisConfig != null) {
+				oldRangeAxisCrossHairLines = currentRangeAxisConfig.getCrossHairLines();
 				plotConfiguration.removeRangeAxisConfig(currentRangeAxisConfig);
 			}
-			// add new config
+			// add new config and restore crosshairs
+			if (oldRangeAxisCrossHairLines != null) {
+				for (AxisParallelLineConfiguration lineConfig : oldRangeAxisCrossHairLines.getLines()) {
+					newRangeAxisConfig.getCrossHairLines().addLine(lineConfig);
+				}
+				oldRangeAxisCrossHairLines = null;
+			}
 			plotConfiguration.addRangeAxisConfig(newRangeAxisConfig);
 			// remember the new config so we can remove it later again
 			currentRangeAxisConfig = newRangeAxisConfig;
 		} else {
 			// remove config
 			if (currentRangeAxisConfig != null) {
+				oldRangeAxisCrossHairLines = currentRangeAxisConfig.getCrossHairLines();
 				plotConfiguration.removeRangeAxisConfig(currentRangeAxisConfig);
 				currentRangeAxisConfig = null;
 			}

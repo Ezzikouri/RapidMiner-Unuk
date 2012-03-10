@@ -24,8 +24,10 @@ package com.rapidminer.gui.new_plotter.templates;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import org.w3c.dom.Document;
@@ -36,6 +38,8 @@ import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableExampleSetAdapter;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.new_plotter.ChartConfigurationException;
+import com.rapidminer.gui.new_plotter.configuration.AxisParallelLineConfiguration;
+import com.rapidminer.gui.new_plotter.configuration.AxisParallelLinesConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DefaultDimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
@@ -85,6 +89,12 @@ public class HistogramTemplate extends PlotterTemplate {
 	/** the current {@link RangeAxisConfig}s */
 	private List<RangeAxisConfig> currentRangeAxisConfigsList;
 	
+	/** the AxisParallelLinesConfigurations map of the last removed {@link RangeAxisConfig}s */
+	private Map<String, AxisParallelLinesConfiguration> oldRangeAxisCrosshairLinesMap;
+	
+	/** the AxisParallelLinesConfiguration of the last domain config */
+	private AxisParallelLinesConfiguration oldDomainCrossHairLines;
+	
 	/** the names of the plots to show */
 	private Object[] plotNames;
 	
@@ -107,6 +117,7 @@ public class HistogramTemplate extends PlotterTemplate {
 	 */
 	public HistogramTemplate() {
 		currentRangeAxisConfigsList = new LinkedList<RangeAxisConfig>();
+		oldRangeAxisCrosshairLinesMap = new HashMap<String, AxisParallelLinesConfiguration>();
 		
 		bins = 40;
 		opaque = 255;
@@ -197,6 +208,9 @@ public class HistogramTemplate extends PlotterTemplate {
 		if (metaSet == null) {
 			return;
 		}
+		
+		// save crosshair lines, as we replace the plotInstance (and therefore plotConfiguration)
+		oldDomainCrossHairLines = plotInstance.getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines();
 		
 		modifiedDataTable = new DataTableExampleSetAdapter(metaSet, null);
 		PlotConfiguration plotConfiguration = new PlotConfiguration(new DataTableColumn(modifiedDataTable, 0));
@@ -293,6 +307,8 @@ public class HistogramTemplate extends PlotterTemplate {
 			if (plotConfiguration.getIndexOfRangeAxisConfigById(rAConfig.getId()) != -1) {
 				plotConfiguration.removeRangeAxisConfig(rAConfig);
 			}
+			// save crosshair lines
+			oldRangeAxisCrosshairLinesMap.put(rAConfig.getLabel(), rAConfig.getCrossHairLines());
 		}
 		currentRangeAxisConfigsList.clear();
 		
@@ -313,6 +329,15 @@ public class HistogramTemplate extends PlotterTemplate {
 
 			plotConfiguration.getDomainConfigManager().setGrouping(newValueGrouping);
 			plotConfiguration.getDomainConfigManager().setDataTableColumn(valueTableColumn);
+			
+			// restore crosshairs
+			if (oldDomainCrossHairLines != null) {
+				for (AxisParallelLineConfiguration lineConfig : oldDomainCrossHairLines.getLines()) {
+					plotConfiguration.getDomainConfigManager().getCrosshairLines().addLine(lineConfig);
+				}
+				oldDomainCrossHairLines = null;
+			}
+			
 			RangeAxisConfig newRangeAxisConfig = new RangeAxisConfig(null, plotConfiguration);
 			ValueSource valueSource;
 			valueSource = new ValueSource(plotConfiguration, attributeTableColumn, AggregationFunctionType.count, true);
@@ -328,6 +353,13 @@ public class HistogramTemplate extends PlotterTemplate {
 			plotConfiguration.addRangeAxisConfig(newRangeAxisConfig);
 			// remember the new config so we can remove it later again
 			currentRangeAxisConfigsList.add(newRangeAxisConfig);
+			// restore crosshairs
+			if (oldRangeAxisCrosshairLinesMap.get(newRangeAxisConfig.getLabel()) != null) {
+				for (AxisParallelLineConfiguration lineConfig : oldRangeAxisCrosshairLinesMap.get(newRangeAxisConfig.getLabel()).getLines()) {
+					newRangeAxisConfig.getCrossHairLines().addLine(lineConfig);
+				}
+				oldRangeAxisCrosshairLinesMap.put(newRangeAxisConfig.getLabel(), null);
+			}
 			
 			plotConfiguration.setDimensionConfig(PlotDimension.COLOR, null);
 			DefaultDimensionConfig dimConfig = new DefaultDimensionConfig(plotConfiguration, attributeTableColumn, PlotDimension.COLOR);

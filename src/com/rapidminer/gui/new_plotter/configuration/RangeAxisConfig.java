@@ -577,4 +577,9 @@ public class RangeAxisConfig implements ValueSourceListener, ValueRangeListener,
 	public int getId() {
 		return Id;
 	}
+	
+	@Override
+	public String toString() {
+		return String.valueOf(getLabel());
+	}
 }

@@ -52,7 +52,7 @@ public class AxisParallelLineConfiguration implements LineFormatListener, Clonea
 	public AxisParallelLineConfiguration(double value, boolean labelVisible) {
 		if (this.value != value) {
 			this.value = value;
-			fireAxisParallelLineConfigurationChanged(new AxisParallelLineConfigurationChangeEvent(this, value));
+//			fireAxisParallelLineConfigurationChanged(new AxisParallelLineConfigurationChangeEvent(this, value));
 		}
 	}
 

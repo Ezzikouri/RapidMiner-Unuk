@@ -26,6 +26,9 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.lang.ref.WeakReference;
 import java.text.DateFormat;
 import java.util.Iterator;
@@ -36,6 +39,7 @@ import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
@@ -91,6 +95,8 @@ import com.rapidminer.gui.new_plotter.data.DimensionConfigData;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.data.ValueSourceData;
 import com.rapidminer.gui.new_plotter.engine.PlotEngine;
+import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.AddParallelLineAction;
+import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.ClearParallelLinesAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.dataset.ValueSourceToMultiValueCategoryDatasetAdapter;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.legend.ColoredBlockContainer;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.legend.SmartLegendTitle;
@@ -174,7 +180,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	private transient LegendItemCollection cachedLegendItems = null;
 
 	private final LinkAndBrushChartPanel chartPanel;
-
+	
 	private AtomicBoolean updatingChart;
 
 	private boolean currentChartIsValid = false;
@@ -182,6 +188,45 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	private MultiAxesCrosshairOverlay crosshairOverlay = new MultiAxesCrosshairOverlay();
 	
 	private Object nextPlotInstanceLock = new Object();
+	
+	/** the popup menu shown after a popup action on the chart */
+	private JPopupMenu popupMenuChart;
+	
+	/** the mouse listener for the popup menu */
+	private MouseListener popupMenuListener;
+	
+	/** the add crosshair action */
+	private AddParallelLineAction addParallelLineAction;
+	
+	{
+		// create popup menu for chart here
+		popupMenuChart = new JPopupMenu();
+		addParallelLineAction = new AddParallelLineAction(this);
+		popupMenuChart.add(addParallelLineAction);
+		popupMenuChart.addSeparator();
+		popupMenuChart.add(new ClearParallelLinesAction(this));
+		
+		// popup listener for the chart panel
+		popupMenuListener = new MouseAdapter() {
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+		        maybeShowPopup(e);
+		    }
+
+			@Override
+		    public void mouseReleased(MouseEvent e) {
+		        maybeShowPopup(e);
+		    }
+
+		    private void maybeShowPopup(MouseEvent e) {
+		        if (e.isPopupTrigger()) {
+		        	addParallelLineAction.setPopupLocation(e.getPoint());
+		        	popupMenuChart.show(e.getComponent(), e.getX(), e.getY());
+		        }
+		    }
+		};
+	}
 
 	public JFreeChartPlotEngine(PlotInstance plotInstanceForEngine, boolean zoomInOnSelection) {
 
@@ -193,6 +238,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		chartPanel.setMinimumDrawHeight(50);
 		chartPanel.setMaximumDrawWidth(10000);
 		chartPanel.setMaximumDrawHeight(10000);
+		chartPanel.addMouseListener(popupMenuListener);
 
 		subscribeAtPlotInstance(plotInstance);
 	}
@@ -207,7 +253,8 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		chartPanel.setMinimumDrawHeight(50);
 		chartPanel.setMaximumDrawWidth(10000);
 		chartPanel.setMaximumDrawHeight(10000);
-
+		chartPanel.addMouseListener(popupMenuListener);
+		
 		subscribeAtPlotInstance(plotInstance);
 	}
 
@@ -340,7 +387,6 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 						fireChartChanged(chart);
 					}
 				}
-
 				if (chart != null) {
 					chartPanel.removeOverlay(crosshairOverlay);
 					crosshairOverlay = new MultiAxesCrosshairOverlay();
@@ -361,6 +407,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 							Crosshair crosshair = new Crosshair(line.getValue(), line.getFormat().getColor(), line.getFormat().getStroke());
 							crosshairOverlay.addDomainCrosshair(crosshair);
 						}
+						chartPanel.addOverlay(crosshairOverlay);
 					}
 				}
 			}
@@ -1515,6 +1562,9 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				break;
 			case RANGE_CHANGED:
 				rangeAxisConfigAxisChanged(source);
+				break;
+			case CROSSHAIR_LINES_CHANGED:
+				updateChartPanel(getCurrentChart());
 				break;
 			default:
 				throw new RuntimeException("Unkown event type " + type + " This should not happen.");

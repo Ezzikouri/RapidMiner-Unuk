@@ -582,6 +582,7 @@ public class RapidMiner {
 
 	private static void performInitialSettings() {
 		boolean firstStart = false;
+		boolean versionChanged = false;
 		VersionNumber lastVersionNumber = null;
 		VersionNumber currentVersionNumber = new VersionNumber(getLongVersion());
 
@@ -611,6 +612,9 @@ public class RapidMiner {
 				if (currentVersionNumber.compareTo(lastVersionNumber) > 0) {
 					firstStart = true;
 				}
+				if (currentVersionNumber.compareTo(lastVersionNumber) != 0) {
+					versionChanged  = true;
+				}
 			} else {
 				firstStart = true;
 			}
@@ -621,8 +625,10 @@ public class RapidMiner {
 			performFirstInitialization(lastVersionNumber, currentVersionNumber);
 		}
 
-		// write version file
-		writeLastVersion(lastVersionFile);
+		if (firstStart || versionChanged) {
+			// write version file
+			writeLastVersion(lastVersionFile);
+		}
 	}
 
 	private static void writeLastVersion(File versionFile) {
