@@ -57,6 +57,7 @@ import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.JFreeChartPlotEngine;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.I18N;
 
 /**
@@ -239,12 +240,12 @@ public class AddParallelLineDialog extends JDialog {
 		gbc.gridy = 5;
 		gbc.gridwidth = 1;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.anchor = GridBagConstraints.EAST;
+		gbc.anchor = GridBagConstraints.WEST;
 		gbc.insets = new Insets(5, 5, 5, 5);
 		okButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.ok.label"));
 		okButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.ok.tip"));
+		okButton.setIcon(SwingTools.createIcon("24/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.ok.icon")));
 		okButton.setMnemonic(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.ok.mne").toCharArray()[0]);
-		okButton.setPreferredSize(new Dimension(75, 25));
 		okButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -272,11 +273,11 @@ public class AddParallelLineDialog extends JDialog {
 		gbc.gridx = 1;
 		gbc.gridy = 5;
 		gbc.fill = GridBagConstraints.NONE;
-		gbc.anchor = GridBagConstraints.WEST;
+		gbc.anchor = GridBagConstraints.EAST;
 		cancelButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.cancel.label"));
 		cancelButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.cancel.tip"));
+		cancelButton.setIcon(SwingTools.createIcon("24/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.cancel.icon")));
 		cancelButton.setMnemonic(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.cancel.mne").toCharArray()[0]);
-		cancelButton.setPreferredSize(new Dimension(75, 25));
 		cancelButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -288,7 +289,7 @@ public class AddParallelLineDialog extends JDialog {
 		this.add(cancelButton, gbc);
 		
 		// misc settings
-		this.setMinimumSize(new Dimension(300, 200));
+		this.setMinimumSize(new Dimension(300, 220));
 		// center dialog
 		this.setLocationRelativeTo(null);
 		this.setTitle(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.title.label"));

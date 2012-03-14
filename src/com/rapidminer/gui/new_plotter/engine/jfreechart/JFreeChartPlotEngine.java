@@ -97,6 +97,7 @@ import com.rapidminer.gui.new_plotter.data.ValueSourceData;
 import com.rapidminer.gui.new_plotter.engine.PlotEngine;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.AddParallelLineAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.ClearParallelLinesAction;
+import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.ManageParallelLinesAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.dataset.ValueSourceToMultiValueCategoryDatasetAdapter;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.legend.ColoredBlockContainer;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.legend.SmartLegendTitle;
@@ -203,6 +204,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		popupMenuChart = new JPopupMenu();
 		addParallelLineAction = new AddParallelLineAction(this);
 		popupMenuChart.add(addParallelLineAction);
+		popupMenuChart.add(new ManageParallelLinesAction(this));
 		popupMenuChart.addSeparator();
 		popupMenuChart.add(new ClearParallelLinesAction(this));
 		

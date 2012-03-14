@@ -22,69 +22,53 @@
  */
 package com.rapidminer.gui.new_plotter.engine.jfreechart.actions;
 
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 
 import com.rapidminer.gui.new_plotter.engine.jfreechart.JFreeChartPlotEngine;
-import com.rapidminer.gui.new_plotter.gui.dialog.AddParallelLineDialog;
+import com.rapidminer.gui.new_plotter.gui.dialog.ManageParallelLinesDialog;
 import com.rapidminer.gui.tools.ResourceAction;
 
 /**
- * This action allows the user to add parallel lines (horizontal/vertical) to the current chart.
+ * This action opens a dialog which can be used to manage existing parallel lines of the current chart.
  * 
  * @author Marco Boeck
  *
  */
-public class AddParallelLineAction extends ResourceAction {
+public class ManageParallelLinesAction extends ResourceAction {
 	
 	/** the {@link JFreeChartPlotEngine} instance for this action */
 	private JFreeChartPlotEngine engine;
 	
-	/** the {@link Point} where the last popup click happened */
-	private Point latestPopupLocation;
 	
-	
-	/** the {@link AddParallelLineDialog} instance (used by all {@link AddParallelLineAction} instances) */
-	private static AddParallelLineDialog dialog;
+	/** the {@link ManageParallelLinesDialog} instance (used by all {@link ManageParallelLinesAction} instances) */
+	private static ManageParallelLinesDialog dialog;
 	
 	private static final long serialVersionUID = 7788302558857099622L;
 	
 	
 	/**
-	 * Creates a new {@link ResourceAction} which opens the add parallel line configuration dialog
-	 * when triggered. There a crosshair line can be configured and added to the chart.
+	 * Creates a new {@link ResourceAction} which opens the {@link ManageParallelLinesDialog} when triggered.
 	 * @param engine
 	 */
-	public AddParallelLineAction(JFreeChartPlotEngine engine) {
-		super(true, "plotter.popup_menu.add_parallel_line");
+	public ManageParallelLinesAction(JFreeChartPlotEngine engine) {
+		super(true, "plotter.popup_menu.manage_parallel_lines");
 		this.engine = engine;
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		addParallelLine(engine, latestPopupLocation);
+		manageParallelLines(engine);
 	}
 	
 	/**
-	 * Sets the location where the popup has been triggered.
-	 * Used to determine the location of the line
-	 * @param location
-	 */
-	public void setPopupLocation(Point location) {
-		latestPopupLocation = location;
-	}
-	
-	/**
-	 * Opens the add parallel line configuration dialog and then adds the line the user specified.
+	 * Opens the manage parallel lines dialog.
 	 * @param engine
-	 * @param latestPopupLocation
 	 */
-	public static synchronized void addParallelLine(final JFreeChartPlotEngine engine, Point latestPopupLocation) {
+	public static synchronized void manageParallelLines(final JFreeChartPlotEngine engine) {
 		if (dialog == null) {
-			dialog = new AddParallelLineDialog();
+			dialog = new ManageParallelLinesDialog();
 		}
 
-		dialog.setMousePosition(latestPopupLocation);
 		dialog.setChartEngine(engine);
 		dialog.showDialog();
 	}

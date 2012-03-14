@@ -20,16 +20,17 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.new_plotter.configuration;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.rapidminer.gui.new_plotter.event.AxisParallelLineConfigurationChangeEvent;
 import com.rapidminer.gui.new_plotter.listener.AxisParallelLineConfigurationListener;
 import com.rapidminer.gui.new_plotter.listener.events.LineFormatChangeEvent;
-
 
 /**
  * A class which configures a line which is parallel to one of the
@@ -39,43 +40,41 @@ import com.rapidminer.gui.new_plotter.listener.events.LineFormatChangeEvent;
  *
  */
 public class AxisParallelLineConfiguration implements LineFormatListener, Cloneable {
+
 	LineFormat format = new LineFormat();
 	private boolean labelVisible = true;
 	private double value;
-	
-	List<WeakReference<AxisParallelLineConfigurationListener>> listeners;
-	
-	
+
+	private List<WeakReference<AxisParallelLineConfigurationListener>> listeners = new LinkedList<WeakReference<AxisParallelLineConfigurationListener>>();
+
 	/**
 	 * Creates a new {@link AxisParallelLineConfiguration}.
 	 */
 	public AxisParallelLineConfiguration(double value, boolean labelVisible) {
 		if (this.value != value) {
 			this.value = value;
-//			fireAxisParallelLineConfigurationChanged(new AxisParallelLineConfigurationChangeEvent(this, value));
+			fireAxisParallelLineConfigurationChanged(new AxisParallelLineConfigurationChangeEvent(this, value));
 		}
 	}
-
 
 	public double getValue() {
 		return value;
 	}
 
-
 	public void setValue(double value) {
-		this.value = value;
+		if (this.value != value) {
+			this.value = value;
+			fireAxisParallelLineConfigurationChanged(new AxisParallelLineConfigurationChangeEvent(this, value));
+		}
 	}
-
 
 	public boolean isLabelVisible() {
 		return labelVisible;
 	}
 
-
 	public LineFormat getFormat() {
 		return format;
 	}
-
 
 	public void setLabelVisible(boolean labelVisible) {
 		if (labelVisible != this.labelVisible) {
@@ -84,12 +83,10 @@ public class AxisParallelLineConfiguration implements LineFormatListener, Clonea
 		}
 	}
 
-
 	@Override
 	public void lineFormatChanged(LineFormatChangeEvent e) {
 		fireAxisParallelLineConfigurationChanged(new AxisParallelLineConfigurationChangeEvent(this, e));
 	}
-
 
 	private void fireAxisParallelLineConfigurationChanged(AxisParallelLineConfigurationChangeEvent e) {
 		Iterator<WeakReference<AxisParallelLineConfigurationListener>> it = listeners.iterator();
@@ -102,11 +99,34 @@ public class AxisParallelLineConfiguration implements LineFormatListener, Clonea
 			}
 		}
 	}
-	
+
 	@Override
 	public AxisParallelLineConfiguration clone() {
 		AxisParallelLineConfiguration clone = new AxisParallelLineConfiguration(this.value, this.labelVisible);
 		clone.format = format.clone();
 		return clone;
+	}
+
+	@Override
+	public String toString() {
+		return "Line (value: " + value + ")";
+	}
+
+	public void addAxisParallelLineConfigurationListener(AxisParallelLineConfigurationListener l) {
+		listeners.add(new WeakReference<AxisParallelLineConfigurationListener>(l));
+	}
+
+	public void removeAxisParallelLineConfigurationListener(AxisParallelLineConfigurationListener l) {
+		Iterator<WeakReference<AxisParallelLineConfigurationListener>> it = listeners.iterator();
+		while (it.hasNext()) {
+			AxisParallelLineConfigurationListener listener = it.next().get();
+			if (l != null) {
+				if (listener.equals(l)) {
+					it.remove();
+				}
+			} else {
+				it.remove();
+			}
+		}
 	}
 }

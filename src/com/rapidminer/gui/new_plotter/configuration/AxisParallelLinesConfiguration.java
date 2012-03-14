@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.new_plotter.configuration;
 
 import java.lang.ref.WeakReference;
@@ -41,26 +42,31 @@ import com.rapidminer.gui.new_plotter.listener.AxisParallelLineConfigurationList
  *
  */
 public class AxisParallelLinesConfiguration implements AxisParallelLineConfigurationListener, Cloneable {
+
 	private List<AxisParallelLineConfiguration> lineConfigurations = new LinkedList<AxisParallelLineConfiguration>();
 	private List<WeakReference<AxisParallelLinesConfigurationListener>> listeners = new LinkedList<WeakReference<AxisParallelLinesConfigurationListener>>();
-	
+
 	public void addLine(double value, boolean labelVisible, LineStyle style, float width) {
 		AxisParallelLineConfiguration line = new AxisParallelLineConfiguration(value, labelVisible);
 		line.getFormat().setStyle(style);
 		line.getFormat().setWidth(width);
 		addLine(line);
 	}
-	
+
 	public void addLine(AxisParallelLineConfiguration line) {
 		lineConfigurations.add(line);
+		line.addAxisParallelLineConfigurationListener(this);
+		line.getFormat().addLineFormatListener(line);
 		fireLineAdded(line);
 	}
-	
+
 	public void removeLine(AxisParallelLineConfiguration line) {
 		lineConfigurations.remove(line);
+		line.removeAxisParallelLineConfigurationListener(this);
+		line.getFormat().removeLineFormatListener(line);
 		fireLineRemoved(line);
 	}
-	
+
 	public List<AxisParallelLineConfiguration> getLines() {
 		return lineConfigurations;
 	}
@@ -68,7 +74,7 @@ public class AxisParallelLinesConfiguration implements AxisParallelLineConfigura
 	private void fireLineAdded(AxisParallelLineConfiguration line) {
 		fireAxisParallelLinesChanged(new AxisParallelLinesConfigurationChangeEvent(this, AxisParallelLineConfigurationsChangeType.LINE_ADDED, line));
 	}
-	
+
 	private void fireLineRemoved(AxisParallelLineConfiguration line) {
 		fireAxisParallelLinesChanged(new AxisParallelLinesConfigurationChangeEvent(this, AxisParallelLineConfigurationsChangeType.LINE_REMOVED, line));
 	}
@@ -88,7 +94,7 @@ public class AxisParallelLinesConfiguration implements AxisParallelLineConfigura
 			}
 		}
 	}
-	
+
 	public void addListener(AxisParallelLinesConfigurationListener l) {
 		listeners.add(new WeakReference<AxisParallelLinesConfigurationListener>(l));
 	}
@@ -97,7 +103,7 @@ public class AxisParallelLinesConfiguration implements AxisParallelLineConfigura
 	public void axisParallelLineConfigurationChanged(AxisParallelLineConfigurationChangeEvent e) {
 		fireAxisParallelLineChanged(e);
 	}
-	
+
 	@Override
 	public AxisParallelLinesConfiguration clone() {
 		AxisParallelLinesConfiguration clone = new AxisParallelLinesConfiguration();

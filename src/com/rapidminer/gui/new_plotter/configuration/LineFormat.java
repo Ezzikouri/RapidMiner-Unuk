@@ -192,4 +192,21 @@ public class LineFormat implements Cloneable {
 		return scaledDashArray;
 	}
 
+	public void addLineFormatListener(LineFormatListener l) {
+		listeners.add(new WeakReference<LineFormatListener>(l));
+	}
+
+	public void removeLineFormatListener(LineFormatListener l) {
+		Iterator<WeakReference<LineFormatListener>> it = listeners.iterator();
+		while (it.hasNext()) {
+			LineFormatListener listener = it.next().get();
+			if (l != null) {
+				if (listener.equals(l)) {
+					it.remove();
+				}
+			} else {
+				it.remove();
+			}
+		}
+	}
 }
