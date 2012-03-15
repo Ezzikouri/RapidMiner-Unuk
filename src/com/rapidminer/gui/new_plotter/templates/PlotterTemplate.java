@@ -68,6 +68,30 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 	
 	public static final String VALUE_ATTRIBUTE = "value";
 	
+	public static final String CROSSHAIR_DOMAIN_TOP_ELEMENT = "domainCrosshairs";
+	
+	public static final String CROSSHAIR_DOMAIN_ELEMENT = "domainCrosshair";
+	
+	public static final String CROSSHAIR_RANGE_AXIS_TOP_ELEMENT = "rangeCrosshairs";
+	
+	public static final String CROSSHAIR_RANGE_AXIS_ELEMENT = "rangeCrosshair";
+	
+	public static final String CROSSHAIR_RANGE_AXIS_LABEL_ATTRIBUTE = "rangeCrosshairLabel";
+	
+	public static final String CROSSHAIR_VALUE_ATTRIBUTE = "CrosshairValue";
+	
+	public static final String CROSSHAIR_WIDTH_ATTRIBUTE = "crosshairWidth";
+	
+	public static final String CROSSHAIR_STYLE_ATTRIBUTE = "crosshairStyle";
+	
+	public static final String CROSSHAIR_COLOR_B_ATTRIBUTE = "b";
+
+	public static final String CROSSHAIR_COLOR_G_ATTRIBUTE = "g";
+
+	public static final String CROSSHAIR_COLOR_R_ATTRIBUTE = "r";
+
+	public static final String CROSSHAIR_COLOR_ELEMENT = "crosshairColor";
+	
 	
 	/**
 	 * Standard constructor.

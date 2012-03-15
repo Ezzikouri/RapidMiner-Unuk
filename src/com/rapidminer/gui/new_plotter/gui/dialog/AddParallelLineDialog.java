@@ -53,6 +53,7 @@ import javax.swing.JTextField;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.XYPlot;
 
+import com.rapidminer.gui.new_plotter.configuration.AxisParallelLineConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
@@ -95,6 +96,9 @@ public class AddParallelLineDialog extends JDialog {
 	/** the {@link JComboBox} where the {@link RangeAxisConfig} will be selected if horizontal line is selected */
 	private JComboBox rangeAxisSelectionCombobox;
 	
+	/** this button modifies the line */
+	private JButton modifyLineButton;
+	
 	/** the current {@link JFreeChartPlotEngine} */
 	private JFreeChartPlotEngine engine;
 	
@@ -103,6 +107,12 @@ public class AddParallelLineDialog extends JDialog {
 	
 	/** the position of the mouse, determines preselected x/y values */
 	private Point mousePosition;
+	
+	/** the {@link EditParallelLineDialog} instance */
+	private EditParallelLineDialog dialog;
+	
+	/** the current line to add */
+	private AxisParallelLineConfiguration line;
 	
 	
 	private static final long serialVersionUID = 1932257219370926682L;
@@ -231,13 +241,30 @@ public class AddParallelLineDialog extends JDialog {
 		
 		gbc.gridx = 0;
 		gbc.gridy = 4;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.insets = new Insets(10, 5, 0, 5);
+		modifyLineButton = new JButton();
+		modifyLineButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.modify_line.tip"));
+		modifyLineButton.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.modify_line.icon")));
+		modifyLineButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				modifyLine();
+			}
+		});
+		this.add(modifyLineButton, gbc);
+		
+		gbc.gridx = 0;
+		gbc.gridy = 5;
 		gbc.gridwidth = 2;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.insets = new Insets(15, 5, 5, 5);
 		this.add(new JSeparator(), gbc);
 		
 		gbc.gridx = 0;
-		gbc.gridy = 5;
+		gbc.gridy = 6;
 		gbc.gridwidth = 1;
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.anchor = GridBagConstraints.WEST;
@@ -250,7 +277,7 @@ public class AddParallelLineDialog extends JDialog {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				boolean successful = createSpecifiedLine();
+				boolean successful = addSpecifiedLine();
 				// don't dispose dialog if not successful
 				if (!successful) {
 					return;
@@ -271,7 +298,7 @@ public class AddParallelLineDialog extends JDialog {
 		this.add(okButton, gbc);
 		
 		gbc.gridx = 1;
-		gbc.gridy = 5;
+		gbc.gridy = 6;
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.anchor = GridBagConstraints.EAST;
 		cancelButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.cancel.label"));
@@ -289,7 +316,7 @@ public class AddParallelLineDialog extends JDialog {
 		this.add(cancelButton, gbc);
 		
 		// misc settings
-		this.setMinimumSize(new Dimension(300, 220));
+		this.setMinimumSize(new Dimension(300, 250));
 		// center dialog
 		this.setLocationRelativeTo(null);
 		this.setTitle(I18N.getMessage(I18N.getGUIBundle(), "gui.action.add_parallel_line.title.label"));
@@ -334,6 +361,16 @@ public class AddParallelLineDialog extends JDialog {
 	 * Shows the dialog.
 	 */
 	public void showDialog() {
+		if (line == null) {
+			line = createLine(1.0);
+		} else {
+			line = line.clone();
+		}
+		if (horizontalLineRadiobutton.isSelected()) {
+			line.setValue(Double.parseDouble(yField.getText()));
+		} else {
+			line.setValue(Double.parseDouble(xField.getText()));
+		}
 		setVisible(true);
 	}
 	
@@ -476,7 +513,7 @@ public class AddParallelLineDialog extends JDialog {
 	 * Creates the specified line.
 	 * @return true if the line has been created; false otherwise
 	 */
-	private boolean createSpecifiedLine() {
+	private boolean addSpecifiedLine() {
 		if (horizontalLineRadiobutton.isSelected()) {
 			Object selectedItem = rangeAxisSelectionCombobox.getSelectedItem();
 			if (selectedItem != null && selectedItem instanceof RangeAxisConfig) {
@@ -486,7 +523,11 @@ public class AddParallelLineDialog extends JDialog {
 					return false;
 				}
 				RangeAxisConfig config = (RangeAxisConfig) selectedItem;
-				config.getCrossHairLines().addLine(Double.parseDouble(yField.getText()), false, LineStyle.SOLID, 1.0f);
+				if (line == null) {
+					line = createLine(Double.parseDouble(yField.getText()));
+				}
+				line.setValue(Double.parseDouble(yField.getText()));
+				config.getCrossHairLines().addLine(line);
 			}
 		} else if (verticalLineRadiobutton.isSelected()){
 			// make sure x value is valid, otherwise don't do anything!
@@ -494,9 +535,54 @@ public class AddParallelLineDialog extends JDialog {
 				xField.requestFocusInWindow();
 				return false;
 			}
-			plotConfig.getDomainConfigManager().getCrosshairLines().addLine(Double.parseDouble(xField.getText()), false, LineStyle.SOLID, 1.0f);
+			if (line == null) {
+				line = createLine(Double.parseDouble(xField.getText()));
+			}
+			line.setValue(Double.parseDouble(xField.getText()));
+			plotConfig.getDomainConfigManager().getCrosshairLines().addLine(line);
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Modifes the line.
+	 */
+	private void modifyLine() {
+		if (line == null) {
+			line = createLine(1.0);
+		}
+		if (dialog == null) {
+			dialog = new EditParallelLineDialog();
+		}
+		
+		if (horizontalLineRadiobutton.isSelected()) {
+			// make sure y value is valid, otherwise don't do anything!
+			if (!yField.getInputVerifier().verify(yField)) {
+				yField.requestFocusInWindow();
+				return;
+			}
+			line.setValue(Double.parseDouble(yField.getText()));
+		} else {
+			// make sure x value is valid, otherwise don't do anything!
+			if (!xField.getInputVerifier().verify(xField)) {
+				xField.requestFocusInWindow();
+				return;
+			}
+			line.setValue(Double.parseDouble(xField.getText()));
+		}
+		dialog.setLine(line);
+		dialog.showDialog();
+	}
+	
+	/**
+	 * Creates a new {@link AxisParallelLineConfiguration} with solid {@link LineStyle}.
+	 * @param value
+	 * @return
+	 */
+	private AxisParallelLineConfiguration createLine(double value) {
+		AxisParallelLineConfiguration line = new AxisParallelLineConfiguration(value, false);
+		line.getFormat().setStyle(LineStyle.SOLID);
+		return line;
 	}
 }

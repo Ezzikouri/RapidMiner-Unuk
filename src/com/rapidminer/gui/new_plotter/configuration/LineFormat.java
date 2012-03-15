@@ -201,7 +201,7 @@ public class LineFormat implements Cloneable {
 		while (it.hasNext()) {
 			LineFormatListener listener = it.next().get();
 			if (l != null) {
-				if (listener.equals(l)) {
+				if (listener != null && listener.equals(l)) {
 					it.remove();
 				}
 			} else {

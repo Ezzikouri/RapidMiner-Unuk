@@ -28,6 +28,8 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import com.rapidminer.RapidMiner;
@@ -215,9 +217,15 @@ public class DataResultSetTranslator {
 
         // derive ExampleSet from exampleTable and assigning roles
         ExampleSet exampleSet = exampleTable.createExampleSet();
-        Attributes exampleSetAttributes = exampleSet.getAttributes();
+        // Copy attribute list to avoid concurrent modification when setting to special
+        //Attributes exampleSetAttributes = exampleSet.getAttributes();
+        List<Attribute> allAttributes = new LinkedList<Attribute>();
+        for (Attribute att : exampleSet.getAttributes()) {
+        	allAttributes.add(att);
+        }       
+
         int attributeIndex = 0;
-        for (Attribute attribute : exampleSetAttributes) {
+        for (Attribute attribute : allAttributes) {
             // if user defined names have been found, rename accordingly
             final ColumnMetaData cmd = configuration.getColumnMetaData(attributeColumns[attributeIndex]);
             if (!cmd.isSelected()) {
@@ -230,7 +238,7 @@ public class DataResultSetTranslator {
             attribute.setConstruction(userDefinedName);
             String roleId = cmd.getRole();
             if (!Attributes.ATTRIBUTE_NAME.equals(roleId))
-                exampleSetAttributes.setSpecialAttribute(attribute, roleId);
+                exampleSet.getAttributes().setSpecialAttribute(attribute, roleId);
             attributeIndex++;
         }
 
