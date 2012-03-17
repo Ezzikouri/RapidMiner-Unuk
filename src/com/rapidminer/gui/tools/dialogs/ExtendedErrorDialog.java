@@ -49,6 +49,8 @@ import javax.swing.event.ListSelectionListener;
 import org.apache.xmlrpc.client.XmlRpcClient;
 
 import com.rapidminer.NoBugError;
+import com.rapidminer.RapidMiner;
+import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.dialog.BugZillaAssistant;
@@ -292,7 +294,10 @@ public class ExtendedErrorDialog extends ButtonDialog {
                     }.start();
                 }
             });
-        	buttons.add(sendReport);
+        	// don't show "Send bugreport" button if this dialog is shown when RM is only embedded
+        	if (!RapidMiner.getExecutionMode().equals(ExecutionMode.EMBEDDED_WITH_UI)) {
+        		buttons.add(sendReport);
+        	}
         }
 
         buttons.add(makeCloseButton());

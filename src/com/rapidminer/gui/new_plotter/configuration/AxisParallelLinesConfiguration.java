@@ -53,7 +53,15 @@ public class AxisParallelLinesConfiguration implements AxisParallelLineConfigura
 		addLine(line);
 	}
 
+	/**
+	 * Adds the given {@link AxisParallelLineConfiguration} line.
+	 * If the exact same line already exists, the line will NOT be added again.
+	 * @param line
+	 */
 	public void addLine(AxisParallelLineConfiguration line) {
+		if (lineConfigurations.contains(line)) {
+			return;
+		}
 		lineConfigurations.add(line);
 		line.addAxisParallelLineConfigurationListener(this);
 		line.getFormat().addLineFormatListener(line);
@@ -95,8 +103,25 @@ public class AxisParallelLinesConfiguration implements AxisParallelLineConfigura
 		}
 	}
 
-	public void addListener(AxisParallelLinesConfigurationListener l) {
+	public void addAxisParallelLinesConfigurationListener(AxisParallelLinesConfigurationListener l) {
+		if (listeners.contains(l)) {
+			return;
+		}
 		listeners.add(new WeakReference<AxisParallelLinesConfigurationListener>(l));
+	}
+	
+	public void removeAxisParallelLinesConfigurationListener(AxisParallelLinesConfigurationListener l) {
+		Iterator<WeakReference<AxisParallelLinesConfigurationListener>> it = listeners.iterator();
+		while (it.hasNext()) {
+			AxisParallelLinesConfigurationListener listener = it.next().get();
+			if (l != null) {
+				if (listener != null && listener.equals(l)) {
+					it.remove();
+				}
+			} else {
+				it.remove();
+			}
+		}
 	}
 
 	@Override

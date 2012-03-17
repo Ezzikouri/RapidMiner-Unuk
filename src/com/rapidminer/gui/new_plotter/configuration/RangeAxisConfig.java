@@ -97,7 +97,7 @@ public class RangeAxisConfig implements ValueSourceListener, ValueRangeListener,
 		userDefinedRange = new NumericalValueRange(0, 1, -1);
 		userDefinedRange.addValueRangeListener(this);
 
-		crosshairLines.addListener(this);
+		crosshairLines.addAxisParallelLinesConfigurationListener(this);
 	}
 
 	/**

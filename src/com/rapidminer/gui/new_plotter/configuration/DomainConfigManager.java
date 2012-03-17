@@ -90,7 +90,7 @@ public class DomainConfigManager extends AbstractDimensionConfig implements Dime
 			groupedMasterDimensionConfig.setGrouping(new DistinctValueGrouping(domainColumn, domainColumn.isNominal(), getDateFormat()));
 		}
 		groupedMasterDimensionConfig.addDimensionConfigListener(this);
-		crosshairLines.addListener(this);
+		crosshairLines.addAxisParallelLinesConfigurationListener(this);
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class DomainConfigManager extends AbstractDimensionConfig implements Dime
 		ungroupedMasterDimensionConfig = null;
 		groupedMasterDimensionConfig = null;
 		plotConfiguration = null;
-		crosshairLines.addListener(this);
+		crosshairLines.addAxisParallelLinesConfigurationListener(this);
 		this.id = id;
 	}
 

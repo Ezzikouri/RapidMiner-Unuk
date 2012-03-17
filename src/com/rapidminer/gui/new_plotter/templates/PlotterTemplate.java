@@ -22,16 +22,27 @@
  */
 package com.rapidminer.gui.new_plotter.templates;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
+import org.apache.commons.collections15.map.HashedMap;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapidminer.datatable.DataTable;
+import com.rapidminer.gui.new_plotter.configuration.AxisParallelLineConfiguration;
+import com.rapidminer.gui.new_plotter.configuration.AxisParallelLinesConfigurationListener;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
+import com.rapidminer.gui.new_plotter.configuration.event.AxisParallelLinesConfigurationChangeEvent;
+import com.rapidminer.gui.new_plotter.configuration.event.AxisParallelLinesConfigurationChangeEvent.AxisParallelLineConfigurationsChangeType;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.JFreeChartPlotEngine;
+import com.rapidminer.gui.new_plotter.listener.RangeAxisConfigListener;
+import com.rapidminer.gui.new_plotter.listener.events.RangeAxisConfigChangeEvent;
+import com.rapidminer.gui.new_plotter.listener.events.ConfigurationChangeEvent.ConfigurationChangeType;
 import com.rapidminer.gui.new_plotter.templates.gui.PlotterTemplatePanel;
 import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 
@@ -45,6 +56,18 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 	
 	/** the current {@link DataTable} */
 	protected DataTable currentDataTable;
+	
+	/** list containing all {@link AxisParallelLineConfiguration} for the domain axis */
+	protected List<AxisParallelLineConfiguration> listOfDomainLines;
+	
+	/** the map containing all {@link AxisParallelLineConfiguration} for all range axes */
+	protected Map<String, List<AxisParallelLineConfiguration>> rangeAxisCrosshairLinesMap;
+	
+	/** the domain axis crosshair change listener */
+	protected AxisParallelLinesConfigurationListener domainAxisLinesListener;
+	
+	/** the listener which will register range axis crosshair changes */
+	protected RangeAxisConfigListener rangeAxisConfigListener;
 	
 	/** the {@link PlotConfiguration} for the template */
 	protected PlotInstance plotInstance;
@@ -97,7 +120,45 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 	 * Standard constructor.
 	 */
 	public PlotterTemplate() {
-		// empty
+		listOfDomainLines = new LinkedList<AxisParallelLineConfiguration>();
+		rangeAxisCrosshairLinesMap = new HashedMap<String, List<AxisParallelLineConfiguration>>(40);
+		domainAxisLinesListener = new AxisParallelLinesConfigurationListener() {
+			
+			@Override
+			public void axisParallelLineConfigurationsChanged(AxisParallelLinesConfigurationChangeEvent e) {
+				// domain axis crosshair handling
+				if (e.getType().equals(AxisParallelLineConfigurationsChangeType.LINE_ADDED)) {
+					if (!listOfDomainLines.contains(e.getLineConfiguration())) {
+						listOfDomainLines.add(e.getLineConfiguration());
+					}
+				} else if (e.getType().equals(AxisParallelLineConfigurationsChangeType.LINE_REMOVED)) {
+					listOfDomainLines.remove(e.getLineConfiguration());
+				}
+			}
+		};
+		rangeAxisConfigListener = new RangeAxisConfigListener() {
+			
+			@Override
+			public void rangeAxisConfigChanged(RangeAxisConfigChangeEvent e) {
+				if (e.getConfigurationChangeType().equals(ConfigurationChangeType.RANGE_AXIS_CONFIG_CHANGE)) {
+					AxisParallelLinesConfigurationChangeEvent crosshairChange = e.getCrosshairChange();
+					if (crosshairChange != null) {
+						List<AxisParallelLineConfiguration> lineList = rangeAxisCrosshairLinesMap.get(e.getSource().getLabel());
+						if (lineList == null) {
+							lineList = new LinkedList<AxisParallelLineConfiguration>();
+						}
+						if (crosshairChange.getType().equals(AxisParallelLineConfigurationsChangeType.LINE_ADDED)) {
+							if (!lineList.contains(crosshairChange.getLineConfiguration())) {
+								lineList.add(crosshairChange.getLineConfiguration());
+							}
+						} else if (crosshairChange.getType().equals(AxisParallelLineConfigurationsChangeType.LINE_REMOVED)) {
+							lineList.remove(crosshairChange.getLineConfiguration());
+						}
+						rangeAxisCrosshairLinesMap.put(e.getSource().getLabel(), lineList);
+					}
+				}
+			}
+		};
 	}
 	
 	/**
@@ -160,6 +221,14 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 	public void setPlotInstance(PlotInstance plotInstance) {
 		if (plotInstance == null) {
 			throw new IllegalArgumentException("PlotInstance must not be null!");
+		}
+		
+		// save crosshair lines, as we replace the plotInstance (and therefore plotConfiguration)
+		if (plotInstance != null) {
+			if (this.plotInstance != null) {
+				this.plotInstance.getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().removeAxisParallelLinesConfigurationListener(domainAxisLinesListener);
+			}
+			plotInstance.getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().addAxisParallelLinesConfigurationListener(domainAxisLinesListener);
 		}
 		
 		this.plotInstance = plotInstance;
@@ -249,5 +318,4 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 	public void forceUpdate() {
 		updatePlotConfiguration();
 	}
-
 }

@@ -129,4 +129,70 @@ public class AxisParallelLineConfiguration implements LineFormatListener, Clonea
 			}
 		}
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof AxisParallelLineConfiguration)) {
+			return false;
+		}
+		
+		AxisParallelLineConfiguration line = (AxisParallelLineConfiguration) obj;
+		if (!checkDoubleForEquality(this.getValue(), line.getValue())) {
+			return false;
+		}
+		if (this.isLabelVisible() != line.isLabelVisible()) {
+			return false;
+		}
+		if (!this.getFormat().getColor().equals(line.getFormat().getColor())) {
+			return false;
+		}
+		if (!this.getFormat().getStyle().equals(line.getFormat().getStyle())) {
+			return false;
+		}
+		// for normal width values, this should be fine. Breaks with huge width values,
+		// but who would be using widths in the 10.000s range?
+		float floatEepsilon = 0.00001f;
+		if (Math.abs(this.getFormat().getWidth() - line.getFormat().getWidth()) > floatEepsilon) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Returns true if equality has been found; false otherwise.
+	 * Note that this function is NOT perfect, passing in values very close to
+	 * zero where one is positive and the other is negative will fail the check,
+	 * despite them being very close together. But in this case that should not be too much
+	 * of a problem.
+	 * @param expected
+	 * @param actual
+	 * @return
+	 */
+	private boolean checkDoubleForEquality(double expected, double actual) {
+		if (expected == actual) {
+			return true;
+		}
+
+		if (Double.isNaN(expected) && !Double.isNaN(actual)) {
+			return false;
+		}
+
+		if (!Double.isNaN(expected) && Double.isNaN(actual)) {
+			return false;
+		}
+		
+		final double MAX_RELATIVE_ERROR = 0.000000001;
+		double relativeError;
+		if (Math.abs(actual) > Math.abs(expected)) {
+			relativeError = Math.abs((expected - actual) / actual);
+		} else {
+			relativeError = Math.abs((expected - actual) / expected);
+		}
+		if (relativeError > MAX_RELATIVE_ERROR) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 }

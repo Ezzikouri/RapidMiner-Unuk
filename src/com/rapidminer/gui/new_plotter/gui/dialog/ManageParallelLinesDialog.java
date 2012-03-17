@@ -30,6 +30,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
@@ -196,6 +198,15 @@ public class ManageParallelLinesDialog extends JDialog {
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_DELETE) {
 					deleteSelectedLines();
+				}
+			}
+		});
+		linesList.addMouseListener(new MouseAdapter() {
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					modifySelectedLine();
 				}
 			}
 		});
@@ -414,6 +425,10 @@ public class ManageParallelLinesDialog extends JDialog {
 	 * Modifes the selected line.
 	 */
 	private void modifySelectedLine() {
+		// cannot modify if more than one is selected
+		if (linesList.getSelectedIndices().length > 1) {
+			return;
+		}
 		AxisParallelLineConfiguration line = (AxisParallelLineConfiguration) linesList.getSelectedValue();
 		if (line != null) {
 			if (dialog == null) {

@@ -22,8 +22,9 @@
  */
 package com.rapidminer.gui.new_plotter.templates;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.awt.Color;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -31,11 +32,11 @@ import org.w3c.dom.Node;
 
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.gui.new_plotter.configuration.AxisParallelLineConfiguration;
-import com.rapidminer.gui.new_plotter.configuration.AxisParallelLinesConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DefaultDimensionConfig;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
 import com.rapidminer.gui.new_plotter.configuration.LegendConfiguration.LegendPosition;
+import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
@@ -70,12 +71,9 @@ public class ScatterTemplate extends PlotterTemplate {
 	private static final String X_AXIS_COLUMN_ELEMENT = "xAxisColumn";
 	
 	
-	/** the AxisParallelLinesConfigurations map of the last removed {@link RangeAxisConfig}s */
-	private Map<String, AxisParallelLinesConfiguration> oldRangeAxisCrosshairLinesMap;
-	
 	/** the current {@link RangeAxisConfig} */
 	private RangeAxisConfig currentRangeAxisConfig;
-
+	
 	/** the name of the x-axis column */
 	private String xAxisColumn;
 
@@ -103,8 +101,6 @@ public class ScatterTemplate extends PlotterTemplate {
 	 * chart for the plotter.
 	 */
 	public ScatterTemplate() {
-		oldRangeAxisCrosshairLinesMap = new HashMap<String, AxisParallelLinesConfiguration>();
-		
 		// value when "None" is selected
 		String noSelection = I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.column.empty_selection.label");
 		xAxisColumn = noSelection;
@@ -317,6 +313,12 @@ public class ScatterTemplate extends PlotterTemplate {
 		// stop event processing
 		boolean plotConfigurationProcessedEvents = plotConfiguration.isProcessingEvents();
 		plotConfiguration.setProcessEvents(false);
+		
+		// restore crosshairs
+		List<AxisParallelLineConfiguration> clonedListOfDomainLines = new LinkedList<AxisParallelLineConfiguration>(listOfDomainLines);
+		for (AxisParallelLineConfiguration lineConfig : clonedListOfDomainLines) {
+			plotConfiguration.getDomainConfigManager().getCrosshairLines().addLine(lineConfig);
+		}
 
 		// x axis column selection
 		if (!xAxisColumn.equals(noSelection)) {
@@ -325,8 +327,7 @@ public class ScatterTemplate extends PlotterTemplate {
 		} else {
 			// remove config
 			if (currentRangeAxisConfig != null) {
-				// save crosshair lines
-				oldRangeAxisCrosshairLinesMap.put(currentRangeAxisConfig.getLabel(), currentRangeAxisConfig.getCrossHairLines());
+				currentRangeAxisConfig.removeRangeAxisConfigListener(rangeAxisConfigListener);
 				plotConfiguration.removeRangeAxisConfig(currentRangeAxisConfig);
 				currentRangeAxisConfig = null;
 			}
@@ -337,6 +338,7 @@ public class ScatterTemplate extends PlotterTemplate {
 		// y axis column selection
 		if (!yAxisColumn.equals(noSelection)) {
 			RangeAxisConfig newRangeAxisConfig = new RangeAxisConfig(yAxisColumn, plotConfiguration);
+			newRangeAxisConfig.addRangeAxisConfigListener(rangeAxisConfigListener);
 			ValueSource valueSource;
 			valueSource = new ValueSource(plotConfiguration, new DataTableColumn(currentDataTable, currentDataTable.getColumnIndex(yAxisColumn)), AggregationFunctionType.count,
 					false);
@@ -344,26 +346,26 @@ public class ScatterTemplate extends PlotterTemplate {
 			valueSource.setSeriesFormat(sFormat);
 			newRangeAxisConfig.addValueSource(valueSource, null);
 			newRangeAxisConfig.setLogarithmicAxis(yAxisLogarithmic);
-
+			
 			// remove old config
 			if (currentRangeAxisConfig != null) {
-				oldRangeAxisCrosshairLinesMap.put(currentRangeAxisConfig.getLabel(), currentRangeAxisConfig.getCrossHairLines());
+				currentRangeAxisConfig.removeRangeAxisConfigListener(rangeAxisConfigListener);
 				plotConfiguration.removeRangeAxisConfig(currentRangeAxisConfig);
 			}
+			currentRangeAxisConfig = newRangeAxisConfig;
 			// add new config and restore crosshairs
-			if (oldRangeAxisCrosshairLinesMap.get(newRangeAxisConfig.getLabel()) != null) {
-				for (AxisParallelLineConfiguration lineConfig : oldRangeAxisCrosshairLinesMap.get(newRangeAxisConfig.getLabel()).getLines()) {
+			List<AxisParallelLineConfiguration> clonedRangeAxisLineList = rangeAxisCrosshairLinesMap.get(newRangeAxisConfig.getLabel());
+			if (clonedRangeAxisLineList != null) {
+				for (AxisParallelLineConfiguration lineConfig : clonedRangeAxisLineList) {
 					newRangeAxisConfig.getCrossHairLines().addLine(lineConfig);
 				}
-				oldRangeAxisCrosshairLinesMap.put(newRangeAxisConfig.getLabel(), null);
 			}
 			plotConfiguration.addRangeAxisConfig(newRangeAxisConfig);
 			// remember the new config so we can remove it later again
-			currentRangeAxisConfig = newRangeAxisConfig;
 		} else {
 			// remove config
 			if (currentRangeAxisConfig != null) {
-				oldRangeAxisCrosshairLinesMap.put(currentRangeAxisConfig.getLabel(), currentRangeAxisConfig.getCrossHairLines());
+				currentRangeAxisConfig.removeRangeAxisConfigListener(rangeAxisConfigListener);
 				plotConfiguration.removeRangeAxisConfig(currentRangeAxisConfig);
 				currentRangeAxisConfig = null;
 			}
@@ -428,21 +430,26 @@ public class ScatterTemplate extends PlotterTemplate {
 		setting.setAttribute(VALUE_ATTRIBUTE, String.valueOf(jitter));
 		template.appendChild(setting);
 		
+		
 		// store crosshairs (RangeAxis)
 		setting = document.createElement(CROSSHAIR_RANGE_AXIS_TOP_ELEMENT);
-		for (String rangeAxisLabel : oldRangeAxisCrosshairLinesMap.keySet()) {
-			AxisParallelLinesConfiguration lines = oldRangeAxisCrosshairLinesMap.get(rangeAxisLabel);
-			for (AxisParallelLineConfiguration line : lines.getLines()) {
-				Element rangeCrosshairElement = document.createElement(CROSSHAIR_RANGE_AXIS_ELEMENT);
-				rangeCrosshairElement.setAttribute(CROSSHAIR_RANGE_AXIS_LABEL_ATTRIBUTE, rangeAxisLabel);
-				rangeCrosshairElement.setAttribute(CROSSHAIR_VALUE_ATTRIBUTE, String.valueOf(line.getValue()));
-				rangeCrosshairElement.setAttribute(CROSSHAIR_STYLE_ATTRIBUTE, String.valueOf(line.getFormat().getStyle()));
-				Element colorElement = document.createElement(CROSSHAIR_COLOR_ELEMENT);
-				colorElement.setAttribute(CROSSHAIR_COLOR_R_ATTRIBUTE, String.valueOf(line.getFormat().getColor().getRed()));
-				colorElement.setAttribute(CROSSHAIR_COLOR_G_ATTRIBUTE, String.valueOf(line.getFormat().getColor().getGreen()));
-				colorElement.setAttribute(CROSSHAIR_COLOR_B_ATTRIBUTE, String.valueOf(line.getFormat().getColor().getBlue()));
-				rangeCrosshairElement.appendChild(colorElement);
-				setting.appendChild(rangeCrosshairElement);
+		for (String rangeAxisLabel : rangeAxisCrosshairLinesMap.keySet()) {
+			// add crosshairs of currently not displayed range axes
+			List<AxisParallelLineConfiguration> lines = rangeAxisCrosshairLinesMap.get(rangeAxisLabel);
+			if (lines != null) {
+				for (AxisParallelLineConfiguration line : lines) {
+					Element rangeCrosshairElement = document.createElement(CROSSHAIR_RANGE_AXIS_ELEMENT);
+					rangeCrosshairElement.setAttribute(CROSSHAIR_RANGE_AXIS_LABEL_ATTRIBUTE, rangeAxisLabel);
+					rangeCrosshairElement.setAttribute(CROSSHAIR_VALUE_ATTRIBUTE, String.valueOf(line.getValue()));
+					rangeCrosshairElement.setAttribute(CROSSHAIR_WIDTH_ATTRIBUTE, String.valueOf(line.getFormat().getWidth()));
+					rangeCrosshairElement.setAttribute(CROSSHAIR_STYLE_ATTRIBUTE, String.valueOf(line.getFormat().getStyle()));
+					Element colorElement = document.createElement(CROSSHAIR_COLOR_ELEMENT);
+					colorElement.setAttribute(CROSSHAIR_COLOR_R_ATTRIBUTE, String.valueOf(line.getFormat().getColor().getRed()));
+					colorElement.setAttribute(CROSSHAIR_COLOR_G_ATTRIBUTE, String.valueOf(line.getFormat().getColor().getGreen()));
+					colorElement.setAttribute(CROSSHAIR_COLOR_B_ATTRIBUTE, String.valueOf(line.getFormat().getColor().getBlue()));
+					rangeCrosshairElement.appendChild(colorElement);
+					setting.appendChild(rangeCrosshairElement);
+				}
 			}
 		}
 		template.appendChild(setting);
@@ -450,8 +457,9 @@ public class ScatterTemplate extends PlotterTemplate {
 		// store crosshairs (domainAxis)
 		setting = document.createElement(CROSSHAIR_DOMAIN_TOP_ELEMENT);
 		Element domainCrosshairElement = document.createElement(CROSSHAIR_DOMAIN_ELEMENT);
-		for (AxisParallelLineConfiguration line : plotInstance.getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().getLines()) {
+		for (AxisParallelLineConfiguration line : listOfDomainLines) {
 			domainCrosshairElement.setAttribute(CROSSHAIR_VALUE_ATTRIBUTE, String.valueOf(line.getValue()));
+			domainCrosshairElement.setAttribute(CROSSHAIR_WIDTH_ATTRIBUTE, String.valueOf(line.getFormat().getWidth()));
 			domainCrosshairElement.setAttribute(CROSSHAIR_STYLE_ATTRIBUTE, String.valueOf(line.getFormat().getStyle()));
 			Element colorElement = document.createElement(CROSSHAIR_COLOR_ELEMENT);
 			colorElement.setAttribute(CROSSHAIR_COLOR_R_ATTRIBUTE, String.valueOf(line.getFormat().getColor().getRed()));
@@ -461,6 +469,7 @@ public class ScatterTemplate extends PlotterTemplate {
 			setting.appendChild(domainCrosshairElement);
 		}
 		template.appendChild(setting);
+		
 		
 		template.appendChild(styleProvider.createXML(document));
 		
@@ -493,6 +502,86 @@ public class ScatterTemplate extends PlotterTemplate {
 						setJitter(Integer.parseInt(setting.getAttribute(VALUE_ATTRIBUTE)));
 					} catch (NumberFormatException e) {
 						LogService.getRoot().warning("Could not restore jitter setting for scatter template!");
+					}
+				} else if (setting.getNodeName().equals(CROSSHAIR_RANGE_AXIS_TOP_ELEMENT)) {
+					try {
+						// load range axes crosshairs
+						for (int j=0; j<setting.getChildNodes().getLength(); j++) {
+							Node rangeCrosshairNode = setting.getChildNodes().item(j);
+							if (rangeCrosshairNode instanceof Element) {
+								Element rangeCrosshairElement = (Element) rangeCrosshairNode;
+
+								if (rangeCrosshairElement.getNodeName().equals(CROSSHAIR_RANGE_AXIS_ELEMENT)) {
+									// load range axis crosshair
+									AxisParallelLineConfiguration line = new AxisParallelLineConfiguration(1.0, false);
+									String rangeAxisLabel = rangeCrosshairElement.getAttribute(CROSSHAIR_RANGE_AXIS_LABEL_ATTRIBUTE);
+									Double value = Double.parseDouble(rangeCrosshairElement.getAttribute(CROSSHAIR_VALUE_ATTRIBUTE));
+									Float width = Float.parseFloat(rangeCrosshairElement.getAttribute(CROSSHAIR_WIDTH_ATTRIBUTE));
+									LineStyle style = LineStyle.valueOf(rangeCrosshairElement.getAttribute(CROSSHAIR_STYLE_ATTRIBUTE));
+									for (int k=0; k<rangeCrosshairElement.getChildNodes().getLength(); k++) {
+										Node colorNode = rangeCrosshairElement.getChildNodes().item(k);
+										if (colorNode.getNodeName().equals(CROSSHAIR_COLOR_ELEMENT)) {
+											Element colorElement = (Element) colorNode;
+											int r = Integer.parseInt(colorElement.getAttribute(CROSSHAIR_COLOR_R_ATTRIBUTE));
+											int g = Integer.parseInt(colorElement.getAttribute(CROSSHAIR_COLOR_G_ATTRIBUTE));
+											int b = Integer.parseInt(colorElement.getAttribute(CROSSHAIR_COLOR_B_ATTRIBUTE));
+											Color color = new Color(r, g, b);
+											line.getFormat().setColor(color);
+										}
+									}
+									line.setValue(value);
+									line.getFormat().setWidth(width);
+									line.getFormat().setStyle(style);
+									
+									// decide if crosshair is of the currently selected range axis or not
+									List<AxisParallelLineConfiguration> listOfLines = rangeAxisCrosshairLinesMap.get(rangeAxisLabel);
+									if (listOfLines == null) {
+										listOfLines = new LinkedList<AxisParallelLineConfiguration>();
+									}
+									listOfLines.add(line);
+									rangeAxisCrosshairLinesMap.put(rangeAxisLabel, listOfLines);
+								}
+							}
+						}
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore range axis crosshairs!");
+					}
+				} else if (setting.getNodeName().equals(CROSSHAIR_DOMAIN_TOP_ELEMENT)) {
+					try {
+						// load domain axis crosshairs
+						for (int j=0; j<setting.getChildNodes().getLength(); j++) {
+							Node domainCrosshairNode = setting.getChildNodes().item(j);
+							if (domainCrosshairNode instanceof Element) {
+								Element domainCrosshairElement = (Element) domainCrosshairNode;
+
+								if (domainCrosshairElement.getNodeName().equals(CROSSHAIR_DOMAIN_ELEMENT)) {
+									// load domain axis crosshair
+									AxisParallelLineConfiguration line = new AxisParallelLineConfiguration(1.0, false);
+									Double value = Double.parseDouble(domainCrosshairElement.getAttribute(CROSSHAIR_VALUE_ATTRIBUTE));
+									Float width = Float.parseFloat(domainCrosshairElement.getAttribute(CROSSHAIR_WIDTH_ATTRIBUTE));
+									LineStyle style = LineStyle.valueOf(domainCrosshairElement.getAttribute(CROSSHAIR_STYLE_ATTRIBUTE));
+									for (int k=0; k<domainCrosshairElement.getChildNodes().getLength(); k++) {
+										Node colorNode = domainCrosshairElement.getChildNodes().item(k);
+										if (colorNode.getNodeName().equals(CROSSHAIR_COLOR_ELEMENT)) {
+											Element colorElement = (Element) colorNode;
+											int r = Integer.parseInt(colorElement.getAttribute(CROSSHAIR_COLOR_R_ATTRIBUTE));
+											int g = Integer.parseInt(colorElement.getAttribute(CROSSHAIR_COLOR_G_ATTRIBUTE));
+											int b = Integer.parseInt(colorElement.getAttribute(CROSSHAIR_COLOR_B_ATTRIBUTE));
+											Color color = new Color(r, g, b);
+											line.getFormat().setColor(color);
+										}
+									}
+									line.setValue(value);
+									line.getFormat().setWidth(width);
+									line.getFormat().setStyle(style);
+									
+									// add to DomainConfigManager
+									plotInstance.getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().addLine(line);
+								}
+							}
+						}
+					} catch (NumberFormatException e) {
+						LogService.getRoot().warning("Could not restore domain axis crosshairs!");
 					}
 				} else if (setting.getNodeName().equals(PlotterStyleProvider.STYLE_ELEMENT)) {
 					styleProvider.loadFromXML(setting);

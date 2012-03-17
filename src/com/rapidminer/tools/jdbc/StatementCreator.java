@@ -409,6 +409,11 @@ public class StatementCreator {
 		return "SELECT count(*) FROM " + makeIdentifier(tableName);
 	}
 
+	/** Selects count(*). */
+	public String makeSelectSizeStatement(TableName tableName) {
+		return "SELECT count(*) FROM " + makeIdentifier(tableName);
+	}
+
 	/**
 	 * Makes a statement selecting all attributes but no rows. Can be used to fetch header meta data.
 	 * 
