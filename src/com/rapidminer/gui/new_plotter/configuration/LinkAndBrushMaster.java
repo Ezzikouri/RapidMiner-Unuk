@@ -22,14 +22,19 @@
  */
 package com.rapidminer.gui.new_plotter.configuration;
 
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.jfree.data.Range;
 
+import com.rapidminer.datatable.DataTable;
 import com.rapidminer.gui.new_plotter.PlotConfigurationError;
+import com.rapidminer.gui.new_plotter.data.PlotInstance;
+import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushListener;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection.SelectionType;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelectionListener;
@@ -47,6 +52,10 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 
 	private Map<Integer, Range> rangeAxisIndexToZoomMap = new HashMap<Integer, Range>();
 	private Range domainAxisZoom;
+	
+	/** the list of {@link LinkAndBrushListener}s */
+	private transient List<WeakReference<LinkAndBrushListener>> listeners = new LinkedList<WeakReference<LinkAndBrushListener>>();
+	
 
 	public LinkAndBrushMaster(PlotConfiguration plotConfig) {
 		this.plotConfig = plotConfig;
@@ -72,20 +81,29 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 		return zoomedIn;
 	}
 
-	public void clearZooming() {
+	public void clearZooming(boolean fireEvent) {
 		zoomedIn = false;
 		domainAxisZoom = null;
 		rangeAxisIndexToZoomMap.clear();
+		if (fireEvent) {
+			informLinkAndBrushListeners(new LinkAndBrushSelection(SelectionType.RESTORE_AUTO_BOUNDS, new LinkedList<Pair<Integer,Range>>(), new LinkedList<Pair<Integer,Range>>()));
+		}
 	}
 
-	public void clearRangeAxisZooming() {
+	public void clearRangeAxisZooming(boolean fireEvent) {
 		rangeAxisIndexToZoomMap.clear();
 		zoomedIn = (domainAxisZoom != null);
+		if (fireEvent) {
+			informLinkAndBrushListeners(new LinkAndBrushSelection(SelectionType.RESTORE_AUTO_BOUNDS, new LinkedList<Pair<Integer,Range>>(), new LinkedList<Pair<Integer,Range>>()));
+		}
 	}
 
-	public void clearDomainAxisZooming() {
+	public void clearDomainAxisZooming(boolean fireEvent) {
 		domainAxisZoom = null;
 		zoomedIn = (rangeAxisIndexToZoomMap.keySet().size() > 0);
+		if (fireEvent) {
+			informLinkAndBrushListeners(new LinkAndBrushSelection(SelectionType.RESTORE_AUTO_BOUNDS, new LinkedList<Pair<Integer,Range>>(), new LinkedList<Pair<Integer,Range>>()));
+		}
 	}
 
 	/**
@@ -112,7 +130,7 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 			// fetch domain axis range
 			Pair<Integer, Range> domainAxisRange = e.getDomainAxisRange();
 			if (domainAxisRange != null) {
-				domainAxisZoom = domainAxisRange.getSecond();
+				setDomainAxisZoom(domainAxisRange.getSecond(), null);
 			}
 
 			// fetch range axis config ranges
@@ -122,14 +140,49 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 				for (Pair<Integer, Range> newRangeAxisRangePair : valueAxisRanges) {
 					RangeAxisConfig rangeAxisConfig = rangeAxisConfigs.get(newRangeAxisRangePair.getFirst());
 					int indexOf = plotConfig.getIndexOfRangeAxisConfigById(rangeAxisConfig.getId());
-					rangeAxisIndexToZoomMap.put(indexOf, newRangeAxisRangePair.getSecond());
+					setRangeAxisZoom(indexOf, newRangeAxisRangePair.getSecond(), null);
 				}
 			}
 
 		}
 
 		if (e.getType() == SelectionType.RESTORE_AUTO_BOUNDS) {
-			clearZooming();
+			clearZooming(false);
+		}
+		
+		informLinkAndBrushListeners(e);
+	}
+	
+	/**
+	 * Sets the domain axis zoom.
+	 * @param domainAxisRange
+	 * @param e if {@code null}, will not inform listeners
+	 */
+	public void setDomainAxisZoom(Range domainAxisZoom, LinkAndBrushSelection e) {
+		if (domainAxisZoom == null) {
+			throw new IllegalArgumentException("domainAxisRange must not be null!");
+		}
+		
+		this.domainAxisZoom = domainAxisZoom;
+		if (e != null) {
+			informLinkAndBrushListeners(e);
+		}
+	}
+	
+	/**
+	 * Sets the range axis zoom of the range axis specified by the given index.
+	 * @param indexOfRangeAxis
+	 * @param rangeAxisZoom
+	 * @param e if {@code null}, will not inform listeners
+	 */
+	public void setRangeAxisZoom(int indexOfRangeAxis, Range rangeAxisZoom, LinkAndBrushSelection e) {
+		if (indexOfRangeAxis < 0) {
+			throw new IllegalArgumentException("indexOfRangeAxis must not be < 0");
+		}
+		
+		rangeAxisIndexToZoomMap.put(indexOfRangeAxis, rangeAxisZoom);
+		if (e != null) {
+			informLinkAndBrushListeners(e);
 		}
 	}
 	
@@ -151,4 +204,58 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 		return clone;
 	}
 
+	/**
+	 * Creates a basic {@link PlotConfiguration} which can be used to display an empty plot.
+	 * @param dataTable the {@link DataTable} for which the plot should be generated
+	 * @param domainDataTableColumn the {@link DataTableColumn} which should be the domain column
+	 * @return
+	 */
+	private PlotInstance createBasicPlotInstance(DataTable dataTable, DataTableColumn domainDataTableColumn) {
+		PlotConfiguration plotConfiguration = new PlotConfiguration(domainDataTableColumn);
+		PlotInstance plotInstance = new PlotInstance(plotConfiguration, dataTable);
+		return plotInstance;
+	}
+	
+	/**
+	 * Adds the given {@link LinkAndBrushListener} to this {@link LinkAndBrushMaster}.
+	 * @param l
+	 */
+	public void addLinkAndBrushListener(LinkAndBrushListener l) {
+		listeners.add(new WeakReference<LinkAndBrushListener>(l));
+	}
+
+	/**
+	 * Removes the given {@link LinkAndBrushListener} from this {@link LinkAndBrushMaster}.
+	 * @param l
+	 */
+	public void removeLinkAndBrushListener(LinkAndBrushListener l) {
+		Iterator<WeakReference<LinkAndBrushListener>> it = listeners.iterator();
+		while (it.hasNext()) {
+			LinkAndBrushListener listener = it.next().get();
+			if (l != null) {
+				if (listener != null && listener.equals(l)) {
+					it.remove();
+				}
+			} else {
+				it.remove();
+			}
+		}
+	}
+	
+	/**
+	 * Informs all {@link LinkAndBrushListener}s of an update.
+	 * @param e
+	 */
+	private void informLinkAndBrushListeners(LinkAndBrushSelection e) {
+		Iterator<WeakReference<LinkAndBrushListener>> it = listeners.iterator();
+		while (it.hasNext()) {
+			WeakReference<LinkAndBrushListener> wrl = it.next();
+			LinkAndBrushListener l = wrl.get();
+			if (l != null) {
+				l.linkAndBrushUpdate(e);
+			} else {
+				it.remove();
+			}
+		}
+	}
 }

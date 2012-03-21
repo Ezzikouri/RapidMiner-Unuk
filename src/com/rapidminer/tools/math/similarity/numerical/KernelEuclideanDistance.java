@@ -55,10 +55,15 @@ public class KernelEuclideanDistance extends DistanceMeasure {
 	    super.init(exampleSet);
 	    Tools.onlyNumericalAttributes(exampleSet, "value based similarities");	
 	}
+	
+	@Override
+	public void init(ExampleSet exampleSet, ParameterHandler parameterHandler) throws OperatorException {
+		super.init(exampleSet, parameterHandler);
+		init(parameterHandler);
+	}
 
 	public void init(ParameterHandler handler) throws OperatorException {
 		kernel = Kernel.createKernel(handler);
-
 	}
 
 	@Override

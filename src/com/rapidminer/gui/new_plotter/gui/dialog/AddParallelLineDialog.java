@@ -571,7 +571,7 @@ public class AddParallelLineDialog extends JDialog {
 			}
 			line.setValue(Double.parseDouble(xField.getText()));
 		}
-		dialog.setLine(line);
+		dialog.setLine(line, false);
 		dialog.showDialog();
 	}
 	

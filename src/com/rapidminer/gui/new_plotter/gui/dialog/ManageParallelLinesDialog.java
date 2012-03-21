@@ -435,7 +435,7 @@ public class ManageParallelLinesDialog extends JDialog {
 				dialog = new EditParallelLineDialog();
 			}
 			
-			dialog.setLine(line);
+			dialog.setLine(line, true);
 			dialog.showDialog();
 		}
 	}

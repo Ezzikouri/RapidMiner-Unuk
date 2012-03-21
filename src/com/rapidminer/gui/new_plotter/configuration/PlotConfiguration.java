@@ -44,6 +44,7 @@ import com.rapidminer.gui.new_plotter.configuration.DomainConfigManager.Grouping
 import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
+import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushListener;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelectionListener;
 import com.rapidminer.gui.new_plotter.listener.DimensionConfigListener;
@@ -74,7 +75,7 @@ import com.rapidminer.tools.ParameterService;
 /**
  * @author Marius Helf, Nils Woehler
  */
-public class PlotConfiguration implements DimensionConfigListener, RangeAxisConfigListener, Cloneable, LinkAndBrushSelectionListener, LegendConfigurationListener {
+public class PlotConfiguration implements DimensionConfigListener, RangeAxisConfigListener, Cloneable, LinkAndBrushSelectionListener, LegendConfigurationListener, LinkAndBrushListener {
 
 	public static final Paint DEFAULT_SERIES_OUTLINE_PAINT = Color.BLACK;
 
@@ -178,6 +179,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		unique_debug_id = CLASS_ID;
 		this.domainConfigManager = new DomainConfigManager(this, domainColumn);
 		this.linkAndBrushMaster = new LinkAndBrushMaster(this);
+		this.linkAndBrushMaster.addLinkAndBrushListener(this);
 		domainConfigManager.addDimensionConfigListener(this);
 		legendConfiguration.addListener(this);
 
@@ -261,6 +263,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 		++CLASS_ID;
 		unique_debug_id = CLASS_ID;
 		this.linkAndBrushMaster = new LinkAndBrushMaster(this);
+		this.linkAndBrushMaster.addLinkAndBrushListener(this);
 		this.legendConfiguration = legendConfiguration;
 		this.domainConfigManager = domainConfigManager;
 		domainConfigManager.setPlotConfiguration(this);
@@ -308,7 +311,7 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 
 	public void changeIndex(int index, RangeAxisConfig rangeAxis) {
 		if (ListUtility.changeIndex(rangeAxisConfigs, rangeAxis, index)) {
-			linkAndBrushMaster.clearZooming();
+			linkAndBrushMaster.clearZooming(false);
 			fireRangeAxisMoved(index, rangeAxis);
 		}
 	}
@@ -952,20 +955,20 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 			}
 
 			informValueSourcesAboutDimensionChange(change);
-			linkAndBrushMaster.clearZooming();
+			linkAndBrushMaster.clearZooming(false);
 			firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, change));
 			break;
 		case RANGE:
 			ValueRangeChangeEvent rangeChange = change.getValueRangeChangedEvent();
 			if (rangeChange.getType() == ValueRangeChangeType.RESET) {}
 			informValueSourcesAboutDimensionChange(change);
-			linkAndBrushMaster.clearZooming();
+			linkAndBrushMaster.clearZooming(false);
 			firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, change));
 			break;
 		default:
 			if (!changingGrouping) {
 				informValueSourcesAboutDimensionChange(change);
-				linkAndBrushMaster.clearZooming();
+				linkAndBrushMaster.clearZooming(false);
 				firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, change));
 			}
 			break;
@@ -988,13 +991,13 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 				shouldBreak = true;
 				break;
 			default:
-				linkAndBrushMaster.clearZooming();
+				linkAndBrushMaster.clearZooming(false);
 			}
 			if (shouldBreak) {
 				break;
 			}
 		default:
-			linkAndBrushMaster.clearRangeAxisZooming();
+			linkAndBrushMaster.clearRangeAxisZooming(false);
 
 		}
 		firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, e));
@@ -1283,7 +1286,6 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	@Override
 	public void selectedLinkAndBrushRectangle(LinkAndBrushSelection e) {
 		linkAndBrushMaster.selectedLinkAndBrushRectangle(e);
-		firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, e));
 	}
 
 	public static int getMaxAllowedValueCount() {
@@ -1406,5 +1408,10 @@ public class PlotConfiguration implements DimensionConfigListener, RangeAxisConf
 	 */
 	public void triggerReplot() {
 		firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this));
+	}
+
+	@Override
+	public void linkAndBrushUpdate(LinkAndBrushSelection e) {
+		firePlotConfigurationChanged(new PlotConfigurationChangeEvent(this, e));
 	}
 }

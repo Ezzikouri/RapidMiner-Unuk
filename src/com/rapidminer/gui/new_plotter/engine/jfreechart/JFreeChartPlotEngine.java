@@ -1418,6 +1418,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				break;
 			case LINK_AND_BRUSH_SELECTION:
 				checkWarnings();
+				replot();
 				processed = true;
 				break;
 			default:

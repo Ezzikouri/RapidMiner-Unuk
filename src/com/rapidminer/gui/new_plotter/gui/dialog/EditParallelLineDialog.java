@@ -34,6 +34,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -181,6 +182,7 @@ public class EditParallelLineDialog extends JDialog {
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.weightx = 1;
 		lineStyleCombobox = new JComboBox(LineStyle.values());
+		((DefaultComboBoxModel)lineStyleCombobox.getModel()).removeElement(LineStyle.NONE);
 		lineStyleCombobox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.edit_parallel_line.line_style.tip"));
 		lineStyleCombobox.setSelectedItem(LineStyle.SOLID);
 		this.add(lineStyleCombobox, gbc);
@@ -266,11 +268,15 @@ public class EditParallelLineDialog extends JDialog {
 	/**
 	 * Sets the {@link AxisParallelLineConfiguration} to edit.
 	 * @param line
+	 * @param allowValueEdit if set to false, the value field will not be enabled
 	 */
-	public void setLine(AxisParallelLineConfiguration line) {
+	public void setLine(AxisParallelLineConfiguration line, boolean allowValueEdit) {
 		if (line == null) {
 			throw new IllegalArgumentException("line must not be null!");
 		}
+		if (!allowValueEdit) {
+            this.valueField.setEnabled(false);
+        }
 		
 		this.line = line;
 		this.lineColor = line.getFormat().getColor();
