@@ -477,6 +477,9 @@ public class RapidAssert extends Assert {
 		}
 	}
 
+	/**
+	 * Attention: Does not work with values near 0!!
+	 */
 	public static void assertEqualsWithRelativeErrorOrBothNaN(String message, double expected, double actual) {
 		if (expected == actual) {
 			return;
