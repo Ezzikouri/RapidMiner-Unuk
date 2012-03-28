@@ -58,7 +58,8 @@ public interface DimensionConfig extends Cloneable {
 		DOMAIN(I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.domain.label"),	I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.domain.short_label")),
 		COLOR(I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.color.label"),		I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.color.short_label")),
 		SHAPE(I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.shape.label"),		I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.shape.short_label")), 
-		SIZE(I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.size.label"),		I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.size.short_label"));	
+		SIZE(I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.size.label"),		I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.size.short_label")),
+		SELECTED(I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.selected.label"),I18N.getGUILabel("plotter.configuration_dialog.plot_dimension.selected.short_label"));	
 //		LINESTYLE
 		
 		private final String name;

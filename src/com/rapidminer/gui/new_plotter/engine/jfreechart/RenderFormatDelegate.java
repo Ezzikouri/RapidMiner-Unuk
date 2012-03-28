@@ -82,6 +82,7 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 	private boolean individualSizeForEachItem;
 	private boolean seriesSizeFromDimensionConfig;
 	private Vector<double[]> sizeValues;
+	private Vector<double[]> selectedValues;
 	private SizeProvider sizeProvider;
 	
 	public RenderFormatDelegate() {
@@ -120,6 +121,8 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 	 * Returns the paint to be used for drawing the item valueIdx in series seriesIdx.
 	 */
 	public Paint getItemPaint(int seriesIdx, int valueIdx) {
+		double selectedValue = getItemValue(seriesIdx, PlotDimension.SELECTED, valueIdx);
+		boolean selected = (selectedValue == 1) ? true : false;
 		if (!individualColorForEachItem) {
 			if (colorProvider != null) {
 				if (seriesColorFromDimensionConfig) {
@@ -131,7 +134,11 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 					return seriesPaint;
 				}
 			}
-			return seriesFormat.getAreaFillPaint();
+			Color color = seriesFormat.getItemColor();
+			if (!selected) {
+				color = DataStructureUtils.setColorAlpha(color, 100);
+			} 
+			return seriesFormat.getAreaFillPaint(color);
 		}
 		
 		if (colorProvider == null) {
@@ -141,6 +148,9 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 
 			Color itemColor = colorProvider.getColorForValue(value);
 			itemColor = DataStructureUtils.setColorAlpha(itemColor, DataStructureUtils.multiplyOpacities256(itemColor.getAlpha(), seriesFormat.getOpacity()));
+			if (!selected) {
+				itemColor = DataStructureUtils.setColorAlpha(itemColor, 100);
+			} 
 			Paint paint = seriesFormat.getAreaFillPaint(itemColor);
 			return paint;
 		}
@@ -154,6 +164,8 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 			return shapeValues.get(seriesIdx)[valueIdx];
 		case SIZE:
 			return sizeValues.get(seriesIdx)[valueIdx];
+		case SELECTED:
+			return selectedValues.get(seriesIdx)[valueIdx];
 		default:
 			throw new IllegalArgumentException("getItemValue called for dimension " + dimension + " which is unsupported by RenderFormatDelegate - this should not happen.");
 		}
@@ -271,6 +283,7 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 		if (individualSizeForEachItem) {
 			sizeValues = copySeriesValues(valueSourceData, PlotDimension.SIZE);
 		}
+		selectedValues = copySeriesValues(valueSourceData, PlotDimension.SELECTED);
 		
 		// copy group values if necessary
 		if (seriesColorFromDimensionConfig || seriesShapeFromDimensionConfig || seriesSizeFromDimensionConfig) {

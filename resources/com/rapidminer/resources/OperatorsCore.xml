@@ -211,6 +211,7 @@
 					<class>com.rapidminer.operator.learner.rules.SimpleRuleLearner
 					</class>
 					<replaces>BasicRuleLearner</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>neuralnetsimple</key>
@@ -218,30 +219,35 @@
 					</class>
 					<deprecatedSince>5.0</deprecatedSince>
 					<replaces>NeuralNetSimple</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>id3numerical</key>
 					<class>com.rapidminer.operator.learner.tree.ID3NumericalLearner
 					</class>
 					<replaces>ID3Numerical</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>rocchart</key>
 					<class>com.rapidminer.operator.visualization.ROCChartGenerator
 					</class>
 					<replaces>ROCChart</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>logisticregression</key>
 					<class>com.rapidminer.operator.learner.functions.LogisticRegression
 					</class>
 					<replaces>LogisticRegression</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>groupby</key>
 					<class>com.rapidminer.operator.preprocessing.GroupByOperator
 					</class>
 					<replaces>GroupBy</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>neuralnet</key>
@@ -262,30 +268,35 @@
 					<class>com.rapidminer.operator.visualization.DataStatisticsOperator
 					</class>
 					<replaces>DataStatistics</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>examplevisualizer</key>
 					<class>com.rapidminer.operator.visualization.ExampleVisualizationOperator
 					</class>
 					<replaces>ExampleVisualizer</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>liftchart</key>
 					<class>com.rapidminer.operator.visualization.LiftChartGenerator
 					</class>
 					<replaces>LiftChart</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>interactiveattributeweighting</key>
 					<class>com.rapidminer.operator.features.weighting.InteractiveAttributeWeighting
 					</class>
 					<replaces>InteractiveAttributeWeighting</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 				<operator>
 					<key>iteratinggss</key>
 					<class>com.rapidminer.operator.learner.igss.IteratingGSS</class>
 					<deprecatedSince>5.0</deprecatedSince>
 					<replaces>IteratingGSS</replaces>
+					<deprecatedSince>5.0</deprecatedSince>
 				</operator>
 			</group>
 		</group>

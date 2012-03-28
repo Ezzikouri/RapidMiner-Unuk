@@ -353,6 +353,7 @@ public class ValueSourceData {
 					GroupCellData groupCellData = new GroupCellData();
 					Vector<PlotDimension> allDimensions = new Vector<DimensionConfig.PlotDimension>(dimensions.size() + 2);
 					allDimensions.addAll(dimensions);
+					allDimensions.add(PlotDimension.SELECTED);
 					allDimensions.add(PlotDimension.DOMAIN);
 					allDimensions.add(PlotDimension.VALUE);
 					for (SeriesUsageType usageType : valueSource.getDefinedUsageTypes()) {
@@ -377,7 +378,9 @@ public class ValueSourceData {
 
 							double yValue = row.getValue(dataTableColumnIdxMap.get(usageType));
 							double xValue = row.getValue(DataTableColumn.getColumnIndex(dataTable, valueSource.getDomainConfig().getDataTableColumn()));
-
+							
+							// just initialize selection with 1 (selected) as default
+							dataForUsageType.get(PlotDimension.SELECTED)[currentRowIdx] = 1;
 							dataForUsageType.get(PlotDimension.VALUE)[currentRowIdx] = yValue;
 							dataForUsageType.get(PlotDimension.DOMAIN)[currentRowIdx] = xValue;
 						}
@@ -409,12 +412,17 @@ public class ValueSourceData {
 
 						// iterate all dimensions and store the values of the ValueRanges in groupCellDataArrays
 						for (PlotDimension dimension : dimensions) {
-							ValueRange valueRange = groupCellKey.getRangeForDimension(dimension);
-							double value = Double.NaN;
-							if (valueRange != null) {
-								value = valueRange.getValue();
+							if (dimension == PlotDimension.SELECTED) {
+								// just initialize selection with 1 (selected) as default
+								dataForUsageType.get(dimension)[xGroupIdx] = 1;
+							} else {
+								ValueRange valueRange = groupCellKey.getRangeForDimension(dimension);
+								double value = Double.NaN;
+								if (valueRange != null) {
+									value = valueRange.getValue();
+								}
+								dataForUsageType.get(dimension)[xGroupIdx] = value;
 							}
-							dataForUsageType.get(dimension)[xGroupIdx] = value;
 						}
 
 						// set X and Y dimension

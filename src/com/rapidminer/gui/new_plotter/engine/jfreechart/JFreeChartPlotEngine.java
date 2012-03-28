@@ -25,6 +25,7 @@ package com.rapidminer.gui.new_plotter.engine.jfreechart;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -117,6 +118,8 @@ import com.rapidminer.gui.new_plotter.listener.events.RangeAxisConfigChangeEvent
 import com.rapidminer.gui.new_plotter.listener.events.SeriesFormatChangeEvent;
 import com.rapidminer.gui.new_plotter.listener.events.ValueSourceChangeEvent;
 import com.rapidminer.gui.new_plotter.listener.events.ValueSourceChangeEvent.ValueSourceChangeType;
+import com.rapidminer.gui.plotter.CoordinateTransformation;
+import com.rapidminer.gui.plotter.NullCoordinateTransformation;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.I18N;
 
@@ -199,6 +202,12 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	/** the add crosshair action */
 	private AddParallelLineAction addParallelLineAction;
 	
+	/**
+	 * This is a transformation which transforms the components coordinates to screen coordinates. If is null, no
+	 * transformation is needed.
+	 */
+	private transient CoordinateTransformation coordinateTransformation = new NullCoordinateTransformation();
+	
 	{
 		// create popup menu for chart here
 		popupMenuChart = new JPopupMenu();
@@ -224,7 +233,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		    private void maybeShowPopup(MouseEvent e) {
 		        if (e.isPopupTrigger()) {
 		        	addParallelLineAction.setPopupLocation(e.getPoint());
-		        	popupMenuChart.show(e.getComponent(), e.getX(), e.getY());
+		        	coordinateTransformation.showPopupMenu(new Point(e.getX(), e.getY()), chartPanel, popupMenuChart);
 		        }
 		    }
 		};
@@ -1692,6 +1701,14 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				it.remove();
 			}
 		}
+	}
+	
+	/**
+	 * This method sets the coordinate transformation for this component.
+	 */
+	public void setCoordinateTransformation(CoordinateTransformation transformation) {
+		this.coordinateTransformation = transformation;
+		this.chartPanel.setCoordinateTransformation(transformation);
 	}
 
 	private void fireChartChanged(JFreeChart chart) {

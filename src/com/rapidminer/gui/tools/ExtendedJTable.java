@@ -667,9 +667,13 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
 
                 JPopupMenu menu = createPopupMenu();
 
-                menu.show(this, e.getX(), e.getY());
+                showPopupMenu(menu, e.getPoint());
             }
         }
+    }
+    
+    protected void showPopupMenu(JPopupMenu menu, Point location) {
+    	menu.show(this, (int) location.getX(), (int) location.getY());
     }
 
     public JPopupMenu createPopupMenu() {
