@@ -22,12 +22,14 @@
  */
 package com.rapidminer.gui.new_plotter.engine.jfreechart.renderer;
 
+import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
 
 import org.jfree.chart.renderer.xy.DeviationRenderer;
 
 import com.rapidminer.gui.new_plotter.engine.jfreechart.RenderFormatDelegate;
+import com.rapidminer.gui.new_plotter.utility.DataStructureUtils;
 
 /**
  * @author Marius Helf
@@ -76,5 +78,14 @@ public class FormattedDeviationRenderer extends DeviationRenderer implements For
 			seriesFillPaint = super.getSeriesFillPaint(seriesIdx);
 		}
 		return seriesFillPaint;
+	}
+	
+	@Override
+	public Paint getItemOutlinePaint(int seriesIdx, int valueIdx) {
+		if (getFormatDelegate().isItemSelected(seriesIdx, valueIdx)) {
+			return super.getItemOutlinePaint(seriesIdx, valueIdx);
+		} else {
+			return DataStructureUtils.setColorAlpha(Color.LIGHT_GRAY, 20);
+		}
 	}
 }

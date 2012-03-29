@@ -45,6 +45,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -76,6 +77,7 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 
 	private static final long serialVersionUID = 1L;
 	private final boolean zoomOnLinkAndBrushSelection;
+	private boolean blockSelectionOrZoom = false;
 
 	/**
 	 * This is a transformation which transforms the components coordinates to screen coordinates. If is null, no
@@ -365,8 +367,22 @@ public class LinkAndBrushChartPanel extends ChartPanel {
     }
 	
 	@Override
+	public void mousePressed(MouseEvent e) {
+		// this is used to only allow left mouse button zoom / selection
+		if (!SwingUtilities.isLeftMouseButton(e)) {
+			blockSelectionOrZoom = true;
+		} else {
+			blockSelectionOrZoom = false;
+		}
+		super.mousePressed(e);
+	}
+	
+	@Override
 	public void mouseDragged(MouseEvent e) {
-
+		// when not allowed to zoom / select, return
+		if (blockSelectionOrZoom) {
+			return;
+		}
         // if the popup menu has already been triggered, then ignore dragging...
         if (getChartFieldValueByName("popup") != null && ((JPopupMenu) getChartFieldValueByName("popup")).isShowing()) {
             return;
@@ -569,7 +585,9 @@ public class LinkAndBrushChartPanel extends ChartPanel {
         if (zoomRectangle != null) {
         	// fix rectangle parameters when chart is transformed
         	zoomRectangle = coordinateTransformation.transformRectangle(zoomRectangle, this);
-        	g2 = coordinateTransformation.getTransformedGraphics(this);
+        	if (!(coordinateTransformation instanceof NullCoordinateTransformation)) {
+        		g2 = coordinateTransformation.getTransformedGraphics(this);
+        	}
             if (xor) {
                  // Set XOR mode to draw the zoom rectangle
                 g2.setXORMode(Color.gray);

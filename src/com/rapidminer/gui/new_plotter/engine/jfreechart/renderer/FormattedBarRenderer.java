@@ -22,12 +22,14 @@
  */
 package com.rapidminer.gui.new_plotter.engine.jfreechart.renderer;
 
+import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Shape;
 
 import org.jfree.chart.renderer.category.BarRenderer;
 
 import com.rapidminer.gui.new_plotter.engine.jfreechart.RenderFormatDelegate;
+import com.rapidminer.gui.new_plotter.utility.DataStructureUtils;
 
 /**
  * @author Marius Helf
@@ -63,6 +65,15 @@ public class FormattedBarRenderer extends BarRenderer implements FormattedRender
 			return super.getItemShape(seriesIdx, valueIdx);
 		} else {
 			return shapeFromDelegate;
+		}
+	}
+	
+	@Override
+	public Paint getItemOutlinePaint(int seriesIdx, int valueIdx) {
+		if (getFormatDelegate().isItemSelected(seriesIdx, valueIdx)) {
+			return super.getItemOutlinePaint(seriesIdx, valueIdx);
+		} else {
+			return DataStructureUtils.setColorAlpha(Color.LIGHT_GRAY, 20);
 		}
 	}
 }

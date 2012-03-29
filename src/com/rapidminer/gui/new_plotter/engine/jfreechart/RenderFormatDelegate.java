@@ -121,8 +121,7 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 	 * Returns the paint to be used for drawing the item valueIdx in series seriesIdx.
 	 */
 	public Paint getItemPaint(int seriesIdx, int valueIdx) {
-		double selectedValue = getItemValue(seriesIdx, PlotDimension.SELECTED, valueIdx);
-		boolean selected = (selectedValue == 1) ? true : false;
+		boolean selected = isItemSelected(seriesIdx, valueIdx);
 		if (!individualColorForEachItem) {
 			if (colorProvider != null) {
 				if (seriesColorFromDimensionConfig) {
@@ -136,7 +135,8 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 			}
 			Color color = seriesFormat.getItemColor();
 			if (!selected) {
-				color = DataStructureUtils.setColorAlpha(color, 100);
+				// item not selected? Lower alpha
+				color = DataStructureUtils.setColorAlpha(color, 20);
 			} 
 			return seriesFormat.getAreaFillPaint(color);
 		}
@@ -149,11 +149,26 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 			Color itemColor = colorProvider.getColorForValue(value);
 			itemColor = DataStructureUtils.setColorAlpha(itemColor, DataStructureUtils.multiplyOpacities256(itemColor.getAlpha(), seriesFormat.getOpacity()));
 			if (!selected) {
-				itemColor = DataStructureUtils.setColorAlpha(itemColor, 100);
+				// item not selected? Lower alpha
+				itemColor = DataStructureUtils.setColorAlpha(itemColor, 20);
 			} 
 			Paint paint = seriesFormat.getAreaFillPaint(itemColor);
 			return paint;
 		}
+	}
+	
+	/**
+	 * Returns if the given item is selected (aka value of 1 in the {@link PlotDimension#SELECTED} column)
+	 * @param seriesIdx
+	 * @param valueIdx
+	 * @return
+	 */
+	public boolean isItemSelected(int seriesIdx, int valueIdx) {
+//		double selectedValue = getItemValue(seriesIdx, PlotDimension.SELECTED, valueIdx);
+//		boolean selected = (selectedValue == 1) ? true : false;
+		//TODO: fix
+		boolean selected = true;
+		return selected;
 	}
 	
 	private double getItemValue(int seriesIdx, PlotDimension dimension, int valueIdx) {
@@ -359,5 +374,10 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 		}
 		double value = currentValueRange.getValue();
 		return value;
+	}
+
+	public Paint getItemOutlinePaint(int seriesIdx, int valueIdx) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

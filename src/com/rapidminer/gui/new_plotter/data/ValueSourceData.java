@@ -397,6 +397,7 @@ public class ValueSourceData {
 				GroupCellData groupCellData = new GroupCellData();
 				Vector<PlotDimension> allDimensions = new Vector<DimensionConfig.PlotDimension>(dimensions.size() + 2);
 				allDimensions.addAll(dimensions);
+				allDimensions.add(PlotDimension.SELECTED);
 				allDimensions.add(PlotDimension.DOMAIN);
 				allDimensions.add(PlotDimension.VALUE);
 				for (SeriesUsageType usageType : valueSource.getDefinedUsageTypes()) {

@@ -98,4 +98,13 @@ public class FormattedXYDifferenceRenderer extends XYDifferenceRenderer implemen
 			return super.getNegativePaint();
 		}
 	}
+	
+	@Override
+	public Paint getItemOutlinePaint(int seriesIdx, int valueIdx) {
+		if (getFormatDelegate().isItemSelected(seriesIdx, valueIdx)) {
+			return super.getItemOutlinePaint(seriesIdx, valueIdx);
+		} else {
+			return DataStructureUtils.setColorAlpha(Color.LIGHT_GRAY, 20);
+		}
+	}
 }

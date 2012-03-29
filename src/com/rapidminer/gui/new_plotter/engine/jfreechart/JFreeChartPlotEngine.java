@@ -522,7 +522,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	 * and update the {@link ChartPanel}s chart. This should only be called if a {@link PlotConfigurationChangeEvent} is processed.
 	 * If initializing it returns <code>true</code>, <code>false</code> otherwise.
 	 */
-	private boolean replot() {
+	public boolean replot() {
 		if (initializing) {
 			return true;
 		}
@@ -1427,8 +1427,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				break;
 			case LINK_AND_BRUSH_SELECTION:
 				checkWarnings();
-				replot();
-				processed = true;
+				processed = replot();
 				break;
 			default:
 				//DONT FORGET TO RETURN TRUE OR FALSE

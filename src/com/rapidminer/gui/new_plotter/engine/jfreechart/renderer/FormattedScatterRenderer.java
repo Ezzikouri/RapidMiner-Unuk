@@ -22,6 +22,7 @@
  */
 package com.rapidminer.gui.new_plotter.engine.jfreechart.renderer;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Paint;
 import java.awt.Shape;
@@ -39,6 +40,7 @@ import org.jfree.util.ShapeUtilities;
 
 import com.rapidminer.gui.new_plotter.engine.jfreechart.RenderFormatDelegate;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.dataset.ValueSourceToMultiValueCategoryDatasetAdapter;
+import com.rapidminer.gui.new_plotter.utility.DataStructureUtils;
 
 /**
  * This renderer less flat than most other {@link FormattedRenderer}s, since
@@ -162,4 +164,13 @@ public class FormattedScatterRenderer extends ScatterRenderer implements Formatt
             }
         }
     }
+	
+	@Override
+	public Paint getItemOutlinePaint(int seriesIdx, int valueIdx) {
+		if (getFormatDelegate().isItemSelected(seriesIdx, valueIdx)) {
+			return super.getItemOutlinePaint(seriesIdx, valueIdx);
+		} else {
+			return DataStructureUtils.setColorAlpha(Color.LIGHT_GRAY, 20);
+		}
+	}
 }

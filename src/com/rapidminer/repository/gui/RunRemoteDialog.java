@@ -424,7 +424,7 @@ public class RunRemoteDialog extends ButtonDialog {
 			if (nowButton.isSelected()) {
 				try {
 					response = repos.getProcessService().executeProcessSimple(location, null, pcWrapper);
-				} catch (RepositoryException e) {
+				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_connecting_to_server", e);
 					return;
 				}
