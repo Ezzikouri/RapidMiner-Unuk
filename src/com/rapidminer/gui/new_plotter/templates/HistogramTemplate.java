@@ -81,6 +81,8 @@ public class HistogramTemplate extends PlotterTemplate {
 
 	private static final String Y_AXIS_LOGARITHMIC_ELEMENT = "yAxisLogarithmic";
 
+	/** the current {@link DataTable} backup */
+	private DataTable currentDataTableBackup;
 	
 	/** the original {@link DataTable} */
 	private DataTable modifiedDataTable;
@@ -195,7 +197,8 @@ public class HistogramTemplate extends PlotterTemplate {
 		for (Object name : plotNames) {
 			selectedNumericAttributes.add(String.valueOf(name));
 		}
-		ExampleSet metaSet = DataTransformation.createDePivotizedExampleSet(DataTableExampleSetAdapter.createExampleSetFromDataTable(dataTable), selectedNumericAttributes);
+		ExampleSet newExampleSet =  DataTableExampleSetAdapter.createExampleSetFromDataTable(dataTable);
+		ExampleSet metaSet = DataTransformation.createDePivotizedExampleSet(newExampleSet, selectedNumericAttributes);
 		// in case of error or no attributes specified
 		if (metaSet == null) {
 			return;
@@ -210,6 +213,75 @@ public class HistogramTemplate extends PlotterTemplate {
 			plotEngine.setPlotInstance(newPlotInstance);
 		}
 		setPlotInstance(newPlotInstance);
+	}
+	
+	/**
+	 * Gets the current {@link DataTable} for this {@link HistogramTemplate}.
+	 * Based on this a new {@link DataTable} can be created and given to the template via
+	 * {@link #replaceTemporarilyCurrentDataTable(DataTable)}.
+	 * @return
+	 */
+	public DataTable getCurrentDataTable() {
+		return this.currentDataTable;
+	}
+	
+	/**
+	 * Replaces the current {@link DataTable} with the given one.
+	 * Can be used to filter the data for the histogram based on certain conditions.
+	 * @param replacementTable
+	 * @param createBackup if set to false, will NOT create a new backup. Use if chaining these calls
+	 * 		without calling {@link #revertToBackupDataTable()}.
+	 */
+	public void replaceTemporarilyCurrentDataTable(DataTable replacementTable, boolean createBackup) {
+		if (createBackup) {
+			currentDataTableBackup = currentDataTable;
+		}
+		currentDataTable = replacementTable;
+		
+		// convert to meta information DataTable
+		updateMetaDataTable(currentDataTable);
+		
+		updatePlotConfiguration();
+		setChanged();
+		notifyObservers();
+	}
+	
+	/**
+	 * Returns the current {@link DataTable} back to the original.
+	 * If it has not been modified via {@link #replaceTemporarilyCurrentDataTable(DataTable)},
+	 * nothing happens.
+	 */
+	public void revertToBackupDataTable() {
+		if (currentDataTableBackup == null) {
+			return;
+		}
+		currentDataTable = currentDataTableBackup;
+		currentDataTableBackup = null;
+		
+		// convert to meta information DataTable
+		updateMetaDataTable(currentDataTable);
+		
+		updatePlotConfiguration();
+		setChanged();
+		notifyObservers();
+	}
+	
+	/**
+	 * Returns <code>true</code> if a backup of the current {@link DataTable} exists.
+	 * @return
+	 */
+	public boolean hasBackupDataTable() {
+		return currentDataTableBackup != null;
+	}
+	
+	/**
+	 * Gets the backup {@link DataTable} for this {@link HistogramTemplate}.
+	 * Check prior to calling via {@link #hasBackupDataTable()}, otherwise you might
+	 * get <code>null</code> as return value.
+	 * @return
+	 */
+	public DataTable getBackupDataTable() {
+		return currentDataTableBackup;
 	}
 	
 	/**

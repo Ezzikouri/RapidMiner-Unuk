@@ -76,7 +76,7 @@ import com.rapidminer.tools.container.Pair;
 public class LinkAndBrushChartPanel extends ChartPanel {
 
 	private static final long serialVersionUID = 1L;
-	private final boolean zoomOnLinkAndBrushSelection;
+	private boolean zoomOnLinkAndBrushSelection;
 	private boolean blockSelectionOrZoom = false;
 
 	/**
@@ -226,6 +226,22 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 				super.zoom(selection);
 			}
 		}
+	}
+	
+	/**
+	 * If set to <code>true</code>, will zoom on selection, otherwise will not zoom.
+	 * @param zoomOnLinkAndBrushSelection
+	 */
+	public void setZoomOnLinkAndBrushSelection(boolean zoomOnLinkAndBrushSelection) {
+		this.zoomOnLinkAndBrushSelection = zoomOnLinkAndBrushSelection;
+	}
+	
+	/**
+	 * Returns whether the panel will zoom on selection or not.
+	 * @return
+	 */
+	public boolean getZoomOnLinkAndBrushSelection() {
+		return zoomOnLinkAndBrushSelection;
 	}
 	
 	@Override

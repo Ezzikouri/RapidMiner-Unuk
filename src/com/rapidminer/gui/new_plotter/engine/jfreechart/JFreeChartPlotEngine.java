@@ -1368,6 +1368,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		PlotConfiguration masterPlotConfiguration = plotInstance.getMasterPlotConfiguration();
 		masterPlotConfiguration.removePlotConfigurationListener(this);
 		masterPlotConfiguration.removePlotConfigurationProcessingListener(this);
+		endProcessing();
 		initializing = false;
 	}
 

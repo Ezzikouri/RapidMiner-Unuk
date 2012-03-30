@@ -129,6 +129,10 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 
 					Color seriesColor = colorProvider.getColorForValue(colorIdx);
 					seriesColor = DataStructureUtils.setColorAlpha(seriesColor, DataStructureUtils.multiplyOpacities256(seriesColor.getAlpha(), seriesFormat.getOpacity()));
+					if (!selected) {
+						// item not selected? Lower alpha
+						seriesColor = DataStructureUtils.setColorAlpha(seriesColor, 20);
+					}
 					Paint seriesPaint = seriesFormat.getAreaFillPaint(seriesColor);
 					return seriesPaint;
 				}
@@ -137,7 +141,7 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 			if (!selected) {
 				// item not selected? Lower alpha
 				color = DataStructureUtils.setColorAlpha(color, 20);
-			} 
+			}
 			return seriesFormat.getAreaFillPaint(color);
 		}
 		
@@ -151,7 +155,7 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 			if (!selected) {
 				// item not selected? Lower alpha
 				itemColor = DataStructureUtils.setColorAlpha(itemColor, 20);
-			} 
+			}
 			Paint paint = seriesFormat.getAreaFillPaint(itemColor);
 			return paint;
 		}
@@ -164,10 +168,8 @@ public class RenderFormatDelegate implements SeriesFormatListener {
 	 * @return
 	 */
 	public boolean isItemSelected(int seriesIdx, int valueIdx) {
-//		double selectedValue = getItemValue(seriesIdx, PlotDimension.SELECTED, valueIdx);
-//		boolean selected = (selectedValue == 1) ? true : false;
-		//TODO: fix
-		boolean selected = true;
+		double selectedValue = getItemValue(seriesIdx, PlotDimension.SELECTED, valueIdx);
+		boolean selected = (selectedValue == 1) ? true : false;
 		return selected;
 	}
 	

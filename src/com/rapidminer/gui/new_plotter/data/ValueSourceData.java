@@ -413,18 +413,16 @@ public class ValueSourceData {
 
 						// iterate all dimensions and store the values of the ValueRanges in groupCellDataArrays
 						for (PlotDimension dimension : dimensions) {
-							if (dimension == PlotDimension.SELECTED) {
-								// just initialize selection with 1 (selected) as default
-								dataForUsageType.get(dimension)[xGroupIdx] = 1;
-							} else {
-								ValueRange valueRange = groupCellKey.getRangeForDimension(dimension);
-								double value = Double.NaN;
-								if (valueRange != null) {
-									value = valueRange.getValue();
-								}
-								dataForUsageType.get(dimension)[xGroupIdx] = value;
+							ValueRange valueRange = groupCellKey.getRangeForDimension(dimension);
+							double value = Double.NaN;
+							if (valueRange != null) {
+								value = valueRange.getValue();
 							}
+							dataForUsageType.get(dimension)[xGroupIdx] = value;
 						}
+						
+						// just initialize selection with 1 (selected) as default
+						dataForUsageType.get(PlotDimension.SELECTED)[xGroupIdx] = 1;
 
 						// set X and Y dimension
 						double y = getAggregatedValueForGroupCell(usageType, groupCellKey);

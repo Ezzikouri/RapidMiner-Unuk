@@ -114,12 +114,16 @@ public abstract class AbstractExampleSetJoin extends Operator {
         });
     }
     
-	protected InputPort getLeftInput() {
+	public InputPort getLeftInput() {
 		return leftInput;
 	}
 
-	protected InputPort getRightInput() {
+	public InputPort getRightInput() {
 		return rightInput;
+	}
+	
+	public OutputPort getJoinOutput() {
+		return joinOutput;
 	}
 
 
