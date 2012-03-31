@@ -60,7 +60,25 @@ import com.rapidminer.tools.Tools;
  */
 public class RendererService {
 
-	private static final Icon ICON_DEFAULT = SwingTools.createIcon("16/data.png");
+	/** Used in {@link RendererService#class2IconMap}. */
+	private static class IconData {
+		private final String iconName;
+		private final Icon icon;
+		public IconData(String iconName, Icon icon) {
+			this.iconName = iconName;
+			this.icon = icon;
+		}
+		public Icon getIcon() {
+			return icon;
+		}
+		
+		public String getIconName() {
+			return iconName;
+		}
+	}
+
+	
+	private static final IconData ICON_DEFAULT = new IconData("data.png", SwingTools.createIcon("16/data.png"));
 
 	private static Set<String> objectNames = new TreeSet<String>();
 
@@ -79,8 +97,8 @@ public class RendererService {
 
 	private static Map<Class<?>, String> class2NameMap = new HashMap<Class<?>, String>();
 
-	private static Map<Class<? extends IOObject>, Icon> class2IconMap = new HashMap<Class<? extends IOObject>, Icon>();
-
+	private static Map<Class<? extends IOObject>, IconData> class2IconMap = new HashMap<Class<? extends IOObject>, IconData>();
+	
 	private static boolean isInitialized = false;
 
 	public static void init() {
@@ -223,7 +241,7 @@ public class RendererService {
 			if (iconName != null && !iconName.isEmpty()) {
 				ImageIcon icon = SwingTools.createIcon("16/" + iconName);
 				if (icon != null)
-					class2IconMap.put(clazz, icon);
+					class2IconMap.put(clazz, new IconData(iconName, icon));
 			}
 
 		} catch (Throwable e) {
@@ -342,11 +360,22 @@ public class RendererService {
 	 * This returns the icon registered for the given class or a default icon, if nothing has been registered.
 	 */
 	public static Icon getIcon(Class<? extends IOObject> objectClass) {
+		return getIconData(objectClass).getIcon();
+	}
+
+	/**
+	 * This returns the icon name registered for the given class or a default icon, if nothing has been registered.
+	 */
+	public static String getIconName(Class<? extends IOObject> objectClass) {
+		return getIconData(objectClass).getIconName();
+	}
+
+	private static IconData getIconData(Class<? extends IOObject> objectClass) {
 		if (objectClass == null)
 			return ICON_DEFAULT;
-		Icon icon = class2IconMap.get(objectClass);
+		IconData icon = class2IconMap.get(objectClass);
 		if (icon == null) {
-			for (Entry<Class<? extends IOObject>, Icon> renderableClassEntry : class2IconMap.entrySet()) {
+			for (Entry<Class<? extends IOObject>, IconData> renderableClassEntry : class2IconMap.entrySet()) {
 				if (renderableClassEntry.getKey().isAssignableFrom(objectClass)) {
 					class2IconMap.put(objectClass, renderableClassEntry.getValue());
 					return renderableClassEntry.getValue();

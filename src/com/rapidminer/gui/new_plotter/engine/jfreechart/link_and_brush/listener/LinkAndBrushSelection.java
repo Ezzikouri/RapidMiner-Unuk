@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener;
 
 import java.util.List;
@@ -36,7 +35,7 @@ import com.rapidminer.tools.container.Pair;
 public class LinkAndBrushSelection {
 
 	public enum SelectionType {
-		ZOOM_IN, ZOOM_OUT, RESTORE_AUTO_BOUNDS
+		ZOOM_IN, ZOOM_OUT, RESTORE_AUTO_BOUNDS, SELECTION, RESTORE_SELECTION
 	}
 
 	private final List<Pair<Integer, Range>> domainAxisRanges;

@@ -420,6 +420,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     private final SystemMonitor systemMonitor = new SystemMonitor();
 
     private final OperatorDocViewer operatorDocViewer = OperatorDocViewer.instantiate();
+    // TODO: Enable as soon as documentation is ready
+    //private final OperatorDocumentationBrowser operatorDocumentationBrowser = OperatorDocumentationBrowser.instantiate();
     private final OperatorTreePanel operatorTree = new OperatorTreePanel(this);
     private final ErrorTable errorTable = new ErrorTable(this);
     private final OperatorPropertyPanel propertyPanel = new OperatorPropertyPanel(this);
@@ -558,6 +560,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         addProcessEditor(propertyPanel);
         addProcessEditor(operatorTree);
         addProcessEditor(operatorDocViewer);
+        //addProcessEditor(operatorDocumentationBrowser);
         addProcessEditor(processPanel);
         addProcessEditor(errorTable);
         addProcessEditor(processContextEditor);
@@ -565,6 +568,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         addProcessEditor(resultDisplay);
 
         SwingTools.setFrameIcon(this);
+
 
         dockingContext.addDesktop(dockingDesktop);
         dockingDesktop.registerDockable(welcomeScreen);
@@ -580,10 +584,12 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         dockingDesktop.registerDockable(messageViewer);
         dockingDesktop.registerDockable(systemMonitor);
         dockingDesktop.registerDockable(operatorDocViewer);
+        //dockingDesktop.registerDockable(operatorDocumentationBrowser);
         dockingDesktop.registerDockable(processContextEditor);
         dockingDesktop.registerDockable(remoteProcessViewer);
         dockingDesktop.registerDockable(processPanel.getProcessRenderer().getOverviewPanel());
-
+        //Test
+        
         ToolBarContainer toolBarContainer = ToolBarContainer.createDefaultContainer(true, true, true, true);
         getContentPane().add(toolBarContainer, BorderLayout.CENTER);
         toolBarContainer.add(dockingDesktop, BorderLayout.CENTER);
@@ -834,7 +840,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         }
         return button;
     }
-
+    	
     /**
      * 
      * @deprecated Use {@link #getPerspectives()} and {@link Perspectives#showPerspective(String)}
@@ -1468,6 +1474,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public OperatorDocViewer getOperatorDocViewer() {
         return operatorDocViewer;
     }
+//    public OperatorDocumentationBrowser getOperatorDocumentationBrowser() {
+//        return operatorDocumentationBrowser;
+//    }
 
     public ProcessPanel getProcessPanel() {
         return processPanel;

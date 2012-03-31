@@ -96,7 +96,7 @@ public class ChartAxisFactory {
 			double lowerBound = initialLowerBound;
 
 			// fetch old zooming
-			LinkAndBrushMaster linkAndBrushMaster = plotInstance.getCurrentPlotConfigurationClone().getLinkAndBrushMaster();
+			LinkAndBrushMaster linkAndBrushMaster = plotInstance.getMasterPlotConfiguration().getLinkAndBrushMaster();
 			Range axisZoom = linkAndBrushMaster.getRangeAxisZoom(rangeAxisConfig, plotInstance.getCurrentPlotConfigurationClone());
 
 			List<ValueSource> valueSources = rangeAxisConfig.getValueSources();
@@ -414,7 +414,7 @@ public class ChartAxisFactory {
 		double upperBoundWithMargin = upperBound;
 
 		// fetch old zooming
-		LinkAndBrushMaster linkAndBrushMaster = plotConfiguration.getLinkAndBrushMaster();
+		LinkAndBrushMaster linkAndBrushMaster = plotInstance.getMasterPlotConfiguration().getLinkAndBrushMaster();
 		Range domainZoom = linkAndBrushMaster.getDomainZoom();
 
 		ValueAxis domainAxis;

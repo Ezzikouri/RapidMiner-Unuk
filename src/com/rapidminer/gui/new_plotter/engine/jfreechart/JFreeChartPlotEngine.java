@@ -99,6 +99,7 @@ import com.rapidminer.gui.new_plotter.engine.PlotEngine;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.AddParallelLineAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.ClearParallelLinesAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.ManageParallelLinesAction;
+import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.ManageZoomAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.dataset.ValueSourceToMultiValueCategoryDatasetAdapter;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.legend.ColoredBlockContainer;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.legend.SmartLegendTitle;
@@ -211,6 +212,8 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	{
 		// create popup menu for chart here
 		popupMenuChart = new JPopupMenu();
+		popupMenuChart.add(new ManageZoomAction(this));
+		popupMenuChart.addSeparator();
 		addParallelLineAction = new AddParallelLineAction(this);
 		popupMenuChart.add(addParallelLineAction);
 		popupMenuChart.add(new ManageParallelLinesAction(this));
@@ -250,6 +253,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		chartPanel.setMaximumDrawWidth(10000);
 		chartPanel.setMaximumDrawHeight(10000);
 		chartPanel.addMouseListener(popupMenuListener);
+		
 
 		subscribeAtPlotInstance(plotInstance);
 	}
@@ -275,6 +279,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		PlotConfiguration masterPlotConfiguration = plotInstance.getMasterPlotConfiguration();
 		masterPlotConfiguration.addPlotConfigurationListener(this);
 		masterPlotConfiguration.addPlotConfigurationProcessingListener(this);
+		chartPanel.addLinkAndBrushSelectionListener(masterPlotConfiguration);
 		initializing = false;
 	}
 
@@ -1356,9 +1361,9 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	private void privateSetPlotInstance() {
 		StaticDebug.debug("PlotInstance has changed. Replacing..");
 		unsubscribeFromPlotInstance(plotInstance);
+		subscribeAtPlotInstance(nextPlotInstance);
 		this.plotInstance = nextPlotInstance;
 		this.nextPlotInstance = null;
-		subscribeAtPlotInstance(plotInstance);
 		plotInstance.triggerReplot();
 	}
 	
@@ -1369,6 +1374,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 		masterPlotConfiguration.removePlotConfigurationListener(this);
 		masterPlotConfiguration.removePlotConfigurationProcessingListener(this);
 		endProcessing();
+		chartPanel.removeLinkAndBrushSelectionListener(masterPlotConfiguration);
 		initializing = false;
 	}
 

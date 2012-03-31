@@ -244,7 +244,12 @@ public class ChartRendererFactory {
 		SeriesFormat seriesFormat = valueSource.getSeriesFormat();
 		DimensionConfig domainConfig = valueSource.getDomainConfig();
 		ValueSourceData valueSourceData = plotInstance.getPlotData().getValueSourceData(valueSource);
-		int seriesCount = valueSourceData.getSeriesCount();
+		int seriesCount;
+		if (valueSourceData != null) {
+			seriesCount = valueSourceData.getSeriesCount();
+		} else {
+			seriesCount = 0;
+		}
 		DimensionConfig colorDimensionConfig = plotInstance.getCurrentPlotConfigurationClone().getDimensionConfig(PlotDimension.COLOR);
 		// don't need shapeDimensionConfig, since the shape can't be represented for bars.
 

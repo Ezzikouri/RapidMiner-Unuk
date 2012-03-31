@@ -555,6 +555,9 @@ public class ChartDatasetFactory {
 	}
 
 	private static void assertMaxValueCountNotExceededOrThrowException(ValueSourceData valueSourceData) throws ChartPlottimeException {
+		if (valueSourceData == null) {
+			return;
+		}
 		int maxAllowedValueCount = PlotConfiguration.getMaxAllowedValueCount();
 
 		for (GroupCellKeyAndData groupCellKeyAndData : valueSourceData.getSeriesDataForAllGroupCells()) {

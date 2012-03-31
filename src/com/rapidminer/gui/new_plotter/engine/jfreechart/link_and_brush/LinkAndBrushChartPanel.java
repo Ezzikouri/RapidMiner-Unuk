@@ -78,7 +78,7 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 	private static final long serialVersionUID = 1L;
 	private boolean zoomOnLinkAndBrushSelection;
 	private boolean blockSelectionOrZoom = false;
-
+	
 	/**
 	 * This is a transformation which transforms the components coordinates to screen coordinates. If is null, no
 	 * transformation is needed.
@@ -163,7 +163,11 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 			zoomedDomainAxisRanges.addAll(LABPlot.restoreAutoDomainAxisBounds(zoomOnLinkAndBrushSelection));
 			zoomedRangeAxisRanges.addAll(LABPlot.restoreAutoRangeAxisBounds(zoomOnLinkAndBrushSelection));
 			
-			informLinkAndBrushSelectionListeners(new LinkAndBrushSelection(SelectionType.RESTORE_AUTO_BOUNDS, zoomedDomainAxisRanges, zoomedRangeAxisRanges));
+			if (zoomOnLinkAndBrushSelection) {
+				informLinkAndBrushSelectionListeners(new LinkAndBrushSelection(SelectionType.RESTORE_AUTO_BOUNDS, zoomedDomainAxisRanges, zoomedRangeAxisRanges));
+			} else {
+				informLinkAndBrushSelectionListeners(new LinkAndBrushSelection(SelectionType.RESTORE_SELECTION, zoomedDomainAxisRanges, zoomedRangeAxisRanges));
+			}
 
 		} else {
 			restoreAutoDomainBounds();
@@ -220,7 +224,11 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 				}
 				p.setNotify(savedNotify);
 
-				informLinkAndBrushSelectionListeners(new LinkAndBrushSelection(SelectionType.ZOOM_IN, zoomedDomainAxisRanges, zoomedRangeAxisRanges));
+				if (zoomOnLinkAndBrushSelection) {
+					informLinkAndBrushSelectionListeners(new LinkAndBrushSelection(SelectionType.ZOOM_IN, zoomedDomainAxisRanges, zoomedRangeAxisRanges));
+				} else {
+					informLinkAndBrushSelectionListeners(new LinkAndBrushSelection(SelectionType.SELECTION, zoomedDomainAxisRanges, zoomedRangeAxisRanges));
+				}
 
 			} else {
 				super.zoom(selection);
@@ -229,7 +237,7 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 	}
 	
 	/**
-	 * If set to <code>true</code>, will zoom on selection, otherwise will not zoom.
+	 * If set to <code>true</code>, will zoom on selection, otherwise will do a selection.
 	 * @param zoomOnLinkAndBrushSelection
 	 */
 	public void setZoomOnLinkAndBrushSelection(boolean zoomOnLinkAndBrushSelection) {
@@ -636,15 +644,25 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 	 * @param l
 	 */
 	public void removeLinkAndBrushSelectionListener(LinkAndBrushSelectionListener l) {
-		listeners.remove(l);
+		Iterator<WeakReference<LinkAndBrushSelectionListener>> it = listeners.iterator();
+		while (it.hasNext()) {
+			WeakReference<LinkAndBrushSelectionListener> wrl = it.next();
+			LinkAndBrushSelectionListener listener = wrl.get();
+			if(listener == l || listener == null){
+				it.remove();
+			}
+		}
 	}
 
 	/**
 	 * Informs all {@link LinkAndBrushSelectionListener} of a {@link LinkAndBrushSelection}.
 	 * @param e
 	 */
-	private void informLinkAndBrushSelectionListeners(LinkAndBrushSelection e) {
-		Iterator<WeakReference<LinkAndBrushSelectionListener>> it = listeners.iterator();
+	public void informLinkAndBrushSelectionListeners(LinkAndBrushSelection e) {
+		// create a copy to avoid ConcurrentModificationException when informing and remove listener happens
+		List<WeakReference<LinkAndBrushSelectionListener>> listenersCopy = new LinkedList<WeakReference<LinkAndBrushSelectionListener>>();
+		listenersCopy.addAll(listeners);
+		Iterator<WeakReference<LinkAndBrushSelectionListener>> it = listenersCopy.iterator();
 		while (it.hasNext()) {
 			WeakReference<LinkAndBrushSelectionListener> wrl = it.next();
 			LinkAndBrushSelectionListener l = wrl.get();

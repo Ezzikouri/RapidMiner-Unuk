@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.new_plotter.gui;
 
 import java.awt.CardLayout;
@@ -229,8 +228,6 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 		attributeListTransferHandler.addDragStartListener(this);
 		plotConfigurationTreeTransferHandler.addDragStartListener(this);
-
-		chartPanel.addLinkAndBrushSelectionListener(plotInstance.getMasterPlotConfiguration());
 
 		attributeList.requestFocusInWindow();
 		plotConfigurationTree.expandAll();

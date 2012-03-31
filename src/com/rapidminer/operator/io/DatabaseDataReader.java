@@ -38,6 +38,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
@@ -123,7 +124,7 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
         MemoryExampleTable table;
         try {
             List<Attribute> attributes = getAttributes(resultSet);
-            table = createExampleTable(resultSet, attributes);
+            table = createExampleTable(resultSet, attributes, getParameterAsInt(ExampleSource.PARAMETER_DATAMANAGEMENT), getLogger());
         } catch (SQLException e) {
             throw new UserError(this, e, 304, e.getMessage());
         } finally {
@@ -179,11 +180,11 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
         return metaData;
     }
 
-    private MemoryExampleTable createExampleTable(ResultSet resultSet, List<Attribute> attributes) throws SQLException, OperatorException {
+    public static MemoryExampleTable createExampleTable(ResultSet resultSet, List<Attribute> attributes, int dataManagementType, Logger logger) throws SQLException, OperatorException {
         ResultSetMetaData metaData = resultSet.getMetaData();
         Attribute[] attributeArray = attributes.toArray(new Attribute[attributes.size()]);
         MemoryExampleTable table = new MemoryExampleTable(attributes);
-        DataRowFactory factory = new DataRowFactory(getParameterAsInt(ExampleSource.PARAMETER_DATAMANAGEMENT), '.');
+        DataRowFactory factory = new DataRowFactory(dataManagementType, '.');
         while (resultSet.next()) {
             DataRow dataRow = factory.create(attributeArray.length);
             // double[] data = new double[attributeArray.length];
@@ -240,7 +241,9 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
                             value = attribute.getMapping().mapString(valueString);
                         }
                     } else {
-                        getLogger().warning("Unknown column type: " + attribute);
+                    	if (logger != null) {
+                    		logger.warning("Unknown column type: " + attribute);
+                    	}
                         value = Double.NaN;
                     }
                 }
@@ -252,12 +255,12 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
         return table;
     }
 
-    private List<Attribute> getAttributes(ResultSet resultSet) throws SQLException {
+    public static List<Attribute> getAttributes(ResultSet resultSet) throws SQLException {
         ResultSetMetaData metaData = resultSet.getMetaData();
         return getAttributes(metaData);
     }
 
-    private List<Attribute> getAttributes(ResultSetMetaData metaData) throws SQLException {
+    private static List<Attribute> getAttributes(ResultSetMetaData metaData) throws SQLException {
         List<Attribute> result = new LinkedList<Attribute>();
         // A map mapping original column names to a counter specifying how often
         // they were chosen

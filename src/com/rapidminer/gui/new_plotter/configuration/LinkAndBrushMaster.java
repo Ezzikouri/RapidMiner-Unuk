@@ -31,9 +31,7 @@ import java.util.Map;
 
 import org.jfree.data.Range;
 
-import com.rapidminer.datatable.DataTable;
 import com.rapidminer.gui.new_plotter.PlotConfigurationError;
-import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushListener;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection.SelectionType;
@@ -202,18 +200,6 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 		clone.zoomedIn = this.zoomedIn;
 		
 		return clone;
-	}
-
-	/**
-	 * Creates a basic {@link PlotConfiguration} which can be used to display an empty plot.
-	 * @param dataTable the {@link DataTable} for which the plot should be generated
-	 * @param domainDataTableColumn the {@link DataTableColumn} which should be the domain column
-	 * @return
-	 */
-	private PlotInstance createBasicPlotInstance(DataTable dataTable, DataTableColumn domainDataTableColumn) {
-		PlotConfiguration plotConfiguration = new PlotConfiguration(domainDataTableColumn);
-		PlotInstance plotInstance = new PlotInstance(plotConfiguration, dataTable);
-		return plotInstance;
 	}
 	
 	/**

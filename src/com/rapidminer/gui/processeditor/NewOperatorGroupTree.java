@@ -264,6 +264,8 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
             public void valueChanged(TreeSelectionEvent e) {
                 Operator op = getSelectedOperator();
                 if (op != null) {
+                    //TODO: Re-enable when documentation is ready
+                	//RapidMinerGUI.getMainFrame().getOperatorDocumentationBrowser().setSelection(op);
                     RapidMinerGUI.getMainFrame().getOperatorDocViewer().setDisplayedOperator(op);
                 }
             }

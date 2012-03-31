@@ -402,11 +402,12 @@ public class SeriesTemplate extends PlotterTemplate {
 				ColorRGB yAxisColor = styleProvider.getColorScheme().getColors().get(indexOfPlots++ % styleProvider.getColorScheme().getColors().size());
 				sFormat.setItemColor(ColorRGB.convertToColor(yAxisColor));
 				if (!lowerBoundName.equals(noSelection) && !upperBoundName.equals(noSelection)) {
-					sFormat.setUtilityUsage(IndicatorType.BAND);
+					sFormat.setUtilityUsage(IndicatorType.BAND);					
 					DataTableColumn lowerBoundDataTableColumn = new DataTableColumn(currentDataTable, currentDataTable.getColumnIndex(lowerBoundName));
 					DataTableColumn upperBoundDataTableColumn = new DataTableColumn(currentDataTable, currentDataTable.getColumnIndex(upperBoundName));
 					valueSource.setDataTableColumn(SeriesUsageType.INDICATOR_1, upperBoundDataTableColumn);
 					valueSource.setDataTableColumn(SeriesUsageType.INDICATOR_2, lowerBoundDataTableColumn);
+					valueSource.setUseRelativeUtilities(false);
 				}
 				valueSource.setSeriesFormat(sFormat);
 				newRangeAxisConfig.addRangeAxisConfigListener(rangeAxisConfigListener);
