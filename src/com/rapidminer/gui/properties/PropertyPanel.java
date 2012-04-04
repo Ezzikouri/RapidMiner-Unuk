@@ -50,6 +50,7 @@ import com.rapidminer.gui.properties.celleditors.value.AttributeFileValueCellEdi
 import com.rapidminer.gui.properties.celleditors.value.AttributeValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.AttributesValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.ColorValueCellEditor;
+import com.rapidminer.gui.properties.celleditors.value.ConfigurableValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.ConfigurationWizardValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.DatabaseConnectionValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.DatabaseTableValueCellEditor;
@@ -102,6 +103,7 @@ import com.rapidminer.parameter.ParameterTypeText;
 import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.ParameterTypeValue;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.config.ParameterTypeConfigurable;
 
 /**
  * @author Simon Fischer
@@ -120,7 +122,7 @@ public abstract class PropertyPanel extends JPanel {
 	private Collection<ParameterType> currentTypes;
 
 	private Color fontColor = Color.BLACK;
-	
+
 	public static final int VALUE_CELL_EDITOR_HEIGHT = 28;
 
 	private static Map<Class<? extends ParameterType>, Class<? extends PropertyValueCellEditor>> knownValueEditors = 
@@ -156,6 +158,7 @@ public abstract class PropertyPanel extends JPanel {
 		registerPropertyValueCellEditor(ParameterTypeSQLQuery.class, SQLQueryValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeDatabaseTable.class, DatabaseTableValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeDatabaseSchema.class, DatabaseTableValueCellEditor.class);
+		registerPropertyValueCellEditor(ParameterTypeConfigurable.class, ConfigurableValueCellEditor.class);
 	}
 
 	
@@ -193,9 +196,19 @@ public abstract class PropertyPanel extends JPanel {
 			});
 		}
 	}
+	
+	public void fireEditingStoppedEvent() {
+		Map<String,PropertyValueCellEditor> currentEditors = new LinkedHashMap<String, PropertyValueCellEditor>();
+		currentEditors.putAll(this.currentEditors);
+		if (currentEditors != null && currentEditors.size() > 0) {
+			for (String key : currentEditors.keySet()) {
+				currentEditors.get(key).stopCellEditing();
+			}
+		}
+	}
 
 	private void setupComponentsNow() {
-		removeAll();		
+		removeAll();
 		currentEditors.clear();
 
 		currentTypes = getProperties();
@@ -240,7 +253,7 @@ public abstract class PropertyPanel extends JPanel {
 				@Override
 				public void editingCanceled(ChangeEvent e) { }
 				@Override
-				public void editingStopped(ChangeEvent e) {					
+				public void editingStopped(ChangeEvent e) {
 					Object valueObj = editor.getCellEditorValue();
 					String value = type.toString(valueObj);
 					String last;
@@ -248,7 +261,7 @@ public abstract class PropertyPanel extends JPanel {
 					if (((value != null) && (last  == null)) ||
 							((last  == null) && (value != null)) ||
 							((value != null) && (last  != null) && !value.equals(last))) {						
-						setValue(typesOperator, type, value);						
+						setValue(typesOperator, type, value);	
 					}										
 				}				
 			});

@@ -72,4 +72,16 @@ public class ClientConfigurationManager extends ConfigurationManager {
 	private File getConfigFile(Configurator configurator) {
 		return FileSystemService.getUserConfigFile("configurable-"+configurator.getTypeId()+".xml");
 	}
+
+	@Override
+	public void saveConfiguration(String typeId) {
+		Configurator configurator = getConfigurator(typeId);
+		try {
+			Document xml = getConfigurablesAsXML(configurator);
+			File file = getConfigFile(configurator);
+			XMLTools.stream(xml, file, null);
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.WARNING, "Failed to save configurations for "+configurator.getName()+": "+e, e);
+		}
+	}
 }

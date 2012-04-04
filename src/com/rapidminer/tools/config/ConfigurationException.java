@@ -23,7 +23,7 @@
 package com.rapidminer.tools.config;
 
 /**
- * 
+ * Exception type for all errors occurring while dealing with {@link Configurable}s.
  * @author Simon Fischer
  *
  */

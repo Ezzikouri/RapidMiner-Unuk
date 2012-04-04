@@ -74,6 +74,8 @@ public class SeriesTemplate extends PlotterTemplate {
 	private static final String UPPER_BOUND_NAME_ELEMENT = "upperBoundName";
 
 	private static final String LOWER_BOUND_NAME_ELEMENT = "lowerBoundName";
+	
+	private static final String USE_RELATIVE_UTILITIES_ELEMENT = "useRelativeUtilities";
 
 	
 	/**
@@ -219,6 +221,8 @@ public class SeriesTemplate extends PlotterTemplate {
 	/** the name of the index column */
 	private String indexName;
 	
+	private boolean useRelativeUtilities;
+	
 	/** the names of the plots to show */
 	private Object[] plotNames;
 	
@@ -235,6 +239,7 @@ public class SeriesTemplate extends PlotterTemplate {
 		lowerBoundName = noSelection;
 		upperBoundName = noSelection;
 		indexName = noSelection;
+		useRelativeUtilities = false;
 		plotNames = new Object[0];
 		
 		guiPanel = new SeriesTemplatePanel(this);
@@ -325,6 +330,26 @@ public class SeriesTemplate extends PlotterTemplate {
 		return plotNames;
 	}
 	
+	/**
+	 * If set to <code>true</code>, will simply add utilities, otherwise not.
+	 * @param useRelativeUtilities
+	 */
+	public void setUseRelativeUtilities(boolean useRelativeUtilities) {
+		this.useRelativeUtilities = useRelativeUtilities;
+		
+		updatePlotConfiguration();
+		setChanged();
+		notifyObservers();
+	}
+	
+	/**
+	 * If <code>true</code>, uses relative utilities; otherwise not.
+	 * @return
+	 */
+	public boolean isUsingRelativeUtilities() {
+		return useRelativeUtilities;
+	}
+	
 	@Override
 	protected void dataUpdated(final DataTable dataTable) {
 		// add artifical index column if needed
@@ -407,7 +432,7 @@ public class SeriesTemplate extends PlotterTemplate {
 					DataTableColumn upperBoundDataTableColumn = new DataTableColumn(currentDataTable, currentDataTable.getColumnIndex(upperBoundName));
 					valueSource.setDataTableColumn(SeriesUsageType.INDICATOR_1, upperBoundDataTableColumn);
 					valueSource.setDataTableColumn(SeriesUsageType.INDICATOR_2, lowerBoundDataTableColumn);
-					valueSource.setUseRelativeUtilities(false);
+					valueSource.setUseRelativeUtilities(useRelativeUtilities);
 				}
 				valueSource.setSeriesFormat(sFormat);
 				newRangeAxisConfig.addRangeAxisConfigListener(rangeAxisConfigListener);
@@ -466,6 +491,10 @@ public class SeriesTemplate extends PlotterTemplate {
 			plotNameElement.setAttribute(VALUE_ATTRIBUTE, String.valueOf(key));
 			setting.appendChild(plotNameElement);
 		}
+		template.appendChild(setting);
+		
+		setting = document.createElement(USE_RELATIVE_UTILITIES_ELEMENT);
+		setting.setAttribute(VALUE_ATTRIBUTE, String.valueOf(useRelativeUtilities));
 		template.appendChild(setting);
 		
 		
@@ -542,6 +571,8 @@ public class SeriesTemplate extends PlotterTemplate {
 					setLowerBoundName(setting.getAttribute(VALUE_ATTRIBUTE));
 				} else if (setting.getNodeName().equals(UPPER_BOUND_NAME_ELEMENT)) {
 					setUpperBoundName(setting.getAttribute(VALUE_ATTRIBUTE));
+				} else if (setting.getNodeName().equals(USE_RELATIVE_UTILITIES_ELEMENT)) {
+					setUseRelativeUtilities(Boolean.parseBoolean((setting.getAttribute(VALUE_ATTRIBUTE))));
 				} else if (setting.getNodeName().equals(CROSSHAIR_RANGE_AXIS_TOP_ELEMENT)) {
 					try {
 						// load range axes crosshairs

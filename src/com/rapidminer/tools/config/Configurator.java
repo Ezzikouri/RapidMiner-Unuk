@@ -25,29 +25,31 @@ package com.rapidminer.tools.config;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.config.gui.ConfigurationPanel;
+import com.rapidminer.tools.config.gui.DefaultConfigurationPanel;
 
 /** Can be used to configure {@link Configurable}s. The {@link ConfigurationManager} will take
  *  care of saving the configuration to configuration files or to a database and to provide access
  *  to dialogs which can be used to edit these configurables.   
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Dominik Halfkann
  */
 public abstract class Configurator<T extends Configurable> {
 
-	/** Parameter types used to configure this configurator. Values will be passed to {@link #configure(Map)}. */
-	public abstract List<ParameterType> getParameterTypes();
-	
+	/** Returns the {@link Configurable} implementation that this configurator can configure. */
 	public abstract Class<T> getConfigurableClass();
+	
+	/** Parameter types used to configure this Configurator. Values will be passed to {@link #configure(Map)}. */
+	public abstract List<ParameterType> getParameterTypes();
 	
 	/** Creates a new {@link Configurable} based on parameters. The parameters passed to this method match the
 	 *  ones specified by {@link #getParameterTypes()}. 
 	 * @throws ConfigurationException 
 	 *  @name a unique (user defined) name identifying this {@link Configurable}. */
-	public T create(String name, Map<String,Object> parameters) throws ConfigurationException {
+	public T create(String name, Map<String,String> parameters) throws ConfigurationException {
 		T instance;
 		try {
 			instance = getConfigurableClass().newInstance();
@@ -60,21 +62,30 @@ public abstract class Configurator<T extends Configurable> {
 		}
 		return instance;
 	}
-	
+
+	/** The display name used in UI components. Based on {@link #getI18NBaseKey()}. */
+	public String getName() {
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.configurable."+getI18NBaseKey()+".name");
+	}
+
+	/** A short help text to be used in dialogs. Based on {@link #getI18NBaseKey()}. */
+	public final String getDescription() {
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.configurable."+getI18NBaseKey()+".description");
+	}
+
 	/** The ID used for identifying this Configurator. Must be a valid XML tag identifier and
 	 *  file name. Should include the plugin namespace. 
 	 *  Example: "olap_connection". */
 	public abstract String getTypeId();
 
-	/** The display name used in UI components. */
-	public abstract String getName();
-	
-	/** A short help text to be used in dialogs. */
-	public abstract String getDescription();
+	/** The base key used in I18N property files. */
+	public abstract String getI18NBaseKey();	
 	
 	/** Creates a new panel which is used to configure a {@link Configurable}. Initializes
 	 *  all components with the current parameters of the configurable. */
-	public JComponent createConfigurationPanel(T configurable) {
-		return new JPanel();
+	public ConfigurationPanel<? super T> createConfigurationPanel() {
+		List<ParameterType> parameterTypeList = this.getParameterTypes();
+		parameterTypeList.add(0, new ParameterTypeString("Name", "Name of this entry", false));
+		return new DefaultConfigurationPanel(parameterTypeList); // Implement via GenericPropertyPanel
 	}
 }

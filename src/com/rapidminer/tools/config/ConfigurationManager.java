@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import org.w3c.dom.Document;
@@ -40,9 +40,7 @@ import com.rapidminer.repository.RepositoryAccessor;
 import com.rapidminer.tools.LogService;
 
 /** Singleton to access configurable items and to provide means to configure them by the user.
- * 
- * 
- * 
+ *
  * @author Simon Fischer
  *
  */
@@ -83,7 +81,7 @@ public abstract class ConfigurationManager {
 	}
 
 	/** Returns the {@link Configurator} with the given {@link Configurator#getTypeId()}. */
-	public Configurator getConfigurator(String typeId) {
+	public Configurator<? extends Configurable> getConfigurator(String typeId) {
 		return configurators.get(typeId);
 	}
 	
@@ -92,6 +90,11 @@ public abstract class ConfigurationManager {
 		List<String> result = new LinkedList<String>();
 		result.addAll(configurators.keySet());
 		return result ;
+	}
+	
+	public List<String> getAllConfigurableNames(String typeId) {
+		Map<String, Configurable> configurablesForType = configurables.get(typeId);
+		return new LinkedList<String>(configurablesForType.keySet());
 	}
 	
 	/** Looks up a {@link Configurable} of the given type. 
@@ -155,7 +158,7 @@ public abstract class ConfigurationManager {
 			}
 			for (Entry<String, Map<String, String>> entry : parameters.entrySet()) {
 				try {
-					Map<String,Object> translated = new HashMap<String, Object>();
+					Map<String,String> translated = new HashMap<String, String>();
 					Map<String,ParameterType> types = parameterListToMap(configurator.getParameterTypes());
 					for (Entry<String, String> parameter : entry.getValue().entrySet()) {
 						String paramKey = parameter.getKey();
@@ -181,13 +184,16 @@ public abstract class ConfigurationManager {
 		if (configurator == null) {
 			throw new ConfigurationException("Unknown configurable type: "+typeId);
 		}
-		final Configurable configurable = configurator.create(name, Collections.<String,Object>emptyMap());
+		final Configurable configurable = configurator.create(name, Collections.<String,String>emptyMap());
 		registerConfigurable(typeId, configurable);
 		return configurable;
 	}
 	
 	/** Saves the configuration, e.g. when RapidMiner exits. */
 	public abstract void saveConfiguration();
+	
+	/** Saves one configuration with the given typeID */
+	public abstract void saveConfiguration(String typeId);
 
 	private Map<String, ParameterType> parameterListToMap(List<ParameterType> parameterTypes) {
 		Map<String, ParameterType> result = new HashMap<String, ParameterType>();
@@ -195,6 +201,10 @@ public abstract class ConfigurationManager {
 			result.put(type.getKey(), type);
 		}
 		return result;
+	}	
+	
+	public void removeConfigurable(String typeId, String identifier) {
+		configurables.get(typeId).remove(identifier);
 	}
 	
 	public Document getConfigurablesAsXML(Configurator configurator) {
@@ -210,7 +220,7 @@ public abstract class ConfigurationManager {
 	public static Element toXML(Document doc, Configurator configurator, Configurable configurable) {
 		Element element = doc.createElement(configurator.getTypeId());
 		element.setAttribute("name", configurable.getName());
-		for (Entry<String, Object> param : configurable.getParameters().entrySet()) {			
+		for (Entry<String, String> param : configurable.getParameters().entrySet()) {			
 			Element paramElement = doc.createElement(param.getKey());
 			paramElement.appendChild(doc.createTextNode(param.getValue().toString()));
 			element.appendChild(paramElement);
@@ -237,4 +247,7 @@ public abstract class ConfigurationManager {
 		}		
 		return result;
 	}
+	
+	
+	
 }

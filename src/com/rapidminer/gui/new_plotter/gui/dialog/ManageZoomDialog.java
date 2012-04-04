@@ -49,6 +49,10 @@ import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
 
+import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.Plot;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.Range;
 
 import com.rapidminer.gui.new_plotter.configuration.LinkAndBrushMaster;
@@ -57,6 +61,7 @@ import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.JFreeChartPlotEngine;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection.SelectionType;
+import com.rapidminer.gui.new_plotter.utility.NumericalValueRange;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.container.Pair;
@@ -173,7 +178,7 @@ public class ManageZoomDialog extends JDialog {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-//				updateValueRanges();
+				updateValueRange();
 			}
 		});
 		this.add(rangeAxisSelectionCombobox, gbc);
@@ -418,6 +423,43 @@ public class ManageZoomDialog extends JDialog {
 				}
 			}
 		}
+		
+		// fill in values of current chart
+		Plot plot = engine.getChartPanel().getChart().getPlot();
+		double domainLowerBound = 0;
+		double domainUpperBound = 0;
+		boolean disableDomainZoom = false;
+		NumericalValueRange effectiveRange = engine.getPlotInstance().getPlotData().getDomainConfigManagerData().getEffectiveRange();
+		if (plot instanceof XYPlot) {
+			ValueAxis domainAxis = ((XYPlot)plot).getDomainAxis();
+			if (domainAxis != null) {
+				Range range = domainAxis.getRange();
+				domainLowerBound = range.getLowerBound();
+				domainUpperBound = range.getUpperBound();
+			} else {
+				if (effectiveRange != null) {
+					domainLowerBound = effectiveRange.getLowerBound();
+					domainUpperBound = effectiveRange.getUpperBound();
+				} else {
+					disableDomainZoom = true;
+				}
+			}
+		} else {
+			if (effectiveRange != null) {
+				domainLowerBound = effectiveRange.getLowerBound();
+				domainUpperBound = effectiveRange.getUpperBound();
+			} else {
+				disableDomainZoom = true;
+			}
+		}
+		domainRangeLowerBoundField.setText(String.valueOf(domainLowerBound));
+		domainRangeUpperBoundField.setText(String.valueOf(domainUpperBound));
+		
+		// happens on nominal domain axis
+		domainRangeLowerBoundField.setEnabled(!disableDomainZoom);
+		domainRangeUpperBoundField.setEnabled(!disableDomainZoom);
+		
+		updateValueRange();
 	}
 	
 	/**
@@ -587,5 +629,52 @@ public class ManageZoomDialog extends JDialog {
 		}
 		// all checks passed, values are fine
 		return true;
+	}
+	
+	/**
+	 * Updates the x and y axes range values.
+	 */
+	private void updateValueRange() {
+		PlotConfiguration plotConfig = engine.getPlotInstance().getMasterPlotConfiguration();
+		Plot plot = engine.getChartPanel().getChart().getPlot();
+		int index = rangeAxisSelectionCombobox.getSelectedIndex();
+		if (index == -1) {
+			index = 0;
+		}
+		
+		// should be always true..
+		if (plotConfig.getRangeAxisConfigs().size() > index) {
+			RangeAxisConfig config = plotConfig.getRangeAxisConfigs().get(index);
+			double valueLowerBound;
+			double valueUpperBound;
+			if (plot instanceof XYPlot) {
+				ValueAxis rangeAxis = ((XYPlot)plot).getRangeAxis(index);
+				if (rangeAxis != null) {
+					// this is the actual visible axis
+					Range range = rangeAxis.getRange();
+					valueLowerBound = range.getLowerBound();
+					valueUpperBound = range.getUpperBound();
+				} else {
+					valueLowerBound = engine.getPlotInstance().getPlotData().getRangeAxisData(config).getLowerViewBound();
+					valueUpperBound = engine.getPlotInstance().getPlotData().getRangeAxisData(config).getUpperViewBound();
+				}
+			} else if (plot instanceof CategoryPlot) {
+				ValueAxis rangeAxis = ((CategoryPlot)plot).getRangeAxis(index);
+				if (rangeAxis != null) {
+					Range range = rangeAxis.getRange();
+					valueLowerBound = range.getLowerBound();
+					valueUpperBound = range.getUpperBound();
+				} else {
+					valueLowerBound = engine.getPlotInstance().getPlotData().getRangeAxisData(config).getLowerViewBound();
+					valueUpperBound = engine.getPlotInstance().getPlotData().getRangeAxisData(config).getUpperViewBound();
+				}
+			} else {
+				// data bounds, a bit smaller than the visible axis
+				valueLowerBound = engine.getPlotInstance().getPlotData().getRangeAxisData(config).getLowerViewBound();
+				valueUpperBound = engine.getPlotInstance().getPlotData().getRangeAxisData(config).getUpperViewBound();
+			}
+			valueRangeLowerBoundField.setText(String.valueOf(valueLowerBound));
+			valueRangeUpperBoundField.setText(String.valueOf(valueUpperBound));
+		}
 	}
 }

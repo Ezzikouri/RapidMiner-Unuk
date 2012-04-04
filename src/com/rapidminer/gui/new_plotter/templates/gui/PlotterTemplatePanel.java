@@ -100,12 +100,25 @@ public abstract class PlotterTemplatePanel extends JPanel implements Observer {
 				public void masterOfDesasterChanged(final MasterOfDesaster masterOfDesaster) {
 					List<PlotConfigurationError> errors = plotInstance.getErrors();
 					List<ConfigurationChangeResponse> configurationChangeResponses = masterOfDesaster.getConfigurationChangeResponses();
-					final ImageIcon newIcon;
-					if (errors.isEmpty() && configurationChangeResponses.isEmpty()) {
-						newIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_ok.icon"));
-					} else {
-						newIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_error.icon"));
+					boolean warningFound = false;
+					boolean errorFound = !errors.isEmpty();
+					for (ConfigurationChangeResponse response : configurationChangeResponses) {
+						if (!response.getErrors().isEmpty()) {
+							errorFound = true;
+							break;
+						}
+						if (!response.getWarnings().isEmpty()) {
+							warningFound = true;
+						}
 					}
+					final ImageIcon newIcon;
+					if (!errorFound && !warningFound) {
+                        newIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_ok.icon"));
+                    } else if (!errorFound && warningFound) {
+                        newIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_warning.icon"));
+                    } else {
+                        newIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.template.chart_error.icon"));
+                    }
 					SwingUtilities.invokeLater(new Runnable() {
 						
 						@Override

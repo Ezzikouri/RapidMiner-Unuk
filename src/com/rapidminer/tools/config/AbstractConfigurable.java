@@ -28,30 +28,32 @@ import java.util.Map;
 import com.rapidminer.repository.remote.RemoteRepository;
 
 /**
- * 
- * @author Simon Fischer
+ * Abstract standard implementation of the {@link Configurable} class.
+ * @author Simon Fischer, Dominik Halfkann
  *
  */
 public abstract class AbstractConfigurable implements Configurable {
 
 	private String name;
-	private Map<String,Object> parameters = new HashMap<String, Object>();
+	private Map<String,String> parameters = new HashMap<String, String>();
 	private RemoteRepository source;
 	
-	public Object getParameter(String key) {
+	@Override
+	public String getParameter(String key) {
 		return parameters.get(key);
 	}
 	
-	public void setParameter(String key, Object value) {
+	@Override
+	public void setParameter(String key, String value) {
 		parameters.put(key, value);
 	}
 	@Override
-	public void configure(Map<String,Object> parameters) {
+	public void configure(Map<String,String> parameters) {
 		this.parameters.clear();		
 		this.parameters.putAll(parameters);
 	}
 	@Override
-	public Map<String,Object> getParameters() {
+	public Map<String,String> getParameters() {
 		return parameters;
 	}
 	
@@ -73,5 +75,42 @@ public abstract class AbstractConfigurable implements Configurable {
 	@Override
 	public RemoteRepository getSource() {
 		return source;
+	}
+	
+	@Override
+	public String getShortInfo() {
+		return null;
+	}
+	
+	@Override
+	public boolean hasSameValues(Configurable comparedConfigurable) {
+		if (!name.equals(comparedConfigurable.getName())) {
+			return false;
+		}
+		
+		if (this.parameters.size() != comparedConfigurable.getParameters().size()) return false;
+		
+		for (Map.Entry<String, String> parameterEntry : this.parameters.entrySet()) {
+			if (!parameterEntry.getValue().toString().equals(comparedConfigurable.getParameter(parameterEntry.getKey()).toString())) {
+				// If the string comparison of the 2 objects with equals() returns false
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	@Override
+	public boolean isEmpty() {
+		if (this.getName() != null && !this.getName().equals("")) {
+			return false;
+		} else if (this.getParameters() != null && this.getParameters().size() > 0) {
+			for (String key : this.getParameters().keySet()) {
+				if (this.getParameters().get(key) != null && !this.getParameters().get(key).equals("")) {
+					return false;
+				}
+			}
+			return true;
+		}
+		return true;
 	}
 }

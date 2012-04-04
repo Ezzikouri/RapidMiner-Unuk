@@ -36,6 +36,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -70,6 +71,9 @@ public class SeriesTemplatePanel extends PlotterTemplatePanel implements Observe
 	
 	/** list for selecting the plot column(s) */
 	private JList plotSeriesList;
+	
+	/** the checkbox indicating whether to use relative utilities or not */
+	private JCheckBox useRelativeUtilitiesCheckBox;
 	
 	/** the plot list selection listener */
 	private ListSelectionListener updatePlotListSelectionListener;
@@ -193,11 +197,17 @@ public class SeriesTemplatePanel extends PlotterTemplatePanel implements Observe
 		ExtendedJScrollPane plotSeriesScrollPane = new ExtendedJScrollPane(plotSeriesList);
 		this.add(plotSeriesScrollPane, gbc);
 		
-//		rotateLabelsCheckBox = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.series.rotate_labels.label"));
-//		rotateLabelsCheckBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.series.rotate_labels.tip"));
-//		rotateLabelsCheckBox.addActionListener(updatePlotActionListener);
-//		gbc.gridy = 8;
-//		this.add(rotateLabelsCheckBox, gbc);
+		useRelativeUtilitiesCheckBox = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.series.relative_utilities.label"));
+		useRelativeUtilitiesCheckBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.plotter.series.relative_utilities.tip"));
+		useRelativeUtilitiesCheckBox.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				seriesTemplate.setUseRelativeUtilities(useRelativeUtilitiesCheckBox.isSelected());
+			}
+		});
+		gbc.gridy = 8;
+		this.add(useRelativeUtilitiesCheckBox, gbc);
 		
 		JButton exportImageButton = new JButton(new ExportImageAction(seriesTemplate));
 		gbc.gridy = 9;
@@ -266,6 +276,7 @@ public class SeriesTemplatePanel extends PlotterTemplatePanel implements Observe
 						upperBoundComboBox.addActionListener(l);
 					}
 					
+					useRelativeUtilitiesCheckBox.setSelected(seriesTemplate.isUsingRelativeUtilities());
 				}
 				
 			});

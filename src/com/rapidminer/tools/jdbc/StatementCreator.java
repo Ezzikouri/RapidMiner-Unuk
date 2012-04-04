@@ -384,6 +384,11 @@ public class StatementCreator {
 	public String makeSelectAllStatement(String tableName) {
 		return "SELECT * FROM " + makeIdentifier(tableName);
 	}
+	
+	/** SELECT * */
+	public String makeSelectAllStatement(TableName tableName) {
+		return "SELECT * FROM " + makeIdentifier(tableName);
+	}
 
 	public String makeSelectStatement(String tableName, boolean distinct, String... columns) {
 		StringBuilder b = new StringBuilder("SELECT ");
