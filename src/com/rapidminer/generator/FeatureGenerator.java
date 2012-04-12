@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
@@ -257,7 +258,8 @@ public abstract class FeatureGenerator {
 				gen.setFunction(functionName);
 				return gen;
 			} catch (Exception e) {
-				LogService.getGlobal().log("Cannot instantiate '" + genClass.getName() + "'", LogService.ERROR);
+				//LogService.getGlobal().log("Cannot instantiate '" + genClass.getName() + "'", LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.generator.FeatureGenerator.instantiating_error", genClass.getName());
 				return null;
 			}
 		}
@@ -313,8 +315,9 @@ public abstract class FeatureGenerator {
 	 * @return A list of Attributes
 	 */
 	public static List<Attribute> generateAll(ExampleTable exampleTable, Collection<FeatureGenerator> generatorList) throws GenerationException {
-		LogService.getGlobal().log("Starting feature generation with " + generatorList.size() + " generators.", LogService.STATUS);
-
+		//LogService.getGlobal().log("Starting feature generation with " + generatorList.size() + " generators.", LogService.STATUS);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.generator.FeatureGenerator.starting_feature_generation",generatorList.size());
+		
 		Iterator<FeatureGenerator> gi = generatorList.iterator();
 		while (gi.hasNext())
 			gi.next().setExampleTable(exampleTable);
@@ -327,8 +330,11 @@ public abstract class FeatureGenerator {
 		// add the attributes to the example table and ensure length of the
 		// DataRows
 		exampleTable.addAttributes(newAttributeList);
-		LogService.getGlobal().log("Generator list: " + generatorList, LogService.STATUS);
-		LogService.getGlobal().log("Input set has " + exampleTable.getAttributeCount() + " features, " + exampleTable.size() + " examples.", LogService.STATUS);
+		//LogService.getGlobal().log("Generator list: " + generatorList, LogService.STATUS);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.generator.FeatureGenerator.generator_list",generatorList);
+		//LogService.getGlobal().log("Input set has " + exampleTable.getAttributeCount() + " features, " + exampleTable.size() + " examples.", LogService.STATUS);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.generator.FeatureGenerator.input_has_feature_count_and_example_count",
+				new Object[] {exampleTable.getAttributeCount(), exampleTable.size()});
 
 		// generate the attribute values:
 		DataRowReader reader = exampleTable.getDataRowReader();
@@ -340,9 +346,12 @@ public abstract class FeatureGenerator {
 			}
 		}
 
-		LogService.getGlobal().log("Finished feature generation.", LogService.STATUS);
-		LogService.getGlobal().log("Generated set has " + exampleTable.getAttributeCount() + " features, " + exampleTable.size() + " examples.", LogService.STATUS);
-
+		//LogService.getGlobal().log("Finished feature generation.", LogService.STATUS);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.generator.FeatureGenerator.finished_feature_generation");
+		//LogService.getGlobal().log("Generated set has " + exampleTable.getAttributeCount() + " features, " + exampleTable.size() + " examples.", LogService.STATUS);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.generator.FeatureGenerator.generated_set_has_feature_count_and_example_count", 
+				new Object[] {exampleTable.getAttributeCount(), exampleTable.size()});
+		
 		return newAttributeList;
 	}
 
@@ -368,7 +377,8 @@ public abstract class FeatureGenerator {
 				throw new RuntimeException("Catastrophic error: arguments not set for " + generators[i] + "!");
 			}
 			if (!generators[i].argumentsOk(exampleTable)) {
-				LogService.getGlobal().log("Wrong argument types for " + generators[i] + ".", LogService.WARNING);
+				//LogService.getGlobal().log("Wrong argument types for " + generators[i] + ".", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.generator.FeatureGenerator.wrong_argument_types", generators[i]);
 			}
 		}
 		return newAttributeList;

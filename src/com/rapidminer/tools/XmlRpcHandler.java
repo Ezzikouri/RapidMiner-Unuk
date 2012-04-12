@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.xmlrpc.XmlRpcException;
@@ -80,7 +81,9 @@ public class XmlRpcHandler {
         loginMap.put("rememberlogin", "true");
         
         Map resultMap = (Map)rpcClient.execute("User.login", new Object[]{ loginMap });
-        LogService.getRoot().fine("Logged into BugZilla at '" + serverURL + "' as user '" + resultMap.get("id") + "'.");
+        //LogService.getRoot().fine("Logged into BugZilla at '" + serverURL + "' as user '" + resultMap.get("id") + "'.");
+        LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.XmlRpcHandler.logged_into_bugzilla",
+        		new Object[] {serverURL, resultMap.get("id")});
         
         for (int i=0; i<password.length; i++) {
         	password[i] = 0;

@@ -41,6 +41,7 @@ import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.GlobalAuthenticator;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
@@ -79,12 +80,20 @@ public class Wallet {
 			System.err.println("No file exists");
 			return;
 		}
-		LogService.getRoot().config("Reading secrets file.");
+		//LogService.getRoot().config("Reading secrets file.");
+		LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.security.Wallet.reading_secrets_file");
+		
 		Document doc;
 		try {
 			doc = XMLTools.parse(userConfigFile);
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to read secrets file: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Failed to read secrets file: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.security.Wallet.reading_secrets_file_error", 
+					e),
+					e);
+
 			return;
 		}
 		NodeList secretElems = doc.getDocumentElement().getElementsByTagName("secret");
@@ -97,7 +106,12 @@ public class Wallet {
 			try {
 				password = new String(Base64.decode(XMLTools.getTagContents(secretElem, "password"))).toCharArray();				
 			} catch (IOException e) {
-				LogService.getRoot().log(Level.WARNING, "Failed to read entry in secrets file: "+e, e);
+				//LogService.getRoot().log(Level.WARNING, "Failed to read entry in secrets file: "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.gui.security.Wallet.reading_entry_in_secrets_file_error", 
+						e),
+						e);
 				continue;
 			}
 			usercredential = new UserCredential(url, user, password);
@@ -145,12 +159,18 @@ public class Wallet {
 	
 	/** Saves the wallet to the secrets.xml file in the users home directory. */
 	public void saveCache() {
-		LogService.getRoot().config("Saving secrets file.");
+		//LogService.getRoot().config("Saving secrets file.");
+		LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.security.Wallet.saving_secrets_file");
 		Document doc;
 		try {
 			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 		} catch (ParserConfigurationException e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to create XML document: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Failed to create XML document: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.security.Wallet.creating_xml_document_error", 
+					e),
+					e);
 			return;
 		}
 		Element root = doc.createElement(CACHE_FILE_NAME);
@@ -166,7 +186,12 @@ public class Wallet {
 		try {
 			XMLTools.stream(doc, file, null);
 		} catch (XMLException e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to save secrets file: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Failed to save secrets file: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.security.Wallet.saving_secrets_file_error", 
+					e),
+					e);
 		}
 	}
 

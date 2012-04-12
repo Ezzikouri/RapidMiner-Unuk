@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.swing.Action;
 import javax.swing.SwingUtilities;
@@ -128,7 +129,8 @@ public class UpdateDialog extends ButtonDialog {
 					final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
 
 					if (Launcher.isDevelopmentBuild()) {
-						LogService.getRoot().config("This is a development build. Ignoring update check.");
+						//LogService.getRoot().config("This is a development build. Ignoring update check.");
+						LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.UpdateDialog.ignoring_update_check");
 					} else {
 						String rmPlatform = Launcher.getPlatform();
 						String latestRMVersion = service.getLatestVersion(UpdateManager.PACKAGEID_RAPIDMINER, rmPlatform);

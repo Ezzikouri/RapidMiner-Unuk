@@ -71,6 +71,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
@@ -115,25 +116,30 @@ public class UpdateManager {
                     URL url = UpdateManager.getUpdateServerURI(urlString +
                             (incremental ? "?baseVersion="+URLEncoder.encode(baseVersion, "UTF-8") : "")).toURL();
                     if (incremental) {
-                        LogService.getRoot().info("Updating "+desc.getPackageId()+" incrementally.");
+                        //LogService.getRoot().info("Updating "+desc.getPackageId()+" incrementally.");
+                        LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.updating_package_id_incrementally", desc.getPackageId());
                         try {
                             updatePluginIncrementally(extension, openStream(url, progressListener, minProgress, maxProgress), baseVersion, desc.getVersion());
                         } catch (IOException e) {
                             // if encountering problems during incremental installation, try using standard.
-                            LogService.getRoot().warning("Incremental Update failed. Trying to fall back on non incremental Update...");
+                            //LogService.getRoot().warning("Incremental Update failed. Trying to fall back on non incremental Update...");
+                        	LogService.getRoot().warning("com.rapid_i.deployment.update.client.UpdateManager.incremental_update_error");
                             incremental = false;
                         }
                     }
                     // try standard non incremental way
                     if (!incremental){
-                        LogService.getRoot().info("Updating "+desc.getPackageId()+".");
+                        //LogService.getRoot().info("Updating "+desc.getPackageId()+".");
+                        LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.updating_package_id", desc.getPackageId());
                         updatePlugin(extension, openStream(url, progressListener, minProgress, maxProgress), desc.getVersion());
                     }
                     extension.addAndSelectVersion(desc.getVersion());
                 } else {
                     URL url = UpdateManager.getUpdateServerURI(urlString +
                             (incremental ? "?baseVersion="+URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") : "")).toURL();
-                    LogService.getRoot().info("Updating RapidMiner core.");
+                    //LogService.getRoot().info("Updating RapidMiner core.");
+                    //LogService.getRoot().info("Updating RapidMiner core.");
+                    LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.updating_rapidminer_core");
                     updateRapidMiner(openStream(url, progressListener, minProgress, maxProgress), desc.getVersion());
                 }
                 i++;
@@ -160,14 +166,20 @@ public class UpdateManager {
             throw new IOException(con.getResponseCode()+": "+con.getResponseMessage(), e);
         }
         if (lengthStr == null || lengthStr.isEmpty()) {
-            LogService.getRoot().warning("Server did not send content length.");
+            //LogService.getRoot().warning("Server did not send content length.");
+            LogService.getRoot().log(Level.WARNING, "com.rapid_i.deployment.update.client.UpdateManager.sending_content_length_error");
             return urlIn;
         } else {
             try {
                 long length = Long.parseLong(lengthStr);
                 return new ProgressReportingInputStream(urlIn, listener, minProgress, maxProgress, length);
             } catch (NumberFormatException e) {
-                LogService.getRoot().log(Level.WARNING, "Server sent illegal content length: "+lengthStr, e);
+                //LogService.getRoot().log(Level.WARNING, "Server sent illegal content length: "+lengthStr, e);
+                LogService.getRoot().log(Level.WARNING,
+                		I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+                		"com.rapid_i.deployment.update.client.UpdateManager.sending_illegal_content_length_error", 
+                		lengthStr),
+                		e);
                 return urlIn;
             }
         }
@@ -225,7 +237,8 @@ public class UpdateManager {
         }
         zip.close();
         updateFile.delete();
-        LogService.getRoot().info("Prepared RapidMiner for update. Restart required.");
+        //LogService.getRoot().info("Prepared RapidMiner for update. Restart required.");
+        LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.prepared_rapidminer_for_update");        
     }
 
     /** This method takes the entries contained in the plugin archive and in the
@@ -236,7 +249,8 @@ public class UpdateManager {
     private void updatePluginIncrementally(ManagedExtension extension, InputStream diffJarIn, String fromVersion, String newVersion) throws IOException {
         ByteArrayOutputStream diffJarBuffer = new ByteArrayOutputStream();
         Tools.copyStreamSynchronously(diffJarIn, diffJarBuffer, true);
-        LogService.getRoot().fine("Downloaded incremental zip.");
+        //LogService.getRoot().fine("Downloaded incremental zip.");
+        LogService.getRoot().log(Level.FINE, "com.rapid_i.deployment.update.client.UpdateManager.downloaded_incremental_zip");
         InMemoryZipFile diffJar = new InMemoryZipFile(diffJarBuffer.toByteArray());
 
         Set<String> toDelete = new HashSet<String>();
@@ -257,7 +271,8 @@ public class UpdateManager {
                 throw new IOException("Illegal entry in update script: "+line);
             }
         }
-        LogService.getRoot().fine("Extracted update script, "+toDelete.size()+ " items to delete.");
+        //LogService.getRoot().fine("Extracted update script, "+toDelete.size()+ " items to delete.");
+        LogService.getRoot().log(Level.FINE, "com.rapid_i.deployment.update.client.UpdateManager.extracted_update_script", toDelete.size());
 
         // find all names listed in both files.
         Set<String> allNames = new HashSet<String>();
@@ -268,25 +283,29 @@ public class UpdateManager {
             ZipEntry entry = e.nextElement();
             allNames.add(entry.getName());
         }
-        LogService.getRoot().info("Extracted entry names, "+allNames.size()+ " entries in total.");
+        //LogService.getRoot().info("Extracted entry names, "+allNames.size()+ " entries in total.");
+        LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.extracted_entry_names", allNames.size());
 
         File newFile = extension.getDestinationFile(newVersion);
         ZipOutputStream newJar = new ZipOutputStream(new FileOutputStream(newFile));
         ZipFile oldArchive = extension.findArchive();
         for (String name : allNames) {
             if (toDelete.contains(name)) {
-                LogService.getRoot().finest("DELETE "+name);
+                //LogService.getRoot().finest("DELETE "+name);
+                LogService.getRoot().log(Level.FINEST, "com.rapid_i.deployment.update.client.UpdateManager.delete_name" ,name);
                 continue;
             }
             newJar.putNextEntry(new ZipEntry(name));
             if (diffJar.containsEntry(name)) {
                 newJar.write(diffJar.getContents(name));
-                LogService.getRoot().finest("UPDATE "+name);
+                //LogService.getRoot().finest("UPDATE "+name);
+                LogService.getRoot().log(Level.FINEST, "com.rapid_i.deployment.update.client.UpdateManager.update_name" ,name);
             } else {
                 // cannot be null since it must be contained in at least one jarfile
                 ZipEntry oldEntry = oldArchive.getEntry(name);
                 Tools.copyStreamSynchronously(oldArchive.getInputStream(oldEntry), newJar, false);
-                LogService.getRoot().finest("STORE "+name);
+                //LogService.getRoot().finest("STORE "+name);
+                LogService.getRoot().log(Level.FINEST, "com.rapid_i.deployment.update.client.UpdateManager.store_name" ,name);
             }
             newJar.closeEntry();
         }
@@ -366,7 +385,11 @@ public class UpdateManager {
                 return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
             }
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot read last date of update check.", e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot read last date of update check.", e);
+            LogService.getRoot().log(Level.WARNING, 
+            		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+            		"com.rapid_i.deployment.update.client.UpdateManager.reading_update_check_error"),
+            		e);
             return null;
         } finally {
             if (in != null) {
@@ -385,11 +408,13 @@ public class UpdateManager {
         String updateProperty = ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK);
         if (Tools.booleanValue(updateProperty, true)) {
             if (Launcher.isDevelopmentBuild()) {
-                LogService.getRoot().config("This is a development build. Ignoring update check.");
+                //LogService.getRoot().config("This is a development build. Ignoring update check.");
+                LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.UpdateManager.ignoring_update_check_development_build");
                 return;
             }
             if (RapidMiner.getExecutionMode() == ExecutionMode.WEBSTART) {
-                LogService.getRoot().config("Ignoring update check in Webstart mode.");
+                //LogService.getRoot().config("Ignoring update check in Webstart mode.");
+                LogService.getRoot().config("com.rapid_i.deployment.update.client.UpdateManager.ignoring_update_check_webstart_mode");
                 return;
             }
 
@@ -402,20 +427,28 @@ public class UpdateManager {
                 currentDate.add(Calendar.DAY_OF_YEAR, -2);
                 if (!lastCheck.before(currentDate)) {
                     check = false;
-                    LogService.getRoot().config("Ignoring update check. Last update check was on "+lastCheckDate);
+                    //LogService.getRoot().config("Ignoring update check. Last update check was on "+lastCheckDate);
+                    LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.UpdateManager.ignoring_update_check_last_checkdate", lastCheckDate);
                 }
             }
             if (check) {
                 new ProgressThread("check_for_updates") {
                     @Override
                     public void run() {
-                        LogService.getRoot().info("Checking for updates.");
+                        //LogService.getRoot().info("Checking for updates.");
+                        LogService.getRoot().info("com.rapid_i.deployment.update.client.UpdateManager.update_checking");
                         XMLGregorianCalendar xmlGregorianCalendar;
                         if (lastCheckDate != null) {
                             try {
                                 xmlGregorianCalendar = XMLTools.getXMLGregorianCalendar(lastCheckDate);
                             } catch (Exception e) {
-                                LogService.getRoot().log(Level.WARNING, "Error checking for updates: "+e, e);
+                                //LogService.getRoot().log(Level.WARNING, "Error checking for updates: "+e, e);
+                            	LogService.getRoot().log(Level.WARNING, 
+                            	I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                            			"com.rapid_i.deployment.update.client.UpdateManager.checking_for_updates_error",
+                            			e),
+                            			e);
+                            			                             
                                 return;
                             }
                         } else {
@@ -425,7 +458,12 @@ public class UpdateManager {
                         try {
                             updatesExist = getService().anyUpdatesSince(xmlGregorianCalendar);
                         } catch (Exception e) {
-                            LogService.getRoot().log(Level.WARNING, "Error checking for updates: "+e, e);
+                            //LogService.getRoot().log(Level.WARNING, "Error checking for updates: "+e, e);
+                        	LogService.getRoot().log(Level.WARNING, 
+                        	I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                        			"com.rapid_i.deployment.update.client.UpdateManager.checking_for_updates_error",
+                        			e),
+                        			e);
                             return;
                         }
                         if (updatesExist) {
@@ -435,7 +473,8 @@ public class UpdateManager {
                                 saveLastUpdateCheckDate();
                             }
                         } else {
-                            LogService.getRoot().info("No updates since "+lastCheckDate+".");
+                            //LogService.getRoot().info("No updates since "+lastCheckDate+".");
+                            LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.no_updates_aviable", lastCheckDate);
                             saveLastUpdateCheckDate();
                         }
                     }

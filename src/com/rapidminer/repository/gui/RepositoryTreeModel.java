@@ -44,6 +44,7 @@ import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryListener;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
@@ -223,7 +224,12 @@ public class RepositoryTreeModel implements TreeModel {
 						return folder.getDataEntries().get(index - numFolders);
 					}
 				} catch (RepositoryException e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot get children of " + folder.getName() + ": " + e, e);
+					//LogService.getRoot().log(Level.WARNING, "Cannot get children of "+folder.getName()+": "+e, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.repository.gui.RepositoryTreeModel.getting_children_of_folder_error", 
+							folder.getName(), e),
+							e);
 					return null;
 				}
 			}
@@ -296,7 +302,12 @@ public class RepositoryTreeModel implements TreeModel {
 						return folder.getSubfolders().size() + folder.getDataEntries().size();
 					}
 				} catch (RepositoryException e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot get child count for " + folder.getName() + ": " + e, e);
+					//LogService.getRoot().log(Level.WARNING, "Cannot get child count for "+folder.getName()+": "+e, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.repository.gui.RepositoryTreeModel.getting_children_count_of_folder_error", 
+							folder.getName(), e),
+							e);
 					return 0;
 				}
 			}
@@ -320,7 +331,12 @@ public class RepositoryTreeModel implements TreeModel {
 					return -1;
 				}
 			} catch (RepositoryException e) {
-				LogService.getRoot().log(Level.WARNING, "Cannot get child index for " + folder.getName() + ": " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot get child index for "+folder.getName()+": "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.repository.gui.RepositoryTreeModel.getting_child_index_of_folder_error", 
+						folder.getName(), e),
+						e);
 				return -1;
 			}
 		} else {

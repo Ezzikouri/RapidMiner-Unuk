@@ -39,6 +39,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /**
@@ -71,7 +72,8 @@ public class KeyGeneratorTool {
 
     public static void createAndStoreKey() throws KeyGenerationException {
         if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
-            LogService.getRoot().config("Skip key generation in execution mode "+RapidMiner.getExecutionMode());
+            //LogService.getRoot().config("Skip key generation in execution mode "+RapidMiner.getExecutionMode());
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.cipher.KeyGeneratorTool.skip_key_generation", RapidMiner.getExecutionMode());
             return;
         }
         // actual generation
@@ -79,7 +81,8 @@ public class KeyGeneratorTool {
 
         File keyFile = new File(FileSystemService.getUserRapidMinerDir(), KEY_FILE_NAME);
         if (!keyFile.delete()) {
-            LogService.getRoot().warning("Failed to delete old key file.");
+            //LogService.getRoot().warning("Failed to delete old key file.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.cipher.KeyGeneratorTool.deleting_old_key_file");
         }
 
         byte[] rawKey = key.getEncoded();
@@ -90,7 +93,12 @@ public class KeyGeneratorTool {
             out.write(rawKey);
             out.close();
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Failed to generate key: "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Failed to generate key: "+e, e);
+            LogService.getRoot().log(Level.WARNING,
+            		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+            				"com.rapidminer.tools.cipher.KeyGeneratorTool.generating_key_error",
+            				e),
+            				e);
             throw new KeyGenerationException("Cannot store key: " + e.getMessage());
         }
     }

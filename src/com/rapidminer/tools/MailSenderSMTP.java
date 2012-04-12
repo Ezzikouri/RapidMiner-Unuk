@@ -25,6 +25,7 @@ package com.rapidminer.tools;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 
 import javax.mail.Message;
 import javax.mail.Session;
@@ -41,7 +42,8 @@ public class MailSenderSMTP implements MailSender {
 	public void sendEmail(String address, String subject, String content, Map<String,String> headers) throws Exception {
 		Session session = MailUtilities.makeSession();
 		if (session == null) {
-			LogService.getRoot().warning("Unable to create mail session. Not sending mail to "+address+".");
+			//LogService.getRoot().warning("Unable to create mail session. Not sending mail to "+address+".");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.MailSenderSMTP.creating_mail_session_error", address);
 		}
 		MimeMessage msg = new MimeMessage(session);				
 		msg.setRecipients(Message.RecipientType.TO, address);

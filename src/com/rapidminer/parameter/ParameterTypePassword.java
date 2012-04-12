@@ -22,6 +22,8 @@
  */
 package com.rapidminer.parameter;
 
+import java.util.logging.Level;
+
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.cipher.CipherException;
@@ -64,7 +66,8 @@ public class ParameterTypePassword extends ParameterTypeString {
 			try {
 				return CipherTools.encrypt(value);
 			} catch (CipherException e) {
-				LogService.getGlobal().logError("Cannot encrypt password, using non-encrypted password!");
+				//LogService.getGlobal().logError("Cannot encrypt password, using non-encrypted password!");
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.parameter.ParameterTypePassword.encrypting_password_error");
 				return value;
 			}
 		} else {
@@ -77,7 +80,8 @@ public class ParameterTypePassword extends ParameterTypeString {
 			try {
 				return CipherTools.decrypt(value);
 			} catch (CipherException e) {
-				LogService.getRoot().warning("Password in XML file looks like unencrypted plain text.");
+				//LogService.getRoot().warning("Password in XML file looks like unencrypted plain text.");
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.parameter.ParameterTypePassword.password_looks_like_unencrypted_plain_text");
 			}
 		}
 		return value;

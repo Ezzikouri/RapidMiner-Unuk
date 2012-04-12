@@ -23,6 +23,7 @@
 package com.rapidminer.example;
 
 import java.util.Arrays;
+import java.util.logging.Level;
 
 import com.rapidminer.tools.LogService;
 
@@ -98,7 +99,8 @@ public class NominalStatistics implements Statistics {
             if (parameter != null) {
                 return getValueCount(attribute, parameter);
             } else {
-                LogService.getGlobal().log("Cannot calculate statistics COUNT for attribute "+attribute.getName()+": no value given...", LogService.WARNING);
+                //LogService.getGlobal().log("Cannot calculate statistics COUNT for attribute "+attribute.getName()+": no value given...", LogService.WARNING);
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.NominalStatistics.calculating_statistics_count_for_attribute_error", attribute.getName());
                 return Double.NaN;
             }
         } if (LEAST.equals(name)) {
@@ -112,7 +114,8 @@ public class NominalStatistics implements Statistics {
             }
             return least;
         } else {
-            LogService.getGlobal().log("Cannot calculate statistics, unknown type: " + name, LogService.WARNING);
+            //LogService.getGlobal().log("Cannot calculate statistics, unknown type: " + name, LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.NominalStatistics.calculating_statistics_unknown_type_error", name);
             return Double.NaN;
         }
     }

@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.Level;
 
 import org.w3c.dom.Document;
 
@@ -84,7 +85,8 @@ public class FileProcessLocation implements ProcessLocation {
 			if (listener != null) {
 				listener.setCompleted(100);
 			}
-			LogService.getRoot().info("Saved process definition file at '" + file + "'.");
+			//LogService.getRoot().info("Saved process definition file at '" + file + "'.");
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.FileProcessLocation.saved_process_definition_file", file);
 		} catch (XMLException e) {
 			throw new IOException("Cannot save process: "+e, e);
 		} finally {

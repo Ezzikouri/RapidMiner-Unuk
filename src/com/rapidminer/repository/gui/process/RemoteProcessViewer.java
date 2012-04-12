@@ -31,6 +31,7 @@ import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 
 import javax.swing.Action;
@@ -239,7 +240,13 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 						try {
 							return ToolTipProviderHelper.getCustomComponent(loc.locateEntry());
 						} catch (RepositoryException e) {
-							LogService.getRoot().log(Level.WARNING, "Error locating entry for "+loc+": "+e, e);
+							//LogService.getRoot().log(Level.WARNING, "Error locating entry for "+loc+": "+e, e);
+							LogService.getRoot().log(Level.WARNING,
+									I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+									"com.rapidminer.repository.gui.process.RemoteProcessViewer.locating_entry_error", 
+									loc, e),
+									e);
+
 							return null;
 						}
 					} else {
@@ -293,7 +300,12 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 							try {
 								return ToolTipProviderHelper.getTip(loc.locateEntry());
 							} catch (RepositoryException e) {
-								LogService.getRoot().log(Level.WARNING, "Error locating entry for "+loc+": "+e, e);
+								//LogService.getRoot().log(Level.WARNING, "Error locating entry for "+loc+": "+e, e);
+								LogService.getRoot().log(Level.WARNING,
+										I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+										"com.rapidminer.repository.gui.process.RemoteProcessViewer.locating_entry_error", 
+										loc, e),
+										e);
 								return null;
 							}
 						} else {

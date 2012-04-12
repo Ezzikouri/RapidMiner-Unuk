@@ -34,6 +34,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import java.util.logging.Level;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -374,7 +375,8 @@ public class StackedBarChartPlotter extends LabelRotatingPlotterAdapter implemen
                 try {
                     aggregation = AbstractAggregationFunction.createAggregationFunction(aggregationFunctionName);
                 } catch (Exception e) {
-                    LogService.getGlobal().logWarning("Cannot instantiate aggregation function '" + aggregationFunctionName + "', using 'average' as default.");
+                    //LogService.getGlobal().logWarning("Cannot instantiate aggregation function '" + aggregationFunctionName + "', using 'average' as default.");
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.StackedBarChartPlotter.instantiating_aggregation_function_error", aggregationFunctionName);
                     aggregation = new AverageFunction();
                 }
             }
@@ -540,7 +542,9 @@ public class StackedBarChartPlotter extends LabelRotatingPlotterAdapter implemen
             // ATTENTION: WITHOUT THIS WE GET SEVERE MEMORY LEAKS!!!
             panel.getChartRenderingInfo().setEntityCollection(null);
         } else {
-            LogService.getGlobal().logNote("Too many columns (" + categoryCount + "), this chart is only able to plot up to " + MAX_CATEGORIES + " different categories.");
+            //LogService.getGlobal().logNote("Too many columns (" + categoryCount + "), this chart is only able to plot up to " + MAX_CATEGORIES + " different categories.");
+            LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.plotter.charts.StackedBarChartPlotter.too_many_columns", 
+            		new Object[] {categoryCount, MAX_CATEGORIES});
         }
     }
 

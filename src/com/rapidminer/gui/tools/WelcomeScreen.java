@@ -61,6 +61,7 @@ import com.rapidminer.gui.actions.WelcomeOpenRecentAction;
 import com.rapidminer.gui.actions.WelcomeTutorialAction;
 import com.rapidminer.gui.actions.WelcomeWizardAction;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.RMUrlHandler;
 import com.rapidminer.tools.Tools;
@@ -98,7 +99,8 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 				bottomImage = ImageIO.read(url);
 			}
 		} catch (IOException e) {
-			LogService.getRoot().warning("Cannot load images for welcome screen. Using empty welcome screen...");
+			//LogService.getRoot().warning("Cannot load images for welcome screen. Using empty welcome screen...");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.WelcomeScreen.loading_images_error");
 		}
 	}
 	
@@ -240,7 +242,11 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 				try {
 					newsPane.setPage(new URL("http://news.rapidminer.com/"));
 				} catch (IOException e2) {
-					LogService.getRoot().log(Level.INFO, "Cannot download news: "+e2, e2);
+					//LogService.getRoot().log(Level.INFO, "Cannot download news: "+e2, e2);
+					LogService.getRoot().log(Level.INFO, 
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.gui.tools.WelcomeScreen.downloading_news_error", e2), 
+					e2);
 					
 					// JEditorPane.setText("") should be thread-safe, but forum report suggests it may not be.
 					// No harm in actually making it 100% swing deadlock safe, therefore using SingUtilities.invokeLater()
@@ -275,7 +281,12 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 						try {
 							Desktop.getDesktop().browse(e.getURL().toURI());
 						} catch (Exception e1) {
-							LogService.getRoot().log(Level.WARNING, "Cannot display news site "+e.getDescription()+" ("+e1.getMessage()+"). Network may be down.", e1);
+							//LogService.getRoot().log(Level.WARNING, "Cannot display news site "+e.getDescription()+" ("+e1.getMessage()+"). Network may be down.", e1);
+							LogService.getRoot().log(Level.WARNING, 
+									I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+									"com.rapidminer.gui.tools.WelcomeScreen.displaying_news_site_error", e.getDescription(), e1.getMessage(), e1), 
+							e1);
+							
 						}	
 					}
 				}				

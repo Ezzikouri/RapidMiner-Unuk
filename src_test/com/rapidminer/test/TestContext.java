@@ -192,13 +192,20 @@ public class TestContext {
 	            		RepositoryManager.getInstance(null).addRepository(getRepository());
 	            		setRepositoryPresent(true);
 	            	} else {
+//	            		LogService.getRoot().log(Level.WARNING,
+//	            				"In order to run repository tests, please define system property "
+//	            				+PROPERTY_TEST_REPOSITORY_URL+", "
+//	            				+PROPERTY_TEST_REPOSITORY_LOCATION+", "
+//	            				+PROPERTY_TEST_REPOSITORY_USER+" and "
+//	            				+PROPERTY_TEST_REPOSITORY_PASSWORD+
+//	            				" in your run configuration or create a property file called "+PROPERTY_TEST_FILE+" with this values which point to the test repository.");
 	            		LogService.getRoot().log(Level.WARNING,
-	            				"In order to run repository tests, please define system property "
-	            				+PROPERTY_TEST_REPOSITORY_URL+", "
-	            				+PROPERTY_TEST_REPOSITORY_LOCATION+", "
-	            				+PROPERTY_TEST_REPOSITORY_USER+" and "
-	            				+PROPERTY_TEST_REPOSITORY_PASSWORD+
-	            				" in your run configuration or create a property file called "+PROPERTY_TEST_FILE+" with this values which point to the test repository.");
+	            		"com.rapidminer.test.TestContext.define_system_property",
+        				new Object [] {PROPERTY_TEST_REPOSITORY_URL,
+        				PROPERTY_TEST_REPOSITORY_LOCATION,
+        				PROPERTY_TEST_REPOSITORY_USER,
+        				PROPERTY_TEST_REPOSITORY_PASSWORD,
+        				PROPERTY_TEST_FILE});
 	            	}
 	            } catch (Exception e) {
 	            	setRepositoryPresent(false);

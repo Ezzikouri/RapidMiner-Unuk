@@ -22,6 +22,8 @@
  */
 package com.rapidminer.parameter;
 
+import java.util.logging.Level;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -63,9 +65,11 @@ public class ParameterTypePreview extends ParameterType {
         try {
             creator = previewCreatorClass.newInstance();
         } catch (InstantiationException e) {
-            LogService.getGlobal().log("Problem during creation of previewer: " + e.getMessage(), LogService.WARNING);
+            //LogService.getGlobal().log("Problem during creation of previewer: " + e.getMessage(), LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.parameter.ParameterTypePreview.problem_during_creation_of_previewer", e.getMessage());
         } catch (IllegalAccessException e) {
-            LogService.getGlobal().log("Problem during creation of previewer: " + e.getMessage(), LogService.WARNING);
+            //LogService.getGlobal().log("Problem during creation of previewer: " + e.getMessage(), LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.parameter.ParameterTypePreview.problem_during_creation_of_previewer", e.getMessage());
         }
         return creator;
     }

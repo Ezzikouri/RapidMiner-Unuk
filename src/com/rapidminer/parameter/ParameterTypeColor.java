@@ -23,6 +23,7 @@
 package com.rapidminer.parameter;
 
 import java.awt.Color;
+import java.util.logging.Level;
 
 import com.rapidminer.tools.LogService;
 
@@ -61,7 +62,8 @@ public class ParameterTypeColor extends ParameterTypeString {
             if (colors.length == 3) {
                 return new Color(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2]));
             } else {
-                LogService.getRoot().warning("Cannot parse color: "+colorString);
+                //LogService.getRoot().warning("Cannot parse color: "+colorString);
+            	LogService.getRoot().log(Level.WARNING, "com.rapidminer.parameter.ParameterTypeColor.parsing_color_error", colorString);
                 return Color.BLACK;
             }
         }

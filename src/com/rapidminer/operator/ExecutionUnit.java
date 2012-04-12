@@ -104,7 +104,9 @@ public class ExecutionUnit extends AbstractObservable<ExecutionUnit> {
 		do {
 			char c = name.charAt(index);
 			if (!(Character.isUpperCase(c) || Character.isDigit(c))) {
-				LogService.getRoot().warning("Process name does not follow naming conventions: "+name+" (in "+enclosingOperator.getOperatorDescription().getName()+")");
+				//LogService.getRoot().warning("Process name does not follow naming conventions: "+name+" (in "+enclosingOperator.getOperatorDescription().getName()+")");
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.ExecutionUnit.process_name_does_not_follow_name_conventions", 
+						new Object[] {name, enclosingOperator.getOperatorDescription().getName()});
 			}
 			index = name.indexOf(' ', index) + 1;
 		} while (index != 0);

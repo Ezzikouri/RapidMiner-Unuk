@@ -57,6 +57,7 @@ import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.WebServiceTools;
@@ -128,13 +129,15 @@ public class UsageStatistics {
     /** Loads the statistics from the user file. */
     private void load() {
         if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
-            LogService.getRoot().config("Cannot access file system. Bypassing loading of operator usage statistics.");
+            //LogService.getRoot().config("Cannot access file system. Bypassing loading of operator usage statistics.");
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.tools.usagestats.UsageStatistics.accessing_file_system_error_bypassing_loading");
             return;
         }
         File file = FileSystemService.getUserConfigFile("usagestats.xml");
         if (file.exists()) {
             try {
-                LogService.getRoot().config("Loading operator usage statistics.");
+                //LogService.getRoot().config("Loading operator usage statistics.");
+                LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.tools.usagestats.UsageStatistics.loading_operator_statistics");
                 Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
 
                 Element root = doc.getDocumentElement();
@@ -176,7 +179,12 @@ public class UsageStatistics {
                     }
                 }
             } catch (Exception e) {
-                LogService.getRoot().log(Level.WARNING, "Cannot load usage statistics: "+e, e);
+                //LogService.getRoot().log(Level.WARNING, "Cannot load usage statistics: "+e, e);
+            	LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.gui.tools.usagestats.UsageStatistics.loading_operator_usage_error", 
+    					e),
+    					e);
             }
         } else {
             this.randomKey = createRandomKey();
@@ -283,13 +291,20 @@ public class UsageStatistics {
         if (RapidMiner.getExecutionMode().canAccessFilesystem()) {
             File file = FileSystemService.getUserConfigFile("usagestats.xml");
             try {
-                LogService.getRoot().config("Saving operator usage.");
+                //LogService.getRoot().config("Saving operator usage.");
+                LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.tools.usagestats.UsageStatistics.saving_operator_usage");
                 XMLTools.stream(getXML(), file, null);
             } catch (Exception e) {
-                LogService.getRoot().log(Level.WARNING, "Cannot save operator usage statistics: "+e, e);
+                //LogService.getRoot().log(Level.WARNING, "Cannot save operator usage statistics: "+e, e);
+                LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.gui.tools.usagestats.UsageStatistics.saving_operator_usage_error", 
+    					e),
+    					e);
             }
         } else {
-            LogService.getRoot().config("Cannot access file system. Bypassing save of operator usage statistics.");
+            //LogService.getRoot().config("Cannot access file system. Bypassing save of operator usage statistics.");
+            LogService.getRoot().config("com.rapidminer.gui.tools.usagestats.UsageStatistics.accessing_file_system_error_bypassing_save");
         }
     }
 
@@ -355,7 +370,8 @@ public class UsageStatistics {
         for (String urlString : RAPIDMINER_HOME_URLS) {
             try {
                 URL url = new URL(urlString);
-                LogService.getRoot().info("Transferring operator usage statistics to "+url+".");
+                //LogService.getRoot().info("Transferring operator usage statistics to "+url+".");
+                LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.tools.usagestats.UsageStatistics.transferring_operator", url);
                 RapidHomeService rapidHomeService = new RapidHomeService(url,
                         new QName("http://ws.rapidhome.rapid_i.com/", "RapidHomeService"));
 
@@ -363,7 +379,8 @@ public class UsageStatistics {
                 WebServiceTools.setTimeout((BindingProvider) port);
                 return port;
             } catch (Exception e) {
-                LogService.getRoot().log(Level.WARNING, "Failed to connect to usage statistics service "+urlString+".", e);
+                //LogService.getRoot().log(Level.WARNING, "Failed to connect to usage statistics service "+urlString+".", e);
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.usagestats.UsageStatistics.connection_usage_statistics_error", urlString);
                 continue;
             }
         }

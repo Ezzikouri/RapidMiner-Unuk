@@ -24,6 +24,7 @@ package com.rapidminer.generator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
@@ -164,10 +165,12 @@ public abstract class BinaryNumericalGenerator extends FeatureGenerator {
 			double r = calculateValue(o1, o2);
 
 			if (Double.isInfinite(r)) {
-				LogService.getGlobal().log(getFunction() + ": Infinite value generated.", LogService.WARNING);
+				//LogService.getGlobal().log(getFunction() + ": Infinite value generated.", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.generator.BinaryNumericalGenerator.infinite_value_generated", getFunction());
 			}
 			if (Double.isNaN(r)) {
-				LogService.getGlobal().log(getFunction() + ": NaN generated.", LogService.WARNING);
+				//LogService.getGlobal().log(getFunction() + ": NaN generated.", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.generator.BinaryNumericalGenerator.nan_generated", getFunction());
 			}
 
 			if (resultAttributes[0] != null)

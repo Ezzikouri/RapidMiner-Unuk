@@ -62,6 +62,7 @@ import com.rapidminer.operator.nio.model.ParseException;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.parameter.ParameterTypeEnumeration;
 import com.rapidminer.parameter.ParameterTypeList;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 
@@ -279,13 +280,28 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
                 this.prefetchedDocument = builder.parse(new File(resourceIdentifier));
                 return prefetchedDocument;
             } catch (ParserConfigurationException e) {
-            	LogService.getRoot().log(Level.WARNING, "Failed to configure XML parser: "+e, e);
+            	//LogService.getRoot().log(Level.WARNING, "Failed to configure XML parser: "+e, e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.operator.nio.xml.XMLResultSetConfiguration.configuring_xml_parser_error", 
+    					e),
+    					e);
             	throw new OperatorException("Failed to configure XML parser: "+e, e);
             } catch (SAXException e) {
-            	LogService.getRoot().log(Level.WARNING, "Failed to parse XML document: "+e, e);
+            	//LogService.getRoot().log(Level.WARNING, "Failed to parse XML document: "+e, e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.operator.nio.xml.XMLResultSetConfiguration.parsing_xml_document_error", 
+    					e),
+    					e);
             	throw new OperatorException("Failed to parse XML document: "+e, e);
             } catch (IOException e) {
-            	LogService.getRoot().log(Level.WARNING, "Failed to parse XML document: "+e, e);
+            	//LogService.getRoot().log(Level.WARNING, "Failed to parse XML document: "+e, e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.operator.nio.xml.XMLResultSetConfiguration.parsing_xml_document_error", 
+    					e),
+    					e);
             	throw new OperatorException("Failed to parse XML document: "+e, e);
             }
             //throw new UserError(null, 100);

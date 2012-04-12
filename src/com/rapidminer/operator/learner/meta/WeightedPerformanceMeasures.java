@@ -23,6 +23,7 @@
 package com.rapidminer.operator.learner.meta;
 
 import java.util.Iterator;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -101,7 +102,9 @@ public class WeightedPerformanceMeasures {
 				exa.setWeight(0);
 				exa.setLabel(0);
 				exa.setPredictedLabel(0);
-				LogService.getGlobal().log("WeightedPerformanceMeasures: Deleted example with illegal label or prediction (" + eLabel + ", " + ePred + ")!", LogService.WARNING);
+				//LogService.getGlobal().log("WeightedPerformanceMeasures: Deleted example with illegal label or prediction (" + eLabel + ", " + ePred + ")!", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.learner.meta.WeightedPerformanceMeasures.deleted_example_with_illega_label", 
+						new Object[] {eLabel, ePred});
 			}
 		}
 
@@ -347,7 +350,8 @@ public class WeightedPerformanceMeasures {
 				final double predLabelJi = this.pred_label[j][i]; 
 				// Errors like this are hard to find, so this is worth a warning message: 
 				if (Double.isNaN(predLabelJi) || predLabelJi < 0 || predLabelJi > 1) {
-					LogService.getGlobal().log("Found illegal value in contingency matrix!", LogService.WARNING);
+					//LogService.getGlobal().log("Found illegal value in contingency matrix!", LogService.WARNING);
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.learner.meta.WeightedPerformanceMeasures.found_illegal_value");
 				}
 
 				matrix[i][j] = predLabelJi;
@@ -395,8 +399,9 @@ public class WeightedPerformanceMeasures {
 
 			if (Double.isNaN(lift) || lift < 0) {
 				// == RULE_DOES_NOT_APPLY || serious error
-				LogService.getGlobal().log("Applied rule with an illegal lift of "
-						+ lift + " during reweighting!", LogService.WARNING);
+				//LogService.getGlobal().log("Applied rule with an illegal lift of "
+				//		+ lift + " during reweighting!", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.learner.meta.WeightedPerformanceMeasures.applied_rule_with_illegal_lift", lift);
 			}
 			else if (lift == 0 || Double.isInfinite(lift)) {
 				// In both cases the model predicts deterministically, so we can
@@ -415,7 +420,8 @@ public class WeightedPerformanceMeasures {
 				if (Double.isNaN(weight) || Double.isInfinite(weight) || weight < 0) {
 					// Infinite, NaN, and negative weights cannot be processed any further
 					// in a meaningful way!
-					LogService.getGlobal().log("Found illegal weight: " + weight, LogService.WARNING);
+					//LogService.getGlobal().log("Found illegal weight: " + weight, LogService.WARNING);
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.learner.meta.WeightedPerformanceMeasures.found_illegal_weight", weight);
 					newWeight = 0; // try to continue anyway
 				}
 				else if (weight == 0) {
@@ -429,9 +435,11 @@ public class WeightedPerformanceMeasures {
 
 					// Sanity check: prec > 0 because lift > 0, beta has to be a regular double >= 0 
 					if (prec <= 0 || invPrec < 0 || Double.isInfinite(beta) || Double.isNaN(beta)) {
-						LogService.getGlobal().log(("Reweighting uses invalid value:"
-								+ "Precision is " + prec + ", inverse precision is " + invPrec
-								+ ", beta is " + beta), LogService.WARNING);
+						//LogService.getGlobal().log(("Reweighting uses invalid value:"
+						//		+ "Precision is " + prec + ", inverse precision is " + invPrec
+						//		+ ", beta is " + beta), LogService.WARNING);
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.learner.meta.WeightedPerformanceMeasures.reweighting_uses_invalid_value", 
+								new Object[] {prec, invPrec, beta});
 					}
 					newWeight = weight * Math.sqrt(beta);					
 				}

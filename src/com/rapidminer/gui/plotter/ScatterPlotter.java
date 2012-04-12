@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
 
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -575,7 +576,9 @@ public class ScatterPlotter extends PlotterAdapter {
 								float gSpaceY = (float) ((yTransformation.transform(plotterPoint.getY()) + dy) * sy);
 								drawPoint(g, pointStyle, gSpaceX, gSpaceY, pointColor, pointBorderColor);
 							} catch (IllegalArgumentException e) {
-								LogService.getGlobal().log("Cannot apply axis scale transformation to point (" + plotterPoint.getX() + "," + plotterPoint.getY() + "), skipping...", LogService.WARNING);
+								//LogService.getGlobal().log("Cannot apply axis scale transformation to point (" + plotterPoint.getX() + "," + plotterPoint.getY() + "), skipping...", LogService.WARNING);
+								LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.ScatterPlotter.applying_axis_scale_transformation_error", 
+										new Object[] {plotterPoint.getX(), plotterPoint.getY()});
 							}
 						}
 					}

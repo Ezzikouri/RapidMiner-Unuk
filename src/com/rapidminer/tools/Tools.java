@@ -54,6 +54,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -234,7 +235,9 @@ public class Tools {
             if (percentDigitsString != null)
                 percentDigits = Integer.parseInt(percentDigitsString);
         } catch (NumberFormatException e) {
-            LogService.getGlobal().log("Bad integer for property 'rapidminer.gui.fractiondigits.percent', using default number if digits (2).", LogService.WARNING);
+            //LogService.getGlobal().log("Bad integer for property 'rapidminer.gui.fractiondigits.percent', using default number if digits (2).", LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.Tools.bad_integer_for_property");
+
         }
         PERCENT_FORMAT.setMaximumFractionDigits(percentDigits);
         PERCENT_FORMAT.setMinimumFractionDigits(percentDigits);
@@ -603,10 +606,12 @@ public class Tools {
      */
     public static void waitForProcess(Operator operator, Process process, String name) throws OperatorException {
         try {
-            LogService.getGlobal().log("Waiting for process '" + name + "' to die.", LogService.MINIMUM);
+            //LogService.getGlobal().log("Waiting for process '" + name + "' to die.", LogService.MINIMUM);
+            LogService.getRoot().log(Level.ALL, "com.rapidminer.tools.Tools.waiting_for_process", name);
             int value = process.waitFor();
             if (value == 0) {
-                LogService.getGlobal().log("Process '" + name + "' terminated successfully.", LogService.STATUS);
+                //LogService.getGlobal().log("Process '" + name + "' terminated successfully.", LogService.STATUS);
+                LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.Tools.process_terminated_successfully", name);
             } else {
                 throw new UserError(operator, 306, new Object[] { name, value });
             }
@@ -1053,14 +1058,16 @@ public class Tools {
             }
             boolean result = file.delete();
             if (!result) {
-                LogService.getRoot().warning("Unable to delete file " + file);
+                //LogService.getRoot().warning("Unable to delete file " + file);
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.Tools.deleting_file_error" ,file);
                 return false;
             }
             return success;
         } else {
             boolean result = file.delete();
             if (!result) {
-                LogService.getRoot().warning("Unable to delete file " + file);
+                //LogService.getRoot().warning("Unable to delete file " + file);
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.Tools.deleting_file_error" ,file);
             }
             return result;
         }

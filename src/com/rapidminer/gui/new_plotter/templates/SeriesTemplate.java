@@ -460,7 +460,11 @@ public class SeriesTemplate extends PlotterTemplate {
 			plotConfiguration.setPlotBackgroundColor(ColorRGB.convertToColor(styleProvider.getPlotBackgroundColor()));
 			plotConfiguration.setTitleText(styleProvider.getTitleText());
 		} catch (ChartConfigurationException e) {
-			LogService.getRoot().log(Level.WARNING, "Chart could not be configured.", e);
+			//LogService.getRoot().log(Level.WARNING, "Chart could not be configured.", e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.new_plotter.templates.SeriesTemplate.configurating_chart_error"),
+					e);		
 		} finally {
 			// continue event processing
 			plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);

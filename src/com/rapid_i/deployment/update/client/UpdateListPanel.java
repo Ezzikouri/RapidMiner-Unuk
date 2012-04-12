@@ -375,9 +375,11 @@ public class UpdateListPanel extends JPanel {
 		for (String bookmarkedId : bookmarks) {
 			PackageDescriptor desc = packDescById.get(bookmarkedId);
 			//if (bookmarks.contains(desc.getPackageId())) {
-			LogService.getRoot().log(Level.INFO, "Looking up "+bookmarkedId);
+			//LogService.getRoot().log(Level.INFO, "Looking up "+bookmarkedId);
+			LogService.getRoot().log(Level.INFO, "com.rapid_i.de.deployement.update.client.UpdateListPanel.looking_up", bookmarkedId);
 			if (desc == null) {
-				LogService.getRoot().log(Level.INFO, "Bookmarked package "+bookmarkedId+" was unlisted. Fetching now.");
+				//LogService.getRoot().log(Level.INFO, "Bookmarked package "+bookmarkedId+" was unlisted. Fetching now.");
+				LogService.getRoot().log(Level.INFO, "com.rapid_i.de.deployement.update.client.UpdateListPanel.fetching_bookmarked_package", bookmarkedId);
 				String rmPlatform = "ANY"; //Launcher.getPlatform();
 				try {
 					UpdateService updateService = UpdateManager.getService();

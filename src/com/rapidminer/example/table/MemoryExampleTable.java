@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.tools.LogService;
@@ -229,7 +230,9 @@ public class MemoryExampleTable extends AbstractExampleTable {
 		if (n <= columns)
 			return index;
 		int newSize = n + INCREMENT;
-		LogService.getGlobal().log("Resizing example table from " + columns + " to " + newSize + " columns.", LogService.STATUS);
+		//LogService.getGlobal().log("Resizing example table from " + columns + " to " + newSize + " columns.", LogService.STATUS);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.example.table.MemoryExampleTable.rezising_example_table", 
+				new Object[] {columns, newSize});
 		columns = newSize;
 
 		if (dataList != null) {

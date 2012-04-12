@@ -42,6 +42,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.learner.CapabilityProvider;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 
@@ -68,7 +69,12 @@ public class OperatorInfoPanel extends JPanel {
 			try {
 				operator = description.createOperatorInstance();
 			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Cannot create operator: " + e.getMessage(), e);
+				//LogService.getRoot().log(Level.WARNING, "Cannot create operator: " + e.getMessage(), e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.gui.dialog.OperatorInfoPanel.creating_operator_error", 
+						e.getMessage()),
+						e);
 			}
 
 			setLayout(new BorderLayout());

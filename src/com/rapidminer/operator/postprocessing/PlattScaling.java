@@ -23,6 +23,7 @@
 package com.rapidminer.operator.postprocessing;
 
 import java.util.Iterator;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -270,7 +271,8 @@ public class PlattScaling extends Operator {
 		double confidence = Math.min(Math.max(epsilon, originalConfidence), 1.0d - epsilon);
 		if (Double.isNaN(confidence)) { // error, just try to continue
 			confidence = 0.5;
-			LogService.getGlobal().log("Found a NaN confidence during Platt's Scaling.", LogService.WARNING);
+			//LogService.getGlobal().log("Found a NaN confidence during Platt's Scaling.", LogService.WARNING);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.postprocessing.PlattScaling.found_a_nan_confidence_during_platts_scaling");
 		}
 
 		double odds = (1.0d - confidence) / confidence;

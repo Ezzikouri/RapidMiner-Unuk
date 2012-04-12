@@ -61,6 +61,7 @@ import com.rapidminer.operator.ports.Ports;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.conditions.ParameterCondition;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.NetTools;
 import com.rapidminer.tools.OperatorService;
@@ -273,7 +274,13 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 			wikiName = URLEncoder.encode(descr.getName(), "UTF-8");
 			buf.append(" <small><a href=\"http://rapid-i.com/wiki/index.php?title=").append(wikiName).append("\">(Wiki)</a></small>");
 		} catch (UnsupportedEncodingException e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.OperatorDocViewer.url_encode_operator_error", 
+					descr.getName(), e),
+					e);
+
 		}
 		buf.append("</h2>");
 		buf.append("</td></tr></table>");
@@ -303,7 +310,9 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 			for (String key : parameters.getKeys()) {
 				ParameterType type = parameters.getParameterType(key);
 				if (type == null) {
-					LogService.getRoot().warning("Unknown parameter key: " + displayedOperator.getName() + "# " + key);
+					//LogService.getRoot().warning("Unknown parameter key: " + displayedOperator.getName() + "# " + key);
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.OperatorDocViewer.unkown_parameter_key", 
+							new Object[] {displayedOperator.getName(), key});
 					continue;
 				}
 				buf.append("<dt>");

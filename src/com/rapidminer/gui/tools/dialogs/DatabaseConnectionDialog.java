@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -699,7 +700,8 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			Properties givenProperties = currentlyEditedEntry.getConnectionProperties();
 			return driver.getPropertyInfo(driverURL, givenProperties);
 		} catch (SQLException e) {
-			LogService.getGlobal().log("Could not load jdbc driver properties.", LogService.ERROR);
+			//LogService.getGlobal().log("Could not load jdbc driver properties.", LogService.ERROR);
+			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.tools.dialogs.DatabaseConnectionDialog.loading_jdbc_driver_properties_error");
 			return null;
 		}
 	}

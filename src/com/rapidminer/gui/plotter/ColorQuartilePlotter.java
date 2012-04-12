@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
 
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableRow;
@@ -169,7 +170,8 @@ public class ColorQuartilePlotter extends PlotterAdapter {
                         if (maxClassesProperty != null)
                             maxClasses = Integer.parseInt(maxClassesProperty);
                     } catch (NumberFormatException e) {
-                        LogService.getGlobal().log("Quartile: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 10 different classes.", LogService.WARNING);
+                        //LogService.getGlobal().log("Quartile: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 10 different classes.", LogService.WARNING);
+                    	LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.ColorQuartilePlotter.quartile_parsing_property_error");
                     }
 
                     if (valueMap.size() <= maxClasses) {
@@ -190,9 +192,11 @@ public class ColorQuartilePlotter extends PlotterAdapter {
                         }
                     } else {
                         // too many classes --> super method in order to create usual non-colored histogram
-                        LogService.getGlobal().log("Quartile Color: cannot create colorized quartile plot since the number of different values (" +
-                                valueMap.size() + ") is too large. Allowed are " + maxClassesProperty +
-                                " different values for a colorized plot (edit this limit in the properties dialog).", LogService.WARNING);
+                        //LogService.getGlobal().log("Quartile Color: cannot create colorized quartile plot since the number of different values (" +
+                        //        valueMap.size() + ") is too large. Allowed are " + maxClassesProperty +
+                        //        " different values for a colorized plot (edit this limit in the properties dialog).", LogService.WARNING);
+                    	LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.ColorQuartilePlotter.quartile_creating_colorized_quartile_error",
+                    			new Object [] {valueMap.size(), maxClassesProperty});
                     }
                 }
             } else {

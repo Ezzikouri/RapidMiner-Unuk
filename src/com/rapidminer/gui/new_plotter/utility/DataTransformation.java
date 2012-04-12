@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 
 import com.rapidminer.Process;
@@ -34,6 +35,7 @@ import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
@@ -139,11 +141,23 @@ public class DataTransformation {
 				throw new OperatorException("First element returned was not ExampleSet, but " + resultContainer.getElementAt(0).getClass());
 			}
 		} catch (XMLException e) {
-			LogService.getRoot().log(Level.SEVERE, "Failed to create MetaInformationDePivotized transformation process!", e);
+			//LogService.getRoot().log(Level.SEVERE, "Failed to create MetaInformationDePivotized transformation process!", e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.new_plotter.utility.DataTransformation.creating_metainformationdepivotized_transformation_error"),
+					e);
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.SEVERE, "Failed to read MetaInformationDePivotized transformation process!", e);
+			//LogService.getRoot().log(Level.SEVERE, "Failed to read MetaInformationDePivotized transformation process!", e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.new_plotter.utility.DataTransformation.reading_metainformationdepivotized_transformation_error"),
+					e);
 		} catch (OperatorException e) {
-			LogService.getRoot().log(Level.SEVERE, "Failed to execute MetaInformationDePivotized transformation process!", e);
+			//LogService.getRoot().log(Level.SEVERE, "Failed to execute MetaInformationDePivotized transformation process!", e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.new_plotter.utility.DataTransformation.executing_metainformationdepivotized_transformation_error"),
+					e);
 		}
 
 		// we only arrive here in case of error, return null

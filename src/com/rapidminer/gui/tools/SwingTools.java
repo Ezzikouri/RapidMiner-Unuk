@@ -179,7 +179,8 @@ public class SwingTools {
         try {
             GROUP_TO_COLOR_MAP.parseProperties("com/rapidminer/resources/groups.properties", "group.", ".color", OperatorDescription.class.getClassLoader());
         } catch (IOException e) {
-            LogService.getRoot().warning("Cannot load operator group colors.");
+            //LogService.getRoot().warning("Cannot load operator group colors.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.SwingTools.loading_operator_group_colors_error");
         }
     }
 
@@ -330,7 +331,8 @@ public class SwingTools {
                     ICON_CACHE.put(imageName, icon);
                     return icon;
                 } else {
-                    LogService.getRoot().fine("Cannot load image '" + imageName + "': icon will not be displayed");
+                    //LogService.getRoot().fine("Cannot load image '" + imageName + "': icon will not be displayed");
+                    LogService.getRoot().log(Level.FINE, "com.rapidminer.gui.tools.SwingTools.loading_image_error");
                     return null;
                 }
             }
@@ -604,7 +606,12 @@ public class SwingTools {
     public static void showSimpleErrorMessage(final String key, final Throwable e, final boolean displayExceptionMessage,  final Object... arguments) {
         // if debug mode is enabled, send exception to logger
         if ("true".equals(ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEBUGMODE))) {
-            LogService.getRoot().log(Level.WARNING, "Error: "+e.getMessage(), e);
+            //LogService.getRoot().log(Level.WARNING, "Error: "+e.getMessage(), e);
+            LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.tools.SwingTools.show_simple_get_message", 
+					e.getMessage()),
+					e);            
         }
         if (SwingUtilities.isEventDispatchThread()) {
             ExtendedErrorDialog dialog = new ExtendedErrorDialog(key, e, displayExceptionMessage, arguments);

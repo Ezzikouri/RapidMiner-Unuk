@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.repository.RepositoryAccessor;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /** Singleton to access configurable items and to provide means to configure them by the user.
@@ -153,7 +154,12 @@ public abstract class ConfigurationManager {
 			try {
 				parameters = loadAllParameters(configurator);
 			} catch (ConfigurationException e1) {
-				LogService.getRoot().log(Level.WARNING, "Failed to load configuration for "+configurator.getName()+": "+e1, e1);
+				//LogService.getRoot().log(Level.WARNING, "Failed to load configuration for "+configurator.getName()+": "+e1, e1);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+								"com.rapidminer.tools.config.ConfigurationManager.loading_configuration_error", 
+								configurator.getName(), e1),
+						e1);
 				continue;
 			}
 			for (Entry<String, Map<String, String>> entry : parameters.entrySet()) {
@@ -172,10 +178,17 @@ public abstract class ConfigurationManager {
 					Configurable configurable = configurator.create(entry.getKey(), translated);
 					registerConfigurable(configurator.getTypeId(), configurable);
 				} catch (ConfigurationException e) {
-					LogService.getRoot().log(Level.WARNING, "Failed to configure configurable of type: "+configurator.getName()+": "+e, e);					
+					//LogService.getRoot().log(Level.WARNING, "Failed to configure configurable of type: "+configurator.getName()+": "+e, e);		
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+									"com.rapidminer.tools.config.ConfigurationManager.configuring_configurable_error", 
+									configurator.getName(), e),
+							e);
 				}
 			}
-			LogService.getRoot().info("Loaded configurations for "+configurables.get(configurator.getTypeId()).size()+" objetcs of type "+configurator.getName()+".");
+			//LogService.getRoot().info("Loaded configurations for "+configurables.get(configurator.getTypeId()).size()+" objetcs of type "+configurator.getName()+".");
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.config.ConfigurationManager.loaded_configurations", 
+					new Object[] {configurables.get(configurator.getTypeId()).size(), configurator.getName()});
 		}
 	}
 	

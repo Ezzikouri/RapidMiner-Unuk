@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -82,7 +83,8 @@ public class SplashScreen extends JPanel implements ActionListener {
 					backgroundImage = ImageIO.read(url);
 			}
 		} catch (IOException e) {
-			LogService.getGlobal().logWarning("Cannot load images for splash screen. Using empty splash screen...");
+			//LogService.getGlobal().logWarning("Cannot load images for splash screen. Using empty splash screen...");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.SplashScreen.loading_images_for_splash_screen_error");
 		}
 	}
 
@@ -145,7 +147,8 @@ public class SplashScreen extends JPanel implements ActionListener {
 				properties.load(in);
 				in.close();
 			} catch (Exception e) {
-				LogService.getGlobal().logError("Cannot read splash screen infos: " + e.getMessage());
+				//LogService.getGlobal().logError("Cannot read splash screen infos: " + e.getMessage());
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.tools.dialogs.SplashScreen.reading_splash_screen_error",  e.getMessage());
 			}
 		}
 		properties.setProperty("version", productVersion);

@@ -434,7 +434,12 @@ public class HistogramTemplate extends PlotterTemplate {
 			plotConfiguration.setPlotBackgroundColor(ColorRGB.convertToColor(styleProvider.getPlotBackgroundColor()));
 			plotConfiguration.setTitleText(styleProvider.getTitleText());
 		} catch (ChartConfigurationException e) {
-			LogService.getRoot().log(Level.WARNING, "Chart could not be configured.", e);
+			//LogService.getRoot().log(Level.WARNING, "Chart could not be configured.", e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.new_plotter.templates.HistrogramTemplate.configurating_chart_error"),
+					e);
+
 		} finally {
 			// continue event processing
 			plotConfiguration.setProcessEvents(plotConfigurationProcessedEvents);
@@ -548,13 +553,21 @@ public class HistogramTemplate extends PlotterTemplate {
 					try {
 						setBins(Integer.parseInt(setting.getAttribute(VALUE_ATTRIBUTE)));
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore bins setting for histogram template!");
+						//LogService.getRoot().warning("Could not restore bins setting for histogram template!");
+						LogService.getRoot().log(Level.WARNING,
+								I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+								"com.rapidminer.gui.new_plotter.templates.HistrogramTemplate.restoring_bins_setting_error"),
+								e);
 					}
 				} else if (setting.getNodeName().equals(OPAQUE_ELEMENT)) {
 					try {
 						setOpaque(Integer.parseInt(setting.getAttribute(VALUE_ATTRIBUTE)));
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore opaque setting for histogram template!");
+						//LogService.getRoot().warning("Could not restore opaque setting for histogram template!");
+						LogService.getRoot().log(Level.WARNING,
+								I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+								"com.rapidminer.gui.new_plotter.templates.HistrogramTemplate.restoring_opaque_setting_error"),
+								e);
 					}
 				} else if (setting.getNodeName().equals(CROSSHAIR_RANGE_AXIS_TOP_ELEMENT)) {
 					try {

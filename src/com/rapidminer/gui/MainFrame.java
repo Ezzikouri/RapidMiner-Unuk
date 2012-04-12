@@ -1108,7 +1108,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                     if (maxSizeProperty != null)
                         maxSize = Integer.parseInt(maxSizeProperty);
                 } catch (NumberFormatException e) {
-                    LogService.getRoot().warning("Bad integer format for property 'rapidminer.gui.undolist.size', using default size of 20.");
+                    LogService.getRoot().warning("com.rapidminer.gui.main_frame_warning");
+                	//LogService.getRoot().warning("Bad integer format for property 'rapidminer.gui.undolist.size', using default size of 20.");
                 }
                 while (undoList.size() > maxSize)
                     undoList.removeFirst();

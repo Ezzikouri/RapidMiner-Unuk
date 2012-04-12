@@ -24,6 +24,7 @@ package com.rapidminer.gui.tools;
 
 import java.awt.Component;
 import java.text.MessageFormat;
+import java.util.logging.Level;
 
 import javax.swing.Icon;
 import javax.swing.JTabbedPane;
@@ -87,6 +88,7 @@ public class ResourceTabbedPane extends JTabbedPane {
 				if (name.indexOf(mne.toUpperCase().charAt(0)) != -1) {
 					mne = mne.toUpperCase();
 					LogService.getRoot().warning("Mnemonic key "+mne+" not found for tab " + i18KeyPrefix+"."+key + " ("+name+"), converting to upper case.");
+					//LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.I18N.resource_tabbed_pane", mne, i18KeyPrefix, key, name);
 				} else {
 					LogService.getRoot().warning("Mnemonic key "+mne+" not found for action " + i18KeyPrefix+"."+key + " ("+name+")");
 				}

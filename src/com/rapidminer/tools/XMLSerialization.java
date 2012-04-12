@@ -97,7 +97,12 @@ public class XMLSerialization {
             defineXMLAliasPairs();
         } catch (Throwable e) {
             // TODO: Why are we catching Throwables?
-            LogService.getRoot().log(Level.WARNING, "Cannot initialize XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided. XML serialization will not work!", e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot initialize XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided. XML serialization will not work!", e);
+        	LogService.getRoot().log(Level.WARNING,
+        			I18N.getMessage(LogService.getRoot().getResourceBundle(),
+        					"com.rapidminer.tools.XMLSerialization.writing_initializing_xml_serialization_error", 
+        					e),
+        					e);
         }
     }
 
@@ -121,7 +126,8 @@ public class XMLSerialization {
             // xstream requires us to close() stream. see java doc of createObjectOutputStream
             xOut.close();
         } else {
-            LogService.getRoot().warning("Cannot write XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided.");
+            //LogService.getRoot().warning("Cannot write XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided.");
+        	LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.XMLSerialization.writing_xml_serialization_error");
             throw new IOException("Cannot write object with XML serialization.");
         }
     }
@@ -141,7 +147,8 @@ public class XMLSerialization {
                 throw new IOException("Cannot read from XML stream, wrong format: " + e.getMessage(), e);
             }
         } else {
-            LogService.getRoot().warning("Cannot read object from XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided.");
+            //LogService.getRoot().warning("Cannot read object from XML serialization. Probably the libraries 'xstream.jar' and 'xpp.jar' were not provided.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.XMLSerialization.reading_object_from_XML_serialization_error");
             throw new IOException("Cannot read object from XML serialization.");
         }
     }

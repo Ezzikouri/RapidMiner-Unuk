@@ -25,6 +25,7 @@ package com.rapidminer.operator.learner.meta;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -411,7 +412,8 @@ public class BayBoostModel extends PredictionModel implements MetaModel {
 			// Change the intermediate estimates, take care about deterministic
 			// and non-applicable rules:
 			if (Double.isNaN(liftFactors[i])) { // WeightedPerformanceMeasures.RULE_DOES_NOT_APPLY)
-				LogService.getGlobal().log("Ignoring non-applicable model.", LogService.WARNING);
+				//LogService.getGlobal().log("Ignoring non-applicable model.", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.leaner.meta.BayBoostModel.ignoring_non_applicable_model");
 				continue L;
 			}
 			else if (Double.isInfinite(liftFactors[i])) {
@@ -428,7 +430,8 @@ public class BayBoostModel extends PredictionModel implements MetaModel {
 			else { // the "normal" case
 				products[i] *= liftFactors[i];
 				if (Double.isNaN(products[i])) {
-					LogService.getGlobal().log("Found NaN value in intermediate odds ratio estimates!", LogService.WARNING);
+					//LogService.getGlobal().log("Found NaN value in intermediate odds ratio estimates!", LogService.WARNING);
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.leaner.meta.BayBoostModel.found_nan_value");
 				}
 			}
 		}

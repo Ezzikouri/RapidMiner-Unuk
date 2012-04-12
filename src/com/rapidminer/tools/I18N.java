@@ -140,7 +140,9 @@ public class I18N {
 			}
 
 		} catch (MissingResourceException e) {
-			LogService.getRoot().warning("Missing I18N key: " + key);
+			//LogService.getRoot().warning("Missing I18N key: " + key);
+			//LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.tools.I18N.missing_key", key));
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.I18N.missing_key", key);
 			return key;
 		}
 	}

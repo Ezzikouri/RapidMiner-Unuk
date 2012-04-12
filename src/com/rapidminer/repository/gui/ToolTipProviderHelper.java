@@ -32,6 +32,7 @@ import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /**
@@ -59,7 +60,13 @@ public class ToolTipProviderHelper {
 						tip.append("</p>");
 					}
 				} catch (RepositoryException e1) {
-					LogService.getRoot().log(Level.WARNING, "Cannot fetch meta data for tool tip: " + e, e);
+					//LogService.getRoot().log(Level.WARNING, "Cannot fetch meta data for tool tip: " + e, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.repository.gui.ToolTipProviderHelper.fetching_meta_data_for_tool_error", 
+							e),
+							e);
+
 					return null;
 				}
 			} else {
@@ -88,7 +95,13 @@ public class ToolTipProviderHelper {
 						return ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
 					}
 				} catch (Exception ex) {
-					LogService.getRoot().log(Level.WARNING, "Error retrieving meta data for " + e.getLocation() + ": " + ex, ex);
+					//LogService.getRoot().log(Level.WARNING, "Error retrieving meta data for " + e.getLocation() + ": " + ex, ex);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.repository.gui.ToolTipProviderHelper.retrieving_meta_data_error", 
+							e.getLocation(), ex),
+							ex);
+
 				}
 			}
 		}

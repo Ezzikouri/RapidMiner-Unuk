@@ -55,6 +55,7 @@ import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.repository.resource.ResourceRepository;
 import com.rapidminer.tools.AbstractObservable;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
@@ -123,9 +124,16 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				}
 				RemoteRepository homeRepository = new RemoteRepository(new URL(homeUrl), "Home", username, passwordChars, true);
 				repositories.add(homeRepository);
-				LogService.getRoot().config("Adding home repository " + homeUrl + ".");
+				//LogService.getRoot().config("Adding home repository " + homeUrl + ".");
+				LogService.getRoot().log(Level.CONFIG, "com.rapidminer.repository.RepositoryManager.adding_home_repository", homeUrl);
 			} catch (MalformedURLException e) {
-				LogService.getRoot().log(Level.WARNING, "Illegal repository URL " + homeUrl + ": " + e, e);
+				//LogService.getRoot().log(Level.WARNING, "Illegal repository URL " + homeUrl + ": " + e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.repository.RepositoryManager.illegal_repository_url", 
+						homeUrl, e),
+						e);
+
 			}
 		}
 		load();

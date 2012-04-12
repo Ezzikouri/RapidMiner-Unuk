@@ -70,7 +70,12 @@ public class RMUrlHandler {
 					op = OperatorService.createOperator(opName);
 					RapidMinerGUI.getMainFrame().getOperatorDocViewer().setDisplayedOperator(op);
 				} catch (OperatorCreationException e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot create operator: "+opName, e);
+					//LogService.getRoot().log(Level.WARNING, "Cannot create operator: "+opName, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.tools.RMUrlHandler.creating_operator_error", 
+							opName),
+							e);
 				}
 				return true;
 			}
@@ -84,7 +89,8 @@ public class RMUrlHandler {
 			if (action != null) {
 				action.actionPerformed(null);				
 			} else {
-				LogService.getRoot().warning("No action associated with URL "+url);
+				//LogService.getRoot().warning("No action associated with URL "+url);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.RMUrlHandler.no_action_associated_with_url", url);
 			}			
 			return true; // we didn't make it, but noone else can, so we return true.
 		} else if (url.startsWith("http://") || (url.startsWith("https://"))) {

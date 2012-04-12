@@ -25,6 +25,7 @@ package com.rapidminer.example.table;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.tools.LogService;
@@ -87,7 +88,8 @@ public class ResultSetDataRowReader extends AbstractDataRowReader {
 						return false;
 					}
 				} catch (SQLException e) {
-					LogService.getGlobal().logError("While reading examples from result set: " + e.getMessage());
+					//LogService.getGlobal().logError("While reading examples from result set: " + e.getMessage());
+					LogService.getRoot().log(Level.SEVERE, "com.rapidminer.example.table.ResultSetDataRowReader.error_while_reading_examples_from_result_set", e.getMessage());
 					return false;
 				}
 			default:

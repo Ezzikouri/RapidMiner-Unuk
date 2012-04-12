@@ -93,6 +93,7 @@ import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.AbstractObservable;
 import com.rapidminer.tools.DelegatingObserver;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Observable;
@@ -1671,7 +1672,12 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
         try {
             return XMLTools.toString(new XMLExporter(onlyCoreElements).exportProcess(this, hideDefault), XMLImporter.PROCESS_FILE_CHARSET);
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot generate process XML: "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot generate process XML: "+e, e);
+            LogService.getRoot().log(Level.WARNING,
+			I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+			"com.rapidminer.operator.Operator.generating_xml_process_error", 
+			e),
+			e);
             return e.toString();
         }
     }

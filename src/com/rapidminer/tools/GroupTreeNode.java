@@ -22,6 +22,8 @@
  */
 package com.rapidminer.tools;
 
+import java.util.logging.Level;
+
 import com.rapidminer.tools.documentation.GroupDocumentation;
 import com.rapidminer.tools.documentation.OperatorDocBundle;
 
@@ -53,7 +55,8 @@ public class GroupTreeNode extends GroupTree {
         if (bundle != null) {
             this.documentation = ((GroupDocumentation) bundle.getObject("group." + getFullyQualifiedKey()));
         } else {
-            LogService.getRoot().fine("No documentation bundle associated with group " + getFullyQualifiedKey());
+            //LogService.getRoot().fine("No documentation bundle associated with group " + getFullyQualifiedKey());
+            LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.GroupTreeNode.no_documentation_bundle_associated", getFullyQualifiedKey());
             this.documentation = new GroupDocumentation(key);
         }
     }

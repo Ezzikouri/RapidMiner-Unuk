@@ -42,6 +42,7 @@ import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
@@ -207,7 +208,12 @@ public class DBConnectionFolder implements Folder {
 					try {
 						handler.getConnection().close();
 					} catch (SQLException e) {
-						LogService.getRoot().log(Level.WARNING, "Failed to close connection: "+e, e);
+						//LogService.getRoot().log(Level.WARNING, "Failed to close connection: "+e, e);
+						LogService.getRoot().log(Level.WARNING,
+								I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+								"com.rapidminer.repository.db.DBConnectionFolder.closing_connection_error", 
+								e),
+								e);
 					}
 				}
 			}

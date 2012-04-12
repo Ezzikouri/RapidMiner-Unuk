@@ -22,6 +22,8 @@
  */
 package com.rapidminer.example;
 
+import java.util.logging.Level;
+
 import com.rapidminer.tools.LogService;
 
 /** Attribute statistics object for numerical attributes. 
@@ -87,7 +89,8 @@ public class NumericalStatistics implements Statistics {
         } else if (SUM.equals(name)) {
             return this.sum;
         } else {
-            LogService.getGlobal().log("Cannot calculate statistics, unknown type: " + name, LogService.WARNING);
+            //LogService.getGlobal().log("Cannot calculate statistics, unknown type: " + name, LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.NumericalStatistics.calculating_statistics_unknown_type_error", name);
             return Double.NaN;
         }
     }

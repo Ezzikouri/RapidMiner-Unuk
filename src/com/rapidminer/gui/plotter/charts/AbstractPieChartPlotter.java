@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -349,7 +350,8 @@ public abstract class AbstractPieChartPlotter extends PlotterAdapter {
                 try {
                     aggregation = AbstractAggregationFunction.createAggregationFunction(selectedAggregationFunction);
                 } catch (Exception e) {
-                    LogService.getGlobal().logWarning("Cannot instantiate aggregation function '" + selectedAggregationFunction + "', using 'average' as default.");
+                    //LogService.getGlobal().logWarning("Cannot instantiate aggregation function '" + selectedAggregationFunction + "', using 'average' as default.");
+                    LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.AbstractPieChartPlotter.instantiating_aggregation_function_error", selectedAggregationFunction);
                     aggregation = new AverageFunction();
                 }
             }
@@ -490,7 +492,8 @@ public abstract class AbstractPieChartPlotter extends PlotterAdapter {
             if (maxClassesProperty != null)
                 maxClasses = Integer.parseInt(maxClassesProperty);
         } catch (NumberFormatException e) {
-            LogService.getGlobal().log("Pie Chart plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            //LogService.getGlobal().log("Pie Chart plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.AbstractPieChartPlotter.pie_chart_plotter_parsing_error");
         }
         boolean createLegend = categoryCount > 0 && categoryCount < maxClasses;
 
@@ -551,7 +554,9 @@ public abstract class AbstractPieChartPlotter extends PlotterAdapter {
             // ATTENTION: WITHOUT THIS WE GET SEVERE MEMORY LEAKS!!!
             panel.getChartRenderingInfo().setEntityCollection(null);
         } else {
-            LogService.getGlobal().logNote("Too many columns (" + categoryCount + "), this chart is only able to plot up to " + MAX_CATEGORIES + " different categories.");
+            //LogService.getGlobal().logNote("Too many columns (" + categoryCount + "), this chart is only able to plot up to " + MAX_CATEGORIES + " different categories.");
+            LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.plotter.charts.AbstractPieChartPlotter.too_many_columns", 
+            		new Object[] {categoryCount, MAX_CATEGORIES});
         }
     }
 

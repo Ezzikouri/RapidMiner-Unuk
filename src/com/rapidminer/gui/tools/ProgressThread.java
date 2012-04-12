@@ -140,9 +140,20 @@ public abstract class ProgressThread implements Runnable {
 		try {
 			EXECUTOR.submit(makeWrapper()).get();
 		} catch (InterruptedException e) {
-			LogService.getRoot().log(Level.SEVERE, "Cannot execute '"+name+"'.", e);
+			//LogService.getRoot().log(Level.SEVERE, "Cannot execute '"+name+"'.", e);
+			LogService.getRoot().log(Level.SEVERE,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.tools.ProgressThread.executing_error", 
+					name),
+					e);
+
 		} catch (ExecutionException e) {
-			LogService.getRoot().log(Level.SEVERE, "Cannot execute '"+name+"'.", e);			
+			//LogService.getRoot().log(Level.SEVERE, "Cannot execute '"+name+"'.", e);	
+			LogService.getRoot().log(Level.SEVERE,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.tools.ProgressThread.executing_error", 
+					name),
+					e);
 		}
 	}
 
@@ -158,7 +169,8 @@ public abstract class ProgressThread implements Runnable {
 			public void run() {		
 				synchronized (LOCK) {
 					if (cancelled) {
-						LogService.getRoot().info("Task "+getName()+" was cancelled.");
+						//LogService.getRoot().info("Task "+getName()+" was cancelled.");
+						LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.tools.ProgressThread.task_cacelled", getName());
 						return;
 					}
 					started = true;
@@ -176,9 +188,16 @@ public abstract class ProgressThread implements Runnable {
 					}
 					ProgressThread.this.run();
 				} catch (ProgressThreadStoppedException e) {
-					LogService.getRoot().fine("Progress thread "+getName()+" aborted (cancelled).");
+					//LogService.getRoot().fine("Progress thread "+getName()+" aborted (cancelled).");
+					LogService.getRoot().log(Level.FINE, "com.rapidminer.gui.tools.ProgressThread.progress_thread_aborted", getName());
 				} catch (Exception e) {
-					LogService.getRoot().log(Level.WARNING, "Error executing background job '"+name+"': "+e, e);
+					//LogService.getRoot().log(Level.WARNING, "Error executing background job '"+name+"': "+e, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.gui.tools.ProgressThread.error_executing_background_job", 
+							name, e),
+							e);
+
 					SwingTools.showSimpleErrorMessage("error_executing_background_job", e, name, e);
 				} finally {
 					if (!ProgressThread.this.isCancelled()) {

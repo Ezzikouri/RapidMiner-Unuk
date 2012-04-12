@@ -28,6 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.logging.Level;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -332,7 +333,9 @@ public abstract class ParameterType implements Comparable, Serializable {
      * encountered during <tt>checkValue()</tt>.
      */
     public void illegalValue(Object illegal, Object corrected) {
-        LogService.getGlobal().log("Illegal value '" + illegal + "' for parameter '" + key + "' has been corrected to '" + corrected.toString() + "'.", LogService.WARNING);
+        //LogService.getGlobal().log("Illegal value '" + illegal + "' for parameter '" + key + "' has been corrected to '" + corrected.toString() + "'.", LogService.WARNING);
+        LogService.getRoot().log(Level.WARNING, "com.rapidminer.parameter.ParameterType.illegal_value_for_parameter", 
+        		new Object[] {illegal, key, corrected.toString()});
     }
 
     /** ParameterTypes are compared by key. */

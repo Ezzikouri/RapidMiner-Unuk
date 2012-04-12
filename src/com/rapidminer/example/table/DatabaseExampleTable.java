@@ -26,6 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.tools.LogService;
@@ -104,7 +105,8 @@ public class DatabaseExampleTable extends AbstractExampleTable {
             DatabaseDataRow dataRow = new DatabaseDataRow(resultSet);
             return dataRow;
         } catch (SQLException e) {
-            LogService.getGlobal().log("Cannot retrieve data row with absolute row index: " + e.getMessage(), LogService.WARNING);
+            //LogService.getGlobal().log("Cannot retrieve data row with absolute row index: " + e.getMessage(), LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.table.DatabaseExampleTable.retrieving_data_row_error", e.getMessage());
         }
         return null;
 	}
@@ -163,7 +165,8 @@ public class DatabaseExampleTable extends AbstractExampleTable {
                 this.statement.close();
                 this.statement = null;
             } catch (SQLException e) {
-                LogService.getGlobal().log("DatabaseExampleTable: cannot close result set: " + e.getMessage(), LogService.WARNING);
+                //LogService.getGlobal().log("DatabaseExampleTable: cannot close result set: " + e.getMessage(), LogService.WARNING);
+            	LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.table.DatabaseExampleTable.closing_result_set_error", e.getMessage());
             }
         }
     }

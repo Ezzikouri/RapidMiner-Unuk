@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /**
@@ -53,7 +54,12 @@ public class ExtendedHTMLEditorKit extends HTMLEditorKit {
 			styleSheet.loadRules(r, null);
 			r.close();
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot install stylesheet: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot install stylesheet: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.tools.ExtendedHTMLEditorKit.installing_stylesheet_error", 
+					e),
+					e);
 			// on error we simply have no styles... the html
 			// will look mighty wrong but still function.
 		}

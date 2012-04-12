@@ -39,6 +39,7 @@ import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
+import java.util.logging.SimpleFormatter;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -148,9 +149,10 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
         }
     }
 
-    private final Formatter formatter = new Formatter() {
+    private final Formatter formatter =    
+    	new SimpleFormatter() {
         @Override
-        public String format(LogRecord record) {
+        public String format(LogRecord record) {        	
             StringBuilder b = new StringBuilder();
             //			b.append(record.getLoggerName());
             //			b.append(": ");
@@ -158,7 +160,8 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
             b.append(" ");
             b.append(record.getLevel().getLocalizedName());
             b.append(": ");
-            b.append(record.getMessage());
+            //b.append(record.getMessage());
+            b.append(formatMessage(record));
             b.append("\n");
             return b.toString();
         }
@@ -207,7 +210,8 @@ public class LoggingViewer extends JPanel implements MouseListener, Dockable {
             if (maxRowsString != null)
                 maxRows = Integer.parseInt(maxRowsString);
         } catch (NumberFormatException e) {
-            LogService.getGlobal().log("Bad integer format for property '', using default number of maximum rows for logging (1000).", LogService.WARNING);
+            //LogService.getGlobal().log("Bad integer format for property '', using default number of maximum rows for logging (1000).", LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.LoggingViewer.bad_integer_format_for_property");           
         }
 
         this.textArea = textArea;

@@ -86,6 +86,7 @@ import com.rapidminer.repository.gui.actions.PasteEntryRepositoryAction;
 import com.rapidminer.repository.gui.actions.RefreshAction;
 import com.rapidminer.repository.gui.actions.RenameAction;
 import com.rapidminer.repository.gui.actions.StoreProcessAction;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 
@@ -356,10 +357,20 @@ public class RepositoryTree extends JTree {
 						return false;
 					}
 				} catch (UnsupportedFlavorException e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot accept drop flavor: "+e, e);
+					//LogService.getRoot().log(Level.WARNING, "Cannot accept drop flavor: "+e, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.repository.RepositoryTree.accepting_flavor_error", 
+							e),
+							e);
 					return false;
 				} catch (IOException e) {
-					LogService.getRoot().log(Level.WARNING, "Error during drop: "+e, e);
+					//LogService.getRoot().log(Level.WARNING, "Error during drop: "+e, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.repository.RepositoryTree.error_during_drop", 
+							e),
+							e);
 					return false;
 				}
 			}
@@ -744,7 +755,8 @@ public class RepositoryTree extends JTree {
 					}
 				}
 			} catch (Exception e) {
-				LogService.getGlobal().log("could not create repository action: " + entry.getRepositoryActionClass(), LogService.ERROR);
+				//LogService.getGlobal().log("could not create repository action: " + entry.getRepositoryActionClass(), LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.repository.gui.RepositoryTree.creating_repository_action_error", entry.getRepositoryActionClass());
 			}
 		}
 		return listOfActions;

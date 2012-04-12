@@ -73,6 +73,7 @@ import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.LoggingHandler;
 import com.rapidminer.tools.Ontology;
@@ -317,7 +318,10 @@ public class DatabaseHandler {
         if (connection != null) {
             throw new SQLException("Connection to database '" + databaseURL + "' already exists!");
         }
-        LogService.getRoot().config("Connecting to "+databaseURL+" as "+this.user+".");
+        //LogService.getRoot().config("Connecting to "+databaseURL+" as "+this.user+".");
+        LogService.getRoot().log(Level.CONFIG, 
+        		"com.rapidminer.tools.jdbc.DatabaseHandler.connecting_to_database",
+        		new Object[] {databaseURL, this.user});
         DriverManager.setLoginTimeout(30);
         props.put("SetBigStringTryClob", "true");
         if (this.user != null && !user.isEmpty()) {
@@ -925,7 +929,12 @@ public class DatabaseHandler {
                     List<ColumnIdentifier> columnNames = getAllColumnNames(tableName, metaData);
                     result.put(tableName, columnNames);
                 } catch (SQLException e) {
-                    LogService.getRoot().log(Level.WARNING, "Failed to fetch column meta data for table '"+tableName+"': "+e, e);
+                    //LogService.getRoot().log(Level.WARNING, "Failed to fetch column meta data for table '"+tableName+"': "+e, e);
+                	LogService.getRoot().log(Level.WARNING,
+                			I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                					"com.rapidminer.tools.jdbc.DatabaseHandler.fetching_column_metadata_error", 
+                					tableName, e),
+                					e);
                     result.put(tableName, Collections.<ColumnIdentifier>emptyList());
                 }
             } else {

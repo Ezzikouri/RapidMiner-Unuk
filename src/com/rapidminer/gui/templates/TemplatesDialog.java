@@ -55,6 +55,7 @@ import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /**
@@ -168,17 +169,26 @@ public class TemplatesDialog extends ButtonDialog {
                                 Template template = new Template(tin);
                                 templateMap.put(template.getName(), template);
                             } else {
-                                LogService.getRoot().warning("Cannot find template " + templateName);
+                                //LogService.getRoot().warning("Cannot find template " + templateName);
+                                LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.templates.TemplatesDialog.finding_template_error", templateName);
                             }
                         } catch (Exception e) {
                             SwingTools.showSimpleErrorMessage("cannot_load_template_file", e, line);
                         }
                     }
                 } catch (IOException e) {
-                    LogService.getRoot().log(Level.WARNING, "Error reading template list: " + e, e);
+                    //LogService.getRoot().log(Level.WARNING, "Error reading template list: " + e, e);
+        			LogService.getRoot().log(Level.WARNING,
+        					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+        					"com.rapidminer.gui.templates.TemplatesDialog.reading_template_list_error", 
+        					e),
+        					e);
+
+                    
                 }
             } catch (UnsupportedEncodingException e) {
-                LogService.getRoot().warning("Resource /com/rapidminer/resources/templates/Templates cannot be read. UTF-8 not supported.");
+                //LogService.getRoot().warning("Resource /com/rapidminer/resources/templates/Templates cannot be read. UTF-8 not supported.");
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.templates.TemplatesDialog.resource_not_supported");
                 return;
             } finally {
                 if (reader != null) {
@@ -190,7 +200,8 @@ public class TemplatesDialog extends ButtonDialog {
             }
 
         } else {
-            LogService.getRoot().warning("Resource com/rapidminer/resources/templates/Templates not found.");
+            //LogService.getRoot().warning("Resource com/rapidminer/resources/templates/Templates not found.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.templates.TemplatesDialog.resource_not_found");
         }
     }
 

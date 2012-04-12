@@ -33,6 +33,7 @@ import com.rapidminer.operator.io.IOObjectWriter;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.XMLException;
@@ -87,7 +88,12 @@ public class ReplaceIOContainerWriter extends AbstractParseRule {
 								}
 								num++;
 							} catch (Exception e) {
-								LogService.getRoot().log(Level.WARNING, "Cannot insert IOObjectWriter: "+e, e);
+								//LogService.getRoot().log(Level.WARNING, "Cannot insert IOObjectWriter: "+e, e);
+								LogService.getRoot().log(Level.WARNING,
+										I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+										"com.rapidminer.io.process.rules.ReplaceIOContainerWriter.inserting_ioobjectwriter_error", 
+										e),
+										e);
 								importer.addMessage("<em class=\"error\">Error while replacing "+ioContainerWriter.getName()+": "+e+"</em>");
 							} finally {
 								input.unlock();

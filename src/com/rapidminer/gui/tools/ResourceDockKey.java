@@ -22,6 +22,8 @@
  */
 package com.rapidminer.gui.tools;
 
+import java.util.logging.Level;
+
 import javax.swing.Icon;
 
 import com.rapidminer.gui.MainFrame;
@@ -54,7 +56,8 @@ public class ResourceDockKey extends DockKey {
 			if (icon != null) {
 				setIcon(icon);
 			} else {
-				LogService.getRoot().warning("Missing icon: "+iconName);
+				//LogService.getRoot().warning("Missing icon: "+iconName);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.ResourceDockKey.missing_icon", iconName);
 			}
 		}
 		setFloatEnabled(true);

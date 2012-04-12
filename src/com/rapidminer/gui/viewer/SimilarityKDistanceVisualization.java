@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -140,7 +141,8 @@ public class SimilarityKDistanceVisualization extends PlotterAdapter implements 
 
 		int numberOfExamples = exampleSet.size();
 		if (this.k >= numberOfExamples) {
-			LogService.getGlobal().log("KDistanceVisualization: k is larger than the number of examples", LogService.WARNING);
+			//LogService.getGlobal().log("KDistanceVisualization: k is larger than the number of examples", LogService.WARNING);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.viewer.SimilarityKDistanceVisualization.k_is_larger_than_the_numer_of_examples");
 			k = numberOfExamples;
 		}
 
@@ -173,7 +175,9 @@ public class SimilarityKDistanceVisualization extends PlotterAdapter implements 
 
 	protected void drawPoints(Graphics2D g, double dx, double dy, double sx, double sy) {
 		if (this.kDistanceValues != null && this.kDistanceValues.size() <= 2) {
-			LogService.getGlobal().log("KDistanceVisualization: No values in value map", LogService.WARNING);
+			//LogService.getGlobal().log("KDistanceVisualization: No values in value map", LogService.WARNING);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.viewer.SimilarityKDistanceVisualization.no_values_in_value_map");
+
 			return;
 		}
 		if (this.kDistanceValues != null) {

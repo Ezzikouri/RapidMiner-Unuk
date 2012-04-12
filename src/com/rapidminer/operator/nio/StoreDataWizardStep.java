@@ -36,6 +36,7 @@ import com.rapidminer.operator.nio.model.WizardState;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /**
@@ -92,7 +93,12 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 							try {
 								resultSet.close();
 							} catch (OperatorException e) {
-								LogService.getRoot().log(Level.WARNING, "Failed to close result set: "+e, e);
+								//LogService.getRoot().log(Level.WARNING, "Failed to close result set: "+e, e);
+	                			LogService.getRoot().log(Level.WARNING,
+	                					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+	                					"com.rapidminer.operator.nio.StoreDataWizardStep.closing_result_set_error", 
+	                					e),
+	                					e);
 							}
 						}	
 						state.getDataResultSetFactory().close();

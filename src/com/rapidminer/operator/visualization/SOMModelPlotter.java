@@ -30,6 +30,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -151,7 +152,8 @@ public class SOMModelPlotter extends SOMPlotter {
 				}
 			}
 		} catch (OperatorException e) {
-			LogService.getGlobal().log("Cannot use Model for prediction of node label: " + e.getMessage(), LogService.WARNING);
+			//LogService.getGlobal().log("Cannot use Model for prediction of node label: " + e.getMessage(), LogService.WARNING);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.visualization.SOMModelPlotter.using_model_for_prediction_error" + e.getMessage());
 		}
 		super.createMatrices();
 	}

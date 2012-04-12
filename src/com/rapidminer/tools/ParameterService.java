@@ -398,7 +398,8 @@ public class ParameterService {
      */
     public static void saveParameters(File configFile) {
         if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
-            LogService.getRoot().config("Ignoring request to save properties file in execution mode " + RapidMiner.getExecutionMode() + ".");
+            //LogService.getRoot().config("Ignoring request to save properties file in execution mode " + RapidMiner.getExecutionMode() + ".");
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.ParameterService.ignoring_request_to_save_properties", RapidMiner.getExecutionMode());
             return;
         }
 
@@ -415,15 +416,30 @@ public class ParameterService {
             out = new BufferedOutputStream(new FileOutputStream(configFile));
             properties.store(out, "");
         } catch (FileNotFoundException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot write user properties: " + e.getMessage(), e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot write user properties: " + e.getMessage(), e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.ParameterService.writing_user_properties_error", 
+					e.getMessage()),
+					e);
         } catch (IOException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot write user properties: " + e.getMessage(), e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot write user properties: " + e.getMessage(), e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.ParameterService.writing_user_properties_error", 
+					e.getMessage()),
+					e);
         } finally {
             if (out != null) {
                 try {
                     out.close();
                 } catch (IOException e) {
-                    LogService.getRoot().log(Level.WARNING, "Cannot close user properties file: " + e.getMessage(), e);
+                    //LogService.getRoot().log(Level.WARNING, "Cannot close user properties file: " + e.getMessage(), e);
+        			LogService.getRoot().log(Level.WARNING,
+        					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+        					"com.rapidminer.tools.ParameterService.closing_user_properties_file_error", 
+        					e.getMessage()),
+        					e);
                 }
             }
         }
@@ -528,7 +544,8 @@ public class ParameterService {
     @Deprecated
     public static void writeProperties(Properties properties, File file) {
         if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
-            LogService.getRoot().config("Ignoring request to save properties file in execution mode " + RapidMiner.getExecutionMode() + ".");
+            //LogService.getRoot().config("Ignoring request to save properties file in execution mode " + RapidMiner.getExecutionMode() + ".");
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.ParameterService.ignoring_request_to_save_properties", RapidMiner.getExecutionMode());
             return;
         }
 
@@ -537,7 +554,12 @@ public class ParameterService {
             out = new BufferedOutputStream(new FileOutputStream(file));
             properties.store(out, "");
         } catch (IOException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot write user properties: " + e.getMessage(), e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot write user properties: " + e.getMessage(), e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.ParameterService.writing_user_properties_error", 
+					e.getMessage()),
+					e);
         } finally {
             if (out != null) {
                 try {

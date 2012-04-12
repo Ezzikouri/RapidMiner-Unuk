@@ -132,7 +132,12 @@ public class LaunchListener {
                         // Assume no malicious client and communication is quick.
                         talkToSecondClient(client);
                     } catch (IOException e) {
-                        LogService.getRoot().log(Level.WARNING, "Error accepting socket connection: "+e, e);
+                        //LogService.getRoot().log(Level.WARNING, "Error accepting socket connection: "+e, e);
+            			LogService.getRoot().log(Level.WARNING,
+            					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+            					"com.rapidminer.tools.LaunchListener.accepting_socket_connection_error", 
+            					e),
+            					e);
                     }
                 }
             }

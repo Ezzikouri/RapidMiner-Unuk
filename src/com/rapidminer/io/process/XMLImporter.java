@@ -82,6 +82,7 @@ import com.rapidminer.operator.ports.metadata.CompatibilityLevel;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeEnumeration;
 import com.rapidminer.parameter.ParameterTypeList;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.ProgressListener;
@@ -123,7 +124,8 @@ public class XMLImporter {
             // registering the core rules without name prefix
             importParseRules(rulesResource, null);
         } else {
-            LogService.getRoot().warning("Cannot find default parse rules.");
+            //LogService.getRoot().warning("Cannot find default parse rules.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.io.process.XMLImporter.cannot_find_default_parse_rules");
         }
     }
 
@@ -141,11 +143,13 @@ public class XMLImporter {
             if (prover != null)
                 operatorNamePrefix = prover.getPrefix() + ":";
 
-            LogService.getRoot().config("Reading parse rules from " + rulesResource);
+            //LogService.getRoot().config("Reading parse rules from " + rulesResource);
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.io.process.XMLImporter.reading_parse_rules", rulesResource);
             try {
                 Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(rulesResource.openStream());
                 if (!doc.getDocumentElement().getTagName().equals("parserules")) {
-                    LogService.getRoot().log(Level.SEVERE, "XML document " + rulesResource + " does not start with <parserules>");
+                    //LogService.getRoot().log(Level.SEVERE, "XML document " + rulesResource + " does not start with <parserules>");
+                    LogService.getRoot().log(Level.SEVERE, "com.rapidminer.io.process.XMLImporter.xml_document_start_error", rulesResource);
                 } else {
                     NodeList operatorElements = doc.getDocumentElement().getChildNodes();
                     for (int i = 0; i < operatorElements.getLength(); i++) {
@@ -167,10 +171,16 @@ public class XMLImporter {
                             }
                         }
                     }
-                    LogService.getRoot().fine("Found " + PARSE_RULES.size() + " rules are.");
+                    //LogService.getRoot().fine("Found " + PARSE_RULES.size() + " rules are.");
+                    LogService.getRoot().log(Level.FINE, "com.rapidminer.io.process.XMLImporter.found_rules", PARSE_RULES.size());
                 }
             } catch (Exception e) {
-                LogService.getRoot().log(Level.SEVERE, "Error reading parse rules from " + rulesResource + ": " + e, e);
+                //LogService.getRoot().log(Level.SEVERE, "Error reading parse rules from " + rulesResource + ": " + e, e);
+    			LogService.getRoot().log(Level.SEVERE,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.io.process.XMLImporter.error_reading_parse_rules", 
+    					rulesResource, e),
+    					e);
             }
         }
     }
@@ -354,7 +364,12 @@ public class XMLImporter {
                     addMessage("As of version 5.0, RapidMiner processes define an explicit data flow. This data flow has been constructed automatically.");
                 } catch (Exception e) {
                     addMessage("As of version 5.0, RapidMiner processes define an explicit data flow. This data flow could not be constructed automatically: " + e);
-                    LogService.getRoot().log(Level.WARNING, "Cannot autowire: " + e, e);
+                    //LogService.getRoot().log(Level.WARNING, "Cannot autowire: " + e, e);
+        			LogService.getRoot().log(Level.WARNING,
+        					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+        					"com.rapidminer.io.process.XMLImporter.autowire_error", 
+        					e),
+        					e);
                 }
             }
         }

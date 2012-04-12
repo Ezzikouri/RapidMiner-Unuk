@@ -25,6 +25,7 @@ package com.rapidminer.gui.new_plotter.templates.style;
 import java.awt.Font;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.JPanel;
 
@@ -593,7 +594,8 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 						ColorScheme colorScheme = new ColorScheme(name, listOfColors, gradientStart, gradientEnd);
 						setSelectedColorScheme(colorScheme);
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore color scheme for style provider!");
+						//LogService.getRoot().warning("Could not restore color scheme for style provider!");
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.templates.style.DefaultPlotterStyleProvider.restoring_color_scheme_error");
 					}
 				} else if (setting.getNodeName().equals(CHART_TITLE_ELEMENT)) {
 					// load chart title
@@ -608,7 +610,8 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 						Font axesFont = new Font(name, style, size);
 						setAxesFont(axesFont);
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore axes font for style provider!");
+						//LogService.getRoot().warning("Could not restore axes font for style provider!");
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.templates.style.DefaultPlotterStyleProvider.restoring_axes_font_error");
 					}
 				} else if (setting.getNodeName().equals(LEGEND_FONT_ELEMENT)) {
 					try {
@@ -619,7 +622,8 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 						Font legendFont = new Font(name, style, size);
 						setLegendFont(legendFont);
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore legend font for style provider!");
+						//LogService.getRoot().warning("Could not restore legend font for style provider!");
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.templates.style.DefaultPlotterStyleProvider.restoring_legend_font_error");
 					}
 				} else if (setting.getNodeName().equals(TITLE_FONT_ELEMENT)) {
 					try {
@@ -630,7 +634,8 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 						Font titleFont = new Font(name, style, size);
 						setTitleFont(titleFont);
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore title font for style provider!");
+						//LogService.getRoot().warning("Could not restore title font for style provider!");
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.templates.style.DefaultPlotterStyleProvider.restoring_title_font_error");
 					}
 				} else if (setting.getNodeName().equals(FRAME_BACKGROUND_COLOR_ELEMENT)) {
 					try {
@@ -642,7 +647,8 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 						ColorRGB frameBackgroundColor = new ColorRGB(r, g, b, alpha);
 						setFrameBackgroundColor(frameBackgroundColor);
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore frame background color for style provider!");
+						//LogService.getRoot().warning("Could not restore frame background color for style provider!");
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.templates.style.DefaultPlotterStyleProvider.restoring_frame_background_error");
 					}
 				} else if (setting.getNodeName().equals(PLOT_BACKGROUND_COLOR_ELEMENT)) {
 					try {
@@ -654,7 +660,8 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 						ColorRGB plotBackgroundColor = new ColorRGB(r, g, b, alpha);
 						setPlotBackgroundColor(plotBackgroundColor);
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore plot background color for style provider!");
+						//LogService.getRoot().warning("Could not restore plot background color for style provider!");
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.templates.style.DefaultPlotterStyleProvider.restoring_plot_background_color_error");
 					}
 				}
 			}

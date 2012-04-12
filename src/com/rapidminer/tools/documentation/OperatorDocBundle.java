@@ -27,6 +27,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.tools.LogService;
@@ -80,7 +81,8 @@ public class OperatorDocBundle extends ResourceBundle {
             if (doc == null) {
                 doc = new OperatorDocumentation(key);
                 operatorKeyDescriptionMap.put(key, doc);
-                LogService.getRoot().fine("Creating new empty documentation for operator " + key);
+                //LogService.getRoot().fine("Creating new empty documentation for operator " + key);
+                LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.documentation.OperatorDocBundle.creating_empty_documentation_for_operator", key);
             }
             return doc;
         } else if (key.startsWith(GROUP_PREFIX)) {
@@ -89,7 +91,8 @@ public class OperatorDocBundle extends ResourceBundle {
             if (groupDocumentation == null) {
                 groupDocumentation = new GroupDocumentation(key);
                 groupMap.put(key, groupDocumentation);
-                LogService.getRoot().fine("Creating new empty documentation for group " + key);
+                //LogService.getRoot().fine("Creating new empty documentation for group " + key);
+                LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.documentation.OperatorDocBundle.creating_empty_documentation_for_group", key);
             }
             return groupDocumentation;
         }
@@ -98,7 +101,8 @@ public class OperatorDocBundle extends ResourceBundle {
 
     /** Checks for empty documentation and documentation that has no associated operator. */
     public void check() {
-        LogService.getRoot().info("Checking operator documentation");
+        //LogService.getRoot().info("Checking operator documentation");
+        LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.documentation.OperatorDocBundle.checking_operator_documentation");
         int missing = 0;
         int same = 0;
         int deprecation = 0;
@@ -111,13 +115,15 @@ public class OperatorDocBundle extends ResourceBundle {
                 continue;
             }
             if (doc.getDocumentation().trim().isEmpty()) {
-                LogService.getRoot().warning("Empty documentation for " + key);
+                //LogService.getRoot().warning("Empty documentation for " + key);
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.OperatorDocBundle.empty_documentation", key);
                 empty++;
             }
             OperatorDescription desc = OperatorService.getOperatorDescription(key);
             if (desc == null) {
                 missing++;
-                LogService.getRoot().warning("Documentation for nonexistent operator " + key);
+                //LogService.getRoot().warning("Documentation for nonexistent operator " + key);
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.OperatorDocBundle.documentation_for_nonexistent_operator", key);
             }
             String replacement = OperatorService.getReplacementForDeprecatedClass(key);
             if (replacement != null) {
@@ -135,11 +141,16 @@ public class OperatorDocBundle extends ResourceBundle {
                 } else {
                     string = replacement + " has no documentation entry.";
                 }
-                LogService.getRoot().warning("Documentation for deprecated operator " + key + " replaced by " + replacement + ". " + string);
-
+                //LogService.getRoot().warning("Documentation for deprecated operator " + key + " replaced by " + replacement + ". " + string);
+                LogService.getRoot().log(Level.WARNING, 
+                		"com.rapidminer.tools.documentation.OperatorDocBundle.documentation_for_deprecated_operator", 
+                		new Object[] {key, replacement, string});
             }
         }
-        LogService.getRoot().info("Found " + empty + " empty documentations. Found documentation for " + missing + " nonexistent and " + (deprecation) + " replaced operators. Out of these, " + same + " documentations are identical to the documentation of the replacement and "
-                + (deprecation - same - different) + " replacements have no documentation.");
+        //LogService.getRoot().info("Found " + empty + " empty documentations. Found documentation for " + missing + " nonexistent and " + (deprecation) + " replaced operators. Out of these, " + same + " documentations are identical to the documentation of the replacement and "
+        //        + (deprecation - same - different) + " replacements have no documentation.");
+        LogService.getRoot().log(Level.INFO, 
+        		"com.rapidminer.tools.I18N.operator_doc_bundle_warning4", 
+        		new Object[] {empty, missing, (deprecation), same, (deprecation - same - different)});
     }
 }

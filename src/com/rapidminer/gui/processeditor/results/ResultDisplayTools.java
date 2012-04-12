@@ -38,6 +38,7 @@ import com.rapidminer.gui.tools.RadioCardPanel;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ResultObject;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 
@@ -71,7 +72,12 @@ public class ResultDisplayTools {
                     ((RadioCardPanel)visualisationComponent).addCard(renderer.getName(), rendererComponent);
                 }
             } catch (Exception e) {
-                LogService.getRoot().log(Level.WARNING, "Error creating renderer: "+e, e);
+                //LogService.getRoot().log(Level.WARNING, "Error creating renderer: "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.gui.processeditor.results.ResultDisplayTools.error_creating_renderer", 
+						e),
+						e);
                 ((RadioCardPanel)visualisationComponent).addCard(renderer.getName(), new JLabel("Error creating renderer "+renderer.getName() + " (see log)."));
             }
         }

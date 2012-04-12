@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Level;
 
 import javax.swing.Action;
 import javax.swing.DefaultCellEditor;
@@ -314,7 +315,8 @@ public class AttributeEditor extends ExtendedJTable implements MouseListener, Da
                 else
                     return number;
             } catch (NumberFormatException e) {
-                LogService.getGlobal().log("Value of rapidminer.gui.attributeeditor." + limitName + " must be an integer!", LogService.ERROR);
+                //LogService.getGlobal().log("Value of rapidminer.gui.attributeeditor." + limitName + " must be an integer!", LogService.ERROR);
+                LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.attributeeditor.AttributeEditor.value_of_attributeeditor_must_be_an_integer", limitName);
                 return defaultNumber;
             }
         } else {

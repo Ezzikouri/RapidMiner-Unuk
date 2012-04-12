@@ -24,6 +24,7 @@ package com.rapidminer.io.process.rules;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -72,7 +73,8 @@ public abstract class AbstractConditionedParseRule extends AbstractParseRule {
 				} else if (conditionElem.getTagName().equals("parameter_unequals")) {
 					conditions.add(new ParameterUnequalsCondition((Element)conditionNode));
 				} else {
-					LogService.getRoot().warning("Unknown condition: "+conditionElem.getTagName());
+					//LogService.getRoot().warning("Unknown condition: "+conditionElem.getTagName());
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.io.process.rules.AbstractConditionedParseRule.unknown_condition", conditionElem.getTagName());
 				}
 			}
 		}

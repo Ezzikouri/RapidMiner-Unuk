@@ -44,6 +44,7 @@ import com.rapidminer.Process;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
@@ -166,7 +167,13 @@ public class Template {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    LogService.getRoot().log(Level.WARNING, "Cannot close stream to template file: " + e.getMessage(), e);
+                    //LogService.getRoot().log(Level.WARNING, "Cannot close stream to template file: " + e.getMessage(), e);
+        			LogService.getRoot().log(Level.WARNING,
+        					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+        					"com.rapidminer.gui.templates.Template.closing_stream_error", 
+        					e.getMessage()),
+        					e);
+
                 }
             }
         }
@@ -264,10 +271,12 @@ public class Template {
         File expFile = getProcessFile();
         boolean deleteResult = templateFile.delete();
         if (!deleteResult)
-            LogService.getGlobal().logWarning("Unable to delete template file: " + templateFile);
+            //LogService.getGlobal().logWarning("Unable to delete template file: " + templateFile);
+        	LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.templates.Template.deleting_template_file_error", templateFile);
         deleteResult = expFile.delete();
         if (!deleteResult)
-            LogService.getGlobal().logWarning("Unable to delete template experiment file: " + expFile);
+            //LogService.getGlobal().logWarning("Unable to delete template experiment file: " + expFile);
+        	LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.templates.Template.deleting_template_experiment_file_error", expFile);
     }
 
 

@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Attributes;
@@ -201,7 +202,8 @@ public class GSPOperator extends Operator {
 		double numberOfSequences = dataSequences.size();
 
 		if (numberOfSequences * minSupport < 5) {
-			LogService.getGlobal().log("Found only " + numberOfSequences + " sequences. Together with the small minimal support, this could result in very many patterns and a long calculation time.", LogService.WARNING);
+			//LogService.getGlobal().log("Found only " + numberOfSequences + " sequences. Together with the small minimal support, this could result in very many patterns and a long calculation time.", LogService.WARNING);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.learner.associations.gsp.GSPOperator.number_of_sequences_founded", numberOfSequences);
 		}
 		
 		// find frequent items: Items are frequent if occur in enough sequences
@@ -255,7 +257,8 @@ public class GSPOperator extends Operator {
 					iterator.remove();
 				}
 			}
-			LogService.getGlobal().log("Filtered Candidates. Remaining: " + candidates.size(), LogService.INIT);
+			//LogService.getGlobal().log("Filtered Candidates. Remaining: " + candidates.size(), LogService.INIT);
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.operator.learner.associations.gsp.GSPOperator.filtered_candidates", candidates.size());
 
 			// using filtered candidates as seeds
 			seeds.clear();
@@ -269,7 +272,9 @@ public class GSPOperator extends Operator {
 	}
 
 	private int[] countSupportingCustomer(ArrayList<Sequence> candidates, ArrayList<DataSequence> dataSequences, double windowSize, double maxGap, double minGap, double minSupport) {
-		LogService.getGlobal().log("Building Hashtree for counting candidates of length " + candidates.get(0).getNumberOfItems(), LogService.INIT);
+		//LogService.getGlobal().log("Building Hashtree for counting candidates of length " + candidates.get(0).getNumberOfItems(), LogService.INIT);
+		LogService.getRoot().log(Level.INFO, "com.rapidminer.operator.learner.associations.gsp.GSPOperator.building_hashtree_for_counting_candidates", candidates.get(0).getNumberOfItems());
+
 
 		// build hashtree: root becomes immediately inner node, since candidates will probably exceed limit
 		HashTreeNode root = new HashTreeRootNode();
@@ -279,7 +284,8 @@ public class GSPOperator extends Operator {
 			i++;
 		}
 
-		LogService.getGlobal().log("Counting supporting sequences for candidates of length " + candidates.get(0).getNumberOfItems(), LogService.INIT);
+		//LogService.getGlobal().log("Counting supporting sequences for candidates of length " + candidates.get(0).getNumberOfItems(), LogService.INIT);
+		LogService.getRoot().log(Level.INFO, "com.rapidminer.operator.learner.associations.gsp.GSPOperator.counting_supporting_sequences_for_candidates", candidates.get(0).getNumberOfItems());
 		// now run through all data sequences and counting occurrences of candidate sequences
 		int[] counter = new int[candidates.size()];
 		boolean[] occurs = new boolean[candidates.size()];
@@ -298,7 +304,8 @@ public class GSPOperator extends Operator {
 	}
 
 	private static ArrayList<Sequence> generateCandidates(HashSet<Sequence> seeds, boolean isFirstRound) {
-		LogService.getGlobal().log("Generating Candidates of length " + seeds.iterator().next().getNumberOfItems(), LogService.INIT);
+		//LogService.getGlobal().log("Generating Candidates of length " + seeds.iterator().next().getNumberOfItems(), LogService.INIT);
+		LogService.getRoot().log(Level.INFO, "com.rapidminer.operator.learner.associations.gsp.GSPOperator.generating_candidates", seeds.iterator().next().getNumberOfItems());
 		ArrayList<Sequence> candidates = new ArrayList<Sequence>();
 		int pruneCheckCounter = 0;
 		// generate set of candidates
@@ -329,7 +336,8 @@ public class GSPOperator extends Operator {
 			}
 		}
 
-		LogService.getGlobal().log("Generated " + candidates.size() + " candidates", LogService.INIT);
+		//LogService.getGlobal().log("Generated " + candidates.size() + " candidates", LogService.INIT);
+		LogService.getRoot().log(Level.INFO, "com.rapidminer.operator.learner.associations.gsp.GSPOperator.generating_candidates", candidates.size());
 		return candidates;
 	}
 

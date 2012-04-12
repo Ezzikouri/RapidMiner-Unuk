@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.util.logging.Level;
 
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.vlsolutions.swing.docking.DockingContext;
 import com.vlsolutions.swing.docking.ws.Workspace;
@@ -65,7 +66,13 @@ public class Perspective {
         try {
             workspace.loadFrom(dockingContext);
         } catch (WorkspaceException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot save workspace: "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot save workspace: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.Perspective.saving_workspace_error", 
+					e),
+					e);
+
         }
 
     }
@@ -73,7 +80,12 @@ public class Perspective {
         try {
             workspace.apply(dockingContext);
         } catch (WorkspaceException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot apply workspace: "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot apply workspace: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.Perspective.applying_workspace_error", 
+					e),
+					e);       
         }
     }
 
@@ -88,7 +100,12 @@ public class Perspective {
             out = new FileOutputStream(file);
             workspace.writeXML(out);
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot save perspective to "+file+": "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot save perspective to "+file+": "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.Perspective.saving_perspective_error", 
+					file, e),
+					e);    
         } finally {
             try {
                 if (out != null) {
@@ -99,7 +116,8 @@ public class Perspective {
     }
 
     public void load() {
-        LogService.getRoot().fine("Loading perspective: "+getName());
+        //LogService.getRoot().fine("Loading perspective: "+getName());
+        LogService.getRoot().log(Level.FINE, "com.rapidminer.gui.Perspective.loading_perspective", getName());        
         File file = getFile();
         if (!file.exists()) {
             return;
@@ -111,10 +129,21 @@ public class Perspective {
         } catch (Exception e) {
 
             if (!userDefined) {
-                LogService.getRoot().log(Level.WARNING, "Cannot read perspective from "+file+": "+e+". Restoring default.", e);
+                //LogService.getRoot().log(Level.WARNING, "Cannot read perspective from "+file+": "+e+". Restoring default.", e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.gui.Perspective.reading_perspective_error_restoring", 
+    					file, e),
+    					e);
+
                 owner.restoreDefault(getName());
             } else {
-                LogService.getRoot().log(Level.WARNING, "Cannot read perspective from "+file+": "+e+". Clearing perspective.", e);
+                //LogService.getRoot().log(Level.WARNING, "Cannot read perspective from "+file+": "+e+". Clearing perspective.", e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.gui.Perspective.reading_perspective_error_clearing", 
+    					file, e),
+    					e);
                 workspace.clear();
             }
         } finally {

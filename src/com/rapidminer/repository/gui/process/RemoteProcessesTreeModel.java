@@ -50,6 +50,7 @@ import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.remote.RemoteRepository;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /**
@@ -192,7 +193,12 @@ public class RemoteProcessesTreeModel implements TreeModel {
 							}						
 						}							
 					} catch (Exception ex) {
-						LogService.getRoot().log(Level.WARNING, "Error fetching remote process list: "+ex, ex);
+						//LogService.getRoot().log(Level.WARNING, "Error fetching remote process list: "+ex, ex);
+						LogService.getRoot().log(Level.WARNING,
+								I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+								"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.fetching_remote_process_list_error", 
+								ex),
+								ex);
 						fireStructureChanged(new TreeModelEvent(this, new TreePath(new Object[] { root, repos })));
 					}
 				}

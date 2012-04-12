@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.nio.model;
 
+import java.util.logging.Level;
+
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.ImportWizardUtils;
@@ -65,7 +67,8 @@ public class WizardState {
 	}	
 
 	public ExampleSet readNow(DataResultSet dataResultSet, boolean previewOnly, ProgressListener progressListener) throws OperatorException {
-		LogService.getRoot().info("Reading example set...");
+		//LogService.getRoot().info("Reading example set...");
+		LogService.getRoot().log(Level.INFO, "com.rapidminer.operator.nio.model.WizardState.reading_example_set");
 		final DataResultSetTranslator translator = getTranslator();
 		try {			
 			ExampleSet cachedExampleSet = translator.read(dataResultSet, getTranslationConfiguration(), previewOnly, progressListener);

@@ -23,6 +23,7 @@
 package com.rapidminer.tools;
 
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.mail.Session;
 
@@ -84,7 +85,9 @@ public class MailUtilities {
 
             if (mailSender != null) {
                 mailSender.sendEmail(address, subject, content, headers);
-                LogService.getRoot().info("Sent mail to "+address+" with subject "+subject);
+                //LogService.getRoot().info("Sent mail to "+address+" with subject "+subject);
+                LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.MailUtilities.sent_mail_to_adress_with_subject",
+                		new Object[] {address, subject});
             }
         } catch (Exception e) {
             LogService.getGlobal().log("Cannot send mail to " + address + ": " + e, LogService.ERROR);

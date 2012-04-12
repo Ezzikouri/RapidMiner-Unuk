@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -201,7 +202,8 @@ public class BugReport {
         bugMap.put("status", "NEW");
 
         Map createResult = (Map)rpcClient.execute("Bug.create", new Object[]{ bugMap });
-        LogService.getRoot().fine("Bug submitted successfully. Bug ID: " + createResult.get("id"));
+        //LogService.getRoot().fine("Bug submitted successfully. Bug ID: " + createResult.get("id"));
+        LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.BugReport.bug_submitted", createResult.get("id"));
         
         String id = String.valueOf(createResult.get("id"));
         Map<String, Object> attachmentMap = new HashMap<String, Object>();

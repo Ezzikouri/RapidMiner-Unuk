@@ -22,6 +22,8 @@
  */
 package com.rapidminer.example;
 
+import java.util.logging.Level;
+
 import com.rapidminer.tools.LogService;
 
 /** The superclass for all attribute statistics objects. 
@@ -59,7 +61,8 @@ public class UnknownStatistics implements Statistics {
         if (UNKNOWN.equals(statisticsName)) {
             return unknownCounter;
         } else {
-            LogService.getGlobal().log("Cannot calculate statistics, unknown type: " + statisticsName, LogService.WARNING);
+            //LogService.getGlobal().log("Cannot calculate statistics, unknown type: " + statisticsName, LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.UnknownStatistics.calculating_statistics_unknown_type_error", statisticsName);
             return Double.NaN;
         }
     }

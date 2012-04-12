@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 
 import com.rapidminer.Process;
 import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
@@ -72,10 +73,20 @@ public class ExampleProcess {
 		try {
 			return new Process(getProcessXML());
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot parse example process: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot parse example process: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.documentation.ExampleProcess.parsing_example_process_error", 
+					e),
+					e);
 			return null;				
 		} catch (XMLException e) {				
-			LogService.getRoot().log(Level.WARNING, "Cannot parse example process: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot parse example process: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.documentation.ExampleProcess.parsing_example_process_error", 
+					e),
+					e);
 			return null;
 		}
 	}

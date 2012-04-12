@@ -25,6 +25,7 @@ package com.rapidminer.gui.new_plotter.templates;
 import java.awt.Color;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -501,7 +502,8 @@ public class ScatterTemplate extends PlotterTemplate {
 					try {
 						setJitter(Integer.parseInt(setting.getAttribute(VALUE_ATTRIBUTE)));
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore jitter setting for scatter template!");
+						//LogService.getRoot().warning("Could not restore jitter setting for scatter template!");
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.ScatterTemplate.restoring_jitter_setting_error");
 					}
 				} else if (setting.getNodeName().equals(CROSSHAIR_RANGE_AXIS_TOP_ELEMENT)) {
 					try {
@@ -544,7 +546,8 @@ public class ScatterTemplate extends PlotterTemplate {
 							}
 						}
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore range axis crosshairs!");
+						//LogService.getRoot().warning("Could not restore range axis crosshairs!");
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.ScatterTemplate.restoring_range_axis_error");
 					}
 				} else if (setting.getNodeName().equals(CROSSHAIR_DOMAIN_TOP_ELEMENT)) {
 					try {
@@ -581,7 +584,8 @@ public class ScatterTemplate extends PlotterTemplate {
 							}
 						}
 					} catch (NumberFormatException e) {
-						LogService.getRoot().warning("Could not restore domain axis crosshairs!");
+						//LogService.getRoot().warning("Could not restore domain axis crosshairs!");
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.ScatterTemplate.restoring_domain_axis_error");
 					}
 				} else if (setting.getNodeName().equals(PlotterStyleProvider.STYLE_ELEMENT)) {
 					styleProvider.loadFromXML(setting);

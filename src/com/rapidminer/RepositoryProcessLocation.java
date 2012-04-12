@@ -23,6 +23,7 @@
 package com.rapidminer;
 
 import java.io.IOException;
+import java.util.logging.Level;
 
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
@@ -102,7 +103,8 @@ public class RepositoryProcessLocation implements ProcessLocation {
 					throw new RepositoryException("Entry "+repositoryLocation+" is not a process entry.");
 				}
 			}
-			LogService.getRoot().info("Saved process definition at '" + repositoryLocation + "'.");
+			//LogService.getRoot().info("Saved process definition at '" + repositoryLocation + "'.");
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.RepositoryProcessLocation.saved_process_definition", repositoryLocation);
 		} catch (RepositoryException e) {
 			throw new IOException("Cannot store process at "+repositoryLocation+": "+e.getMessage(), e);
 		}

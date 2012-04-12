@@ -41,6 +41,7 @@ import javax.swing.TransferHandler;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /** Transfer handler that supports dragging operators.
@@ -65,7 +66,12 @@ public abstract class OperatorTransferHandler extends TransferHandler {
 				op = (Operator) transferable.getTransferData(transferable.getTransferDataFlavors()[0]);
 				return op.getOperatorDescription().getIcon();
 			} catch (Exception e) {						
-				LogService.getRoot().log(Level.WARNING, "Error while dragging: " + e, e);
+				//LogService.getRoot().log(Level.WARNING, "Error while dragging: " + e, e);
+				LogService.getRoot().log(Level.WARNING,
+				I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+				"com.rapidminer.gui.dnd.OperatorTransferHandler.dragging_error", 
+				e),
+				e);
 				return null;
 			}        			
 		} else {

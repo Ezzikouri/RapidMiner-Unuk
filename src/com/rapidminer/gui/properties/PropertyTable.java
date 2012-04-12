@@ -31,6 +31,7 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -327,17 +328,23 @@ public abstract class PropertyTable extends ExtendedJTable {
 				editor.setOperator(operator);
 				return editor;
 			} catch (InstantiationException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (IllegalAccessException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (SecurityException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (NoSuchMethodException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (IllegalArgumentException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (InvocationTargetException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			}
 			// no proper editor found --> return default editor
 			PropertyValueCellEditor editor = new DefaultPropertyValueCellEditor(type);
@@ -373,17 +380,23 @@ public abstract class PropertyTable extends ExtendedJTable {
 				editor.setOperator(operator, table);
 				return editor;
 			} catch (InstantiationException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (IllegalAccessException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (SecurityException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (NoSuchMethodException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (IllegalArgumentException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			} catch (InvocationTargetException e) {
-				LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				//LogService.getGlobal().log("Cannot construct property editor: " + e, LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.properties.PropertyTable.constructing_property_editor_error",  e);
 			}
 			// no proper editor found --> return default editor
 			PropertyKeyCellEditor editor = new DefaultPropertyKeyRenderer(type);

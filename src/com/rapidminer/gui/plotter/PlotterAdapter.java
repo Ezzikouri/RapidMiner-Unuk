@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -662,13 +663,15 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
                 int newMaxRows = Integer.parseInt(maxRowNumberString);
                 maxRowNumber = newMaxRows;
             } catch (NumberFormatException e) {
-                LogService.getGlobal().logWarning("Plotter: cannot read maximum number of plotter points (was '" + maxRowNumberString + "').");
+                //LogService.getGlobal().logWarning("Plotter: cannot read maximum number of plotter points (was '" + maxRowNumberString + "').");
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.PlotterAdapter.reading_maximum_number_of_plotter_points_error", maxRowNumberString);
             }
         }
 
         if (source.getNumberOfRows() > maxRowNumber) {
             DataTable sampledDataTable = source.sample(maxRowNumber);
-            LogService.getGlobal().logWarning("Cannot plot all data points, using only a sample of " + maxRowNumber + " rows.");
+            //LogService.getGlobal().logWarning("Cannot plot all data points, using only a sample of " + maxRowNumber + " rows.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.PlotterAdapter.ploting_all_data_points_error", maxRowNumber);
             setDataTable(sampledDataTable);
         } else {
             setDataTable(source);
@@ -719,12 +722,14 @@ public abstract class PlotterAdapter extends JPanel implements Plotter {
                 if (maxNominalValuesString != null)
                     maxNumberOfNominalValues = Integer.parseInt(maxNominalValuesString);
             } catch (NumberFormatException e) {
-                LogService.getGlobal().logWarning("Plotter: cannot parse maximal number of nominal values for legend (" + maxNominalValuesString + ")! Using 10...");
+                //LogService.getGlobal().logWarning("Plotter: cannot parse maximal number of nominal values for legend (" + maxNominalValuesString + ")! Using 10...");
+            	LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.PlotterAdapter.parsing_maximal_number_of_nominal_values_error", maxNominalValuesString);
             }
             if (maxNumberOfNominalValues == -1 || table.getNumberOfValues(legendColumn) <= maxNumberOfNominalValues) {
                 drawNominalLegend(graphics, table, legendColumn, xOffset, alpha);
             } else {
-                LogService.getGlobal().logWarning("Plotter: cannot draw nominal legend since number of different values is too high (more than " + maxNominalValuesString + ")! Using numerical legend instead.");
+                //LogService.getGlobal().logWarning("Plotter: cannot draw nominal legend since number of different values is too high (more than " + maxNominalValuesString + ")! Using numerical legend instead.");
+            	LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.PlotterAdapter.drawing_nominal_legend_error", maxNominalValuesString);
                 drawNumericalLegend(graphics, table, legendColumn, alpha);
             }
         } else if (table.isDate(legendColumn) || table.isTime(legendColumn) || table.isDateTime(legendColumn)) {

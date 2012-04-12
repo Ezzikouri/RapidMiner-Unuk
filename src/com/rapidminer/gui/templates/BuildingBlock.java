@@ -28,11 +28,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
 
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 
@@ -83,14 +85,24 @@ public class BuildingBlock implements Comparable<BuildingBlock> {
 			init(in);
 			this.buildingBlockFile = file;
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot read building block file: " + e.getMessage(), e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot read building block file: " + e.getMessage(), e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.templatesBuildingBlock.reading_building_block_file_error", 
+					e.getMessage()),
+					e);
 			throw new InstantiationException("Cannot instantiate building block: " + e.getMessage());
 		} finally {
 			if (in != null) {
 				try {
 					in.close();
 				} catch (IOException e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot close stream to building block file: " + e.getMessage(), e);
+					//LogService.getRoot().log(Level.WARNING, "Cannot close stream to building block file: " + e.getMessage(), e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.gui.templatesBuildingBlock.closing_building_block_file_error", 
+							e.getMessage()),
+							e);
 				}
 			}
 		}

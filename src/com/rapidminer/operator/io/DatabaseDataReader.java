@@ -55,6 +55,7 @@ import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.ParameterService;
@@ -167,7 +168,13 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
                 break;
             }
         } catch (SQLException e) {
-            LogService.getRoot().log(Level.WARNING, "Failed to fetch meta data: " + e, e);
+            //LogService.getRoot().log(Level.WARNING, "Failed to fetch meta data: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.operator.io.DatabaseDataReader.fetching_meta_data_error", 
+					e),
+					e);
+
         } finally {
             try {
                 if (databaseHandler != null && databaseHandler.getConnection() != null) {

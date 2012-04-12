@@ -46,6 +46,7 @@ import org.w3c.dom.NodeList;
 import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
@@ -96,7 +97,12 @@ public class DatabaseConnectionService {
         			connections = new LinkedList<FieldConnectionEntry>(parseEntries(jdbcElement));
         		}
         	} catch (Exception e) {
-        		LogService.getRoot().log(Level.WARNING, "Failed to read database connections file: "+e, e);
+        		//LogService.getRoot().log(Level.WARNING, "Failed to read database connections file: "+e, e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.tools.jdbc.connection.DatabaseConnectionService.reading_database_error", 
+    					e),
+    					e);
         	}
         }
     }
@@ -198,14 +204,24 @@ public class DatabaseConnectionService {
     	try {
 			key = KeyGeneratorTool.getUserKey();
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot retrieve key, probably no one was created: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot retrieve key, probably no one was created: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.jdbc.connection.DatabaseConnectionService.retrieving_key_error", 
+					e),
+					e);
 			return;
 		}
 		
 		try {
 			XMLTools.stream(toXML(connectionEntries, key, null, false), connectionEntriesFile, Charset.forName("UTF-8"));
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to write database connections file: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Failed to write database connections file: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.jdbc.connection.DatabaseConnectionService.writing_database_connection_error", 
+					e),
+					e);
 		}
     }
 

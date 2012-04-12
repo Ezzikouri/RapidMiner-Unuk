@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -251,7 +252,8 @@ public class ParallelPlotter extends PlotterAdapter implements MouseListener {
                         mapping[counter++] = w.next().getIndex();
                     }   
                 } else {
-                    LogService.getGlobal().log("Cannot use weight based ordering since no column weights are given.", LogService.WARNING);
+                    //LogService.getGlobal().log("Cannot use weight based ordering since no column weights are given.", LogService.WARNING);
+                    LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.ParallelPlotter.using_weight_based_ordering_error");
                 }
                 break;
             case RANDOM:

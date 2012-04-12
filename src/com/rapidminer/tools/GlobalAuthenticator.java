@@ -27,6 +27,7 @@ import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.gui.tools.PasswordDialog;
 
@@ -125,7 +126,9 @@ public class GlobalAuthenticator extends Authenticator {
         URL url = getRequestingURL();
         switch (getRequestorType()) {
         case PROXY:
-            LogService.getRoot().info("Authentication requested for proxy of: " + url + ". Trying these authenticators: " + proxyAuthenticators + ".");
+            //LogService.getRoot().info("Authentication requested for proxy of: " + url + ". Trying these authenticators: " + proxyAuthenticators + ".");
+        	LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested",  
+        			new Object[] {url, proxyAuthenticators});
             for (URLAuthenticator a : proxyAuthenticators) {
                 PasswordAuthentication auth = a.getAuthentication(url);
                 if (auth != null) {
@@ -135,7 +138,9 @@ public class GlobalAuthenticator extends Authenticator {
             // this should not be happen
             return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
         case SERVER:
-            LogService.getRoot().info("Authentication requested for: " + url + ". Trying these authenticators: " + serverAuthenticators + ".");
+            //LogService.getRoot().info("Authentication requested for: " + url + ". Trying these authenticators: " + serverAuthenticators + ".");
+        	LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested",  
+        			new Object[] {url, serverAuthenticators});
             for (URLAuthenticator a : serverAuthenticators) {
                 PasswordAuthentication auth = a.getAuthentication(url);
                 if (auth != null) {

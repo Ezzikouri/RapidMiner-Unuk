@@ -24,6 +24,7 @@ package com.rapidminer.gui.viewer;
 
 import java.util.Date;
 import java.util.Iterator;
+import java.util.logging.Level;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -136,7 +137,8 @@ public class DataViewerTableModel extends AbstractTableModel {
                 return example.getValueAsString(attribute, NumericalAttribute.DEFAULT_NUMBER_OF_DIGITS, false);
         	}
         } catch (Throwable e) {
-            LogService.getGlobal().logWarning("Cannot show correct value: " + e.getMessage());
+            //LogService.getGlobal().logWarning("Cannot show correct value: " + e.getMessage());
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.viewer.DataViewerTableModel.showing_correct_value_error", e.getMessage());           
             return "Error";
         }
     }

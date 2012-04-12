@@ -36,6 +36,7 @@ import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.OperatorService;
 
@@ -100,7 +101,13 @@ public class ReplaceIOMultiplierRule extends AbstractGenericParseRule {
 								}
 							} catch (OperatorCreationException e) {
 								importer.addMessage("<div class=\"error\">Cannot replace <code>IOMultiplier</code>. Cannot create <code>IOMultiplier2</code>.");
-								LogService.getRoot().log(Level.WARNING, "Cannot create IOMultiplier2: " + e, e);
+								//LogService.getRoot().log(Level.WARNING, "Cannot create IOMultiplier2: " + e, e);
+								LogService.getRoot().log(Level.WARNING,
+										I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+										"com.rapidminer.io.process.rules.ReplaceIOMultiplierRule.creating_iomultiplier2_error", 
+										e),
+										e);
+
 								return;
 							}
 						}

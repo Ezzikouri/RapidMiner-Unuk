@@ -48,6 +48,7 @@ import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.documentation.OperatorDocumentation;
 
@@ -135,7 +136,13 @@ public class OperatorDocEditor extends OperatorDocViewer {
                         String link = "<a href=\"rm://opdoc/"+description.getKey()+"\">"+description.getName()+"</a>";
                         ((HTMLEditorKit)getEditor().getEditorKit()).insertHTML((HTMLDocument) getEditor().getDocument(), getEditor().getCaretPosition(), link, 0, 0, null);
                     } catch (Exception e) {
-                        LogService.getRoot().log(Level.WARNING, "Error inserting link: "+e.toString(), e);
+                        //LogService.getRoot().log(Level.WARNING, "Error inserting link: "+e.toString(), e);
+            			LogService.getRoot().log(Level.WARNING,
+            					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+            					"com.rapidminer.gui.OperatorDocEditor.inserting_link_error", 
+            					e.toString()),
+            					e);
+
                     }
                 }
             };

@@ -39,6 +39,7 @@ import com.rapidminer.gui.templates.TemplatesDialog;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 
@@ -88,7 +89,12 @@ public class TemplateWizardDialog extends AbstractWizard {
 					process = template.getProcess();
 					parameters = template.getParameters();
 				} catch (Exception e) {
-					LogService.getRoot().log(Level.WARNING, "Error loading process template: "+e, e);
+					//LogService.getRoot().log(Level.WARNING, "Error loading process template: "+e, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.gui.dialog.TemplateWizardDialog.loading_process_template_error", 
+							e),
+							e);
 					return false;
 				}
 				return true;

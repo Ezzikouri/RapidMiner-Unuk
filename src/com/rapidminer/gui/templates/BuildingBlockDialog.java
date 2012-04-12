@@ -249,7 +249,10 @@ public class BuildingBlockDialog extends ButtonDialog {
 		
 		for (BuildingBlock buildingBlock : buildingBlocks) {
 			if (!NewBuildingBlockMenu.checkBuildingBlock(buildingBlock)) {
-				LogService.getRoot().log(Level.WARNING, "Cannot initialize building block '" + buildingBlock.getName());		
+				//LogService.getRoot().log(Level.WARNING, "Cannot initialize building block '" + buildingBlock.getName());		
+				LogService.getRoot().log(Level.WARNING, 
+						"com.rapidminer.gui.templates.BuildingBlockDialog.intialize_building_block_error", 
+						buildingBlock.getName());
 			} else {
 				listModel.addElement(buildingBlock);
 			}
@@ -288,7 +291,8 @@ public class BuildingBlockDialog extends ButtonDialog {
 			if (buildingBlockFile != null) {
 				boolean result = buildingBlockFile.delete();
 				if (!result) {
-					LogService.getGlobal().logWarning("Unable to delete building block file: " + buildingBlockFile);
+					//LogService.getGlobal().logWarning("Unable to delete building block file: " + buildingBlockFile);
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.templates.BuildingBlockDialog.deleting_building_block_file_error", buildingBlockFile);
 				} else {
 					listModel.removeElementAt(selectionIndices[i]);
 				}

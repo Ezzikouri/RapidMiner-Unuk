@@ -23,6 +23,7 @@
 package com.rapidminer.tools;
 
 import java.awt.Color;
+import java.util.logging.Level;
 /**
  * @author Simon Fischer
  */
@@ -43,7 +44,8 @@ public class ClassColorMap extends ParentResolvingMap<Class,Color>{
 		try {
 			return Class.forName(key, true, classLoader);
 		} catch (ClassNotFoundException e) {
-			LogService.getGlobal().logError("Unknwon IO class: "+key);
+			//LogService.getGlobal().logError("Unknwon IO class: "+key);
+			LogService.getRoot().log(Level.SEVERE,"com.rapidminer.tools.ClassColorMap.unkown_io_class", key);
 			return null;		
 		}		
 	}

@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.performance;
 
+import java.util.logging.Level;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
@@ -104,7 +106,8 @@ public abstract class SimpleCriterion extends MeasuredPerformance {
 		if (!Double.isNaN(deviation)) {
 			countExampleWithWeight(deviation, weight);
 		} else {
-			LogService.getGlobal().log("SimpleCriterion: Deviation of Performance was NaN!", LogService.WARNING);
+			//LogService.getGlobal().log("SimpleCriterion: Deviation of Performance was NaN!", LogService.WARNING);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.performance.SimpleCriterion.deviation_of_performance_was_nan");			
 		}
 	}
 

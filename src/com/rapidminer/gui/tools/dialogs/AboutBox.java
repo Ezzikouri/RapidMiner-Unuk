@@ -43,6 +43,7 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
@@ -80,7 +81,8 @@ public class AboutBox extends JDialog {
 			try {
 				rmLogo = ImageIO.read(url);
 			} catch (IOException e) {
-				LogService.getGlobal().logWarning("Cannot load logo for about box. Using empty image...");
+				//LogService.getGlobal().logWarning("Cannot load logo for about box. Using empty image...");
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.dialogs.AboutBox.loading_logo_error");
 			}
 		}
 		RAPID_MINER_LOGO = rmLogo;
@@ -89,7 +91,8 @@ public class AboutBox extends JDialog {
 			try {
 				backgroundImage = ImageIO.read(url);
 			} catch (IOException e) {
-				LogService.getGlobal().logWarning("Cannot load background for about box. Using empty image...");
+				//LogService.getGlobal().logWarning("Cannot load background for about box. Using empty image...");
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.dialogs.AboutBox.loading_background_error");
 			}
 		}
 	}
@@ -277,7 +280,8 @@ public class AboutBox extends JDialog {
 			try {
 				properties.load(inputStream);
 			} catch (Exception e) {
-				LogService.getGlobal().logError("Cannot read splash screen infos: " + e.getMessage());
+				//LogService.getGlobal().logError("Cannot read splash screen infos: " + e.getMessage());
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.tools.dialogs.AboutBox.reading_splash_screen_error",  e.getMessage());
 			}
 		}
 		properties.setProperty("version", productVersion);
@@ -292,7 +296,8 @@ public class AboutBox extends JDialog {
 			properties.load(in);
 			in.close();
 		} catch (Exception e) {
-			LogService.getGlobal().logError("Cannot read splash screen infos: " + e.getMessage());
+			//LogService.getGlobal().logError("Cannot read splash screen infos: " + e.getMessage());
+			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.tools.dialogs.AboutBox.reading_splash_screen_error",  e.getMessage());
 		}
 		properties.setProperty("version", productVersion);
 		Plugin.initAboutTexts(properties);

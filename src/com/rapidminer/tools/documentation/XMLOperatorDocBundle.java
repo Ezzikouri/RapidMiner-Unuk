@@ -39,6 +39,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
@@ -85,17 +86,26 @@ public class XMLOperatorDocBundle extends OperatorDocBundle {
             if ((baseName == null) || (locale == null) || (format == null) || (loader == null)) {
                 throw new NullPointerException();
             }
-            LogService.getRoot().fine("Looking up operator documentation for "+baseName+", locale "+locale+".");
+            //LogService.getRoot().fine("Looking up operator documentation for "+baseName+", locale "+locale+".");
+            LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.documentation.XMLOperatorDocBundle.looking_up_operator_documentation",
+            		new Object[] {baseName, locale});
             if (format.equals("xml")) {
                 String bundleName = toBundleName(baseName, locale);
                 String resourceName = toResourceName(bundleName, format);
                 URL url = loader.getResource(resourceName);
                 if (url != null) {
-                    LogService.getRoot().config("Loading operator documentation from "+url+".");
+                    //LogService.getRoot().config("Loading operator documentation from "+url+".");
+                    LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.documentation.XMLOperatorDocBundle.loading_operator_documentation", url);
                     try {
                         return new XMLOperatorDocBundle(url, resourceName);
                     } catch (Exception e) {
-                        LogService.getRoot().log(Level.WARNING, "Exception creating OperatorDocBundle: "+e, e);
+                        //LogService.getRoot().log(Level.WARNING, "Exception creating OperatorDocBundle: "+e, e);
+            			LogService.getRoot().log(Level.WARNING,
+            					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+            					"com.rapidminer.tools.documentation.XMLOperatorDocBundle.exception_creating_operatordocbundle", 
+            					e),
+            					e);
+
                         return null;
                     }
                 }
@@ -118,7 +128,13 @@ public class XMLOperatorDocBundle extends OperatorDocBundle {
         } catch (SAXException e) {
             throw new IOException("Malformed XML operator help bundle: "+e, e);
         } catch (ParserConfigurationException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot create XML parser: "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot create XML parser: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.documentation.XMLOperatorDocBundle.creating_xml_parser_error", 
+					e),
+					e);
+
             return;
         }
         NodeList helpElements = document.getDocumentElement().getElementsByTagName("operator");
@@ -129,11 +145,18 @@ public class XMLOperatorDocBundle extends OperatorDocBundle {
                 String operatorKey = XMLTools.getTagContents(element, "key", false);
                 if (operatorKey == null) {
                     operatorKey = XMLTools.getTagContents(element, "name", true);
-                    LogService.getRoot().fine("Operator help is missing <key> tag. Using <name> as <key>: "+operatorKey);
+                    //LogService.getRoot().fine("Operator help is missing <key> tag. Using <name> as <key>: "+operatorKey);
+                    LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.documentation.XMLOperatorDocBundle.missing_operator_help", operatorKey);
                 }
                 addOperatorDoc(operatorKey, operatorDocumentation);
             } catch (XMLException e) {
-                LogService.getRoot().log(Level.WARNING, "Malformed operoator documentation: "+e, e);
+                //LogService.getRoot().log(Level.WARNING, "Malformed operoator documentation: "+e, e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.tools.documentation.XMLOperatorDocBundle.malformed_operator_documentation", 
+    					e),
+    					e);
+
             }
         }
 
@@ -144,7 +167,9 @@ public class XMLOperatorDocBundle extends OperatorDocBundle {
             addGroupDoc(doc.getKey(), doc);
         }
 
-        LogService.getRoot().fine("Loaded documentation for "+ helpElements.getLength() +" operators and " + groupElements.getLength() + " groups.");
+        //LogService.getRoot().fine("Loaded documentation for "+ helpElements.getLength() +" operators and " + groupElements.getLength() + " groups.");
+        LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.documentation.XMLOperatorDocBundle.loaded_documentation", 
+        		new Object[] {helpElements.getLength(), groupElements.getLength()});
     }
 
     /** Loads the default "OperatorDoc.xml" file from the given resource base name. */

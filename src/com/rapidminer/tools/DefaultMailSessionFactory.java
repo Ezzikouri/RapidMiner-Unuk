@@ -23,6 +23,7 @@
 package com.rapidminer.tools;
 
 import java.util.Properties;
+import java.util.logging.Level;
 
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
@@ -41,7 +42,8 @@ public class DefaultMailSessionFactory implements MailSessionFactory {
     public Session makeSession() {
         String host = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_HOST);
         if (host == null) {
-            LogService.getRoot().warning("Must specify SMTP host in "+RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_HOST+" to use SMTP.");
+            //LogService.getRoot().warning("Must specify SMTP host in "+RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_HOST+" to use SMTP.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.DefaultMailSessionFactory.smtp_host_must_be_specified", RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_HOST);
             return null;
         } else {
             Properties props = new Properties();

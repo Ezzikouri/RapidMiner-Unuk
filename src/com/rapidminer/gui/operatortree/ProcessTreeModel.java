@@ -23,6 +23,7 @@
 package com.rapidminer.gui.operatortree;
 
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
 import javax.swing.event.EventListenerList;
@@ -153,7 +154,10 @@ public class ProcessTreeModel implements TreeModel {
 		} else if (parent instanceof ExecutionUnit) {
 			return getChildren((ExecutionUnit)parent).indexOf(child);
 		} else {
-			LogService.getRoot().warning(child + " is no child of " + parent);
+			//LogService.getRoot().warning(child + " is no child of " + parent);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.operatortree.ProcessTreeModel.child_is_no_child", 
+					new Object[] {child, parent});
+
 			return -1;
 		}		
 	}

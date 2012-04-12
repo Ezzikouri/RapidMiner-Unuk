@@ -102,6 +102,7 @@ import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.ParameterTypeText;
 import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.ParameterTypeValue;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.config.ParameterTypeConfigurable;
 
@@ -361,7 +362,13 @@ public abstract class PropertyPanel extends JPanel {
 					Constructor<? extends PropertyValueCellEditor> constructor = editorClass.getConstructor(new Class[] { typeClass });
 					editor = constructor.newInstance(new Object[] { type });	                
 				} catch (Exception e) {
-					LogService.getRoot().log(Level.WARNING, "Cannot construct property editor: " + e, e);
+					//LogService.getRoot().log(Level.WARNING, "Cannot construct property editor: " + e, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.gui.properties.PropertyPanel.construct_property_editor_error", 
+							e),
+							e);
+
 					editor = new DefaultPropertyValueCellEditor(type);					
 				}
 				break;				

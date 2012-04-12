@@ -121,6 +121,7 @@ import com.rapidminer.operator.ports.quickfix.QuickFix;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
 import com.rapidminer.tools.ClassColorMap;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ParentResolvingMap;
@@ -147,7 +148,8 @@ public class ProcessRenderer extends JPanel {
         try {
             IO_CLASS_TO_COLOR_MAP.parseProperties("com/rapidminer/resources/groups.properties", "io.", ".color", OperatorDescription.class.getClassLoader());
         } catch (IOException e) {
-            LogService.getRoot().warning("Cannot load operator group colors.");
+            //LogService.getRoot().warning("Cannot load operator group colors.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.flow.ProcessRenderer.loading_operator_group_colors_error");
         }
     }
 
@@ -165,7 +167,8 @@ public class ProcessRenderer extends JPanel {
         try {
             IO_CLASS_TO_COLOR_MAP.parseProperties(groupProperties, "io.", ".color", classLoader);
         } catch (IOException e) {
-            LogService.getRoot().warning("Cannot load io object colors for plugin " + pluginName + ".");
+            //LogService.getRoot().warning("Cannot load io object colors for plugin " + pluginName + ".");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.flow.ProcessRenderer.loading_io_object_colors_error", pluginName);
         }
     }
 
@@ -625,7 +628,12 @@ public class ProcessRenderer extends JPanel {
                         return false;
                     }
                 } catch (RuntimeException e) {
-                    LogService.getRoot().log(Level.WARNING, "During drop: " + e, e);
+                    //LogService.getRoot().log(Level.WARNING, "During drop: " + e, e);
+        			LogService.getRoot().log(Level.WARNING,
+        					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+        					"com.rapidminer.gui.flow.ProcessRenderer.error_during_drop", 
+        					e),
+        					e);
                     throw e;
                 }
             }

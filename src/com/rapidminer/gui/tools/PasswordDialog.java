@@ -26,6 +26,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.net.PasswordAuthentication;
+import java.util.logging.Level;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -104,13 +105,15 @@ public class PasswordDialog extends ButtonDialog{
 
     public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown) {
 		if (RapidMiner.getExecutionMode().isHeadless()) {
-			LogService.getRoot().warning("Cannot query password in batch mode. Password was requested for "+forUrl+".");
+			//LogService.getRoot().warning("Cannot query password in batch mode. Password was requested for "+forUrl+".");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.PassworDialog.no_query_password_in_batch_mode", forUrl);
 			return null;
 		}
         UserCredential authentication = Wallet.getInstance().getEntry(forUrl);
         // return immediately if known and desired
         if (hideDialogIfPasswordKnown && !forceRefresh && (authentication != null) && (authentication.getPassword() != null)) {
-            LogService.getRoot().config("Reusing cached password for "+forUrl+".");
+            //LogService.getRoot().config("Reusing cached password for "+forUrl+".");
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.tools.PassworDialog.reusing_cached_password", forUrl);
             return authentication.makePasswordAuthentication();
         }
 

@@ -73,6 +73,7 @@ import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LaunchListener;
 import com.rapidminer.tools.LaunchListener.RemoteControlHandler;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
@@ -187,7 +188,8 @@ public class RapidMinerGUI extends RapidMiner {
     private static class ShutdownHook extends Thread {
         @Override
         public void run() {
-            LogService.getRoot().info("Running shutdown sequence.");
+            //LogService.getRoot().info("Running shutdown sequence.");
+            LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.RapidMinerGUI.running_shutdown_sequence");
             RapidMinerGUI.saveRecentFileList();
             RapidMinerGUI.saveGUIProperties();
             UsageStatistics.getInstance().save();
@@ -201,7 +203,8 @@ public class RapidMinerGUI extends RapidMiner {
         // check if resources were copied
         URL logoURL = Tools.getResource("rapidminer_logo.png");
         if (logoURL == null) {
-            LogService.getRoot().severe("Cannot find resources. Probably the ant target 'copy-resources' must be performed!");
+            //LogService.getRoot().severe("Cannot find resources. Probably the ant target 'copy-resources' must be performed!");
+            LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.RapidMinerGUI.finding_resources_error");
             RapidMiner.quit(RapidMiner.ExitMode.ERROR);
         }
 
@@ -285,7 +288,11 @@ public class RapidMinerGUI extends RapidMiner {
             UIManager.setLookAndFeel(new RapidLookAndFeel());
             //OperatorService.reloadIcons();
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot setup modern look and feel, using default.", e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot setup modern look and feel, using default.", e);
+        	LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.RapidMinerGUI.setting_up_modern_look_and_feel_error"),
+					e);
         }
     }
 
@@ -337,20 +344,30 @@ public class RapidMinerGUI extends RapidMiner {
                     try {
                         recentFiles.add(new RepositoryProcessLocation(new RepositoryLocation(line.substring(11))));
                     } catch (MalformedRepositoryLocationException e) {
-                        LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);
+                        //LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);
+                        LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.RapidMinerGUI.unparseable_line", line);
                     }
                 } else {
-                    LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);
+                    //LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);
+                	LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.RapidMinerGUI.unparseable_line", line);
                 }
             }
         } catch (IOException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot read history file", e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot read history file", e);
+            LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.RapidMinerGUI.reading_history_file_error"),
+					e);
         } finally {
             if (in != null) {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    LogService.getRoot().log(Level.WARNING, "Cannot read history file", e);
+                    //LogService.getRoot().log(Level.WARNING, "Cannot read history file", e);
+                    LogService.getRoot().log(Level.WARNING,
+        					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+        					"com.rapidminer.gui.RapidMinerGUI.reading_history_file_error"),
+        					e);
                 }
             }
         }
@@ -393,7 +410,12 @@ public class RapidMinerGUI extends RapidMiner {
                 out = new FileOutputStream(file);
                 properties.store(out, "RapidMiner GUI properties");
             } catch (IOException e) {
-                LogService.getRoot().log(Level.WARNING, "Cannot write GUI properties: " + e.getMessage(), e);
+                //LogService.getRoot().log(Level.WARNING, "Cannot write GUI properties: " + e.getMessage(), e);
+                LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.gui.RapidMinerGUI.writing_gui_properties_error", 
+    					e.getMessage()),
+    					e);
             } finally {
                 try {
                     if (out != null)
@@ -466,7 +488,8 @@ public class RapidMinerGUI extends RapidMiner {
             if (!LaunchListener.defaultLaunchWithArguments(args, new RemoteControlHandler() {
                 @Override
                 public boolean handleArguments(String[] args) {
-                    LogService.getRoot().info("Received message from second launching client: "+Arrays.toString(args));
+                    //LogService.getRoot().info("Received message from second launching client: "+Arrays.toString(args));
+                    LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.RapidMinerGUI.received_message", Arrays.toString(args));
                     mainFrame.requestFocus();
                     if (args.length >= 1) {
                         OpenAction.open(args[0], false);
@@ -481,7 +504,8 @@ public class RapidMinerGUI extends RapidMiner {
         if (shouldLaunch) {
             launch(args);
         } else {
-            LogService.getRoot().config("Other RapidMiner instance already up. Exiting.");
+            //LogService.getRoot().config("Other RapidMiner instance already up. Exiting.");
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.RapidMinerGUI.other_instance_up");
         }
     }
 

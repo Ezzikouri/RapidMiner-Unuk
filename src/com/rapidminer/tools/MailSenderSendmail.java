@@ -24,6 +24,7 @@ package com.rapidminer.tools;
 
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.logging.Level;
 
 import com.rapidminer.RapidMiner;
 
@@ -38,11 +39,14 @@ public class MailSenderSendmail implements MailSender {
     public void sendEmail(String address, String subject, String content, Map<String,String> headers) throws Exception {
         String command = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SENDMAIL_COMMAND);
         if (command == null || command.isEmpty()) {
-            LogService.getRoot().warning("Must specify sendmail command to use sendmail.");
+            //LogService.getRoot().warning("Must specify sendmail command to use sendmail.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.MailSenderSendMail.specify_sendmail_command");
         } else {
-            LogService.getRoot().fine("Executing '" + command + "'.");
+            //LogService.getRoot().fine("Executing '" + command + "'.");
+            LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.MailSenderSendMail.executing_command", command);
             if (headers != null && !headers.isEmpty()) {
-                LogService.getRoot().warning("Mail headers ignored for sendmail. Please use SMTP.");
+                //LogService.getRoot().warning("Mail headers ignored for sendmail. Please use SMTP.");
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.MailSenderSendMail.ignoring_mail_headers_for_sendmail");
             }
             Process sendmail = Runtime.getRuntime().exec(new String[] { command, address });
             PrintStream out = null;

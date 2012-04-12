@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.util.logging.Level;
 
 import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapidminer.repository.BlobEntry;
@@ -114,7 +115,8 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 					if ((code < 200) || (code >= 300)) {						
 						throw new IOException("Upload failed. Server responded with code "+code+": "+error);
 					} else {
-						LogService.getRoot().info("Uploaded blob. ("+code+": "+error+")");
+						//LogService.getRoot().info("Uploaded blob. ("+code+": "+error+")");
+						LogService.getRoot().log(Level.INFO, "com.rapidminer.repository.remote.RemoteBlobEntry.uploaded_blob");
 						try {
 							EntryResponse entryResponse = getRepository().getRepositoryService().getEntry(getPath());
 							extractData(entryResponse);

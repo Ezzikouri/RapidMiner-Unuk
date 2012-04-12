@@ -28,7 +28,6 @@ import java.util.logging.Level;
 import com.rapid_i.deployment.update.client.UpdateDialog;
 import com.rapid_i.deployment.update.client.UpdateManager;
 import com.rapidminer.RapidMiner;
-import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.io.process.XMLImporter;
@@ -37,6 +36,7 @@ import com.rapidminer.operator.ports.InputPortExtender;
 import com.rapidminer.operator.ports.OutputPortExtender;
 import com.rapidminer.operator.ports.quickfix.AbstractQuickFix;
 import com.rapidminer.operator.ports.quickfix.QuickFix;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /** This operator cannot be executed. It is merely used by a {@link XMLImporter} to
@@ -116,7 +116,13 @@ public class DummyOperator extends Operator {
 				return extensionId;
 			}
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot connect to update service: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot connect to update service: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.operator.DummyOperator.connecting_to_update_service_error", 
+					e),
+					e);
+
 			return getRequiredPluginPrefix();
 		}
 	}
@@ -136,7 +142,12 @@ public class DummyOperator extends Operator {
 				return desc.getName();
 			}
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot connect to update service: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot connect to update service: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.operator.DummyOperator.connecting_to_update_service_error", 
+					e),
+					e);
 			return getRequiredPluginPrefix();
 		}
 	}

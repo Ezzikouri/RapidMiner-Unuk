@@ -31,6 +31,7 @@ import org.w3c.dom.Document;
 
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /** Stores configurations in files (one file per {@link Configurator}.
@@ -44,7 +45,8 @@ public class ClientConfigurationManager extends ConfigurationManager {
 	protected Map<String, Map<String, String>> loadAllParameters(Configurator configurator) throws ConfigurationException {
 		final File file = getConfigFile(configurator);
 		if (!file.exists()) {
-			LogService.getRoot().info("No configuration file found for "+configurator.getName());
+			//LogService.getRoot().info("No configuration file found for "+configurator.getName());
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.config.ClientConfigurationManager.no_configuration_file_found", configurator.getName());
 			return Collections.emptyMap();
 		}
 		try {			
@@ -63,7 +65,12 @@ public class ClientConfigurationManager extends ConfigurationManager {
 				File file = getConfigFile(configurator);
 				XMLTools.stream(xml, file, null);
 			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Failed to save configurations for "+configurator.getName()+": "+e, e);
+				//LogService.getRoot().log(Level.WARNING, "Failed to save configurations for "+configurator.getName()+": "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+								"com.rapidminer.tools.config.ClientConfigurationManager.saving_configurations_error", 
+								configurator.getName(), e),
+						e);
 			}
 		}		
 	}
@@ -81,7 +88,12 @@ public class ClientConfigurationManager extends ConfigurationManager {
 			File file = getConfigFile(configurator);
 			XMLTools.stream(xml, file, null);
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to save configurations for "+configurator.getName()+": "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Failed to save configurations for "+configurator.getName()+": "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.tools.config.ClientConfigurationManager.saving_configurations_error", 
+							configurator.getName(), e),
+					e);
 		}
 	}
 }

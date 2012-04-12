@@ -24,6 +24,7 @@ package com.rapidminer.operator.performance;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
@@ -79,7 +80,8 @@ public class PerformanceVector extends AverageVector {
 		PerformanceCriterion pc = getCriterion(crit.getName());
 		if (pc != null) {
 			removeAveragable(pc);
-			LogService.getGlobal().log("Performance criterion '" + crit.getName() + "' was already part of performance vector. Overwritten...", LogService.WARNING);
+			//LogService.getGlobal().log("Performance criterion '" + crit.getName() + "' was already part of performance vector. Overwritten...", LogService.WARNING);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.performance.PerformanceVector.performance_criterion_already_part_of_performance_vector", crit.getName());
 		}
 		addAveragable(crit);
 	}
@@ -106,7 +108,8 @@ public class PerformanceVector extends AverageVector {
 	 */
 	public void setMainCriterionName(String mcName) {
 		if ((!mcName.equals(MAIN_CRITERION_FIRST)) && (getAveragable(mcName) == null)) {
-			LogService.getGlobal().log("Main criterion not found: '" + mcName + "'.", LogService.ERROR);
+			//LogService.getGlobal().log("Main criterion not found: '" + mcName + "'.", LogService.ERROR);
+			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.operator.performance.PerformanceVector.main_criterion_not_found", mcName);
 		}
 		this.mainCriterion = mcName;
 	}

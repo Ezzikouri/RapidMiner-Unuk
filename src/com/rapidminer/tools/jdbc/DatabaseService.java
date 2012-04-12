@@ -50,6 +50,7 @@ import org.w3c.dom.NodeList;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
@@ -77,13 +78,21 @@ public class DatabaseService {
                 in = propertyURL.openStream();
                 loadJDBCProperties(in, "resource jdbc_properties.xml", false);
             } catch (IOException e) {
-                LogService.getRoot().log(Level.WARNING, "Cannot load JDBC properties from program resources.", e);
+                //LogService.getRoot().log(Level.WARNING, "Cannot load JDBC properties from program resources.", e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.tools.jdbc.DatabaseService.loading_jdbc_properties_error_from_program_resources"),
+    					e);
             } finally {
                 if (in != null) {
                     try {
                         in.close();
                     } catch (IOException e) {
-                        LogService.getRoot().log(Level.WARNING, "Cannot close connection for JDBC properties file in the resources.", e);
+                        //LogService.getRoot().log(Level.WARNING, "Cannot close connection for JDBC properties file in the resources.", e);
+            			LogService.getRoot().log(Level.WARNING,
+            					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+            					"com.rapidminer.tools.jdbc.DatabaseService.closing_jdbc_connection_error_in_resources"),
+            					e);
                     }
                 }
             }
@@ -101,7 +110,8 @@ public class DatabaseService {
                 loadJDBCProperties(userProperties, true);
             }
         } else {
-            LogService.getRoot().config("Ignoring jdbc_properties.xml files in execution mode "+RapidMiner.getExecutionMode()+".");
+            //LogService.getRoot().config("Ignoring jdbc_properties.xml files in execution mode "+RapidMiner.getExecutionMode()+".");
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.jdbc.DatabaseService.ignoring_jdbc_properties_xml_file" ,RapidMiner.getExecutionMode());
         }
     }
 
@@ -115,13 +125,21 @@ public class DatabaseService {
             in = new FileInputStream(jdbcProperties);
             loadJDBCProperties(in, jdbcProperties.getAbsolutePath(), userDefined);
         } catch (IOException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot load JDBC properties from etc directory.", e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot load JDBC properties from etc directory.", e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.jdbc.DatabaseService.loading_jdbc_properties_error_from_directory"),
+					e);
         } finally {
             if (in != null) {
                 try {
                     in.close();
                 } catch (IOException e) {
-                    LogService.getRoot().log(Level.WARNING, "Cannot close connection for JDBC properties file in the etc directory.", e);
+                    //LogService.getRoot().log(Level.WARNING, "Cannot close connection for JDBC properties file in the etc directory.", e);
+        			LogService.getRoot().log(Level.WARNING,
+        					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+        					"com.rapidminer.tools.jdbc.DatabaseService.closing_jdbc_connection_error_in_directory"),
+        					e);
                 }
             }
         }
@@ -217,16 +235,23 @@ public class DatabaseService {
      */
     public static void loadJDBCProperties(InputStream in, String name, boolean userDefined) {
         //jdbcProperties.clear();
-        LogService.getRoot().config("Loading JDBC driver information from '" + name + "'.");
+        //LogService.getRoot().config("Loading JDBC driver information from '" + name + "'.");
+        LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.jdbc.DatabaseService.loading_jdbc_driver_information", name);
         Document document = null;
         try {
             document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot read JDBC driver description file '" + name + "': no valid XML: " + e.getMessage(), e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot read JDBC driver description file '" + name + "': no valid XML: " + e.getMessage(), e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.jdbc.DatabaseService.reading_jdbc_driver_description_file_error", 
+					name, e.getMessage()),
+					e);
         }
         if (document != null) {
             if (!document.getDocumentElement().getTagName().toLowerCase().equals("drivers")) {
-                LogService.getRoot().log(Level.WARNING, "JDBC driver description file '" + name + "': outermost tag must be <drivers>!");
+                //LogService.getRoot().log(Level.WARNING, "JDBC driver description file '" + name + "': outermost tag must be <drivers>!");
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.jdbc.DatabaseService.reading_jdbc_driver_description_file_outermost_tag_error", name);
                 return;
             }
 
@@ -238,9 +263,19 @@ public class DatabaseService {
                 } catch (Exception e) {
                     Attr currentNameAttr = currentElement.getAttributeNode("name");
                     if (currentNameAttr != null) {
-                        LogService.getRoot().log(Level.WARNING, "JDBC driver description: cannot register '" + currentNameAttr.getValue() + "': " + e, e);
+                        //LogService.getRoot().log(Level.WARNING, "JDBC driver description: cannot register '" + currentNameAttr.getValue() + "': " + e, e);
+            			LogService.getRoot().log(Level.WARNING,
+            					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+            					"com.rapidminer.tools.jdbc.DatabaseService.registering_jdbc_driver_description_error", 
+            					currentNameAttr.getValue(), e),
+            					e);
                     } else {
-                        LogService.getRoot().log(Level.WARNING, "JDBC driver registration: cannot register '" + currentElement + "': " + e, e);
+                        //LogService.getRoot().log(Level.WARNING, "JDBC driver registration: cannot register '" + currentElement + "': " + e, e);
+            			LogService.getRoot().log(Level.WARNING,
+            					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+            					"com.rapidminer.tools.jdbc.DatabaseService.registering_jdbc_driver_description_error", 
+            					currentElement, e),
+            					e);
                     }
                 }
             }
@@ -252,7 +287,8 @@ public class DatabaseService {
         properties.registerDrivers();
         for (JDBCProperties other : jdbcProperties) {
             if (other.getName().equals(properties.getName())) {
-                LogService.getRoot().config("Merging jdbc driver information for "+other.getName());
+                //LogService.getRoot().config("Merging jdbc driver information for "+other.getName());            	
+                LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.jdbc.DatabaseService.merging_jdbc_driver_information", other.getName());
                 other.merge(properties);
                 return;
             }

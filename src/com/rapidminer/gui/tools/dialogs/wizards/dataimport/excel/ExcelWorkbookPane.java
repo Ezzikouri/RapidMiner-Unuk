@@ -54,6 +54,7 @@ import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.io.ExcelExampleSource;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 
@@ -245,10 +246,21 @@ public class ExcelWorkbookPane extends JPanel {
 		try {
 			excelWorkbook = Workbook.getWorkbook(file);
 		} catch (BiffException e1) {
-			LogService.getRoot().log(Level.WARNING, "Error loading workbook: " + e1, e1);
+			//LogService.getRoot().log(Level.WARNING, "Error loading workbook: " + e1, e1);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel.ExcelWorkbookPane.loading_workbook_error", 
+					e1),
+					e1);
+
 			return;
 		} catch (IOException e1) {
-			LogService.getRoot().log(Level.WARNING, "Error loading workbook: " + e1, e1);
+			//LogService.getRoot().log(Level.WARNING, "Error loading workbook: " + e1, e1);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.tools.dialogs.wizards.dataimport.excel.ExcelWorkbookPane.loading_workbook_error", 
+					e1),
+					e1);
 			return;
 		}
 		sheetsPane.removeAll();

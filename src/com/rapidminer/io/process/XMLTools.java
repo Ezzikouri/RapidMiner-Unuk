@@ -71,6 +71,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
@@ -232,7 +233,12 @@ public class XMLTools {
             try {
                 tf.setAttribute("indent-number", Integer.valueOf(2));
             } catch (IllegalArgumentException e) {
-                LogService.getRoot().log(Level.WARNING, "XML transformer does not support indentation: " + e);
+                //LogService.getRoot().log(Level.WARNING, "XML transformer does not support indentation: " + e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.io.process.XMLTools.xml_transformer_does_not_support_identation", 
+    					e),
+    					e);
             }
             transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");

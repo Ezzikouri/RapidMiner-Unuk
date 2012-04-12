@@ -167,7 +167,12 @@ public class TemplateChooser {
 		try {
 			UIManager.setLookAndFeel(new RapidLookAndFeel());
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot setup rapid look and feel, using default.", e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot setup rapid look and feel, using default.", e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.new_plotter_templates.TemplateChooser.setup_rapid_look_and_feel_error"),
+					e);
+
 		}
 		RapidMiner.init();
 		ExampleSet iris = (ExampleSet) ((IOObjectEntry)new RepositoryLocation("//Samples/data/Iris").locateEntry()).retrieveData(null);

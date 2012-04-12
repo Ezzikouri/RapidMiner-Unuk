@@ -63,7 +63,13 @@ public class LocalRepository extends SimpleFolder implements Repository {
 		try {
 			mkdir();
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to create repository directory: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Failed to create repository directory: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.repository.local.LocalRepository.creating_repository_directory_error", 
+					e),
+					e);
+
 		}
 	}
 

@@ -30,6 +30,7 @@ import java.awt.event.ActionListener;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -212,7 +213,8 @@ public class DataControl extends JPanel {
                 if (numberDigitsString != null)
                     fractionDigits = Integer.parseInt(numberDigitsString);
             } catch (NumberFormatException e) {
-                LogService.getGlobal().log("Bad integer format in property 'rapidminer.gui.fractiondigits.numbers', using default number of fraction digits (3).", LogService.WARNING);
+                //LogService.getGlobal().log("Bad integer format in property 'rapidminer.gui.fractiondigits.numbers', using default number of fraction digits (3).", LogService.WARNING);
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.attributeeditor.DataControl.bad_integer_format_in_property");          
             }
             fractionDigitsField = new JTextField(fractionDigits + "");
             fractionDigitsField.setToolTipText("The number of fraction digits which is used for numerical values.");

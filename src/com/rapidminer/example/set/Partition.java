@@ -26,6 +26,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.tools.LogService;
 
@@ -109,14 +110,17 @@ public class Partition implements Cloneable, Serializable {
 	 * for creation.
 	 */
 	private void init(double[] ratio, int size, PartitionBuilder builder) {
-		LogService.getGlobal().log("Create new partition using a '" + builder.getClass().getName() + "'.", LogService.STATUS);
+		//LogService.getGlobal().log("Create new partition using a '" + builder.getClass().getName() + "'.", LogService.STATUS);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.example.set.Partition.creating_new_partition_using", builder.getClass().getName());
 		elements = builder.createPartition(ratio, size);
 		init(elements, ratio.length);
 	}
 
 	/** Private initialization method used by constructors. */
 	private void init(int[] newElements, int noOfPartitions) {
-		LogService.getGlobal().log("Create new partition with " + newElements.length + " elements and " + noOfPartitions + " partitions.", LogService.STATUS);
+		//LogService.getGlobal().log("Create new partition with " + newElements.length + " elements and " + noOfPartitions + " partitions.", LogService.STATUS);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.example.set.Partition.creating_new_partition_with", 
+				new Object [] {newElements.length, noOfPartitions});	
 		partitionSizes = new int[noOfPartitions];
 		lastElementIndex = new int[noOfPartitions];
 		elements = newElements;

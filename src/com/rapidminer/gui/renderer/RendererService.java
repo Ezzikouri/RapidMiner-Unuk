@@ -47,6 +47,7 @@ import org.xml.sax.SAXException;
 
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.IOObject;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 
@@ -123,7 +124,12 @@ public class RendererService {
 				init(name, in, classLoader);
 			}
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description of plugin" + name + ": " + "Cannot parse document: " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description of plugin" + name + ": " + "Cannot parse document: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_from_plugin_error", 
+					name, e),
+					e);
 		} finally {
 			if (in != null) {
 				try {
@@ -136,7 +142,8 @@ public class RendererService {
 	}
 
 	public static void init(String rendererFileName, InputStream in, ClassLoader classLoader) {
-		LogService.getRoot().config("Loading renderers from '" + rendererFileName + "'.");
+		//LogService.getRoot().config("Loading renderers from '" + rendererFileName + "'.");
+		LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.renderer.RendererService.loading_renderers", rendererFileName);
 		try {
 			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
 			Element ioObjectsElement = document.getDocumentElement();
@@ -176,14 +183,30 @@ public class RendererService {
 				}
 				isInitialized = true;
 			} else {
-				LogService.getRoot().warning("Cannot initialize io object description: Outermost tag of a ioobjects.xml definition must be <ioobjects>!");
+				//LogService.getRoot().warning("Cannot initialize io object description: Outermost tag of a ioobjects.xml definition must be <ioobjects>!");
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_tag_error");
 			}
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_parsing_error", 
+					e),
+					e);
 		} catch (javax.xml.parsers.ParserConfigurationException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_error", 
+					e),
+					e);
 		} catch (SAXException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_parsing_error", 
+					e),
+					e);
 		} finally {
 			if (in != null) {
 				try {
@@ -245,7 +268,14 @@ public class RendererService {
 			}
 
 		} catch (Throwable e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot register renderer: " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot register renderer: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.renderer.RendererService.registering_renderer_error", 
+					e),
+					e);
+
+			
 		}
 	}
 
@@ -309,7 +339,8 @@ public class RendererService {
 
 			//if this is the case, log an error...
 			if (candidateList.size() > 1) {
-				LogService.getGlobal().log("There is more than one renderable candidate for the result of " + clazz.getName(), LogService.ERROR);
+				//LogService.getGlobal().log("There is more than one renderable candidate for the result of " + clazz.getName(), LogService.ERROR);
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.renderer.RendererService.more_than_one_renderable_candidate_for_the_result_of_classname", clazz.getName());
 			}
 			
 			//and show the first candidate found

@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 
 import javax.swing.Action;
@@ -155,7 +156,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			try {
 				ALL_REPOSITORIES.put(remoteRepository.getBaseUrl().toURI(), new WeakReference<RemoteRepository>(remoteRepository));
 			} catch (URISyntaxException e) {
-				LogService.getRoot().log(Level.SEVERE, "Could not add repository URI: " + remoteRepository.getBaseUrl().toExternalForm(), e);
+				//LogService.getRoot().log(Level.SEVERE, "Could not add repository URI: " + remoteRepository.getBaseUrl().toExternalForm(), e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.repository.remote.RemoteRepository.adding_repository_uri_error", 
+						remoteRepository.getBaseUrl().toExternalForm()),
+						e);
 			}
 		}
 	}
@@ -165,7 +171,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			return new URL(getBaseUrl(), "RAWS/");
 		} catch (MalformedURLException e) {
 			// cannot happen
-			LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error", 
+					e),
+					e);
 			return null;
 		}
 	}
@@ -175,7 +186,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			return new URL(getBaseUrl(), "RAWS/RepositoryService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
-			LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error", 
+					e),
+					e);
 			return null;
 		}
 	}
@@ -185,7 +201,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			return new URL(getBaseUrl(), "RAWS/ProcessService?wsdl");
 		} catch (MalformedURLException e) {
 			// cannot happen
-			LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error", 
+					e),
+					e);
 			return null;
 		}
 	}
@@ -299,7 +320,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private PasswordAuthentication getAuthentiaction() {		
 		if (password == null) {
-			LogService.getRoot().info("Authentication requested for URL: " + getBaseUrl());
+			//LogService.getRoot().info("Authentication requested for URL: " + getBaseUrl());
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.repository.remote.RemoteRepository.authentication_requested", getBaseUrl());
 			PasswordAuthentication passwordAuthentication;
 			if (cachedPasswordUsed) {
 				// if we have used a cached password last time, and we enter this method again,
@@ -596,9 +618,17 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			for (FieldConnectionEntry entry : connectionEntries) {
 				DatabaseConnectionService.addConnectionEntry(entry);
 			}
-			LogService.getRoot().config("Added " + connectionEntries.size() + " jdbc connections exported by " + getName() + ".");
+			//LogService.getRoot().config("Added " + connectionEntries.size() + " jdbc connections exported by " + getName() + ".");
+			LogService.getRoot().log(Level.CONFIG, "com.rapidminer.repository.remote.RemoteRepository.added_jdbc_connections_exported_by", 
+					new Object[] {connectionEntries.size(), getName()});
+
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Failed to fetch JDBC connection entries from server " + getName() + ".", e);
+			//LogService.getRoot().log(Level.WARNING, "Failed to fetch JDBC connection entries from server " + getName() + ".", e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.repository.remote.RemoteRepository.fetching_jdbc_connections_entries_error", 
+					getName()),
+					e);		
 		}
 	}
 

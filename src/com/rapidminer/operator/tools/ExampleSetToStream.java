@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
@@ -116,7 +117,8 @@ public class ExampleSetToStream {
 	public ExampleSetToStream(int version) {
 		this.version = version;
 		if (version != CURRENT_VERSION) {
-			LogService.getRoot().warning("Using deprecated example set stream version "+version);
+			//LogService.getRoot().warning("Using deprecated example set stream version "+version);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.tools.ExampleSetToStream.using_deprecated_version", version);
 		}
 	}
 	
@@ -520,7 +522,8 @@ public class ExampleSetToStream {
 	 * */
 	public void writeAnnotations(DataOutput out, Annotations annotations) throws IOException {
 		if (version < VERSION_3) {
-			LogService.getRoot().warning("Ignoring annotations in example set stream version "+version);
+			//LogService.getRoot().warning("Ignoring annotations in example set stream version "+version);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.tools.ExampleSetToStream.ignoring_annotations" ,version);
 		} else {
 			if (annotations == null) {
 				out.writeInt(0);

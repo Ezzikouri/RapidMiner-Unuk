@@ -25,6 +25,7 @@ package com.rapidminer.example;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.tools.LogService;
 
@@ -165,7 +166,8 @@ public abstract class AbstractAttributes implements Attributes {
 			if (!role.isSpecial()) {
 				return role.getAttribute();
 			} else {
-				LogService.getGlobal().logWarning("No regular attribute with name '"+name+"' found, however, there is a special attribute with the same name.");
+				//LogService.getGlobal().logWarning("No regular attribute with name '"+name+"' found, however, there is a special attribute with the same name.");
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.AbstractAttributes.no_regular_attribute_found", name);
 				return null;
 			}
 		} else {

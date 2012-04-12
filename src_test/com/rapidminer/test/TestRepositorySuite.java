@@ -80,7 +80,8 @@ public class TestRepositorySuite extends TestCase {
 		
 		ctx.initRapidMiner();
 		if( !ctx.isRepositoryPresent() ) {
-			LogService.getRoot().log(Level.WARNING, "No test repository specified -- adding no test from repository");
+			//LogService.getRoot().log(Level.WARNING, "No test repository specified -- adding no test from repository");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.test.TestRepositorySuite.no_test_repository_specified");
 			return suite;
 		}
 		
@@ -132,7 +133,8 @@ public class TestRepositorySuite extends TestCase {
 			locationString = locationString.replace(repositoryLocation, "");
 			boolean exclude = Pattern.matches(exclusionPattern, locationString);
 			if (exclude) {
-				LogService.getRoot().log(Level.WARNING, "Process matched by exclusion pattern - ignored (" + locationString + ")");
+				//LogService.getRoot().log(Level.WARNING, "Process matched by exclusion pattern - ignored (" + locationString + ")");
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.test.TestRepositorySuite.procces_matched_by_exclusion_pattern", locationString);
 			}
 			return !exclude;
 		}

@@ -57,6 +57,7 @@ import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.ResultObject;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
@@ -155,9 +156,19 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 								}
 							});
 						} catch (InterruptedException e) {
-							LogService.getRoot().log(Level.WARNING, "Error switching perspectives: "+e, e);
+							//LogService.getRoot().log(Level.WARNING, "Error switching perspectives: "+e, e);
+							LogService.getRoot().log(Level.WARNING,
+									I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+									"com.rapidminer.gui.processeditor.results.DockableResultDisplay.error_switching_perspectives", 
+									e),
+									e);
 						} catch (InvocationTargetException e) {
-							LogService.getRoot().log(Level.WARNING, "Error switching perspectives: "+e, e);
+							//LogService.getRoot().log(Level.WARNING, "Error switching perspectives: "+e, e);
+							LogService.getRoot().log(Level.WARNING,
+									I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+									"com.rapidminer.gui.processeditor.results.DockableResultDisplay.error_switching_perspectives", 
+									e),
+									e);
 						}						
 					}
 				}
@@ -291,9 +302,19 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 					}
 				});
 			} catch (InterruptedException e) {
-				LogService.getRoot().log(Level.WARNING, "Interupted while closing result tabs.", e);
+				//LogService.getRoot().log(Level.WARNING, "Interupted while closing result tabs.", e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.gui.processeditor.results.DockableResultDisplay.interrupted_while_closing_result_tabs"),
+						e);
+				
 			} catch (InvocationTargetException e) {
-				LogService.getRoot().log(Level.WARNING, "Exception while closing result tabs: "+e, e);
+				//LogService.getRoot().log(Level.WARNING, "Exception while closing result tabs: "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.gui.processeditor.results.DockableResultDisplay.exception_while_closing_result_tabs",
+						e),
+						e);
 			}
 		}
 	}

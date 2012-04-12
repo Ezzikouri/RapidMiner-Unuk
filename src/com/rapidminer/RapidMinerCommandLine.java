@@ -30,6 +30,7 @@ import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
@@ -66,7 +67,12 @@ public class RapidMinerCommandLine extends RapidMiner implements BreakpointListe
             try {
                 System.in.read();
             } catch (IOException e) {
-                LogService.getRoot().log(Level.WARNING, "Error occured while waiting for user input: " + e.getMessage(), e);
+                //LogService.getRoot().log(Level.WARNING, "Error occured while waiting for user input: " + e.getMessage(), e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.RapidMinerCommandLine.waiting_for_user_input_error", 
+    					e.getMessage()),
+    					e);
             }
             process.resume();
         }
@@ -124,7 +130,12 @@ public class RapidMinerCommandLine extends RapidMiner implements BreakpointListe
                 process = loc.load(null);
             }
         } catch (Exception e) {
-            LogService.getRoot().severe("Cannot read process setup '" + repositoryLocation + "': "+e.getMessage());
+            //LogService.getRoot().severe("Cannot read process setup '" + repositoryLocation + "': "+e.getMessage());
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.RapidMinerCommandLine.reading_process_setup_error", 
+					repositoryLocation, e.getMessage()),
+					e);
             RapidMiner.quit(RapidMiner.ExitMode.ERROR);
         }
 
@@ -133,7 +144,8 @@ public class RapidMinerCommandLine extends RapidMiner implements BreakpointListe
                 process.addBreakpointListener(this);
                 IOContainer results = process.run();
                 process.getRootOperator().sendEmail(results, null);
-                LogService.getRoot().info("Process finished successfully");
+                //LogService.getRoot().info("Process finished successfully");
+                LogService.getRoot().log(Level.INFO, "com.rapidminer.RapidMinerCommandLine.process_finished");
                 RapidMiner.quit(RapidMiner.ExitMode.NORMAL);
             } catch (Throwable e) {
                 UsageStatistics.getInstance().count(process.getCurrentOperator(), OperatorStatisticsValue.FAILURE);

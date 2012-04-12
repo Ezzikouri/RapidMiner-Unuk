@@ -49,6 +49,7 @@ import com.rapid_i.Launcher;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.plugin.Plugin;
@@ -159,7 +160,10 @@ public class ManagedExtension {
             File global = getGlobalExtensionsDir();
             return new File[] {	global,	local };
         } catch (IOException e) {
-            LogService.getRoot().warning("None of the properties "+RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS+" and "+Launcher.PROPERTY_RAPIDMINER_HOME+" is set. No globally installed extensions will be loaded.");
+            //LogService.getRoot().warning("None of the properties "+RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS+" and "+Launcher.PROPERTY_RAPIDMINER_HOME+" is set. No globally installed extensions will be loaded.");
+            LogService.getRoot().log(Level.WARNING, "com.rapid_i.deployment.update.client.ManagedExtension.no_properties_set", 
+            		new Object[] {RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS, Launcher.PROPERTY_RAPIDMINER_HOME});
+ 
             return new File[] { local };
         }
     }
@@ -207,7 +211,13 @@ public class ManagedExtension {
             }
             XMLTools.stream(toXML(true), new File(localDir, "extensions.xml"), Charset.forName("UTF-8"));
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot save local user extensions: "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot save local user extensions: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapid_i.deployment.update.client.ManagedExtension.saving_local_user_extensions_error", 
+					e),
+					e);
+
         }
         try {
             File globalDir = getGlobalExtensionsDir();
@@ -216,9 +226,15 @@ public class ManagedExtension {
             }
             XMLTools.stream(toXML(false), new File(globalDir, "extensions.xml"), Charset.forName("UTF-8"));
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot save global extensions: "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot save global extensions: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapid_i.deployment.update.client.ManagedExtension.saving_global_extensions_error", 
+					e),
+					e);
         }
-        LogService.getRoot().config("Saved extension state.");
+        //LogService.getRoot().config("Saved extension state.");
+        LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.ManagedExtension.saved_extension_state");
     }
 
     /** Reads configuration files. */
@@ -230,7 +246,12 @@ public class ManagedExtension {
                 parse(XMLTools.parse(file), true);
             }
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Failed to read local extension state: "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Failed to read local extension state: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapid_i.deployment.update.client.ManagedExtension.reading_local_extensions_state_error", 
+					e),
+					e);
         }
         try {
             File file = new File(getGlobalExtensionsDir(), "extensions.xml");
@@ -238,9 +259,15 @@ public class ManagedExtension {
                 parse(XMLTools.parse(file), false);
             }
         } catch (Exception e) {
-            LogService.getRoot().log(Level.WARNING, "Failed to read global extension state: "+e, e);
+            //LogService.getRoot().log(Level.WARNING, "Failed to read global extension state: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapid_i.deployment.update.client.ManagedExtension.reading_global_extensions_state_error", 
+					e),
+					e);
         }
-        LogService.getRoot().config("Read extension state.");
+        //LogService.getRoot().config("Read extension state.");
+        LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.ManagedExtension.read_extansion_state");
     }
 
     private static void parse(Document parse, boolean inHomeDir) {

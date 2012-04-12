@@ -25,6 +25,7 @@ package com.rapidminer.operator.performance;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
@@ -146,9 +147,11 @@ public class PerformanceEvaluator extends AbstractPerformanceEvaluator {
 			try {
 				performanceCriteria.add((PerformanceCriterion)SIMPLE_CRITERIA_CLASSES[i].newInstance());
 			} catch (InstantiationException e) {
-				LogService.getGlobal().logError("Cannot instantiate " + SIMPLE_CRITERIA_CLASSES[i] + ". Skipping...");
+				//LogService.getGlobal().logError("Cannot instantiate " + SIMPLE_CRITERIA_CLASSES[i] + ". Skipping...");
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.operator.performance.PerformanceEvaluator.instantiating_simple_criteria_classes_error", SIMPLE_CRITERIA_CLASSES[i]);
 			} catch (IllegalAccessException e) {
-				LogService.getGlobal().logError("Cannot instantiate " + SIMPLE_CRITERIA_CLASSES[i] + ". Skipping...");
+				//LogService.getGlobal().logError("Cannot instantiate " + SIMPLE_CRITERIA_CLASSES[i] + ". Skipping...");
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.operator.performance.PerformanceEvaluator.instantiating_simple_criteria_classes_error", SIMPLE_CRITERIA_CLASSES[i]);
 			}
 		}
 

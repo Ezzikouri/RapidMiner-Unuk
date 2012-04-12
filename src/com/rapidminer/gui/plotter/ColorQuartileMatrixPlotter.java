@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.util.logging.Level;
 
 import javax.swing.Icon;
 
@@ -68,7 +69,8 @@ public class ColorQuartileMatrixPlotter extends PlotterAdapter {
             if (sizeProperty != null)
                 this.plotterSize = Integer.parseInt(sizeProperty);
         } catch (NumberFormatException e) {
-            LogService.getGlobal().log("Quartile matrix: cannot parse plotter size (was '" + sizeProperty + "'), using default size (200).", LogService.WARNING);
+            //LogService.getGlobal().log("Quartile matrix: cannot parse plotter size (was '" + sizeProperty + "'), using default size (200).", LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.ColorQuartileMatrixPlotter.parsing_plotter_size_error", sizeProperty);
         }
     }
 

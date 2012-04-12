@@ -448,9 +448,11 @@ public class RapidMiner {
 
 	public static Process readProcessFile(File processFile, ProgressListener progressListener) throws XMLException, IOException, InstantiationException, IllegalAccessException {
 		try {
-			LogService.getRoot().fine("Reading process file '" + processFile + "'.");
+			//LogService.getRoot().fine("Reading process file '" + processFile + "'.");
+			LogService.getRoot().log(Level.FINE, "com.rapidminer.RapidMiner.reading_process_file", processFile);
 			if (!processFile.exists() || !processFile.canRead()) {
-				LogService.getRoot().severe("Cannot read process definition file '" + processFile + "'!");
+				//LogService.getRoot().severe("Cannot read process definition file '" + processFile + "'!");
+				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.RapidMiner.reading_process_definition_file_error", processFile);
 			}
 			return new Process(processFile, progressListener);
 		} catch (XMLException e) {
@@ -522,7 +524,12 @@ public class RapidMiner {
 			try {
 				KeyGeneratorTool.createAndStoreKey();
 			} catch (KeyGenerationException e) {
-				LogService.getRoot().log(Level.WARNING, "Cannot generate encryption key: " + e.getMessage(), e);
+				//LogService.getRoot().log(Level.WARNING, "Cannot generate encryption key: " + e.getMessage(), e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.RapidMiner.generating_encryption_key_error", 
+						e.getMessage()),
+						e);
 			}
 		}
 
@@ -596,13 +603,22 @@ public class RapidMiner {
 				in = new BufferedReader(new FileReader(lastVersionFile));
 				versionString = in.readLine();
 			} catch (IOException e) {
-				LogService.getRoot().log(Level.WARNING, "Cannot read global version file of last used version.", e);
+				//LogService.getRoot().log(Level.WARNING, "Cannot read global version file of last used version.", e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.RapidMiner.reading_global_version_file_error"),
+						e);
 			} finally {
 				if (in != null) {
 					try {
 						in.close();
 					} catch (IOException e) {
-						LogService.getRoot().log(Level.WARNING, "Cannnot close stream to file " + lastVersionFile, e);
+						//LogService.getRoot().log(Level.WARNING, "Cannnot close stream to file " + lastVersionFile, e);
+						LogService.getRoot().log(Level.WARNING,
+								I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+								"com.rapidminer.RapidMiner.closing_stream_error",
+								lastVersionFile),
+								e);
 					}
 				}
 			}
@@ -637,7 +653,11 @@ public class RapidMiner {
 			out = new PrintWriter(new FileWriter(versionFile));
 			out.println(getLongVersion());
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot write current version into property file.", e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot write current version into property file.", e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.RapidMiner.writing_current_version_error"),
+					e);
 		} finally {
 			if (out != null)
 				out.close();
@@ -646,8 +666,10 @@ public class RapidMiner {
 
 	private static void performFirstInitialization(VersionNumber lastVersion, VersionNumber currentVersion) {
 		if (currentVersion != null)
-			LogService.getRoot().info("Performing upgrade" + (lastVersion != null ? " from version " + lastVersion : "") + " to version " + currentVersion);
-
+			//LogService.getRoot().info("Performing upgrade" + (lastVersion != null ? " from version " + lastVersion : "") + " to version " + currentVersion);
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.RapidMiner.performing_upgrade",
+			new Object[] {(lastVersion != null ? " from version " + lastVersion : ""), currentVersion});
+		
 		// copy old settings to new version file
 		ParameterService.copyMainUserConfigFile(lastVersion, currentVersion);
 	}
@@ -680,13 +702,23 @@ public class RapidMiner {
 			try {
 				hook.run();
 			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Error executing shutdown hook: " + e.getMessage(), e);
+				//LogService.getRoot().log(Level.WARNING, "Error executing shutdown hook: " + e.getMessage(), e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.RapidMiner.executing_shotdown_hook_error", 
+						e.getMessage()),
+						e);
 			}
 		}
 		try {
 			Runtime.getRuntime().runFinalization();
 		} catch (Exception e) {
-			LogService.getRoot().log(Level.WARNING, "Error during finalization: " + e.getMessage(), e);
+			//LogService.getRoot().log(Level.WARNING, "Error during finalization: " + e.getMessage(), e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.RapidMiner.error_during_finalization", 
+					e.getMessage()),
+					e);
 		}
 		switch (exitMode) {
 			case NORMAL:

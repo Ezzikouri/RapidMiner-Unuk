@@ -25,6 +25,7 @@ package com.rapidminer.gui.tools;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.util.logging.Level;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
@@ -74,7 +75,8 @@ public class OperatorListCellRenderer extends DefaultListCellRenderer {
         	operator = operatorDescription.createOperatorInstance();
         } catch (OperatorCreationException e) {
             // tries to create operator
-            LogService.getGlobal().log("Problem during creation of operator instance: " + e.getMessage(), LogService.WARNING);
+            //LogService.getGlobal().log("Problem during creation of operator instance: " + e.getMessage(), LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.OperatorListCellRenderer.problem_during_creating_of_operator_instance", e.getMessage());
         }
         String descriptionString = operatorDescription.getLongDescriptionHTML();
         if (descriptionString == null)

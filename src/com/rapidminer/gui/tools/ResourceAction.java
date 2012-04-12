@@ -24,6 +24,7 @@ package com.rapidminer.gui.tools;
 
 
 import java.text.MessageFormat;
+import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -72,9 +73,15 @@ public abstract class ResourceAction extends ConditionalAction {
 			if (name != null && name.length() > 0 && name.indexOf(mne.charAt(0)) == -1) {
 				if (name.indexOf(mne.toUpperCase().charAt(0)) != -1) {
 					mne = mne.toUpperCase();
-					LogService.getRoot().warning("Mnemonic key "+mne+" not found for action " + i18nKey + " ("+name+"), converting to upper case.");
+					//LogService.getRoot().warning("Mnemonic key "+mne+" not found for action " + i18nKey + " ("+name+"), converting to upper case.");
+					LogService.getRoot().log(Level.WARNING, 
+							"com.rapidminer.gui.tools.ResourceAction.key_not_found_converting_upper_case", 
+							new Object[] {mne, i18nKey, name});
 				} else {
-					LogService.getRoot().warning("Mnemonic key "+mne+" not found for action " + i18nKey + " ("+name+")");
+					//LogService.getRoot().warning("Mnemonic key "+mne+" not found for action " + i18nKey + " ("+name+")");
+					LogService.getRoot().log(Level.WARNING, 
+							"com.rapidminer.gui.tools.ResourceAction.key_not_found", 
+							new Object[] {mne, i18nKey, name});
 				}
 			}
 			putValue(MNEMONIC_KEY, (int)mne.charAt(0));
@@ -118,7 +125,8 @@ public abstract class ResourceAction extends ConditionalAction {
 			component.getInputMap(condition).put(keyStroke, key);
 			component.getActionMap().put(key, this);
 		} else {
-			LogService.getRoot().warning("Cannot add action "+key+" to input map: no accelerator defined.");
+			//LogService.getRoot().warning("Cannot add action "+key+" to input map: no accelerator defined.");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.ResourceAction.add_action_key_error", key);
 		}
 	}
 	

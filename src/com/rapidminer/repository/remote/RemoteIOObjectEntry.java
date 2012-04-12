@@ -29,6 +29,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.ref.SoftReference;
 import java.net.HttpURLConnection;
+import java.util.logging.Level;
 
 import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapidminer.operator.IOObject;
@@ -155,12 +156,14 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 			try {
 				try {
 					in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-					LogService.getRoot().fine("BEGIN Reply of server:");
+					//LogService.getRoot().fine("BEGIN Reply of server:");
+					LogService.getRoot().log(Level.FINE, "com.rapidminer.repository.remote.RemoteIOObjectEntry.begin_reply_server");
 					String line;
 					while ((line = in.readLine()) != null) {
 						LogService.getRoot().fine(line);
 					}
-					LogService.getRoot().fine("END Reply of server.");
+					//LogService.getRoot().fine("END Reply of server.");
+					LogService.getRoot().log(Level.FINE, "com.rapidminer.repository.remote.RemoteIOObjectEntry.end_reply_server");
 				} catch (IOException e) {
 				}
 			} finally {

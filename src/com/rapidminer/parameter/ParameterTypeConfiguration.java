@@ -25,6 +25,7 @@ package com.rapidminer.parameter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
+import java.util.logging.Level;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -109,9 +110,11 @@ public class ParameterTypeConfiguration extends ParameterType {
             }
             creator.setParameters(parameters);  //this is ensured to be non null
         } catch (InstantiationException e) {
-            LogService.getGlobal().log("Problem during creation of wizard: " + e.getMessage(), LogService.WARNING);
+            //LogService.getGlobal().log("Problem during creation of wizard: " + e.getMessage(), LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.parameter.ParameterTypeConfiguration.problem_during_creation_of_wizard", e.getMessage());
         } catch (IllegalAccessException e) {
-            LogService.getGlobal().log("Problem during creation of wizard: " + e.getMessage(), LogService.WARNING);
+            //LogService.getGlobal().log("Problem during creation of wizard: " + e.getMessage(), LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.parameter.ParameterTypeConfiguration.problem_during_creation_of_wizard", e.getMessage());
         }
         return creator;
     }

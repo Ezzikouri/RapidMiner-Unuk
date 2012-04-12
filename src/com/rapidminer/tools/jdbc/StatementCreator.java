@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
@@ -74,7 +75,8 @@ public class StatementCreator {
 		DatabaseMetaData dbMetaData = con.getMetaData();
 		this.identifierQuote = dbMetaData.getIdentifierQuoteString();
 
-		LogService.getRoot().fine("Identifier quote character is: " + this.identifierQuote);
+		//LogService.getRoot().fine("Identifier quote character is: " + this.identifierQuote);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.jdbc.StatementCreator.initialization_of_quote_character", this.identifierQuote);
 		// Maps java sql Types to data types as reported by the sql driver
 		Map<Integer, DataTypeSyntaxInformation> dataTypeToMDMap = new HashMap<Integer, DataTypeSyntaxInformation>();
 		ResultSet typesResult = dbMetaData.getTypeInfo();
@@ -113,11 +115,17 @@ public class StatementCreator {
 			DataTypeSyntaxInformation si = dataTypeToMDMap.get(i);
 			if (si != null) {
 				typeMap.put(attributeType, si);
-				LogService.getRoot().fine("Mapping " + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType) + " to " + si);
+				//LogService.getRoot().fine("Mapping " + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType) + " to " + si);
+				LogService.getRoot().log(Level.FINE, 
+						"com.rapidminer.tools.jdbc.StatementCreator.mapping_ontology_value_type",
+						new Object[] {Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType), si});
 				return;
 			}
 		}
-		LogService.getRoot().warning("No SQL value type found for " + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType));
+		//LogService.getRoot().warning("No SQL value type found for " + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType));
+		LogService.getRoot().log(Level.WARNING,
+				"com.rapidminer.tools.jdbc.StatementCreator.no_sql_value_type_found",
+				Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(attributeType));
 	}
 
 	// mapping types

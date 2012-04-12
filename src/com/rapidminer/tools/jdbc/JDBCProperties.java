@@ -38,6 +38,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 
@@ -129,7 +130,8 @@ public class JDBCProperties {
 		if (urlAttr == null)
 			throw new Exception("Missing urlprefix for <driver> tag for driver '" + getName() + "'");
 		if (driversAttr == null) {
-			LogService.getRoot().warning("Missing database driver class name for '" + getName() + "'");
+			//LogService.getRoot().warning("Missing database driver class name for '" + getName() + "'");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.jdbc.JDBCProperties.missing_database_driver_class", getName());
 		}
 
 		// if (varcharNameAttr != null) {
@@ -350,7 +352,9 @@ public class JDBCProperties {
 					for (int i = 0; i < jarNames.length; i++) {
 						File jarFile = new File(jarNames[i]);
 						if (!jarFile.exists()) {
-							LogService.getRoot().warning("Driver jar file '" + jarFile.getAbsolutePath() + "' referenced for JDBC driver " + getName() + " does not exist.");
+							//LogService.getRoot().warning("Driver jar file '" + jarFile.getAbsolutePath() + "' referenced for JDBC driver " + getName() + " does not exist.");
+							LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.jdbc.JDBCProperties.driver_jar_file_does_not_exist",
+									new Object[] {jarFile.getAbsolutePath(), getName()});						
 						}
 						urls[i] = jarFile.toURI().toURL();
 					}
@@ -373,19 +377,31 @@ public class JDBCProperties {
 				// Class.forName(driverName, true, loader).newInstance();
 
 				if (getDriverJarFile() != null) {
-					LogService.getRoot().config("Loaded JDBC driver " + driverName + " from " + getDriverJarFile());
+					//LogService.getRoot().config("Loaded JDBC driver " + driverName + " from " + getDriverJarFile());
+					LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.jdbc.JDBCProperties.loaded_jdbc_driver_from_driverjarfile", 
+							new Object[] {driverName, getDriverJarFile()});
 				} else {
-					LogService.getRoot().config("Loaded JDBC driver " + driverName);
+					//LogService.getRoot().config("Loaded JDBC driver " + driverName);
+					LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.jdbc.JDBCProperties.loaded_jdbc_driver", driverName);
 				}
 
 			} catch (ClassNotFoundException e) {
 				if (getDriverJarFile() != null) {
-					LogService.getRoot().info("JDBC driver " + driverName + " not found in " + getDriverJarFile());
+					//LogService.getRoot().info("JDBC driver " + driverName + " not found in " + getDriverJarFile());
+					LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.jdbc.JDBCProperties.jdbc_driver_not_found", 
+							new Object[] {driverName, getDriverJarFile()});
 				} else {
-					LogService.getRoot().info("JDBC driver " + driverName + " not found. Probably the driver is not installed.");
+					//LogService.getRoot().info("JDBC driver " + driverName + " not found. Probably the driver is not installed.");
+					LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.jdbc.JDBCProperties.jdbc_driver_not_found_not_installed", driverName);
 				}
 			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Failed to register JDBC driver " + driverName + ": " + e, e);
+				//LogService.getRoot().log(Level.WARNING, "Failed to register JDBC driver " + driverName + ": " + e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.tools.jdbc.JDBCProperties.jdbc_driver_not_registered", 
+						driverName, e),
+						e);
+
 			}
 		}
 	}

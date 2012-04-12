@@ -36,6 +36,7 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.viewer.DataTableViewerTable;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.usagestats.UsageStatistics.StatisticsScope;
@@ -160,7 +161,11 @@ public class UsageStatsTransmissionDialog extends ButtonDialog {
                                     UsageStatistics.getInstance().scheduleTransmission(true);
                                 }
                             } catch (Exception e) {
-                                LogService.getRoot().log(Level.WARNING, "Error submitting operator usage statistics. Are you online?", e);
+                                //LogService.getRoot().log(Level.WARNING, "Error submitting operator usage statistics. Are you online?", e);
+                    			LogService.getRoot().log(Level.WARNING,
+                    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+                    					"com.rapidminer.tools.usagestats.UsageStatsTransmissionDialog.submitting_operator_usage_statistics_error"),
+                    					e);
                                 UsageStatistics.getInstance().scheduleTransmission(true);
                             }
                             getProgressListener().setCompleted(90);

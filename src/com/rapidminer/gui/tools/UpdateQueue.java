@@ -24,6 +24,7 @@ package com.rapidminer.gui.tools;
 
 import java.util.logging.Level;
 
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /** A queue of runnables in which only execution of the last is relevant.
@@ -79,7 +80,13 @@ public class UpdateQueue extends Thread {
 				try {
 					target.run();
 				} catch (Exception e) {
-					LogService.getRoot().log(Level.WARNING, "Error executing task in "+getName()+": "+e, e);
+					//LogService.getRoot().log(Level.WARNING, "Error executing task in "+getName()+": "+e, e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+							"com.rapidminer.gui.tools.UpdateQueue.error_executing_task", 
+							getName(), e),
+							e);
+
 				}
 			}
 			synchronized (lock) {

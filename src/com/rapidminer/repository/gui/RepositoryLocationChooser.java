@@ -58,6 +58,7 @@ import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 
@@ -278,7 +279,12 @@ public class RepositoryLocationChooser extends JPanel {
 				getRepositoryLocation();
 				return true;
 			} catch (MalformedRepositoryLocationException e) {
-				LogService.getRoot().warning("Malformed repository location: " + e);
+				//LogService.getRoot().warning("Malformed repository location: " + e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.repository.gui.RepositoryLocationChooser.malformed_repository_location", 
+						e),
+						e);
 				return false;
 			}
 		}
@@ -351,7 +357,12 @@ public class RepositoryLocationChooser extends JPanel {
 			String repositoryLocation = getRepositoryLocation();
 			resultLabel.setText(repositoryLocation);
 		} catch (MalformedRepositoryLocationException e) {
-			LogService.getRoot().log(Level.WARNING, "Malformed location: " + e, e);
+			//LogService.getRoot().log(Level.WARNING, "Malformed location: " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.repository.gui.RepositoryLocationChooser.malformed_location", 
+					e),
+					e);
 		}
 		if ((currentEntry instanceof Folder) && locationField.getText().isEmpty()) {
 			this.folderSelected = true;

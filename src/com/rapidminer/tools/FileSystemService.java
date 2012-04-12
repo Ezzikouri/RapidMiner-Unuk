@@ -27,6 +27,7 @@ import static com.rapidminer.tools.ParameterService.RAPIDMINER_CONFIG_FILE_NAME;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 
 import com.rapid_i.Launcher;
 import com.rapidminer.RapidMiner;
@@ -66,10 +67,12 @@ public class FileSystemService {
         File homeDir = new File(System.getProperty("user.home"));
         File userHomeDir = new File(homeDir, ".RapidMiner5");
         if (!userHomeDir.exists()) {
-            LogService.getRoot().config("Creating directory '" + userHomeDir + "'.");
+            //LogService.getRoot().config("Creating directory '" + userHomeDir + "'.");
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.FileSystemService.creating_directory", userHomeDir);
             boolean result = userHomeDir.mkdir();
             if (!result)
-                LogService.getRoot().warning("Unable to create user home rapidminer directory " + userHomeDir);
+                //LogService.getRoot().warning("Unable to create user home rapidminer directory " + userHomeDir);
+            	LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.FileSystemService.creating_home_directory_error", userHomeDir);
         }
         return userHomeDir;
     }
@@ -90,7 +93,8 @@ public class FileSystemService {
     public static File getSourceRoot() {
         String srcName = System.getProperty(PROPERTY_RAPIDMINER_SRC_ROOT);
         if (srcName == null) {
-            LogService.getRoot().warning("Property " + PROPERTY_RAPIDMINER_SRC_ROOT + " not set.");
+            //LogService.getRoot().warning("Property " + PROPERTY_RAPIDMINER_SRC_ROOT + " not set.");
+        	LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.FileSystemService.property_not_set", PROPERTY_RAPIDMINER_SRC_ROOT);
             return null;
         } else {
             return new File(srcName);

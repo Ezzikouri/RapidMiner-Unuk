@@ -41,6 +41,7 @@ import com.rapidminer.operator.ports.PortExtender;
 import com.rapidminer.operator.ports.PortOwner;
 import com.rapidminer.operator.ports.Ports;
 import com.rapidminer.tools.AbstractObservable;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
@@ -135,24 +136,34 @@ public abstract class AbstractPorts<T extends Port> extends AbstractObservable<P
 		if (port != null) {
 			return port;
 		} else {			
-			LogService.getRoot().fine("Port '"+name+"' does not exist. Checking for extenders.");
+			//LogService.getRoot().fine("Port '"+name+"' does not exist. Checking for extenders.");
+			LogService.getRoot().log(Level.FINE, "com.rapidminer.operator.ports.impl.AbstractPorts.port_does_not_exist", name);
 			if (portExtenders != null) {
 				for (PortExtender extender : portExtenders) {
 					String prefix = extender.getNamePrefix();
 					if (name.startsWith(prefix)) {
-						LogService.getRoot().fine("Found extender with prefix '"+prefix+"'. Trying to extend.");
+						//LogService.getRoot().fine("Found extender with prefix '"+prefix+"'. Trying to extend.");
+						LogService.getRoot().log(Level.FINE, "com.rapidminer.operator.ports.impl.AbstractPorts.found_extender", prefix);
 						try {
 							int index = Integer.parseInt(name.substring(prefix.length()));
 							extender.ensureMinimumNumberOfPorts(index); // numbering starts at 1
 							T secondTry = portMap.get(name);
 							if (secondTry == null) {
-								LogService.getRoot().warning("Port extender "+prefix+" did not extend to size "+index+".");
+								//LogService.getRoot().warning("Port extender "+prefix+" did not extend to size "+index+".");
+								LogService.getRoot().log(Level.WARNING, "com.rapidminer.operator.ports.impl.AbstractPorts.port_extender_did_not_extend", 
+								new Object[] {prefix, index});
 							} else {
-								LogService.getRoot().fine("Port was created. Ports are now: "+getAllPorts());
+								//LogService.getRoot().fine("Port was created. Ports are now: "+getAllPorts());
+								LogService.getRoot().log(Level.FINE, "com.rapidminer.operator.ports.impl.AbstractPorts.ports_created", getAllPorts());
 							}
 							return secondTry;
 						} catch (NumberFormatException e) {
-							LogService.getRoot().log(Level.WARNING, "Cannot extend "+prefix+": "+e, e);
+							//LogService.getRoot().log(Level.WARNING, "Cannot extend "+prefix+": "+e, e);
+							LogService.getRoot().log(Level.WARNING,
+									I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+									"com.rapidminer.operator.ports.impl.AbstractPorts.extending_error", 
+									prefix, e),
+									e);
 							return null;
 						}				
 					}

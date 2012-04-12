@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
 import com.rapidminer.Process;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.UpdateQueue;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /** This queue updates the meta data on any update received from
@@ -72,7 +73,14 @@ public class MetaDataUpdateQueue extends UpdateQueue {
 							});
 						} catch (InterruptedException e) {
 						} catch (InvocationTargetException e) {
-							LogService.getRoot().log(Level.WARNING, "While updating process editors: "+e, e);
+							//LogService.getRoot().log(Level.WARNING, "While updating process editors: "+e, e);
+							LogService.getRoot().log(Level.WARNING,
+									I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+									"com.rapidminer.gui.MetaDataUpdateQueue.error_while_updating", 
+									e),
+									e);
+
+							
 						}
 						getProgressListener().setCompleted(100);
 						getProgressListener().complete();

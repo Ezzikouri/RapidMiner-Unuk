@@ -58,6 +58,7 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
@@ -300,7 +301,13 @@ public class ManageDatabaseDriversDialog extends ButtonDialog {
 						Tools.findImplementationsInJar(ucl, jarFile, java.sql.Driver.class, driverNames);
 
 					} catch (Exception e) {
-						LogService.getRoot().log(Level.WARNING, "Cannot scan jar file '" + file + "' for drivers: " + e.getMessage(), e);
+						//LogService.getRoot().log(Level.WARNING, "Cannot scan jar file '" + file + "' for drivers: " + e.getMessage(), e);
+						LogService.getRoot().log(Level.WARNING,
+								I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+								"com.rapidminer.gui.tools.dialogs.ManageDatabaseDriversDialog.scanning_jar_file_error", 
+								file, e.getMessage()),
+								e);
+
 					}
 				} catch (PrivilegedActionException e) {
 					throw new RuntimeException("Cannot create class loader for file '" + file + "': " + e.getMessage(), e);

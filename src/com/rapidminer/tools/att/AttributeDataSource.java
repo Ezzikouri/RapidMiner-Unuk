@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -280,7 +281,8 @@ public class AttributeDataSource {
 						}
 					}
 					if (!attribute.isNominal() && (classList != null) && (classList.size() != 0)) {
-						LogService.getGlobal().log("Ignoring classes for non-nominal attribute " + theName + ".", LogService.WARNING);
+						//LogService.getGlobal().log("Ignoring classes for non-nominal attribute " + theName + ".", LogService.WARNING);
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.att.AttributeDataSource.ignoring_classes_for_non_nominal_attribute",theName);
 					}
 
 					attributeDataSources.add(new AttributeDataSource(attribute, (file != null) ? Tools.getFile(attributeDescriptionFile.getParentFile(), file) : defaultSource, col, type));

@@ -50,6 +50,7 @@ import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.tools.BuildingBlockService;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
@@ -120,16 +121,36 @@ public class NewBuildingBlockMenu extends ResourceMenu {
             //operator.remove();
             return true;
         } catch (IOException ex) {
-        	LogService.getRoot().log(Level.WARNING, "Cannot read building block: "+ex, ex);
+        	//LogService.getRoot().log(Level.WARNING, "Cannot read building block: "+ex, ex);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.templates.NewBuildingBlockMenu.reading_building_block_error", 
+					ex),
+					ex);
             return false;
         } catch (SAXException e) {
-        	LogService.getRoot().log(Level.WARNING, "Cannot read building block: "+e, e);
+        	//LogService.getRoot().log(Level.WARNING, "Cannot read building block: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.templates.NewBuildingBlockMenu.reading_building_block_error", 
+					e),
+					e);
         	return false;
 		} catch (ParserConfigurationException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot read building block: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot read building block: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.templates.NewBuildingBlockMenu.reading_building_block_error", 
+					e),
+					e);
 			return false;
 		} catch (XMLException e) {
-			LogService.getRoot().log(Level.WARNING, "Cannot read building block: "+e, e);
+			//LogService.getRoot().log(Level.WARNING, "Cannot read building block: "+e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.templates.NewBuildingBlockMenu.reading_building_block_error", 
+					e),
+					e);
 			return false;
 		}
     }

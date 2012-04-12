@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 
@@ -58,7 +59,8 @@ public class DefaultFrameIconProvider implements FrameIconProvider {
 			return frameIcons;
 		} catch (IOException e) {
 			// ignore this and do not use frame icons
-			LogService.getRoot().warning("Cannot load frame icons. Skipping...");
+			//LogService.getRoot().warning("Cannot load frame icons. Skipping...");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.DefaultFrameiconProvider.loading_frame_icons_error");
 			return new LinkedList<Image>();
 		}	
 	}

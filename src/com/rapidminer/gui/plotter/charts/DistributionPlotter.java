@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.TreeMap;
 
 import javax.swing.JComponent;
@@ -155,11 +156,14 @@ public class DistributionPlotter extends RangeablePlotterAdapter {
                         }
 
                     } catch (OperatorCreationException e) {
-                        LogService.getGlobal().logWarning("Cannot create distribution model generator. Skip plot...");
+                        //LogService.getGlobal().logWarning("Cannot create distribution model generator. Skip plot...");
+                        LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.DistributionPlotter.creating_distribution_model_generator_error");
                     } catch (MissingIOObjectException e) {
-                        LogService.getGlobal().logWarning("No distribution model was created from data. Skip plot...");
+                        //LogService.getGlobal().logWarning("No distribution model was created from data. Skip plot...");
+                        LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.DistributionPlotter.no_distribution_model_was_created");
                     } catch (OperatorException e) {
-                        LogService.getGlobal().logWarning("Error during creation of distribution model. Skip plot...");
+                        //LogService.getGlobal().logWarning("Error during creation of distribution model. Skip plot...");
+                        LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.DistributionPlotter.error_during_creation_of_distribution_model");
                     }
                 }
             }

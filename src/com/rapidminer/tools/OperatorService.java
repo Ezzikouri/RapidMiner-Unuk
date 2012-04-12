@@ -126,7 +126,10 @@ public class OperatorService {
     public static void init() {
         URL mainOperators = getMainOperators();
         if (mainOperators == null) {
-            LogService.getRoot().severe("Cannot find main operator description file " + Tools.RESOURCE_PREFIX + OPERATORS_XML + ".");
+            //LogService.getRoot().severe("Cannot find main operator description file " + Tools.RESOURCE_PREFIX + OPERATORS_XML + ".");
+            LogService.getRoot().log(Level.SEVERE, 
+            		"com.rapidminer.tools.OperatorService.main_operator_descripton_file_not_found", 
+            		new Object[] {Tools.RESOURCE_PREFIX, OPERATORS_XML});
         } else {
             registerOperators(mainOperators, null, null);
         }
@@ -135,9 +138,15 @@ public class OperatorService {
         String additionalOperators = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL);
         if (additionalOperators != null && !additionalOperators.isEmpty()) {
             if (!RapidMiner.getExecutionMode().canAccessFilesystem()) {
-                LogService.getRoot().config("Execution mode " + RapidMiner.getExecutionMode() + " does not permit accessing the file system. Ignoring additional operator description files '" + additionalOperators + "'.");
+                //LogService.getRoot().config("Execution mode " + RapidMiner.getExecutionMode() + " does not permit accessing the file system. Ignoring additional operator description files '" + additionalOperators + "'.");
+                LogService.getRoot().log(Level.CONFIG, 
+                		"com.rapidminer.tools.OperatorService.execution_mode_does_not_permitting_accessing_file_system", 
+                		new Object[] {RapidMiner.getExecutionMode(), additionalOperators});
             } else {
-                LogService.getRoot().info("Loading additional operators specified by RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL (" + additionalOperators + ")");
+                //LogService.getRoot().info("Loading additional operators specified by RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL (" + additionalOperators + ")");
+                LogService.getRoot().log(Level.INFO, 
+                		"com.rapidminer.tools.OperatorService.loading_additional_operators", 
+                		new Object[] {RapidMiner.PROPERTY_RAPIDMINER_OPERATORS_ADDITIONAL, additionalOperators});
                 String[] additionalOperatorFileNames = additionalOperators.split(File.pathSeparator);
                 for (String additionalOperatorFileName : additionalOperatorFileNames) {
                     File additionalOperatorFile = new File(additionalOperatorFileName);
@@ -147,7 +156,12 @@ public class OperatorService {
                             in = new FileInputStream(additionalOperatorFile);
                             OperatorService.registerOperators(additionalOperatorFile.getPath(), in, null);
                         } catch (IOException e) {
-                            LogService.getRoot().log(Level.SEVERE, "Cannot read '" + additionalOperatorFile + "'.", e);
+                            //LogService.getRoot().log(Level.SEVERE, "Cannot read '" + additionalOperatorFile + "'.", e);
+                            LogService.getRoot().log(Level.SEVERE,
+                            		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                            		"com.rapidminer.tools.OperatorService.reading_additional_operator_file_error", 
+                            		additionalOperatorFile),
+                            		e);
                         } finally {
                             if (in != null) {
                                 try {
@@ -157,7 +171,8 @@ public class OperatorService {
                             }
                         }
                     } else {
-                        LogService.getRoot().severe("Cannot find operator description file '" + additionalOperatorFileName + "'");
+                        //LogService.getRoot().severe("Cannot find operator description file '" + additionalOperatorFileName + "'");
+                    	LogService.getRoot().log(Level.SEVERE, "com.rapidminer.tools.OperatorService.operator_descripton_file_not_found", additionalOperatorFileName);
                     }
                 }
             }
@@ -166,7 +181,10 @@ public class OperatorService {
         // loading operators from plugins
         Plugin.registerAllPluginOperators();
 
-        LogService.getRoot().config("Number of registered operator classes: " + REGISTERED_OPERATOR_CLASSES.size() + "; number of registered operator descriptions: " + KEYS_TO_DESCRIPTIONS.size() + "; number of replacements: " + DEPRECATION_MAP.size());
+        //LogService.getRoot().config("Number of registered operator classes: " + REGISTERED_OPERATOR_CLASSES.size() + "; number of registered operator descriptions: " + KEYS_TO_DESCRIPTIONS.size() + "; number of replacements: " + DEPRECATION_MAP.size());
+        LogService.getRoot().log(Level.CONFIG, 
+        		"com.rapidminer.tools.OperatorService.number_of_registered_operator_classes_and_descriptions",
+        		new Object[] {REGISTERED_OPERATOR_CLASSES.size(), KEYS_TO_DESCRIPTIONS.size(), DEPRECATION_MAP.size()});
     }
 
     public static void registerOperators(URL operatorsXML, ClassLoader classLoader, Plugin plugin) {
@@ -174,7 +192,12 @@ public class OperatorService {
         try {
             inputStream = operatorsXML.openStream();
         } catch (IOException e) {
-            LogService.getRoot().log(Level.WARNING, "Cannot open stream to operator description file " + operatorsXML + ": " + e, e);
+            //LogService.getRoot().log(Level.WARNING, "Cannot open stream to operator description file " + operatorsXML + ": " + e, e);
+        	LogService.getRoot().log(Level.WARNING,
+        			I18N.getMessage(LogService.getRoot().getResourceBundle(),
+        			"com.rapidminer.tools.OperatorService.opening_stream_to_operator_description_file_error", 
+        			operatorsXML, e),
+        			e);
             return;
         }
         registerOperators(OPERATORS_XML, inputStream, null, plugin);
@@ -192,13 +215,15 @@ public class OperatorService {
         if (classLoader == null) {
             classLoader = OperatorService.class.getClassLoader();
         }
-        LogService.getRoot().config("Loading operators from '" + name + "'.");
+        //LogService.getRoot().config("Loading operators from '" + name + "'.");
+        LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.OperatorService.loading_operators", name);
         String version = null;
         Document document = null;
         try {
             document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(operatorsXML);
             if (!document.getDocumentElement().getTagName().toLowerCase().equals("operators")) {
-                LogService.getRoot().severe("Operator description file '" + name + "': outermost tag must be <operators>!");
+                //LogService.getRoot().severe("Operator description file '" + name + "': outermost tag must be <operators>!");
+                LogService.getRoot().log(Level.SEVERE, "com.rapidminer.tools.OperatorService.operator_description_file_outermost_tag", name);
                 return;
             }
             version = document.getDocumentElement().getAttribute("version");
@@ -208,7 +233,12 @@ public class OperatorService {
                 // parseOperatorsPre5(document, classLoader, provider);
             }
         } catch (Exception e) {
-            LogService.getRoot().log(Level.SEVERE, "Cannot read operator description file '" + name + "': no valid XML: " + e.getMessage(), e);
+            //LogService.getRoot().log(Level.SEVERE, "Cannot read operator description file '" + name + "': no valid XML: " + e.getMessage(), e);
+            LogService.getRoot().log(Level.SEVERE,
+            		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+            		"com.rapidminer.tools.OperatorService.operator_descripton_file_reading_error",
+            		name, e.getMessage()),
+            		e);
             return;
         } finally {
             try {
@@ -224,7 +254,8 @@ public class OperatorService {
         OperatorDocBundle bundle;
         if (docBundle == null || docBundle.isEmpty()) {
             bundle = null;
-            LogService.getRoot().warning("Operators for " + provider.getName() + " don't have an attached documentation.");
+            //LogService.getRoot().warning("Operators for " + provider.getName() + " don't have an attached documentation.");
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.OperatorService.operators_no_attached_documention", provider.getName());
         } else {
             bundle = XMLOperatorDocBundle.load(classLoader, docBundle);
         }
@@ -268,28 +299,55 @@ public class OperatorService {
                             }
                         }
                     } catch (ClassNotFoundException e) {
-                        LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        //LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.WARNING,
+                        		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                        		"com.rapidminer.tools.OperatorService.operator_description_creating_error",
+                        		extensionId, XMLTools.getTagContents(childElement, "key", false)), 
+                        		e);
                     } catch (NoClassDefFoundError e) {
-                        LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        //LogService.getRoot().log(Level.WARNING, "Cannot create operator description: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.WARNING,
+                        		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                        		"com.rapidminer.tools.OperatorService.operator_description_creating_error",
+                        		extensionId, XMLTools.getTagContents(childElement, "key", false)), 
+                        		e);
                     } catch (Exception e) {
-                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        //LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.WARNING,
+                        		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                        		"com.rapidminer.tools.OperatorService.operator_registring_error",
+                        		extensionId, XMLTools.getTagContents(childElement, "key", false)), 
+                        		e);
                     } catch (AbstractMethodError e) {
-                        LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        //LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.WARNING,
+                        		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                        		"com.rapidminer.tools.OperatorService.operator_registring_error",
+                        		extensionId, XMLTools.getTagContents(childElement, "key", false)), 
+                        		e);
                     } catch (Throwable e) {
                         // Yes, this is evil. However, it is the only way we can prevent errors due to
                         // incompatible RapidMiner / extension updates
-                        LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        //LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
+                        LogService.getRoot().log(Level.SEVERE,
+                        		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                        		"com.rapidminer.tools.OperatorService.operator_registering_error",
+                        		extensionId, XMLTools.getTagContents(childElement, "key", false)), 
+                        		e);
                     }
                 } else if (childElement.getTagName().equals("factory")) {
                     String factoryClassName = childElement.getTextContent();
                     if (factoryClassName == null || factoryClassName.isEmpty()) {
-                        LogService.getRoot().warning("Malformed operator descriptor: <factory> tag must contain class name!");
+                        //LogService.getRoot().warning("Malformed operator descriptor: <factory> tag must contain class name!");
+                        LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.OperatorService.malformed_operator_descriptor_factory");
                     } else {
                         Class factoryClass = null;
                         try {
                             factoryClass = Class.forName(factoryClassName, true, classLoader);
                         } catch (ClassNotFoundException e) {
-                            LogService.getRoot().warning("Operator factory class '" + factoryClassName + "' not found!");
+                            //LogService.getRoot().warning("Operator factory class '" + factoryClassName + "' not found!");
+                            LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.OperatorService.operator_factory_class_not_found", factoryClassName);
                         }
                         if (factoryClass != null) {
                             if (GenericOperatorFactory.class.isAssignableFrom(factoryClass)) {
@@ -297,24 +355,42 @@ public class OperatorService {
                                 try {
                                     factory = (GenericOperatorFactory) factoryClass.newInstance();
                                 } catch (Exception e) {
-                                    LogService.getRoot().warning("Cannot instantiate operator factory class '" + factoryClass.getName() + "'!");
+                                    //LogService.getRoot().warning("Cannot instantiate operator factory class '" + factoryClass.getName() + "'!");
+                                	LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.OperatorService.operator_instantiating_error", factoryClass.getName());
                                 } catch (Throwable e) {
                                     // Yes, this is evil. However, it is the only way we can prevent errors due to
                                     // incompatible RapidMiner / extension updates
-                                    LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + e, e);
+                                    //LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + e, e);
+                                	LogService.getRoot().log(Level.SEVERE,
+                                			I18N.getMessage(LogService.getRoot().getResourceBundle(),                    					
+                                			"com.rapidminer.tools.OperatorService.failed_to_register_oprator",
+                                			e),
+                                			e);
                                 }
-                                LogService.getRoot().config("Creating operators from factory " + factoryClassName);
+                                //LogService.getRoot().config("Creating operators from factory " + factoryClassName);
+                                LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.OperatorService.creating_operators_from_factory", factoryClassName);
                                 try {
                                     factory.registerOperators(classLoader, provider);
                                 } catch (Exception e) {
-                                    LogService.getRoot().log(Level.WARNING, "Error registering operators from " + factoryClass.getName() + e, e);
+                                    //LogService.getRoot().log(Level.WARNING, "Error registering operators from " + factoryClass.getName() + e, e);
+                                	LogService.getRoot().log(Level.WARNING,
+                                			I18N.getMessage(LogService.getRoot().getResourceBundle(),                    					
+                                			"com.rapidminer.tools.OperatorService.error_registering_oprators_from",
+                                			factoryClass.getName(), e),
+                                			e);
                                 } catch (Throwable e) {
                                     // Yes, this is evil. However, it is the only way we can prevent errors due to
                                     // incompatible RapidMiner / extension updates
-                                    LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + e, e);
+                                    //LogService.getRoot().log(Level.SEVERE, "Failed to register operator: " + e, e);
+                                	LogService.getRoot().log(Level.SEVERE,
+                                			I18N.getMessage(LogService.getRoot().getResourceBundle(),                    					
+                                			"com.rapidminer.tools.OperatorService.failed_to_register_oprator",
+                                			e),
+                                			e);
                                 }
                             } else {
-                                LogService.getRoot().warning("Malformed operator descriptor: Only subclasses of GenericOperatorFactory may be defined as class, was '" + factoryClassName + "'!");
+                                //LogService.getRoot().warning("Malformed operator descriptor: Only subclasses of GenericOperatorFactory may be defined as class, was '" + factoryClassName + "'!");
+                                LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.OperatorService.malformed_operator_descriptor_subclasses", factoryClassName);
                             }
                         }
                     }
@@ -418,7 +494,10 @@ public class OperatorService {
         // check if this operator was not registered earlier
         OperatorDescription oldDescription = KEYS_TO_DESCRIPTIONS.get(description.getKey());
         if (oldDescription != null) {
-            LogService.getRoot().warning("Operator key '" + description.getKey() + "' was already registered for class " + oldDescription.getOperatorClass().getName() + ". Overwriting with " + description.getOperatorClass() + ".");
+            //LogService.getRoot().warning("Operator key '" + description.getKey() + "' was already registered for class " + oldDescription.getOperatorClass().getName() + ". Overwriting with " + description.getOperatorClass() + ".");
+            LogService.getRoot().log(Level.WARNING,
+            		"com.rapidminer.tools.OperatorService.operator_key_already_registered",
+            		new Object[] {description.getKey(), oldDescription.getOperatorClass().getName(), description.getOperatorClass()});
         }
 
         // check if icon already was set.
@@ -640,7 +719,8 @@ public class OperatorService {
         String operatorsXML = System.getProperty(RapidMiner.PROPERTY_RAPIDMINER_INIT_OPERATORS);
         if (operatorsXML != null) {
             resource = operatorsXML;
-            LogService.getRoot().config("Main operator descriptor overrideen by system property. Using " + operatorsXML + ".");
+            //LogService.getRoot().config("Main operator descriptor overrideen by system property. Using " + operatorsXML + ".");
+            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.OperatorService.main_operator_descriptor_overrideen", operatorsXML);
         } else {
             resource = "/" + Tools.RESOURCE_PREFIX + OPERATORS_XML;
         }
@@ -667,7 +747,12 @@ public class OperatorService {
             try {
                 hook.operatorCreated(operator);
             } catch (RuntimeException e) {
-                LogService.getRoot().log(Level.WARNING, "Error in operator creation hook: " + e, e);
+                //LogService.getRoot().log(Level.WARNING, "Error in operator creation hook: " + e, e);
+                LogService.getRoot().log(Level.WARNING,
+                		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                		"com.rapidminer.tools.OperatorService.error_in_operation_creation_hook",
+                		e),
+                		e);
             }
         }
     }

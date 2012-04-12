@@ -72,7 +72,12 @@ public class BuildingBlockService {
             try {
                 buildingBlocks.add(new BuildingBlock(file, BuildingBlock.USER_DEFINED));
             } catch (InstantiationException e) {
-                LogService.getRoot().log(Level.WARNING, "Cannot load building block file '" + file + "': " + e.getMessage(), e);
+                //LogService.getRoot().log(Level.WARNING, "Cannot load building block file '" + file + "': " + e.getMessage(), e);
+                LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.tools.BuildingBlockService.loading_building_block_file_file_error", 
+    					file, e.getMessage()),
+    					e);            
             }
         }
         return buildingBlocks;
@@ -82,14 +87,20 @@ public class BuildingBlockService {
     public static List<BuildingBlock> getPredefinedBuildingBlocks() {
         InputStream bbListIn = BuildingBlockService.class.getResourceAsStream(RESOURCE_BUILDINGBLOCK_LIST);
         if (bbListIn == null) {
-            LogService.getRoot().warning("Resource "+RESOURCE_BUILDINGBLOCK_LIST+" missing");
+            //LogService.getRoot().warning("Resource "+RESOURCE_BUILDINGBLOCK_LIST+" missing");
+        	LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.BuildingBlockService.ressource_missing", RESOURCE_BUILDINGBLOCK_LIST);
             return Collections.emptyList();
         }
         String[] files = null;
         try {
             files = Tools.readTextFile(new InputStreamReader(bbListIn, "UTF-8")).split("[\\r\\n]+");
         } catch (Exception e1) {
-            LogService.getRoot().log(Level.WARNING, "Cannot read resource "+RESOURCE_BUILDINGBLOCK_LIST+": "+e1 ,e1);
+            //LogService.getRoot().log(Level.WARNING, "Cannot read resource "+RESOURCE_BUILDINGBLOCK_LIST+": "+e1 ,e1);
+            LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.tools.BuildingBlockService.reading_resource_error", 
+					RESOURCE_BUILDINGBLOCK_LIST, e1),
+					e1);  
             return Collections.emptyList();
         }
         List<BuildingBlock> buildingBlocks = new LinkedList<BuildingBlock>();
@@ -101,7 +112,12 @@ public class BuildingBlockService {
                 InputStream in = BuildingBlockService.class.getResourceAsStream(RESOURCE_BUILDINGBLOCK_FOLDER + resourceName);
                 buildingBlocks.add(new BuildingBlock(new BufferedReader(new InputStreamReader(in, "UTF-8")), BuildingBlock.PREDEFINED));
             } catch (Exception e) {
-                LogService.getRoot().log(Level.WARNING, "Cannot load building block file '" + resourceName+ "': " + e.getMessage(), e);
+                //LogService.getRoot().log(Level.WARNING, "Cannot load building block file '" + resourceName+ "': " + e.getMessage(), e);
+                LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.tools.BuildingBlockService.loading_building_block_file_resourceName_error", 
+    					resourceName, e.getMessage()),
+    					e);  
             }
         }
         return buildingBlocks;

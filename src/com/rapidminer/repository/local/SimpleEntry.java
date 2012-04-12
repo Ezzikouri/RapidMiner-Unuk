@@ -39,6 +39,7 @@ import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
 /**
@@ -128,7 +129,8 @@ public abstract class SimpleEntry implements Entry {
 	 *  If the file does not exist, returns silently. */
 	void renameFile(File file2, String newBaseName) {
 		if (!file2.exists()) {
-			LogService.getRoot().warning("Cannot rename " + file2 + ": does not exist.");
+			//LogService.getRoot().warning("Cannot rename "+file2+": does not exist.");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.repository.local.SimpleEntry.renaming_file2_error", file2);
 			return;
 		}
 		String name = file2.getName();
@@ -201,13 +203,23 @@ public abstract class SimpleEntry implements Entry {
 			try {
 				in = new FileInputStream(propertiesFile);
 			} catch (FileNotFoundException e) {
-				LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from " + propertiesFile + ": " + e, e);
+				//LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from "+propertiesFile+": "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.repository.local.SimpleEntry.loading_repository_entry_properties_error", 
+						propertiesFile, e),
+						e);
 				return;
 			}
 			try {
 				this.properties.loadFromXML(in);
 			} catch (Exception e) {
-				LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from " + propertiesFile + ": " + e, e);
+				//LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from "+propertiesFile+": "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.repository.local.SimpleEntry.loading_repository_entry_properties_error", 
+						propertiesFile, e),
+						e);
 			} finally {
 				try {
 					in.close();
@@ -223,13 +235,23 @@ public abstract class SimpleEntry implements Entry {
 			try {
 				os = new FileOutputStream(propertiesFile);
 			} catch (FileNotFoundException e1) {
-				LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to " + propertiesFile + ": " + e1, e1);
+				//LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to "+propertiesFile+": "+e1, e1);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.repository.local.SimpleEntry.storing_repository_entry_properties_error", 
+						propertiesFile, e1),
+						e1);
 				return;
 			}
 			try {
 				properties.storeToXML(os, "Properties of repository entry " + getName());
 			} catch (IOException e) {
-				LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to " + propertiesFile + ": " + e, e);
+				//LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to "+propertiesFile+": "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+						"com.rapidminer.repository.local.SimpleEntry.storing_repository_entry_properties_error", 
+						propertiesFile, e),
+						e);
 			} finally {
 				try {
 					os.close();

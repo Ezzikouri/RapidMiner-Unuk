@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -164,10 +165,15 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 			}
 			Object defaultValue = type.getDefaultValue();
 			if ((defaultValue == null) && !type.isOptional()) {
-				LogService.getRoot().fine("Parameter '" + key + "' is not set and has no default value.");// +Arrays.toString(Thread.currentThread().getStackTrace()));
+				//LogService.getRoot().fine("Parameter '" + key + "' is not set and has no default value.");// +Arrays.toString(Thread.currentThread().getStackTrace()));
+				LogService.getRoot().log(Level.FINE, "com.rapidminer.parameter.Parameters.parameter_not_set_no_default_value", key);
 				throw new UndefinedParameterError(key);
 			} else {
-				LogService.getRoot().finer("Parameter '" + key + "' is not set. Using default ('" + type.toString(defaultValue) + "').");
+				//LogService.getRoot().finer("Parameter '" + key + "' is not set. Using default ('" + type.toString(defaultValue) + "').");
+				LogService.getRoot().log(Level.FINER, 
+						"com.rapidminer.parameter.Parameters.parameter_not_set_using_default",
+						new Object[] {key, type.toString(defaultValue)});
+
 			}
 			if (defaultValue == null) {
 				return null;
@@ -194,10 +200,14 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 			}
 			Object value = type.getDefaultValue();
 			if ((value == null) && !type.isOptional()) {
-				LogService.getRoot().finer("Parameter '" + key + "' is not set. Using null.");
+				//LogService.getRoot().finer("Parameter '" + key + "' is not set. Using null.");
+				LogService.getRoot().log(Level.FINER, "com.rapidminer.parameter.Parameters.parameter_not_set_using_null", key);
 				return null;
 			} else {
-				LogService.getRoot().finer("Parameter '" + key + "' is not set. Using default ('" + type.toString(value) + "').");
+				//LogService.getRoot().finer("Parameter '" + key + "' is not set. Using default ('" + type.toString(value) + "').");
+				LogService.getRoot().log(Level.FINER, 
+						"com.rapidminer.parameter.Parameters.parameter_not_set_using_default",
+						new Object[] {key, type.toString(value)});				
 			}
 			if (value == null) {
 				return null;

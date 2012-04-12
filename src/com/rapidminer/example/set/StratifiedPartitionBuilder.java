@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -123,10 +124,12 @@ public class StratifiedPartitionBuilder implements PartitionBuilder {
 		double firstValue = ratio[0];
 		for (int i = 1; i < ratio.length; i++)
 			if (ratio[i] != firstValue) {
-				LogService.getGlobal().log("Not all ratio values are equal: using non-equal stratified sampling.", LogService.STATUS);
+				//LogService.getGlobal().log("Not all ratio values are equal: using non-equal stratified sampling.", LogService.STATUS);
+				LogService.getRoot().log(Level.FINE, "com.rapidminer.example.set.StratifiedPartitionBuilder.not_all_ratio_values_are_equal");
 				return createNonEqualPartition(ratio, size, label);
 			}
-		LogService.getGlobal().log("All ratio values are equal: using stratified sampling.", LogService.STATUS);
+		//LogService.getGlobal().log("All ratio values are equal: using stratified sampling.", LogService.STATUS);
+		LogService.getRoot().log(Level.FINE, "com.rapidminer.example.set.StratifiedPartitionBuilder.all_ratio_values_are_equal");
 		return createEqualPartition(ratio, size, label);
 	}
 

@@ -32,6 +32,7 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
@@ -222,7 +223,8 @@ public abstract class ApplicationPerspectives {
 
     /** Saves all perspectives to the users config directory. */
     public void saveAll() {
-        LogService.getRoot().config("Saving perspectives.");
+        //LogService.getRoot().log(Level.CONFIG, "Saving perspectives.");
+        LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.ApplicationPerspectives.saving_perspectives");
         if (current != null) {
             current.store(context);
         }
@@ -233,7 +235,8 @@ public abstract class ApplicationPerspectives {
 
     /** Loads all perspectives from the users config directory. */
     public void loadAll() {
-        LogService.getRoot().config("Loading perspectives.");
+        //LogService.getRoot().log(Level.CONFIG, "Loading perspectives.");
+    	LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.ApplicationPerspectives.loading_perspectives");
         for (Perspective perspective : perspectives.values()) {
             perspective.load();
         }

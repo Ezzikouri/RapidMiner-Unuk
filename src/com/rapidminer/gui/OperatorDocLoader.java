@@ -86,6 +86,7 @@ import com.rapidminer.operator.ports.Ports;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.conditions.ParameterCondition;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.documentation.ExampleProcess;
@@ -495,7 +496,13 @@ public class OperatorDocLoader {
             try {
                 return makeOperatorDocumentation(opDesc.createOperatorInstance());
             } catch (OperatorCreationException e) {
-                LogService.getRoot().log(Level.WARNING, "Failed to create operator: "+e, e);
+                //LogService.getRoot().log(Level.WARNING, "Failed to create operator: "+e, e);
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.gui.OperatorDocLoader.creating_operator_error", 
+    					e),
+    					e);
+
                 return ERROR_TEXT_FOR_LOCAL;
             }
             //			opDesc.createOperatorInstance();
@@ -557,7 +564,12 @@ public class OperatorDocLoader {
             wikiName = URLEncoder.encode(descr.getName(), "UTF-8");
             buf.append(" <small><a href=\"http://rapid-i.com/wiki/index.php?title=").append(wikiName).append("\">(Wiki)</a></small>");
         } catch (UnsupportedEncodingException e) {
-            LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
+            //LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.OperatorDocLoader.url_encoding_operator_name_error", 
+					descr.getName(), e),
+					e);
         }
         buf.append("</h2>");
         buf.append("</td></tr></table>");
@@ -587,7 +599,9 @@ public class OperatorDocLoader {
             for (String key : parameters.getKeys()) {
                 ParameterType type = parameters.getParameterType(key);
                 if (type == null) {
-                    LogService.getRoot().warning("Unknown parameter key: " + displayedOperator.getName() + "# " + key);
+                    //LogService.getRoot().warning("Unknown parameter key: " + displayedOperator.getName() + "# " + key);
+                    LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.OperatorDocLoader.unkwown_parameter_key", 
+                    		new Object[] {displayedOperator.getName(), key});
                     continue;
                 }
                 buf.append("<dt>");

@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.logging.Level;
 /**
  * @author Tobias Malbrecht
  */
@@ -43,7 +44,8 @@ public abstract class ParentResolvingMap<K,V> extends AbstractMap<K,V> implement
 		Properties groupProps = new Properties();
 		URL resource = classLoader.getResource(resourceName);
 		if (resource == null) {
-			LogService.getRoot().warning("Group properties resource '"+resourceName + "' not found.");
+			//LogService.getRoot().warning("Group properties resource '"+resourceName + "' not found.");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.ParentResolvingMap.group_properties_resource_not_found", resourceName);
 		} else {			
 			groupProps.load(resource.openStream());			
 			for (String propKey : groupProps.stringPropertyNames()) {				

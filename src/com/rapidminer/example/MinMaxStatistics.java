@@ -22,6 +22,8 @@
  */
 package com.rapidminer.example;
 
+import java.util.logging.Level;
+
 import com.rapidminer.tools.LogService;
 
 /** Attribute statistics object for (pseudo-)numerical attributes like real numerical attributes
@@ -65,7 +67,8 @@ public class MinMaxStatistics implements Statistics {
         } else if (MAXIMUM.equals(name)) {
             return this.maximum;    
         } else {
-            LogService.getRoot().warning("Cannot calculate statistics, unknown type: " + name);
+            //LogService.getRoot().warning("Cannot calculate statistics, unknown type: " + name);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.MinMaxStatistics.calculating_statistics_error", name);
             return Double.NaN;
         }
 	}

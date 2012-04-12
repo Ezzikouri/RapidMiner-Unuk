@@ -65,7 +65,8 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 				try {
 					handler = DatabaseHandler.getConnectedDatabaseHandler(operator);
 				} catch (Exception e2) {
-					LogService.getRoot().log(Level.WARNING, "Failed to connect to database: "+e2);
+					//LogService.getRoot().log(Level.WARNING, "Failed to connect to database: "+e2);
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.properties.celleditors.value.SQLQueryValueCellEditor.connecting_to_database_error", e2);
 					// we can continue without a db handler
 					handler = null;
 					//SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e2, e2.getMessage());
