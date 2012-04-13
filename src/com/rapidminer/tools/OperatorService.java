@@ -255,7 +255,13 @@ public class OperatorService {
         if (docBundle == null || docBundle.isEmpty()) {
             bundle = null;
             //LogService.getRoot().warning("Operators for " + provider.getName() + " don't have an attached documentation.");
-            LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.OperatorService.operators_no_attached_documention", provider.getName());
+            String providerName;
+            if (provider == null) {
+            	providerName = "RapidMiner core";
+            } else {
+            	providerName = provider.getName();
+            }
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.OperatorService.operators_no_attached_documention", providerName);
         } else {
             bundle = XMLOperatorDocBundle.load(classLoader, docBundle);
         }

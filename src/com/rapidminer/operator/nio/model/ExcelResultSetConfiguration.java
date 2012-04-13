@@ -25,21 +25,23 @@ package com.rapidminer.operator.nio.model;
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_SHEET_NUMBER;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 
 import jxl.Workbook;
 import jxl.WorkbookSettings;
 import jxl.read.biff.BiffException;
 
-import com.rapid_i.deployment.update.client.ProgressReportingInputStream;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.nio.Excel2007SheetTableModel;
 import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.nio.ExcelSheetTableModel;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -50,7 +52,7 @@ import com.rapidminer.tools.io.Encoding;
 /**
  * A class holding information about configuration of the Excel Result Set
  * 
- * @author Sebastian Land
+ * @author Sebastian Land, Marco Boeck
  */
 public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
@@ -62,7 +64,8 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	private int sheet = -1;
 
 	private Charset encoding;
-	private Workbook preOpenedWorkbook;
+	private org.apache.poi.ss.usermodel.Workbook workbookPOI;
+	private jxl.Workbook workbookJXL;
 	private File workbookFile;
 
 	private boolean isEmulatingOldNames;
@@ -115,43 +118,98 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		return columnOffset;
 	}
 
-	/** Returns whether {@link #getWorkbook()} can be called without blocking. */
+	/** 
+	 * Returns if there is an active workbook.
+	 * */
 	public boolean hasWorkbook() {
-		return preOpenedWorkbook != null;
+		return workbookJXL != null || workbookPOI != null;
 	}
 
+	
 	/**
-	 * This will return a workbook if already delivered with the configuration. This workbook must not be closed!
-	 * 
-	 * @throws IOException
+	 * Creates an excel table model (either {@link ExcelSheetTableModel} or {@link Excel2007SheetTableModel}, depending on file).
+	 * @param sheetIndex the index of the sheet (0-based)
+	 * @return
 	 * @throws BiffException
+	 * @throws IOException
+	 * @throws InvalidFormatException
 	 */
-	public Workbook getWorkbook(ProgressListener listener) throws BiffException, IOException {
-		if (preOpenedWorkbook == null) {
-			File file = getFile();
-			InputStream in = new ProgressReportingInputStream(new FileInputStream(file), listener, 10, 90, file.length());
-			//preOpenedWorkbook = Workbook.getWorkbook(file);
-			WorkbookSettings workbookSettings = new WorkbookSettings();
-			if (encoding != null) {
-				workbookSettings.setEncoding(encoding.name());
+	public AbstractTableModel createExcelTableModel(int sheetIndex) throws BiffException, IOException, InvalidFormatException {
+		if (getFile().getAbsolutePath().endsWith(".xlsx")) {
+			// excel 2007 file
+			if (workbookPOI == null) {
+				createWorkbookPOI();
 			}
-			preOpenedWorkbook = Workbook.getWorkbook(in, workbookSettings);
-		}
-		return preOpenedWorkbook;
-	}
-
-	public Workbook getWorkbook() throws BiffException, IOException {
-		if (preOpenedWorkbook == null) {
-			File file = getFile();
-			WorkbookSettings workbookSettings = new WorkbookSettings();
-			if (encoding != null) {
-				workbookSettings.setEncoding(encoding.name());
+			Excel2007SheetTableModel excelSheetTableModel = new Excel2007SheetTableModel(workbookPOI.getSheetAt(sheetIndex));
+			return excelSheetTableModel;
+		} else {
+			// excel pre 2007 file
+			if (workbookJXL == null) {
+				createWorkbookJXL();
 			}
-			preOpenedWorkbook = Workbook.getWorkbook(file, workbookSettings);			
+			ExcelSheetTableModel excelSheetTableModel = new ExcelSheetTableModel(workbookJXL.getSheet(sheetIndex));
+			return excelSheetTableModel;
 		}
-		return preOpenedWorkbook;
 	}
-
+	
+	/**
+	 * Returns the number of sheets in the excel file
+	 * @return
+	 * @throws IOException 
+	 * @throws BiffException 
+	 * @throws InvalidFormatException 
+	 */
+	public int getNumberOfSheets() throws BiffException, IOException, InvalidFormatException {
+		if (getFile().getAbsolutePath().endsWith(".xlsx")) {
+			// excel 2007 file
+			if (workbookPOI == null) {
+				createWorkbookPOI();
+			}
+			return workbookPOI.getNumberOfSheets();
+		} else {
+			// excel pre 2007 file
+			if (workbookJXL == null) {
+				createWorkbookJXL();
+			}
+			return workbookJXL.getNumberOfSheets();
+		}
+	}
+	
+	/**
+	 * Returns the names of all sheets in the excel file
+	 * @return
+	 * @throws IOException 
+	 * @throws BiffException 
+	 * @throws InvalidFormatException 
+	 */
+	public String[] getSheetNames() throws BiffException, IOException, InvalidFormatException {
+		if (getFile().getAbsolutePath().endsWith(".xlsx")) {
+			// excel 2007 file
+			if (workbookPOI == null) {
+				createWorkbookPOI();
+			}
+			String[] sheetNames = new String[getNumberOfSheets()];
+			for (int i=0; i<getNumberOfSheets(); i++) {
+				sheetNames[i] = workbookPOI.getSheetName(i);
+			}
+			return sheetNames;
+		} else {
+			// excel pre 2007 file
+			if (workbookJXL == null) {
+				createWorkbookJXL();
+			}
+			return workbookJXL.getSheetNames();
+		}
+	}
+	
+	/**
+	 * Returns the encoding for this configuration.
+	 * @return
+	 */
+	public Charset getEncoding() {
+		return this.encoding;
+	}
+	
 	/**
 	 * This returns the file of the referenced excel file
 	 */
@@ -167,12 +225,12 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		if (selectedFile.equals(this.workbookFile)) {
 			return;
 		}
-		if (hasWorkbook()) {
-			preOpenedWorkbook.close();
-			preOpenedWorkbook = null;
+		if (workbookJXL != null) {
+			workbookJXL.close();
+			workbookJXL = null;
 		}
 		workbookFile = selectedFile;
-		preOpenedWorkbook = null;
+		workbookPOI = null;
 		rowOffset = 0;
 		columnOffset = 0;
 		rowLast = Integer.MAX_VALUE;
@@ -214,7 +272,23 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
 	@Override
 	public DataResultSet makeDataResultSet(Operator operator) throws OperatorException {
-		return new ExcelResultSet(operator, this);
+		if (getFile().getAbsolutePath().endsWith(".xlsx")) {
+			// excel 2007 file
+			return new Excel2007ResultSet(operator, this);
+		} else if (getFile().getAbsolutePath().endsWith(".xls")) {
+			// excel pre 2007 file
+			return new ExcelResultSet(operator, this);
+		} else {
+			// we might also get a file object that has neither .xlsx nor .xls as file ending,
+			// so we have no choice but to try and open the file with the pre 2007 JXL lib to see if it works.
+			// If it does not work, it's an excel 2007 file.
+			try {
+				Workbook.getWorkbook(getFile());
+				return new ExcelResultSet(operator, this);
+			} catch (Exception e) {
+				return new Excel2007ResultSet(operator, this);
+			}
+		}
 	}
 
 	/** See class comment on {@link ExcelSheetTableModel} for a comment why that class is not used here.
@@ -241,10 +315,11 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	}
 
 	public void closeWorkbook() {
-		if (preOpenedWorkbook != null) {
-			preOpenedWorkbook.close();
-			preOpenedWorkbook = null;
+		if (workbookJXL != null) {
+			workbookJXL.close();
+			workbookJXL = null;
 		}
+		workbookPOI = null;
 	}
 
 	@Override
@@ -324,8 +399,31 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
 	@Override
 	public void close() {
-		if (preOpenedWorkbook != null) {
-			preOpenedWorkbook.close();
+		if (workbookJXL != null) {
+			workbookJXL.close();
 		}
+	}
+
+	/**
+	 * Creates the JXL workbook.
+	 * @throws BiffException
+	 * @throws IOException
+	 */
+	private void createWorkbookJXL() throws BiffException, IOException {
+		File file = getFile();
+		WorkbookSettings workbookSettings = new WorkbookSettings();
+		if (encoding != null) {
+			workbookSettings.setEncoding(encoding.name());
+		}
+		workbookJXL = Workbook.getWorkbook(file, workbookSettings);
+	}
+	
+	/**
+	 * Creates the POI workbook.
+	 * @throws InvalidFormatException
+	 * @throws IOException
+	 */
+	private void createWorkbookPOI() throws InvalidFormatException, IOException {
+		workbookPOI = WorkbookFactory.create(getFile());
 	}
 }

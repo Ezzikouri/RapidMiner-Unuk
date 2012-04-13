@@ -53,7 +53,7 @@ import com.rapidminer.tools.io.Encoding;
  * rows, and empty columns. Missing data values are indicated by empty cells or by cells containing only &quot;?&quot;.
  * </p>
  * 
- * @author Ingo Mierswa, Tobias Malbrecht, Sebastian Loh, Sebastian Land
+ * @author Ingo Mierswa, Tobias Malbrecht, Sebastian Loh, Sebastian Land, Marco Boeck
  */
 public class ExcelExampleSource extends AbstractDataResultSetReader {
 	
@@ -95,7 +95,7 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 
 	@Override
 	protected DataResultSetFactory getDataResultSetFactory() throws OperatorException {
-		return new ExcelResultSetConfiguration(this);
+    	return new ExcelResultSetConfiguration((ExcelExampleSource) this);
 	}
 
 	@Override
@@ -111,6 +111,11 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 	@Override
 	protected String getFileExtension() {
 		return "xls";
+	}
+	
+	/** Returns the allowed file extensions. */
+	protected String[] getFileExtensions() {
+		return new String[]{ "xls", "xlsx" };
 	}
 
 	@Override

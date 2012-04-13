@@ -104,6 +104,21 @@ public class FileInputPortHandler {
 
 	}
 
+	/** Creates the file parameter named by fileParameterName 
+	 *  that depends on whether or not the port returned by the given PortProvider is connected. */
+	public static ParameterType makeFileParameterType(
+			ParameterHandler parameterHandler,
+			String parameterName, PortProvider portProvider, String... fileExtensions) {
+		String[] fileExtArray = new String[fileExtensions.length];
+		int i=0;
+		for (String fileExtension : fileExtensions) {
+			fileExtArray[i++] = fileExtension;
+		}
+		final ParameterTypeFile fileParam = new ParameterTypeFile(parameterName, "Name of the file to read the data from.", true, fileExtArray);
+		fileParam.setExpert(false);
+		fileParam.registerDependencyCondition(new PortConnectedCondition(parameterHandler, portProvider, true, false));
+		return fileParam;
+	}
 
 	/** Creates the file parameter named by fileParameterName 
 	 *  that depends on whether or not the port returned by the given PortProvider is connected. */

@@ -29,8 +29,9 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
-import jxl.Workbook;
 import jxl.read.biff.BiffException;
+
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJTabbedPane;
@@ -135,49 +136,49 @@ public class ExcelWorkbookPane extends JPanel {
 				getProgressListener().setCompleted(10);
 
 				// loading workbook if necessary
-				try {
-					final Workbook finalWorkbook = configuration.getWorkbook(getProgressListener());
-
+				
 					// now add everything to gui
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							tables = new ExtendedJTable[finalWorkbook.getNumberOfSheets()];
+							try {
+								tables = new ExtendedJTable[configuration.getNumberOfSheets()];
 
-							String[] sheetNames = finalWorkbook.getSheetNames();
-							for (int sheetIndex = 0; sheetIndex < finalWorkbook.getNumberOfSheets(); sheetIndex++) {
-								ExcelSheetTableModel sheetModel = new ExcelSheetTableModel(finalWorkbook.getSheet(sheetIndex));
-								tables[sheetIndex] = new ExtendedJTable(sheetModel, false, false);
-								tables[sheetIndex].setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-								tables[sheetIndex].setBorder(null);
+								String[] sheetNames = configuration.getSheetNames();
+								for (int sheetIndex = 0; sheetIndex < configuration.getNumberOfSheets(); sheetIndex++) {
+									tables[sheetIndex] = new ExtendedJTable(configuration.createExcelTableModel(sheetIndex), false, false);
+									tables[sheetIndex].setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+									tables[sheetIndex].setBorder(null);
 
-								// momentary disable selection in tables
-								tables[sheetIndex].setRowSelectionAllowed(false);
-								tables[sheetIndex].setColumnSelectionAllowed(false);
-								tables[sheetIndex].setCellSelectionEnabled(true);
+									// momentary disable selection in tables
+									tables[sheetIndex].setRowSelectionAllowed(false);
+									tables[sheetIndex].setColumnSelectionAllowed(false);
+									tables[sheetIndex].setCellSelectionEnabled(true);
 
-								// add table to gui
-								ExtendedJScrollPane pane = new ExtendedJScrollPane(tables[sheetIndex]);
-								pane.setBorder(null);
-								if (sheetIndex == 0) {
-									sheetsPane.removeAll();
+									// add table to gui
+									ExtendedJScrollPane pane = new ExtendedJScrollPane(tables[sheetIndex]);
+									pane.setBorder(null);
+									if (sheetIndex == 0) {
+										sheetsPane.removeAll();
+									}
+									sheetsPane.addTab(sheetNames[sheetIndex], pane);
 								}
-								sheetsPane.addTab(sheetNames[sheetIndex], pane);
-							}
-							ExcelWorkbookSelection selection = new ExcelWorkbookSelection(configuration.getSheet(),
-									configuration.getColumnOffset(), configuration.getRowOffset(),
-									configuration.getColumnLast(), configuration.getRowLast());
+								ExcelWorkbookSelection selection = new ExcelWorkbookSelection(configuration.getSheet(),
+										configuration.getColumnOffset(), configuration.getRowOffset(),
+										configuration.getColumnLast(), configuration.getRowLast());
 
-							setSelection(selection);
+								setSelection(selection);
+							} catch (InvalidFormatException e) {
+								ImportWizardUtils.showErrorMessage(configuration.getResourceName(), e.toString(), e);
+							} catch (BiffException e) {
+								ImportWizardUtils.showErrorMessage(configuration.getResourceName(), e.toString(), e);
+							} catch (IOException e) {
+								ImportWizardUtils.showErrorMessage(configuration.getResourceName(), e.toString(), e);
+							} finally {
+								getProgressListener().complete();
+							}
 						}
 					});
-				} catch (BiffException e) {
-					ImportWizardUtils.showErrorMessage(configuration.getResourceName(), e.toString(), e);
-				} catch (IOException e) {
-					ImportWizardUtils.showErrorMessage(configuration.getResourceName(), e.toString(), e);
-				} finally {
-					getProgressListener().complete();
-				}
 			}
 		}.start();
 	}
@@ -186,18 +187,19 @@ public class ExcelWorkbookPane extends JPanel {
 		final int sheetIndex = selection.getSheetIndex();
 		if (sheetIndex < sheetsPane.getTabCount()) {
 			sheetsPane.setSelectedIndex(sheetIndex);
-			tables[sheetIndex].clearSelection();
-			boolean noColumns = tables[sheetIndex].getColumnCount() == 0;
-			boolean noRows = tables[sheetIndex].getRowCount() == 0;
-			if (!noRows && !noColumns) {
-				tables[sheetIndex].setColumnSelectionInterval(
-						Math.max(selection.getColumnIndexStart(), 0),
-						Math.min(selection.getColumnIndexEnd(), noColumns ? 0 : tables[sheetIndex].getColumnCount() - 1));			
-				tables[sheetIndex].setRowSelectionInterval(
-						Math.max(selection.getRowIndexStart(), 0),
-						Math.min(selection.getRowIndexEnd(), noRows ? 0 : tables[sheetIndex].getRowCount() - 1));
+			if (tables.length > sheetIndex) {
+				tables[sheetIndex].clearSelection();
+				boolean noColumns = tables[sheetIndex].getColumnCount() == 0;
+				boolean noRows = tables[sheetIndex].getRowCount() == 0;
+				if (!noRows && !noColumns) {
+					tables[sheetIndex].setColumnSelectionInterval(
+							Math.max(selection.getColumnIndexStart(), 0),
+							Math.min(selection.getColumnIndexEnd(), noColumns ? 0 : tables[sheetIndex].getColumnCount() - 1));			
+					tables[sheetIndex].setRowSelectionInterval(
+							Math.max(selection.getRowIndexStart(), 0),
+							Math.min(selection.getRowIndexEnd(), noRows ? 0 : tables[sheetIndex].getRowCount() - 1));
+				}
 			}
-
 		}
 	}
 

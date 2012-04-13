@@ -191,7 +191,11 @@ public class RepositoryLocationChooser extends JPanel {
 				if (selectionPath != null) {
 					Entry selectedEntry = (Entry) selectionPath.getLastPathComponent();
 					if (!(selectedEntry instanceof Folder)) {
+						// restore location string after changing selection because otherwise
+						// the text will be gone which is very annoying
+						String locationString = locationField.getText();
 						tree.setSelectionPath(selectionPath.getParentPath());
+						locationField.setText(locationString);
 					}
 				}
 			}

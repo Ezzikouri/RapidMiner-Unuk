@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.nio.model;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
@@ -33,6 +34,7 @@ import jxl.DateCell;
 import jxl.NumberCell;
 import jxl.Sheet;
 import jxl.Workbook;
+import jxl.WorkbookSettings;
 import jxl.read.biff.BiffException;
 
 import com.rapidminer.operator.Operator;
@@ -44,7 +46,7 @@ import com.rapidminer.tools.Tools;
 /**
  * A DataResultSet for an Excel File.
  * 
- * @author Sebastian Land
+ * @author Sebastian Land, Marco Boeck
  * 
  */
 public class ExcelResultSet implements DataResultSet {
@@ -92,12 +94,18 @@ public class ExcelResultSet implements DataResultSet {
 
 		// load the excelWorkbook if it is not set
 		try {
-			workbook = configuration.getWorkbook();
+			File file = configuration.getFile();
+			WorkbookSettings workbookSettings = new WorkbookSettings();
+			if (configuration.getEncoding() != null) {
+				workbookSettings.setEncoding(configuration.getEncoding().name());
+			}
+			workbook = Workbook.getWorkbook(file, workbookSettings);			
 		} catch (IOException e) {
 			throw new UserError(callingOperator, 302, configuration.getFile().getPath(), e.getMessage());
 		} catch (BiffException e) {
 			throw new UserError(callingOperator, 302, configuration.getFile().getPath(), e.getMessage());
 		}
+		
 		try {
 			sheet = workbook.getSheet(configuration.getSheet());
 		} catch (IndexOutOfBoundsException e) {

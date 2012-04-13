@@ -26,6 +26,7 @@ import java.util.List;
 
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.repository.gui.actions.AbstractRepositoryAction;
+import com.rapidminer.repository.remote.RemoteIOObjectEntry;
 
 /**
  * Declares a condition for {@link AbstractRepositoryAction}. If the conditions are met, the action is shown, otherwise it will not be shown.
@@ -55,7 +56,15 @@ public class RepositoryActionConditionImplExampleSetsOnly implements RepositoryA
 				} catch (RepositoryException e) {
 					return false;
 				}
-				
+			} else if (givenEntry instanceof RemoteIOObjectEntry) {
+				RemoteIOObjectEntry entry = (RemoteIOObjectEntry)givenEntry;
+				try {
+					if (!(entry.retrieveMetaData() instanceof ExampleSetMetaData)) {
+						return false;
+					}
+				} catch (RepositoryException e) {
+					return false;
+				}
 			} else {
 				return false;
 			}

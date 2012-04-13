@@ -215,16 +215,21 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 
 	/** Returns the allowed file extension. */
 	protected abstract String getFileExtension();
+	
+	/** Returns the allowed file extensions. */
+	protected String[] getFileExtensions() {
+		return new String[]{ getFileExtension() };
+	}
 
 	/** Creates (but does not add) the file parameter named by {@link #getFileParameterName()} 
 	 *  that depends on whether or not {@link #fileInputPort} is connected. */
 	protected ParameterType makeFileParameterType() {
-		return FileInputPortHandler.makeFileParameterType(this, getFileParameterName(), getFileExtension(), new PortProvider() {
+		return FileInputPortHandler.makeFileParameterType(this, getFileParameterName(), new PortProvider() {
 			@Override
 			public Port getPort() {
 				return fileInputPort;
 			}
-		});
+		}, getFileExtensions());
 	}
 
 	@Override

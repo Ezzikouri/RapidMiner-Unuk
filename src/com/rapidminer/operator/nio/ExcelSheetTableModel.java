@@ -22,12 +22,9 @@
  */
 package com.rapidminer.operator.nio;
 
-import java.io.IOException;
-
 import javax.swing.table.AbstractTableModel;
 
 import jxl.Sheet;
-import jxl.read.biff.BiffException;
 
 import com.rapidminer.operator.nio.model.ExcelResultSetConfiguration;
 import com.rapidminer.tools.Tools;
@@ -48,11 +45,6 @@ public class ExcelSheetTableModel extends AbstractTableModel {
 	
 	public ExcelSheetTableModel(Sheet sheet) {
 		this.sheet = sheet;
-	}
-
-	public ExcelSheetTableModel(ExcelResultSetConfiguration excelResultSetConfiguration) throws IndexOutOfBoundsException, BiffException, IOException {
-		this.config = excelResultSetConfiguration;
-		this.sheet = config.getWorkbook().getSheet(config.getSheet());
 	}
 
 	@Override
