@@ -86,11 +86,16 @@ public class ArffExampleSetWriter extends AbstractStreamWriter {
         }
         return exampleSet;
     }*/
-
-    public static void writeArff(ExampleSet exampleSet, PrintWriter out) {
+    
+    
+    public static void writeArff(ExampleSet exampleSet, PrintWriter out, String linefeed) {
+    	if (linefeed == null) {
+    		linefeed = System.getProperty("line.separator");
+    	}
+    	
         // relation
-        out.println("@RELATION RapidMinerData");
-        out.println();
+        out.print("@RELATION RapidMinerData"+linefeed);
+        out.print(linefeed);
 
         // attribute meta data
         Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
@@ -99,8 +104,8 @@ public class ArffExampleSetWriter extends AbstractStreamWriter {
         }
 
         // data
-        out.println();
-        out.println("@DATA");
+        out.print(linefeed);
+        out.print("@DATA"+linefeed);
 
         for (Example example : exampleSet) {
             boolean first = true;
@@ -121,8 +126,12 @@ public class ArffExampleSetWriter extends AbstractStreamWriter {
                 }
                 first = false;
             }
-            out.println();
+            out.print(linefeed);
         }
+    }
+
+    public static void writeArff(ExampleSet exampleSet, PrintWriter out) {
+    	writeArff(exampleSet, out, null);
     }
 
     private static void printAttributeData(Attribute attribute, PrintWriter out) {

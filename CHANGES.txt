@@ -1,6 +1,10 @@
 History of changes of the RapidMiner versions
 ====================================================
 
+Changes from RapidMiner 5.2.3 to 5.2.4
+--------------------------------------
+* Excel 2007 support
+
 Changes from RapidMiner 5.2.1 to 5.2.2
 --------------------------------------
 * Remove Correlated Attributes uses deterministic random numbers

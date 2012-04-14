@@ -29,6 +29,7 @@ import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -625,6 +626,32 @@ public class RapidAssert extends Assert {
 		}
 	}
 
+	/**
+	 * Compares a string linewise, i.e. ignores different linebreak characters.
+	 * 
+	 * Does this by transforming all linebreaks into a single \n and then comparing
+	 * the complete texts. Thus you get a nice diff when using junit within eclipse.
+	 * 
+	 * @param message
+	 * @param expected
+	 * @param actual
+	 */
+	public static void assertLinewiseEquals(String message, String expected, String actual) {
+		Scanner expectedScanner = new Scanner(expected);
+		Scanner actualScanner = new Scanner(actual);
+		
+		StringBuilder expectedBuilder = new StringBuilder();
+		StringBuilder actualBuilder = new StringBuilder();
+		
+		while (expectedScanner.hasNextLine()) {
+			expectedBuilder.append(expectedScanner.nextLine()).append("\n");
+		}
+		while (actualScanner.hasNextLine()) {
+			actualBuilder.append(actualScanner.nextLine()).append("\n");
+		}
+		assertEquals(message, expectedBuilder.toString(), actualBuilder.toString());
+	}
+	
 	/**
 	 * Tests all objects in the array.
 	 * 
