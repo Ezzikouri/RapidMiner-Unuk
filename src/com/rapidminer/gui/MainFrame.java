@@ -143,6 +143,8 @@ import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.config.ConfigurationManager;
+import com.rapidminer.tools.config.gui.ConfigurationDialog;
 import com.rapidminer.tools.plugin.Plugin;
 import com.rapidminer.tools.usagestats.UsageStatsTransmissionDialog;
 import com.vlsolutions.swing.docking.DockGroup;
@@ -729,6 +731,11 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         //Password Manager
         toolsMenu.add(PasswordManager.OPEN_WINDOW);
         toolsMenu.add(SETTINGS_ACTION);
+        // Configurators
+        toolsMenu.addSeparator();
+        for (String typeID : ConfigurationManager.getInstance().getAllTypeIds()) {
+        	toolsMenu.add(ConfigurationDialog.getOpenWindowAction(typeID));
+        }
         menuBar.add(toolsMenu);
 
         // view menu

@@ -75,6 +75,24 @@ import com.rapidminer.tools.config.Configurator;
  */
 public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	
+	public static Action getOpenWindowAction(String typeID) {
+		final String finalTypeID = typeID;
+		Action OPEN_WINDOW = new ResourceAction("configuration." + ConfigurationManager.getInstance().getConfigurator(typeID).getI18NBaseKey()) {
+			{
+				setCondition(EDIT_IN_PROGRESS, DONT_CARE);
+			}
+			private static final long serialVersionUID = 1L;
+			@SuppressWarnings("unchecked")
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Configurator config = ConfigurationManager.getInstance().getConfigurator(finalTypeID);
+				new ConfigurationDialog(config).setVisible(true);
+			}
+		};
+		return OPEN_WINDOW;
+	}
+	
+	
 	private static final Color TEXT_SELECTED_COLOR = UIManager.getColor("Tree.selectionForeground");
 
 	private static final Color TEXT_NON_SELECTED_COLOR = UIManager.getColor("Tree.textForeground");
@@ -126,7 +144,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	private ConfigurationPanel<? super T> configurationPanel = null; 
 
 	public ConfigurationDialog(Configurator<T> configurator) {
-		super("configuration."+configurator.getTypeId());
+		super("configuration."+configurator.getI18NBaseKey());
 		Collection<AbstractButton> buttons = makeButtons();
 		this.I18NKey = "configuration."+configurator.getI18NBaseKey();
 		this.configurator = configurator;
@@ -215,9 +233,9 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 		}
 	}
 	
-	public void setI18NVariables(String typeId) {
-		entryIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + typeId + ".connection_entry.icon"));
-		entryReadOnlyIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + typeId + ".connection_readonly_entry.icon"));
+	public void setI18NVariables(String baseKey) {
+		entryIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + baseKey + ".connection_entry.icon"));
+		entryReadOnlyIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + baseKey + ".connection_readonly_entry.icon"));
 		
 		
 	}
@@ -323,7 +341,6 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 										isNewEntry = false;
 										
 									} else if (saveBeforeOpen == ConfirmDialog.CANCEL_OPTION) {
-										// Cancel: Do nothing and set the selection back to the previous selected entry
 										configurableList.setSelectedValue(currentlyEditedEntry, true);
 										return;
 									}

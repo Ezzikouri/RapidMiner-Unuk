@@ -166,6 +166,7 @@ public class SplashScreen extends JPanel implements ActionListener {
 	public void dispose() {
 		splashScreenFrame.dispose();
 		splashScreenFrame = null;
+		animationTimer.stop();
 	}
 
 	@Override
@@ -295,7 +296,8 @@ public class SplashScreen extends JPanel implements ActionListener {
 	 * splash animation.
 	 */
 	public void actionPerformed(ActionEvent e) {
-		for (Runnable runnable: animationRenderers)
+		List<Runnable> copiedAnimationRenderers = new LinkedList<Runnable>(animationRenderers);
+		for (Runnable runnable: copiedAnimationRenderers)
 			runnable.run();
 		repaint();
 	}

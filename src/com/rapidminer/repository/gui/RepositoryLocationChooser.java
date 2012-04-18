@@ -165,7 +165,7 @@ public class RepositoryLocationChooser extends JPanel {
 				if (e.getPath() != null) {
 					currentEntry = (Entry) e.getPath().getLastPathComponent();
 					if (currentEntry instanceof Folder) { //  && allowFolders)) {
-						locationField.setText("");
+//						locationField.setText("");
 					} else if ((!(currentEntry instanceof Folder)) && allowEntries) {
 //					if (true) {
 //							//!(currentEntry instanceof Folder)) {
@@ -191,11 +191,7 @@ public class RepositoryLocationChooser extends JPanel {
 				if (selectionPath != null) {
 					Entry selectedEntry = (Entry) selectionPath.getLastPathComponent();
 					if (!(selectedEntry instanceof Folder)) {
-						// restore location string after changing selection because otherwise
-						// the text will be gone which is very annoying
-						String locationString = locationField.getText();
 						tree.setSelectionPath(selectionPath.getParentPath());
-						locationField.setText(locationString);
 					}
 				}
 			}
