@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Level;
 
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
@@ -74,10 +75,12 @@ public class TipOfTheDayProvider {
                     in.close();
               }
             } else {
-                LogService.getGlobal().logWarning("Cannot show Tip of the Day: resource 'totd.txt' not found...");
+                //LogService.getGlobal().logWarning("Cannot show Tip of the Day: resource 'totd.txt' not found...");
+                LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.TipOfTheDayProvider.showing_tip_of_the_day_error_ressource_not_found");
             }
 		} catch (java.io.IOException e) {
-			LogService.getGlobal().logWarning("Cannot show Tip of the Day: cannot load tip file.");
+			//LogService.getGlobal().logWarning("Cannot show Tip of the Day: cannot load tip file.");
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.TipOfTheDayProvider.showing_tip_of_the_day_error_loading_tip_file");
 		}
 	}
 	

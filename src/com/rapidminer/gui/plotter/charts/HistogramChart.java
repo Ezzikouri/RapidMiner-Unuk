@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -266,7 +267,8 @@ public class HistogramChart extends RangeablePlotterAdapter {
             if (maxClassesProperty != null)
                 maxClasses = Integer.parseInt(maxClassesProperty);
         } catch (NumberFormatException e) {
-            LogService.getGlobal().log("Deviation plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            //LogService.getGlobal().log("Deviation plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.HistogramChart.parsing_property_error");
         }
         int categoryCount = this.histogramDataset.getSeriesCount();
         boolean createLegend = categoryCount > 0 && categoryCount < maxClasses && this.drawLegend;

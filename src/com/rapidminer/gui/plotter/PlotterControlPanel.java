@@ -34,6 +34,7 @@ import java.awt.event.ItemListener;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -424,9 +425,11 @@ public class PlotterControlPanel extends JPanel implements PlotterChangedListene
 					plotterCombo.addItem(plotterName);
 				}
 			} catch (IllegalArgumentException e) {
-				LogService.getGlobal().log("Plotter control panel: cannot instantiate plotter '" + plotterName + "'. Skipping...", LogService.WARNING);
+				//LogService.getGlobal().log("Plotter control panel: cannot instantiate plotter '" + plotterName + "'. Skipping...", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.PlotterControlPanel.instatiating_plotter_error", plotterName);
 			} catch (SecurityException e) {
-				LogService.getGlobal().log("Plotter control panel: cannot instantiate plotter '" + plotterName + "'. Skipping...", LogService.WARNING);
+				//LogService.getGlobal().log("Plotter control panel: cannot instantiate plotter '" + plotterName + "'. Skipping...", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.PlotterControlPanel.instatiating_plotter_error", plotterName);
 			}
 		}
 		plotterCombo.setToolTipText("The plotter which should be used for displaying data.");

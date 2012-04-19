@@ -34,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -433,7 +434,8 @@ public class SeriesChartPlotter extends RangeablePlotterAdapter {
             if (maxClassesProperty != null)
                 maxClasses = Integer.parseInt(maxClassesProperty);
         } catch (NumberFormatException e) {
-            LogService.getGlobal().log("Series plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            //LogService.getGlobal().log("Series plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.SeriesChartPlotter.parsing_property_error");
         }
         boolean createLegend = categoryCount > 0 && categoryCount < maxClasses;
 

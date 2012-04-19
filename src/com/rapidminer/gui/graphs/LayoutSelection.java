@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.lang.reflect.Constructor;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.swing.JComboBox;
 
@@ -117,7 +118,8 @@ public class LayoutSelection<V,E> extends JComboBox {
         try {
             layoutClass = layoutMap.get(layoutName);
         } catch (Exception e) {
-            LogService.getGlobal().logError("Layout could not be intialized: " + e.getMessage());
+            //LogService.getGlobal().logError("Layout could not be intialized: " + e.getMessage());
+            LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.graphs.LayoutSelection.layout_could_not_be_initialized", e.getMessage());
         }
         
         if (layoutClass != null) {

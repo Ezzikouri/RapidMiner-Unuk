@@ -27,6 +27,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Level;
 
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
@@ -107,22 +108,26 @@ public class Browser extends JEditorPane implements HyperlinkListener {
 		if (item != null)
 			visitMenu.add(item);
 		else
-			LogService.getGlobal().log("Cannot show GUI manual: resource 'manual/RapidMinerGUIManual.html' not found...", LogService.WARNING);
+			//LogService.getGlobal().log("Cannot show GUI manual: resource 'manual/RapidMinerGUIManual.html' not found...", LogService.WARNING);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.dialog.Browser.showing_gui_manual_error");
 		
 		try {
 			item = browser.createItem("RapidMiner@WWW", new URL("http://www.rapidminer.com"));
 			if (item != null)
 				visitMenu.add(item);
 			else
-                LogService.getGlobal().log("Cannot show RapidMiner web site: URL 'http://www.rapidminer.com' not found...", LogService.WARNING);
+                //LogService.getGlobal().log("Cannot show RapidMiner web site: URL 'http://www.rapidminer.com' not found...", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.dialog.Browser.showing_rapidminer_web_site_url_not_found_error");
 		} catch (MalformedURLException e) {
-            LogService.getGlobal().log("Cannot show RapidMiner web site: " + e.getMessage(), LogService.WARNING);
+            //LogService.getGlobal().log("Cannot show RapidMiner web site: " + e.getMessage(), LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.dialog.Browser.showing_rapidminer_web_site_error", e.getMessage());
 		}
 		item = browser.createItem("License", Tools.getResource("LICENSE.html"));
 		if (item != null)
 			visitMenu.add(item);
 		else
-            LogService.getGlobal().log("Cannot show license: resource 'LICENSE.html' not found...", LogService.WARNING);
+            //LogService.getGlobal().log("Cannot show license: resource 'LICENSE.html' not found...", LogService.WARNING);
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.dialog.Browser.showing_license_error");
 				
 		menuBar.add(visitMenu);
 		dialog.setJMenuBar(menuBar);

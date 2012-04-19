@@ -22,6 +22,8 @@
  */
 package com.rapidminer.generator;
 
+import java.util.logging.Level;
+
 import com.rapidminer.tools.LogService;
 
 /**
@@ -57,7 +59,9 @@ public class PowerGenerator extends BinaryNumericalGenerator {
 	@Override
 	public void setFunction(String name) {
 		if (!name.equals("^"))
-			LogService.getGlobal().log("Illegal function name '" + name + "' for " + getClass().getName() + ".", LogService.ERROR);
+			//LogService.getGlobal().log("Illegal function name '" + name + "' for " + getClass().getName() + ".", LogService.ERROR);
+			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.generator.PowerGenerator.illegal_function_name",
+				new Object[] {name, getClass().getName()});
 	}
 
 	@Override

@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.tools.LogService;
@@ -207,7 +208,8 @@ public class FileDataRowReader extends AbstractDataRowReader {
         try {
             readLine();
         } catch (Exception e) {
-        	LogService.getGlobal().log("Problem during skipping of line: " + e.getMessage(), LogService.WARNING);
+        	//LogService.getGlobal().log("Problem during skipping of line: " + e.getMessage(), LogService.WARNING);
+        	LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.table.FileDataRowReader.problem_during_skipping_of_line", e.getMessage());
         }
     }
     

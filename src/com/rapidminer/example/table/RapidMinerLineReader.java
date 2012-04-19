@@ -24,6 +24,7 @@ package com.rapidminer.example.table;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import com.rapidminer.tools.LogService;
@@ -127,7 +128,9 @@ public class RapidMinerLineReader {
 		if (expectedNumberOfColumns != -1) {
 			if (columns.length < expectedNumberOfColumns) {
 				if (skipErrorLines) {
-					LogService.getGlobal().log("Possible data format error: line " + lineNumber + " did not provide the expected number of columns (was: " + columns.length + ", expected: " + expectedNumberOfColumns + "), skip line...", LogService.WARNING);
+					//LogService.getGlobal().log("Possible data format error: line " + lineNumber + " did not provide the expected number of columns (was: " + columns.length + ", expected: " + expectedNumberOfColumns + "), skip line...", LogService.WARNING);
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.table.RapidMinerLineReader.possible_data_format_error", 
+							new Object[] {lineNumber, columns.length, expectedNumberOfColumns});
 					return readLine(in, expectedNumberOfColumns);
 				} else {
 					throw new IOException("Data format error in line " + lineNumber + ": the line does not provide the expected number of columns (was: " + columns.length + ", expected: " + expectedNumberOfColumns + ")! Stop reading...");
@@ -135,7 +138,9 @@ public class RapidMinerLineReader {
 			} else if (columns.length > expectedNumberOfColumns) {
 				// only a warning since this might be desired if the data should
 				// be loaded only partially
-				LogService.getGlobal().log("Possible data format error: line " + lineNumber + " did not provide the expected number of columns (was: " + columns.length + ", expected: " + expectedNumberOfColumns + ")!", LogService.WARNING);
+				//LogService.getGlobal().log("Possible data format error: line " + lineNumber + " did not provide the expected number of columns (was: " + columns.length + ", expected: " + expectedNumberOfColumns + ")!", LogService.WARNING);
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.example.table.RapidMinerLineReader.possible_data_format_error", 
+						new Object[] {lineNumber, columns.length, expectedNumberOfColumns});
 			}
 		}
 		lineNumber++;

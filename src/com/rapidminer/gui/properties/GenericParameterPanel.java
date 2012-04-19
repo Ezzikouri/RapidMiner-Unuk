@@ -46,9 +46,6 @@ public class GenericParameterPanel extends PropertyPanel {
 //	private Map<String, String> keyValueMap = new LinkedHashMap<String, String>();
 //	private Map<String, ParameterType> keyTypeMap = new LinkedHashMap<String, ParameterType>();
 	
-	public GenericParameterPanel() {
-		
-	}
 	
 	public GenericParameterPanel(Parameters parameters) {
 		super();
@@ -74,10 +71,14 @@ public class GenericParameterPanel extends PropertyPanel {
 
 	@Override
 	protected String getValue(ParameterType type) {
-		try {
-			return parameters.getParameter(type.getKey());
-		} catch (UndefinedParameterError e) {
-			return type.getDefaultValueAsString();
+		if (parameters != null) {
+			try {
+				return parameters.getParameter(type.getKey());
+			} catch (UndefinedParameterError e) {
+				return type.getDefaultValueAsString();
+			}
+		} else {
+			return null;
 		}
 		//return keyValueMap.get(type.getKey());
 	}
@@ -87,9 +88,11 @@ public class GenericParameterPanel extends PropertyPanel {
 	 * This implementation ignores the operator, since it is null anyway.
 	 */
 	protected void setValue(Operator operator, ParameterType type, String value) {
-		parameters.setParameter(type.getKey(), value);
-		//keyValueMap.put(type.getKey(), value);
-		setupComponents();
+		if (parameters != null) {
+			parameters.setParameter(type.getKey(), value);
+			//keyValueMap.put(type.getKey(), value);
+			setupComponents();
+		}
 	}
 	
 	public void setValue(String key, String value) {

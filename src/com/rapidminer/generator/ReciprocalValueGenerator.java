@@ -22,6 +22,8 @@
  */
 package com.rapidminer.generator;
 
+import java.util.logging.Level;
+
 import com.rapidminer.tools.LogService;
 
 /**
@@ -53,7 +55,9 @@ public class ReciprocalValueGenerator extends SingularNumericalGenerator {
 			if (FUNCTION_NAMES[i].equals(name))
 				return;
 		}
-		LogService.getGlobal().log("Illegal function name '" + name + "' for " + getClass().getName() + ".", LogService.ERROR);
+		//LogService.getGlobal().log("Illegal function name '" + name + "' for " + getClass().getName() + ".", LogService.ERROR);
+		LogService.getRoot().log(Level.SEVERE, "com.rapidminer.generator.ReciprocalValueGenerator.illegal_function_name",
+				new Object[] {name, getClass().getName()});
 	}
 
 	@Override

@@ -30,6 +30,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.logging.Level;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -86,7 +87,8 @@ public class ScatterMatrixPlotter extends PlotterAdapter {
             if (sizeProperty != null)
                 this.plotterSize = Integer.parseInt(sizeProperty);
         } catch (NumberFormatException e) {
-            LogService.getGlobal().log("Scatter matrix: cannot parse plotter size (was '" + sizeProperty + "'), using default size (200).", LogService.WARNING);
+            //LogService.getGlobal().log("Scatter matrix: cannot parse plotter size (was '" + sizeProperty + "'), using default size (200).", LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.ScatterMatrixPlotter.parsing_plotter_size_error", sizeProperty);        
         }
 
         plotter.setDrawLegend(false);

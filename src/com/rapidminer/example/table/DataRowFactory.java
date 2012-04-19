@@ -22,6 +22,8 @@
  */
 package com.rapidminer.example.table;
 
+import java.util.logging.Level;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
@@ -273,7 +275,8 @@ public class DataRowFactory {
 			str = str.replace(decimalPointCharacter, '.');
 			return Double.parseDouble(str);
 		} catch (NumberFormatException e) {
-			LogService.getGlobal().log("DataRowFactory.string2Double(String): '" + str + "' is not a valid number!", LogService.ERROR);
+			//LogService.getGlobal().log("DataRowFactory.string2Double(String): '" + str + "' is not a valid number!", LogService.ERROR);
+			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.example.table.DataRowFactory.datarowfactory_is_not_a_valid_number", str);
 			return Double.NaN;
 		}
 	}

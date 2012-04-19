@@ -110,7 +110,8 @@ public class ParameterTypePassword extends ParameterTypeString {
 		try {
 			return CipherTools.encrypt(value);
 		} catch (CipherException e) {
-			LogService.getGlobal().logError("Cannot encrypt password, using non-encrypted password in XML!");
+			//LogService.getGlobal().logError("Cannot encrypt password, using non-encrypted password in XML!");
+			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.parameter.ParameterTypePassword.encrypting_password_error");
 			return value;
 		}		 
 	}

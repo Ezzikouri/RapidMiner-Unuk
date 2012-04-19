@@ -22,6 +22,8 @@
  */
 package com.rapidminer.generator;
 
+import java.util.logging.Level;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.ExampleTable;
@@ -100,7 +102,9 @@ public class MinMaxGenerator extends BinaryNumericalGenerator {
 				return;
 			}
 		}
-		LogService.getGlobal().log("Illegal function name '" + name + "' for " + getClass().getName() + ".", LogService.ERROR);
+		//LogService.getGlobal().log("Illegal function name '" + name + "' for " + getClass().getName() + ".", LogService.ERROR);
+		LogService.getRoot().log(Level.SEVERE, "com.rapidminer.generator.MinMaxGenerator.illegal_function_name",
+				new Object[] {name, getClass().getName()});
 	}
 
 	@Override

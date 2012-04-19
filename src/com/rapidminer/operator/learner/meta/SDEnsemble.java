@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
@@ -128,7 +129,8 @@ public class SDEnsemble extends PredictionModel implements MetaModel {
 				if (file.exists()) {
 					boolean result = file.delete();
 					if (!result)
-						LogService.getGlobal().logError("Cannot delete file: " + file);
+						//LogService.getGlobal().logError("Cannot delete file: " + file);
+						LogService.getRoot().log(Level.SEVERE, "com.rapidminer.operator.learner.meta.SDEnsemble.deleting_file_error", file);
 				}
 				try {
 					file.createNewFile();

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
@@ -243,7 +244,8 @@ public class HistogramColorChart extends HistogramChart {
             if (maxClassesProperty != null)
                 maxClasses = Integer.parseInt(maxClassesProperty);
         } catch (NumberFormatException e) {
-            LogService.getGlobal().log("Deviation plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            //LogService.getGlobal().log("Deviation plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.HistogramColorChart.parsing_property_error");
         }
 
         JFreeChart chart = null;

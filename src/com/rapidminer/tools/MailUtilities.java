@@ -80,7 +80,8 @@ public class MailUtilities {
                 mailSender = new MailSenderSendmail();
                 break;
             default:
-                LogService.getGlobal().log("Illegal send mail method: " + method + ".", LogService.ERROR);
+                //LogService.getGlobal().log("Illegal send mail method: " + method + ".", LogService.ERROR);
+                LogService.getRoot().log(Level.SEVERE, "com.rapidminer.tools.MailUtilities.illegal_send_mail_method", method);
             }
 
             if (mailSender != null) {
@@ -90,7 +91,9 @@ public class MailUtilities {
                 		new Object[] {address, subject});
             }
         } catch (Exception e) {
-            LogService.getGlobal().log("Cannot send mail to " + address + ": " + e, LogService.ERROR);
+            //LogService.getGlobal().log("Cannot send mail to " + address + ": " + e, LogService.ERROR);
+        	LogService.getRoot().log(Level.SEVERE, "com.rapidminer.tools.MailUtilities.sending_mail_to_address_error", 
+        			new Object[] {address, e});
         }
     }
 

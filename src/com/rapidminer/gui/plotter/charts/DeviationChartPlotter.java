@@ -28,6 +28,7 @@ import java.awt.Stroke;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.JComponent;
 
@@ -282,7 +283,8 @@ public class DeviationChartPlotter extends LocalNormalizationPlotterAdapter {
             if (maxClassesProperty != null)
                 maxClasses = Integer.parseInt(maxClassesProperty);
         } catch (NumberFormatException e) {
-            LogService.getGlobal().log("Deviation plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            //LogService.getGlobal().log("Deviation plotter: cannot parse property 'rapidminer.gui.plotter.colors.classlimit', using maximal 20 different classes.", LogService.WARNING);
+            LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.plotter.charts.DeviationChartPlotter.parsing_property_error");
         }
         boolean createLegend = categoryCount > 0 && categoryCount < maxClasses;
 
