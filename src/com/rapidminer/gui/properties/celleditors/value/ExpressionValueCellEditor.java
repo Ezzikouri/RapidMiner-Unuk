@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -48,17 +49,17 @@ import com.rapidminer.parameter.ParameterTypeExpression;
  *
  */
 public class ExpressionValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
-	
+
 	private static final long serialVersionUID = 2355429695124754211L;
 
 	private static final String CALCULATOR_NAME = "calculator.png";
-	
+
 	private static Icon CALCULATOR_ICON = null;
-	
+
 	static {
 		CALCULATOR_ICON = SwingTools.createIcon("16/" + CALCULATOR_NAME);
 	}
-	
+
 	private final JPanel panel = new JPanel();
 
 	private final JTextField textField = new JTextField(12);
@@ -68,19 +69,21 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 	private final GridBagLayout gridBagLayout = new GridBagLayout();
 
 	private JButton button;
-	
+
 	public ExpressionValueCellEditor(ParameterTypeExpression type) {
 		this.type = type;
 		panel.setLayout(gridBagLayout);
 		panel.setToolTipText(type.getDescription());
 		textField.setToolTipText(type.getDescription());
 		textField.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				fireEditingStopped();
-			}			
+			}
 		});
 		textField.addFocusListener(new FocusListener() {
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				// fire only if the focus didn't move to the button. If this check
@@ -92,11 +95,14 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 				// Otherwise any changes made after switching back to rapidminer would
 				// not be saved for the same reasons as stated above.
 				Component oppositeComponent = e.getOppositeComponent();
-				if(oppositeComponent != button && !e.isTemporary()) {
+				if (oppositeComponent != button && !e.isTemporary()) {
 					fireEditingStopped();
 				}
-			}			
-			@Override public void focusGained(FocusEvent e) { }
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+			}
 		});
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -105,12 +111,26 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 		c.weightx = 1;
 		gridBagLayout.setConstraints(textField, c);
 		panel.add(textField);
-		
+
 		button = new JButton(CALCULATOR_ICON);
 		button.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				buttonPressed();
+			}
+		});
+		button.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (e.getOppositeComponent() != textField && !e.isTemporary()) {
+					fireEditingStopped();
+				}
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
 			}
 		});
 		c.gridwidth = GridBagConstraints.REMAINDER;
@@ -136,15 +156,16 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 		else
 			textField.setText(text);
 	}
-	
-    /** Does nothing. */
-    public void setOperator(Operator operator) {}
-    
+
+	/** Does nothing. */
+	public void setOperator(Operator operator) {
+	}
+
 	@Override
 	public boolean rendersLabel() {
 		return false;
 	}
-	
+
 	public Object getCellEditorValue() {
 		return (textField.getText().trim().length() == 0) ? null : textField.getText().trim();
 	}

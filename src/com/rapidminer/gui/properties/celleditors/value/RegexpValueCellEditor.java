@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -41,7 +42,6 @@ import com.rapidminer.gui.properties.RegexpPropertyDialog;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeRegexp;
-
 
 /**
  * A cell editor for regular expression parameters. Supports the direct
@@ -67,26 +67,31 @@ public class RegexpValueCellEditor extends AbstractCellEditor implements Propert
 		panel.setToolTipText(type.getDescription());
 		textField.setToolTipText(type.getDescription());
 		textField.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent e) {
 				fireEditingStopped();
-			}			
+			}
 		});
 		textField.addFocusListener(new FocusListener() {
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				// fire only if the focus didn't move to the button. If this check
 				// would not be included, fireEditingStopped() would prevent the button's
 				// ActionEvent from being fired. The user would have to click a second time to
 				// trigger the button action.
-				// Additionally, the event is only fired if the focus loss is permamently,
+				// Additionally, the event is only fired if the focus loss is permanently,
 				// i.e. it is not fired if the user e.g. just switched to another window.
-				// Otherwise any changes made after switching back to rapidminer would
+				// Otherwise any changes made after switching back to RapidMiner would
 				// not be saved for the same reasons as stated above.
-				if(e.getOppositeComponent() != button && !e.isTemporary()) {
+				if (e.getOppositeComponent() != button && !e.isTemporary()) {
 					fireEditingStopped();
 				}
-			}			
-			@Override public void focusGained(FocusEvent e) { }
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+			}
 		});
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -96,6 +101,7 @@ public class RegexpValueCellEditor extends AbstractCellEditor implements Propert
 		panel.add(textField, c);
 
 		button = new JButton(new ResourceAction(true, "regexp") {
+
 			private static final long serialVersionUID = 3989811306286704326L;
 
 			public void actionPerformed(ActionEvent e) {
@@ -103,10 +109,21 @@ public class RegexpValueCellEditor extends AbstractCellEditor implements Propert
 				dialog.setVisible(true);
 				if (dialog.isOk()) {
 					textField.setText(dialog.getRegexp());
-					fireEditingStopped();
-				} else {
-					fireEditingCanceled();
 				}
+				fireEditingStopped();
+			}
+		});
+		button.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (e.getOppositeComponent() != textField && !e.isTemporary()) {
+					fireEditingStopped();
+				}
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
 			}
 		});
 		button.setMargin(new Insets(0, 0, 0, 0));

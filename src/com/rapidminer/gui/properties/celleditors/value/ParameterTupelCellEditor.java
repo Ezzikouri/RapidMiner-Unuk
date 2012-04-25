@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -60,32 +61,26 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 	public ParameterTupelCellEditor(ParameterTypeTupel type) {
 		types = type.getParameterTypes();
 		focusListener = new FocusListener() {
-			
+
 			@Override
 			public void focusLost(FocusEvent e) {
 				// fire only if the focus didn't move to another descendant of the containing panel. If this check
-				// would not be included, fireEditingStopped() would prevent switching between tupel components.
-				// Additionally, the event is only fired if the focus loss is permamently,
+				// would not be included, fireEditingStopped() would prevent switching between tuple components.
+				// Additionally, the event is only fired if the focus loss is permanently,
 				// i.e. it is not fired if the user e.g. just switched to another window.
-				// Otherwise any changes made after switching back to rapidminer would
+				// Otherwise any changes made after switching back to RapidMiner would
 				// not be saved for the same reasons as stated above.
-				Component oppositeComponent = e.getOppositeComponent();		
-//				if(oppositeComponent != null) {
-//					System.out.println("New focus component: "+oppositeComponent.getClass()+ ", old component: "+e.getSource().getClass());
-//				} else {
-//					System.out.println("New focus component: 'null', old component: "+e.getSource().getClass());
-//				}
-				if((oppositeComponent == null || !SwingUtilities.isDescendingFrom(oppositeComponent, panel)) && !e.isTemporary()) {
-//					System.out.println("Fire editing stopped!");
+				Component oppositeComponent = e.getOppositeComponent();
+				if ((oppositeComponent == null || !SwingUtilities.isDescendingFrom(oppositeComponent, panel)) && !e.isTemporary()) {
 					fireEditingStopped();
 				}
 			}
-			
+
 			@Override
 			public void focusGained(FocusEvent e) {
 			}
 		};
-		
+
 	}
 
 	@Override
@@ -142,9 +137,9 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 		panel.setLayout(new GridLayout(1, editors.length));
 		for (int i = 0; i < types.length; i++) {
 			Component editorComponent = editors[i].getTableCellEditorComponent(null, values[i], false, 0, 0);
-			if(editorComponent instanceof JComboBox && ((JComboBox) editorComponent).isEditable()) {
+			if (editorComponent instanceof JComboBox && ((JComboBox) editorComponent).isEditable()) {
 				ComboBoxEditor editor = ((JComboBox) editorComponent).getEditor();
-				if(editor instanceof BasicComboBoxEditor) {
+				if (editor instanceof BasicComboBoxEditor) {
 					editor.getEditorComponent().addFocusListener(focusListener);
 				}
 			} else {

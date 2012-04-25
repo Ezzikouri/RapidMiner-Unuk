@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -43,7 +44,6 @@ import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.parameter.ParameterTypeDirectory;
 import com.rapidminer.parameter.ParameterTypeFile;
-
 
 /**
  * Cell editor consisting of a text field and a small button for opening a file
@@ -72,23 +72,26 @@ public abstract class FileValueCellEditor extends AbstractCellEditor implements 
 		panel.setToolTipText(type.getDescription());
 		textField.setToolTipText(type.getDescription());
 		textField.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				fireEditingStopped();
-			}			
+			}
 		});
 		textField.addFocusListener(new FocusListener() {
+
 			@Override
 			public void focusLost(FocusEvent e) {
-				// The event is only fired if the focus loss is permamently,
+				// The event is only fired if the focus loss is permanently,
 				// i.e. it is not fired if the user e.g. just switched to another window.
-				// Otherwise any changes made after switching back to rapidminer would
-				// not be saved for the same reasons as stated above.
-				if(!e.isTemporary()) {
+				if (!e.isTemporary()) {
 					fireEditingStopped();
 				}
-			}			
-			@Override public void focusGained(FocusEvent e) { }
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+			}
 		});
 
 		GridBagConstraints c = new GridBagConstraints();
@@ -101,7 +104,9 @@ public abstract class FileValueCellEditor extends AbstractCellEditor implements 
 
 	protected JButton createFileChooserButton() {
 		JButton button = new JButton(new ResourceAction(true, "choose_file") {
+
 			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent e) {
 				buttonPressed();
 			}

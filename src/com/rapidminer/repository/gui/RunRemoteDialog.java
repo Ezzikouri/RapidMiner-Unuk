@@ -27,11 +27,14 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
 
 import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -51,6 +54,7 @@ import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
 import com.rapidminer.ProcessLocation;
 import com.rapidminer.RepositoryProcessLocation;
+import com.rapidminer.gui.dialog.CronEditorDialog;
 import com.rapidminer.gui.processeditor.ProcessContextEditor;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceLabel;
@@ -64,6 +68,7 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.remote.RemoteRepository;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
 import com.rapidminer.tools.container.Pair;
@@ -89,6 +94,8 @@ public class RunRemoteDialog extends ButtonDialog {
 	private static int lastRepositoryIndexSelected = 0;
 	private final JLabel dateLabel = new ResourceLabel("runremotedialog.date");
 	private final JLabel cronLabel = new ResourceLabel("runremotedialog.cronexpression");
+	private JLabel cronHelpIconLabel;
+	JButton cronEditorButton;
 	private final JCheckBox startBox = new JCheckBox(new ResourceAction("runremotedialog.cronstart") {
 
 		private static final long serialVersionUID = 1L;
@@ -120,6 +127,8 @@ public class RunRemoteDialog extends ButtonDialog {
 	private final ResourceTabbedPane tabs = new ResourceTabbedPane("runremotedialog");
 
 	private ProcessContext context = new ProcessContext();
+	
+	private CronEditorDialog cronEditor = new CronEditorDialog();
 
 	public RunRemoteDialog(Process process) {
 		super("runremotedialog", true);
@@ -345,14 +354,40 @@ public class RunRemoteDialog extends ButtonDialog {
 
 		c.insets = new Insets(0, 8 * GAP, 0, GAP);
 		cronLabel.setLabelFor(cronField);
-		schedPanel.add(cronLabel, c);
+		JPanel cronLabelPanel = new JPanel();
+		cronLabelPanel.setLayout(new GridBagLayout());
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.weightx = 0;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.insets = new Insets(5, 5, 5, 0);
+		cronLabelPanel.add(cronLabel, gbc);
+		
+		cronHelpIconLabel = new JLabel();
+		cronHelpIconLabel.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.cron_help.icon")));
+		cronHelpIconLabel.addMouseListener(new MouseAdapter() {
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (cronButton.isSelected()) {
+					SwingTools.showMessageDialog("cron_long_help");
+				}
+			}
+		});
+		gbc.gridx = 1;
+		cronLabelPanel.add(cronHelpIconLabel, gbc);
+		gbc.gridx = 2;
+		gbc.weightx = 1;
+		cronLabelPanel.add(Box.createHorizontalGlue(), gbc);
+		schedPanel.add(cronLabelPanel, c);
+		
 		c.insets = new Insets(0, 8 * GAP, GAP, 0);
 		c.gridwidth = GridBagConstraints.RELATIVE;
 		schedPanel.add(cronField, c);
 
 		c.insets = new Insets(0, 0, GAP, GAP);
 		//		ResourceLabel cronHelp = new ResourceLabel("cron_help");
-		JButton cronHelpButton = new JButton(new ResourceAction(true, "cron_help") {
+		cronEditorButton = new JButton(new ResourceAction(true, "cron_editor") {
 
 			private static final long serialVersionUID = 1L;
 			{
@@ -361,12 +396,15 @@ public class RunRemoteDialog extends ButtonDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SwingTools.showMessageDialog("cron_long_help");
+				cronEditor.prompt();
+				if (cronEditor.wasConfirmed()) {
+					cronField.setText(cronEditor.getCronExpression());
+				}
 			}
 		});
 		c.weightx = 0;
 		c.gridwidth = GridBagConstraints.REMAINDER;
-		schedPanel.add(cronHelpButton, c);
+		schedPanel.add(cronEditorButton, c);
 		c.weightx = 1;
 
 		c.insets = new Insets(GAP, 8 * GAP, 0, GAP);
@@ -390,6 +428,8 @@ public class RunRemoteDialog extends ButtonDialog {
 		dateField.setEnabled(onceButton.isSelected());
 		cronLabel.setEnabled(cronButton.isSelected());
 		cronField.setEnabled(cronButton.isSelected());
+		cronHelpIconLabel.setEnabled(cronButton.isSelected());
+		cronEditorButton.setEnabled(cronButton.isSelected());
 		startBox.setEnabled(cronButton.isSelected());
 		endBox.setEnabled(cronButton.isSelected());
 		startField.setEnabled(cronButton.isSelected() && startBox.isSelected());

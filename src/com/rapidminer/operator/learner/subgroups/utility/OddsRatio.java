@@ -32,6 +32,11 @@ import com.rapidminer.operator.learner.subgroups.hypothesis.Rule;
  */
 public class OddsRatio extends UtilityFunction {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public OddsRatio(double totalWeight, double totalPositiveWeight) {
 		super(totalWeight, totalPositiveWeight);
 	}

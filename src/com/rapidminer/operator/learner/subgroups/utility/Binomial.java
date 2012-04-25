@@ -32,6 +32,11 @@ import com.rapidminer.operator.learner.subgroups.hypothesis.Rule;
  */
 public class Binomial extends UtilityFunction {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public Binomial(double totalWeight, double totalPredictionWeight) {
 		super(totalWeight, totalPredictionWeight);
 	}
