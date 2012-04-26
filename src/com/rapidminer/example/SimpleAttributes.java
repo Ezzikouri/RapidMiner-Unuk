@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.example;
 
 import java.util.HashMap;
@@ -39,62 +40,65 @@ import java.util.NoSuchElementException;
  * @author Ingo Mierswa, Sebastian Land
  */
 public class SimpleAttributes extends AbstractAttributes {
-    
+
 	private static final long serialVersionUID = 6388263725741578818L;
-	
+
 	private List<AttributeRole> attributes = new LinkedList<AttributeRole>();
-	
-	private transient Map<String,AttributeRole> nameToAttributeRoleMap = new HashMap<String,AttributeRole>();
-	private transient Map<String,AttributeRole> specialNameToAttributeRoleMap = new HashMap<String,AttributeRole>();
-	
+
+	private transient Map<String, AttributeRole> nameToAttributeRoleMap = new HashMap<String, AttributeRole>();
+	private transient Map<String, AttributeRole> specialNameToAttributeRoleMap = new HashMap<String, AttributeRole>();
+
 	public SimpleAttributes() {
 	}
-	
+
 	private SimpleAttributes(SimpleAttributes attributes) {
-        for (AttributeRole role : attributes.attributes) {            
-            //this.attributes.add((AttributeRole)role.clone());
-            register((AttributeRole)role.clone(), false);
-        }
+		for (AttributeRole role : attributes.attributes) {
+			//this.attributes.add((AttributeRole)role.clone());
+			register((AttributeRole) role.clone(), false);
+		}
 	}
-	
+
 	public Object readResolve() {
 		if (nameToAttributeRoleMap == null) {
 			// in earlier versions we didn't have this map, so set it up here. anyway, the maps are transient.
-			nameToAttributeRoleMap = new HashMap<String,AttributeRole>();			
-			specialNameToAttributeRoleMap = new HashMap<String,AttributeRole>();
+			nameToAttributeRoleMap = new HashMap<String, AttributeRole>();
+			specialNameToAttributeRoleMap = new HashMap<String, AttributeRole>();
 			for (AttributeRole attributeRole : attributes) {
 				register(attributeRole, true);
 			}
-		}	
+		}
 		return this;
 	}
-	
+
 	@Override
 	public Object clone() {
 		return new SimpleAttributes(this);
 	}
-	
+
 	@Override
 	public boolean equals(Object o) {
 		if (!(o instanceof SimpleAttributes)) {
 			return false;
 		}
-		SimpleAttributes other = (SimpleAttributes)o;
+		SimpleAttributes other = (SimpleAttributes) o;
 		return attributes.equals(other.attributes);
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return attributes.hashCode();
 	}
-	
+
 	public Iterator<AttributeRole> allAttributeRoles() {
 		final Iterator<AttributeRole> i = attributes.iterator();
 		return new Iterator<AttributeRole>() {
+
 			private AttributeRole current;
+
 			public boolean hasNext() {
 				return i.hasNext();
 			}
+
 			public AttributeRole next() {
 				current = i.next();
 				return current;
@@ -103,22 +107,22 @@ public class SimpleAttributes extends AbstractAttributes {
 			public void remove() {
 				i.remove();
 				unregister(current, true);
-			}			
+			}
 		};
 	}
-		
+
 	/**
 	 * @param onlyMaps add only to maps, not to list. Useful for {@link #readResolve}
 	 */
 	private void register(AttributeRole attributeRole, boolean onlyMaps) {
-		String name = attributeRole.getAttribute().getName();		
+		String name = attributeRole.getAttribute().getName();
 		if (nameToAttributeRoleMap.containsKey(name)) {
-			throw new IllegalArgumentException("Duplicate attribute name: "+name);
+			throw new IllegalArgumentException("Duplicate attribute name: " + name);
 		}
 		String specialName = attributeRole.getSpecialName();
 		if (specialName != null) {
 			if (specialNameToAttributeRoleMap.containsKey(specialName)) {
-				throw new IllegalArgumentException("Duplicate attribute role: "+specialName);
+				throw new IllegalArgumentException("Duplicate attribute role: " + specialName);
 			}
 		}
 		this.nameToAttributeRoleMap.put(name, attributeRole);
@@ -131,7 +135,7 @@ public class SimpleAttributes extends AbstractAttributes {
 		attributeRole.addOwner(this);
 		attributeRole.getAttribute().addOwner(this);
 	}
-	
+
 	/**
 	 *	 
 	 * @param onlyMap if true, removes the attribute only from the maps, but not from the list.
@@ -140,8 +144,8 @@ public class SimpleAttributes extends AbstractAttributes {
 	private boolean unregister(AttributeRole attributeRole, boolean onlyMap) {
 		if (!nameToAttributeRoleMap.containsKey(attributeRole.getAttribute().getName())) {
 			return false;
-		}		
-		this.nameToAttributeRoleMap.remove(attributeRole.getAttribute().getName());		
+		}
+		this.nameToAttributeRoleMap.remove(attributeRole.getAttribute().getName());
 		if (attributeRole.getSpecialName() != null) {
 			this.specialNameToAttributeRoleMap.remove(attributeRole.getSpecialName());
 		}
@@ -149,49 +153,49 @@ public class SimpleAttributes extends AbstractAttributes {
 			this.attributes.remove(attributeRole);
 		}
 		attributeRole.removeOwner(this);
-		attributeRole.getAttribute().removeOwner(this);		
+		attributeRole.getAttribute().removeOwner(this);
 		return true;
 	}
-	
+
 	public void rename(AttributeRole attributeRole, String newSpecialName) {
 		if (attributeRole.getSpecialName() != null) {
 			AttributeRole role = specialNameToAttributeRoleMap.get(attributeRole.getSpecialName());
 			if (role == null) {
-				throw new NoSuchElementException("Cannot rename attribute role. No such attribute role: "+attributeRole.getSpecialName());
+				throw new NoSuchElementException("Cannot rename attribute role. No such attribute role: " + attributeRole.getSpecialName());
 			}
 			if (role != attributeRole) {
-				throw new RuntimeException("Broken attribute role map.");	
+				throw new RuntimeException("Broken attribute role map.");
 			}
-		}		
+		}
 		specialNameToAttributeRoleMap.remove(attributeRole.getSpecialName());
 		if (newSpecialName != null) {
 			specialNameToAttributeRoleMap.put(newSpecialName, attributeRole);
 		}
-			
+
 	}
-	
+
 	public void rename(Attribute attribute, String newName) {
 		if (nameToAttributeRoleMap.containsKey(newName)) {
-			throw new IllegalArgumentException("Cannot rename attribute. Duplicate name: "+newName);
+			throw new IllegalArgumentException("Cannot rename attribute. Duplicate name: " + newName);
 		}
 		AttributeRole role = nameToAttributeRoleMap.get(attribute.getName());
 		if (role == null) {
-			throw new NoSuchElementException("Cannot rename attribute. No such attribute: "+attribute.getName());
+			throw new NoSuchElementException("Cannot rename attribute. No such attribute: " + attribute.getName());
 		}
 		if (role.getAttribute() != attribute) {
 			// this cannot happen
-			throw new RuntimeException("Broken attribute map.");			
-		}		
+			throw new RuntimeException("Broken attribute map.");
+		}
 		nameToAttributeRoleMap.remove(role.getAttribute().getName());
 		nameToAttributeRoleMap.put(newName, role);
 	}
-	
+
 	public void add(AttributeRole attributeRole) {
-		register(attributeRole, false);		
+		register(attributeRole, false);
 	}
-	
+
 	public boolean remove(AttributeRole attributeRole) {
-		return unregister(attributeRole, false);		
+		return unregister(attributeRole, false);
 	}
 
 	public AttributeRole findRoleByName(String name, boolean caseSensitive) {
@@ -199,7 +203,7 @@ public class SimpleAttributes extends AbstractAttributes {
 			return nameToAttributeRoleMap.get(name);
 		else {
 			String lowerSearchTerm = name.toLowerCase();
-			for (Entry<String, AttributeRole> entry: nameToAttributeRoleMap.entrySet()) {
+			for (Entry<String, AttributeRole> entry : nameToAttributeRoleMap.entrySet()) {
 				if (lowerSearchTerm.equals(entry.getKey().toLowerCase()))
 					return entry.getValue();
 			}
@@ -212,24 +216,24 @@ public class SimpleAttributes extends AbstractAttributes {
 			return specialNameToAttributeRoleMap.get(specialName);
 		else {
 			String lowerSearchTerm = specialName.toLowerCase();
-			for (Entry<String, AttributeRole> entry: specialNameToAttributeRoleMap.entrySet()) {
+			for (Entry<String, AttributeRole> entry : specialNameToAttributeRoleMap.entrySet()) {
 				if (lowerSearchTerm.equals(entry.getKey().toLowerCase()))
 					return entry.getValue();
 			}
 			return null;
 		}
 	}
-	
+
 	@Override
 	public int size() {
 		return nameToAttributeRoleMap.size() - specialNameToAttributeRoleMap.size();
 	}
-	
+
 	@Override
 	public int allSize() {
 		return nameToAttributeRoleMap.size();
 	}
-	
+
 	@Override
 	public int specialSize() {
 		return specialNameToAttributeRoleMap.size();

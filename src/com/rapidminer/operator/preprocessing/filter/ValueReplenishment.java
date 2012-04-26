@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.preprocessing.filter;
 
 import java.util.Arrays;
@@ -39,7 +40,7 @@ import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
-
+import com.rapidminer.tools.Ontology;
 
 /**
  * Abstract superclass for all operators that replenish values, e.g. nan or
@@ -54,7 +55,6 @@ public abstract class ValueReplenishment extends PreprocessingOperator {
 
 	/** The parameter name for &quot;List of replacement functions for each column.&quot; */
 	public static final String PARAMETER_COLUMNS = "columns";
-
 
 	public ValueReplenishment(OperatorDescription description) {
 		super(description);
@@ -93,7 +93,7 @@ public abstract class ValueReplenishment extends PreprocessingOperator {
 		List<String[]> functionList = getParameterList(PARAMETER_COLUMNS);
 
 		double replacedValue = getReplacedValue();
-		HashMap<String, Double> numericalReplacementMap = new HashMap<String, Double>();
+		HashMap<String, Double> numericalAndDateReplacementMap = new HashMap<String, Double>();
 		HashMap<String, String> nominalReplacementMap = new HashMap<String, String>();
 		List<String> functionNames = Arrays.asList(getFunctionNames());
 		for (Attribute attribute: exampleSet.getAttributes()) {
@@ -116,12 +116,12 @@ public abstract class ValueReplenishment extends PreprocessingOperator {
 					nominalReplacementMap.put(attributeName, attribute.getMapping().mapIndex((int) replenishmentValue));
 				}
 			}
-			if (attribute.isNumerical()) {
-				numericalReplacementMap.put(attributeName, replenishmentValue);
+			if (attribute.isNumerical() || Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+				numericalAndDateReplacementMap.put(attributeName, replenishmentValue);
 			}
 		}
 
-		return new ValueReplenishmentModel(exampleSet, replacedValue, numericalReplacementMap, nominalReplacementMap);
+		return new ValueReplenishmentModel(exampleSet, replacedValue, numericalAndDateReplacementMap, nominalReplacementMap);
 	}
 
 	@Override
@@ -133,14 +133,16 @@ public abstract class ValueReplenishment extends PreprocessingOperator {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		String[] functionNames = getFunctionNames();
-		ParameterType type = new ParameterTypeCategory(PARAMETER_DEFAULT, "Function to apply to all columns that are not explicitly specified by parameter 'columns'.", functionNames, getDefaultFunction());
+		ParameterType type = new ParameterTypeCategory(PARAMETER_DEFAULT, "Function to apply to all columns that are not explicitly specified by parameter 'columns'.",
+				functionNames, getDefaultFunction());
 		type.setExpert(false);
 		types.add(type);
-		ParameterTypeStringCategory categories = new ParameterTypeStringCategory("replace_with", "Selects the function, which is used to determine the replacement for the missing values of this attribute.", functionNames, getFunctionNames()[getDefaultColumnFunction()], false);
+		ParameterTypeStringCategory categories = new ParameterTypeStringCategory("replace_with",
+				"Selects the function, which is used to determine the replacement for the missing values of this attribute.", functionNames,
+				getFunctionNames()[getDefaultColumnFunction()], false);
 		categories.setEditable(false);
-		types.add(new ParameterTypeList(PARAMETER_COLUMNS, "List of replacement functions for each column.", 
-				new ParameterTypeAttribute("attribute", "Specifies the attribute, which missing values are replaced.", getExampleSetInputPort()),
-				categories));
+		types.add(new ParameterTypeList(PARAMETER_COLUMNS, "List of replacement functions for each column.", new ParameterTypeAttribute("attribute",
+				"Specifies the attribute, which missing values are replaced.", getExampleSetInputPort()), categories));
 		return types;
 	}
 

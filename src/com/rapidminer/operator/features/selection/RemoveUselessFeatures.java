@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.features.selection;
 
 import java.util.Collection;
@@ -38,7 +39,6 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
-
 
 /**
  * Removes useless attribute from the example set. Useless attributes are
@@ -75,7 +75,7 @@ public class RemoveUselessFeatures extends AbstractFeatureSelection {
 	}
 
 	@Override
-	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {		 
+	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
 		exampleSet.recalculateAllAttributeStatistics();
 
 		double numericalMinDeviation = getParameterAsDouble(PARAMETER_NUMERICAL_MIN_DEVIATION);
@@ -109,13 +109,18 @@ public class RemoveUselessFeatures extends AbstractFeatureSelection {
 				// check for single values which dominates other values and
 				// calculate maximum
 				double maximumValueCount = Double.NEGATIVE_INFINITY;
+				boolean removed = false;
 				for (n = 0; n < valueCounts.length; n++) {
 					double percent = valueCounts[n] / exampleSet.size();
 					maximumValueCount = Math.max(maximumValueCount, percent);
 					if (percent >= nominalSingleValueUpper) {
 						i.remove();
+						removed = true;
 						break;
 					}
+				}
+				if (removed) {
+					continue;
 				}
 				// check if the maximum is below lower bound to remove widely
 				// spreaded attributes
@@ -145,21 +150,25 @@ public class RemoveUselessFeatures extends AbstractFeatureSelection {
 
 		return exampleSet;
 	}
-	
+
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 
-		ParameterType type = new ParameterTypeDouble(PARAMETER_NUMERICAL_MIN_DEVIATION, "Removes all numerical attributes with standard deviation less or equal to this threshold.", 0.0d, Double.POSITIVE_INFINITY, 0.0d);
+		ParameterType type = new ParameterTypeDouble(PARAMETER_NUMERICAL_MIN_DEVIATION,
+				"Removes all numerical attributes with standard deviation less or equal to this threshold.", 0.0d, Double.POSITIVE_INFINITY, 0.0d);
 		type.setExpert(false);
 		types.add(type);
-		type = new ParameterTypeDouble(PARAMETER_NOMINAL_SINGLE_VALUE_UPPER, "Removes all nominal attributes which most frequent value is contained in more than this fraction of all examples.", 0.0d, 1.0d, 1.0d);
+		type = new ParameterTypeDouble(PARAMETER_NOMINAL_SINGLE_VALUE_UPPER,
+				"Removes all nominal attributes which most frequent value is contained in more than this fraction of all examples.", 0.0d, 1.0d, 1.0d);
 		type.setExpert(false);
 		types.add(type);
 		types.add(type);
-		types.add(new ParameterTypeBoolean(PARAMETER_REMOVE_ID_LIKE, "If checked, nominal attributes which values appear only once in the complete exampleset are removed.", false, false));
+		types.add(new ParameterTypeBoolean(PARAMETER_REMOVE_ID_LIKE, "If checked, nominal attributes which values appear only once in the complete exampleset are removed.", false,
+				false));
 
-		type = new ParameterTypeDouble(PARAMETER_NOMINAL_SINGLE_VALUE_LOWER, "Removes all nominal attributes which most frequent value is contained in less than this fraction of all examples.", 0d, 1.0d, 0d);
+		type = new ParameterTypeDouble(PARAMETER_NOMINAL_SINGLE_VALUE_LOWER,
+				"Removes all nominal attributes which most frequent value is contained in less than this fraction of all examples.", 0d, 1.0d, 0d);
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_REMOVE_ID_LIKE, false, false));
 		type.setExpert(false);
 		types.add(type);
