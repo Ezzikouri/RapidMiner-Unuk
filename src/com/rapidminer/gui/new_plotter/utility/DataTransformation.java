@@ -26,8 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import com.rapidminer.Process;
 import com.rapidminer.example.ExampleSet;
@@ -95,7 +95,7 @@ public class DataTransformation {
 			if (selectedNomToNumericAttributesList != null) {
 				selectedNomToNumericAttributesList.remove("id");
 				for (String attName : selectedNomToNumericAttributesList) {
-					defaultValueBuffer.append(attName);
+					defaultValueBuffer.append(Pattern.quote(attName));
 					defaultValueBuffer.append("|");
 				}
 			}
@@ -114,7 +114,7 @@ public class DataTransformation {
 
 			// modify de-pivot to only de-pivot given list of numerical attributes
 			for (String attName : listOfNumericalAttributes) {
-				defaultValueBuffer.append(attName);
+				defaultValueBuffer.append(Pattern.quote(attName));
 				defaultValueBuffer.append("|");
 			}
 			// remove last '|' so length -1

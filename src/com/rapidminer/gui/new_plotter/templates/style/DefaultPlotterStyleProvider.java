@@ -154,12 +154,20 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		 * default color schemes are defined here
 		 */
 		List<ColorRGB> listOfColors = new LinkedList<ColorRGB>();
+		listOfColors.add(new ColorRGB(0, 0, 255));
+		listOfColors.add(new ColorRGB(0, 255, 0));
+		listOfColors.add(new ColorRGB(255, 0, 0));
+		ColorScheme cs = new ColorScheme("Full spectrum", listOfColors);
+		listOfColorSchemes.add(cs);
+		listOfDefaultColorSchemes.add(cs);
+		
+		listOfColors = new LinkedList<ColorRGB>();
 		listOfColors.add(new ColorRGB(222, 217, 26));
 		listOfColors.add(new ColorRGB(219, 138, 47));
 		listOfColors.add(new ColorRGB(217, 26, 21));
-		listOfColors.add(new ColorRGB(83, 70, 255));
 		listOfColors.add(new ColorRGB(156, 217, 84));
-		ColorScheme cs = new ColorScheme("Colorful", listOfColors);
+		listOfColors.add(new ColorRGB(83, 70, 255));
+		cs = new ColorScheme("Colorful", listOfColors);
 		listOfColorSchemes.add(cs);
 		listOfDefaultColorSchemes.add(cs);
 		
@@ -365,6 +373,15 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		}
 		
 		synchronized(synchronizeColorSchemeListObject) {
+			for (ColorScheme defaultColorScheme : listOfDefaultColorSchemes) {
+				// special handling if a color scheme is set with the same name as a default color scheme:
+				// just set default color scheme - this is needed otherwise if a default color scheme 
+				// got changed in the code, it would not be used but instead the old saved one would be re-added
+				if (colorScheme.getName().equals(defaultColorScheme.getName())) {
+					setSelectedColorSchemeIndex(listOfColorSchemes.indexOf(defaultColorScheme));
+					return;
+				}
+			}
 			if (!listOfColorSchemes.contains(colorScheme)) {
 				addColorScheme(colorScheme);
 			}
