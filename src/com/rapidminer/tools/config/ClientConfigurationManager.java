@@ -56,24 +56,24 @@ public class ClientConfigurationManager extends ConfigurationManager {
 		}
 	}
 
-	@Override
-	public void saveConfiguration() {
-		for (String typeId : getAllTypeIds()) {
-			Configurator configurator = getConfigurator(typeId);
-			try {
-				Document xml = getConfigurablesAsXML(configurator);
-				File file = getConfigFile(configurator);
-				XMLTools.stream(xml, file, null);
-			} catch (Exception e) {
-				//LogService.getRoot().log(Level.WARNING, "Failed to save configurations for "+configurator.getName()+": "+e, e);
-				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-								"com.rapidminer.tools.config.ClientConfigurationManager.saving_configurations_error", 
-								configurator.getName(), e),
-						e);
-			}
-		}		
-	}
+//	@Override
+//	public void saveConfiguration() {
+//		for (String typeId : getAllTypeIds()) {
+//			Configurator configurator = getConfigurator(typeId);
+//			try {
+//				Document xml = getConfigurablesAsXML(configurator);
+//				File file = getConfigFile(configurator);
+//				XMLTools.stream(xml, file, null);
+//			} catch (Exception e) {
+//				//LogService.getRoot().log(Level.WARNING, "Failed to save configurations for "+configurator.getName()+": "+e, e);
+//				LogService.getRoot().log(Level.WARNING,
+//						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+//								"com.rapidminer.tools.config.ClientConfigurationManager.saving_configurations_error", 
+//								configurator.getName(), e),
+//						e);
+//			}
+//		}		
+//	}
 
 	/** Returns the config file in which this data will be saved. */
 	private File getConfigFile(Configurator configurator) {
@@ -81,7 +81,7 @@ public class ClientConfigurationManager extends ConfigurationManager {
 	}
 
 	@Override
-	public void saveConfiguration(String typeId) {
+	public void saveConfiguration(String typeId) throws ConfigurationException {
 		Configurator configurator = getConfigurator(typeId);
 		try {
 			Document xml = getConfigurablesAsXML(configurator);
@@ -94,6 +94,7 @@ public class ClientConfigurationManager extends ConfigurationManager {
 							"com.rapidminer.tools.config.ClientConfigurationManager.saving_configurations_error", 
 							configurator.getName(), e),
 					e);
+			throw new ConfigurationException("Failed to save configuration file: "+e, e);
 		}
 	}
 }

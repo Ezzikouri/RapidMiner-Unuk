@@ -47,8 +47,9 @@ import com.rapidminer.tools.LogService;
  */
 public abstract class ConfigurationManager {
 
-	private static final ConfigurationManager INSTANCE = new ClientConfigurationManager();
-	
+	//private static Class<? extends ConfigurationManager> implementationClass = ClientConfigurationManager.class;
+	private static ConfigurationManager theInstance;
+		
 	/** Map from {@link Configurator#getTypeId()} to {@link Configurator}. */
 	private Map<String,Configurator<? extends Configurable>> configurators = new TreeMap<String,Configurator<? extends Configurable>>();
 	
@@ -60,19 +61,30 @@ public abstract class ConfigurationManager {
 
 	private boolean initialized = false;
 	
-	public static ConfigurationManager getInstance() {
-		return INSTANCE;
+	public static synchronized void setInstance(ConfigurationManager manager) {
+		if (theInstance != null) {
+			throw new RuntimeException("Configuration manager already set.");
+		}
+		ConfigurationManager.theInstance = manager;
+	}
+	
+	public static synchronized ConfigurationManager getInstance() {
+		if (theInstance == null) {			
+			theInstance = new ClientConfigurationManager();			
+		}
+		return theInstance;
 	}
 	
 	/** Loads all parameters from a configuation file or database. 
 	 * @throws ConfigurationException */
-	protected abstract Map<String, Map<String, String>> loadAllParameters(Configurator configurator) throws ConfigurationException;
+	protected abstract Map<String, Map<String, String>> loadAllParameters(Configurator<?> configurator) throws ConfigurationException;
 	
 	/** Registers a new {@link Configurator}. Will create GUI actions and JSF pages to configure it. */
 	public synchronized void register(Configurator<? extends Configurable> configurator) {
 		if (configurator == null) {
 			throw new NullPointerException("Registered configurator is null.");
 		}
+		LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.config.ConfigurationManager.registered", configurator.getName());
 		final String typeId = configurator.getTypeId();
 		if (typeId == null) {
 			throw new RuntimeException("typeID must not be null for "+configurator.getClass()+"!");
@@ -95,6 +107,9 @@ public abstract class ConfigurationManager {
 	
 	public List<String> getAllConfigurableNames(String typeId) {
 		Map<String, Configurable> configurablesForType = configurables.get(typeId);
+		if (configurablesForType == null) {
+			throw new IllegalArgumentException("Unknown configurable type: "+typeId);
+		}
 		return new LinkedList<String>(configurablesForType.keySet());
 	}
 	
@@ -123,9 +138,9 @@ public abstract class ConfigurationManager {
 	protected void checkAccess(String typeId, String name, RepositoryAccessor accessor) throws ConfigurationException {
 	}
 
-	/** Adds the configurable to internal hash maps. Once they are added, they can be obtained via
+	/** Adds the configurable to internal maps. Once they are added, they can be obtained via
 	 *  {@link #lookup(String, String, RepositoryAccessor)}. */
-	private void registerConfigurable(String typeId, Configurable configurable) throws ConfigurationException {
+	public void registerConfigurable(String typeId, Configurable configurable) throws ConfigurationException {
 		Map<String,Configurable> configurablesForType = configurables.get(typeId);
 		if (configurablesForType == null) {
 			throw new ConfigurationException("No such configuration type: "+typeId);
@@ -134,7 +149,7 @@ public abstract class ConfigurationManager {
 	}
 	
 	public void initialize() {
-		if (initialized ) {
+		if (initialized) {
 			return;
 		}
 		//TODO: Observe refreshed connections to RA. Fetch configurables from there.
@@ -149,7 +164,8 @@ public abstract class ConfigurationManager {
 	}
 	/** Loads all configurations from the configuration database or file. */
 	private void loadConfiguration()  {		
-		for (Configurator<? extends Configurable> configurator : configurators.values()) {			
+		for (Configurator<? extends Configurable> configurator : configurators.values()) {
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.config.ConfigurationManager.loading_configuration", configurator.getName());
 			Map<String, Map<String, String>> parameters;
 			try {
 				parameters = loadAllParameters(configurator);
@@ -202,11 +218,18 @@ public abstract class ConfigurationManager {
 		return configurable;
 	}
 	
-	/** Saves the configuration, e.g. when RapidMiner exits. */
-	public abstract void saveConfiguration();
+	/** Saves the configuration, e.g. when RapidMiner exits. 
+	 * @throws ConfigurationException */
+	public void saveConfiguration() throws ConfigurationException {
+		for (String typeId : getAllTypeIds()) {
+			//Configurator configurator = getConfigurator(typeId);
+			saveConfiguration(typeId);
+		}
+	}
 	
-	/** Saves one configuration with the given typeID */
-	public abstract void saveConfiguration(String typeId);
+	/** Saves one configuration with the given typeID 
+	 * @throws ConfigurationException */
+	public abstract void saveConfiguration(String typeId) throws ConfigurationException;
 
 	private Map<String, ParameterType> parameterListToMap(List<ParameterType> parameterTypes) {
 		Map<String, ParameterType> result = new HashMap<String, ParameterType>();
@@ -260,7 +283,5 @@ public abstract class ConfigurationManager {
 		}		
 		return result;
 	}
-	
-	
 	
 }

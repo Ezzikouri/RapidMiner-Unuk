@@ -387,7 +387,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 							}
 						}
 					} else {
-						// Das gleiche Element, mache nichts
+						// same element, do nothing
 						return;
 					}
 				
@@ -507,7 +507,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 				}
 				
 				// after all is done, save the new configuration
-				ConfigurationManager.getInstance().saveConfiguration(configurator.getTypeId());
+				save();
 				
 				NEW_ENTRY_ACTION.setEnabled(true);
 			}
@@ -593,7 +593,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 				}
 				
 				model.addElement(newEntry);
-				ConfigurationManager.getInstance().saveConfiguration(configurator.getTypeId());
+				save();
 				configurableList.setSelectedValue(newEntry, true);
 			}
 		}
@@ -645,10 +645,11 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 				} else {
 					openEntry(null);
 				}
-				ConfigurationManager.getInstance().saveConfiguration(configurator.getTypeId());
+				save();
 			}
 			
 		}
+
 	};
 	
 	/** Checks if the user changed any values or have an unsaved Item opened and asks him to save those changes before closing the dialog.
@@ -711,14 +712,20 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 		configurationPanel.updateConfigurable(tempEntry);
 		return tempEntry;
 		//SwingTools.showSimpleErrorMessage("configuration.dialog.general", e1, e1.getMessage());
-	}
-	
-	
+	}	
 	
 	private T getSelectedEntry() {
 		return configurator.getConfigurableClass().cast(configurableList.getSelectedValue());
 	}
 	
-	
+
+	private void save() {
+		try {
+			ConfigurationManager.getInstance().saveConfiguration(configurator.getTypeId());
+		} catch (ConfigurationException e) {
+			SwingTools.showSimpleErrorMessage("configuration.dialog.failed_to_save_configurable", e, configurator.getName(), e.getMessage());
+		}
+	}
+
 
 }

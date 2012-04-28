@@ -48,9 +48,9 @@ public class MailSenderSMTP implements MailSender {
 		MimeMessage msg = new MimeMessage(session);				
 		msg.setRecipients(Message.RecipientType.TO, address);
 		msg.setFrom();
-		msg.setSubject(subject);
+		msg.setSubject(subject, "UTF-8");
 		msg.setSentDate(new Date());
-		msg.setText(content);
+		msg.setText(content, "UTF-8");
 
 		if (headers != null) {
 			for (Entry<String, String> header : headers.entrySet()) {

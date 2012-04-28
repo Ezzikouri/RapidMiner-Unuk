@@ -69,4 +69,7 @@ public interface Configurable {
 	/** Checks if the Configurable is empty (has no values/only empty values) **/
 	public boolean isEmpty();
 	
+	/** Returns the type id of the corresponding {@link Configurator}. */
+	public String getTypeId();
+	
 }

@@ -69,6 +69,7 @@ import com.rapidminer.tools.XMLSerialization;
 import com.rapidminer.tools.cipher.CipherTools;
 import com.rapidminer.tools.cipher.KeyGenerationException;
 import com.rapidminer.tools.cipher.KeyGeneratorTool;
+import com.rapidminer.tools.config.ConfigurationManager;
 import com.rapidminer.tools.jdbc.DatabaseService;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 import com.rapidminer.tools.plugin.Plugin;
@@ -518,6 +519,9 @@ public class RapidMiner {
 		RapidMiner.splashMessage("init_repository");
 		RepositoryManager.init();
 
+		RapidMiner.splashMessage("init_configurables");
+		ConfigurationManager.getInstance().initialize();
+		
 		// generate encryption key if necessary
 		if (!CipherTools.isKeyAvailable()) {
 			RapidMiner.splashMessage("gen_key");

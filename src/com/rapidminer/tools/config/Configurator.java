@@ -73,6 +73,11 @@ public abstract class Configurator<T extends Configurable> {
 		return I18N.getMessage(I18N.getGUIBundle(), "gui.configurable."+getI18NBaseKey()+".description");
 	}
 
+	/** A short help text to be used in dialogs. Based on {@link #getI18NBaseKey()}. */
+	public final String getIconName() {
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.configurable."+getI18NBaseKey()+".icon");
+	}
+	
 	/** The ID used for identifying this Configurator. Must be a valid XML tag identifier and
 	 *  file name. Should include the plugin namespace. 
 	 *  Example: "olap_connection". */
