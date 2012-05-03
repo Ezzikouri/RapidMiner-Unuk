@@ -111,7 +111,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 		initAttributes();
 		
 		// second: create batch table
-		this.updateBatchAndCursors(0);
+		updateBatchAndCursors(0);
 	}
 	
 	private void createIndex(boolean dropMappingTable, LoggingHandler logging) throws SQLException {
@@ -171,9 +171,26 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 						" AS ( SELECT " + databaseHandler.getStatementCreator().makeIdentifier(primaryKeyName) + 
 						" FROM " + databaseHandler.getStatementCreator().makeIdentifier(this.tableName)+ " )";
 
-					statement = this.databaseHandler.createStatement(true);
-					statement.execute(copyKeyQuery);
-					statement.close();
+					try {
+						statement = this.databaseHandler.createStatement(true);
+						try {
+							statement.execute(copyKeyQuery);
+						}
+						finally {
+							statement.close();
+						}
+					}
+					catch (SQLException ex) {
+						logging.logWarning("Failed to create mapping table using standard method, attempting secondary option");						
+						copyKeyQuery = 
+								"SELECT " + databaseHandler.getStatementCreator().makeIdentifier(primaryKeyName) +
+								" INTO " + databaseHandler.getStatementCreator().makeIdentifier(this.mappingTableName) + 
+								" FROM " + databaseHandler.getStatementCreator().makeIdentifier(this.tableName);
+						
+						statement = this.databaseHandler.createStatement(true);
+						statement.execute(copyKeyQuery);
+						statement.close();	
+					}
 
 					// add new RM_INDEX key
 					logging.logNote("Creating new primary key for mapping table '" + this.mappingTableName + "'...");
@@ -190,13 +207,33 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 	/** Subclasses might want to override this method if they do not support auto_increment. */
 	protected void createRMPrimaryKeyIndex(DatabaseHandler databaseHandler, String tableName) throws SQLException {
 		String addKeyQuery = 
-			"ALTER TABLE " + databaseHandler.getStatementCreator().makeIdentifier(tableName)+
-			" ADD " + databaseHandler.getStatementCreator().makeIdentifier(INDEX_COLUMN_NAME)+ 
-			" INT NOT NULL AUTO_INCREMENT PRIMARY KEY";
-		
-		Statement statement = databaseHandler.createStatement(true);
-		statement.execute(addKeyQuery);
-		statement.close();
+				"ALTER TABLE " + databaseHandler.getStatementCreator().makeIdentifier(tableName)+
+				" ADD " + databaseHandler.getStatementCreator().makeIdentifier(INDEX_COLUMN_NAME)+ 
+				" INT NOT NULL AUTO_INCREMENT PRIMARY KEY";
+			
+			try {
+				Statement statement = databaseHandler.createStatement(true);
+				try {
+					statement.execute(addKeyQuery);					
+				}
+				finally {
+					statement.close();
+				}
+			}
+			catch (SQLException ex) {
+				addKeyQuery = 
+						"ALTER TABLE " + databaseHandler.getStatementCreator().makeIdentifier(tableName)+
+						" ADD " + databaseHandler.getStatementCreator().makeIdentifier(INDEX_COLUMN_NAME)+ 
+						" INT NOT NULL IDENTITY(1,1) PRIMARY KEY";
+				
+				Statement statement = databaseHandler.createStatement(true);
+				try {
+					statement.execute(addKeyQuery);					
+				}
+				finally {
+					statement.close();
+				}
+			}
 	}
 	
 	private String getPrimaryKeyName(String tableName) throws SQLException {

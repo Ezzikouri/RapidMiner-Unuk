@@ -133,9 +133,15 @@ public abstract class ResultSetExampleSource extends AbstractExampleSource {
 		Attribute id = table.findAttribute(idName);
 		
 		Map<Attribute, String> specialMap = new HashMap<Attribute, String>();
-		specialMap.put(label, Attributes.LABEL_NAME);
-		specialMap.put(weight, Attributes.WEIGHT_NAME);
-		specialMap.put(id, Attributes.ID_NAME);
+		if(label != null) {
+			specialMap.put(label, Attributes.LABEL_NAME);
+		}
+		if(weight != null) {
+			specialMap.put(weight, Attributes.WEIGHT_NAME);
+		}
+		if(id != null) {
+			specialMap.put(id, Attributes.ID_NAME);
+		}
 		return table.createExampleSet(specialMap);
 	}
 	

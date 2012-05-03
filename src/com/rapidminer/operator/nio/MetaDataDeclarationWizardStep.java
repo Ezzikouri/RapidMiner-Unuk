@@ -258,7 +258,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
                     TableModel dataPreview = state.getDataResultSetFactory().makePreviewTableModel(getProgressListener());
                     // Copy name annotations to name
                     int nameIndex = state.getTranslationConfiguration().getNameRow();
-                    if (nameIndex != -1) {
+                    if (nameIndex != -1 && dataPreview != null) {
                         for (int i = 0; i < dataPreview.getColumnCount(); i++) {
                             ColumnMetaData columnMetaData = state.getTranslationConfiguration().getColumnMetaData(i);
                             final String foundName = (String) dataPreview.getValueAt(nameIndex, i);

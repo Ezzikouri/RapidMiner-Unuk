@@ -20,13 +20,21 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.example.table;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.sql.Clob;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.sql.Types;
 
 import com.rapidminer.example.Attribute;
-
+import com.rapidminer.operator.OperatorException;
+import com.rapidminer.tools.Ontology;
 
 /**
  * Reads datarows from a data base.
@@ -39,13 +47,13 @@ public class DatabaseDataRow extends DataRow {
 
 	/** The result set which backs this data row. */
 	private transient ResultSet resultSet;
-	
+
 	/** The current row of the result set. Only used for checks*/
 	private int row;
-    
+
 	/** The last attribute for which a query should be / was performed. */
 	private Attribute lastAttribute = null;
-	
+
 	/**
 	 * Creates a data row from the given result set. The current row of the
 	 * result set if used as data source.
@@ -88,7 +96,7 @@ public class DatabaseDataRow extends DataRow {
 		attribute.setValue(this, value);
 		this.lastAttribute = null;
 	}
-	
+
 	@Override
 	protected double get(int index, double defaultValue) {
 		if (lastAttribute == null) {
@@ -101,7 +109,6 @@ public class DatabaseDataRow extends DataRow {
 			}
 		}
 	}
-
 
 	@Override
 	protected void set(int index, double value, double defaultValue) {
@@ -121,38 +128,84 @@ public class DatabaseDataRow extends DataRow {
 			throw new RuntimeException("Cannot update data: " + e, e);
 		}
 	}
-	
-	/** Does nothing. */
-	@Override
-	protected void ensureNumberOfColumns(int numberOfColumns) {}
 
 	/** Does nothing. */
 	@Override
-	public void trim() {}
+	protected void ensureNumberOfColumns(int numberOfColumns) {
+	}
+
+	/** Does nothing. */
+	@Override
+	public void trim() {
+	}
 
 	@Override
 	public String toString() {
 		return "Database Data Row";
 	}
-	
+
 	/** Reads the data for the given attribute from the result set. */
 	public static double readColumn(ResultSet resultSet, Attribute attribute) throws SQLException {
-		String name = attribute.getName();		
-		if (attribute.isNominal()) {
-			String dbString = resultSet.getString(name);
-			if (dbString == null)
-				return Double.NaN;
-			return attribute.getMapping().mapString(dbString);
-		} else {
-			double value = resultSet.getDouble(name);
+		ResultSetMetaData metaData = resultSet.getMetaData();
+		String name = attribute.getName();
+		int valueType = attribute.getValueType();
+		double value;
+		if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.DATE_TIME)) {
+			Timestamp timestamp = resultSet.getTimestamp(name);
 			if (resultSet.wasNull()) {
-				return Double.NaN;
+				value = Double.NaN;
 			} else {
-                return value;
+				value = timestamp.getTime();
+			}
+		} else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NUMERICAL)) {
+			value = resultSet.getDouble(name);
+			if (resultSet.wasNull()) {
+				value = Double.NaN;
+			}
+		} else {
+			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NOMINAL)) {
+				String valueString = null;
+				int tableIndex = attribute.getTableIndex() + 1;
+				if (metaData.getColumnType(tableIndex) == Types.CLOB) {
+					Clob clob = resultSet.getClob(name);
+					if (clob != null) {
+						BufferedReader in = null;
+						try {
+							in = new BufferedReader(clob.getCharacterStream());
+							String line = null;
+							try {
+								StringBuffer buffer = new StringBuffer();
+								while ((line = in.readLine()) != null) {
+									buffer.append(line + "\n");
+								}
+								valueString = buffer.toString();
+							} catch (IOException e) {
+								value = Double.NaN;
+							}
+						} finally {
+							try {
+								in.close();
+							} catch (IOException e) {}
+						}
+					} else {
+						valueString = null;
+					}
+				} else {
+					valueString = resultSet.getString(name);
+				}
+				if (resultSet.wasNull() || valueString == null) {
+					value = Double.NaN;
+				} else {
+					value = attribute.getMapping().mapString(valueString);
+				}
+			} else {
+				value = Double.NaN;
 			}
 		}
+
+		return value;
 	}
-	
+
 	@Override
 	public int getType() {
 		return DataRowFactory.TYPE_SPECIAL;
