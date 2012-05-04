@@ -57,11 +57,16 @@ import com.rapidminer.tools.AbstractObservable;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.Observer;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XMLException;
 
 /** Keeps static references to registered repositories and provides helper methods.
+ * 
+ *  Observers will be notified when repositories are added (with the repository passed as an argument to the 
+ *  {@link Observer#update(com.rapidminer.tools.Observable, Object)} method and when they are removed,
+ *  in which case null is passed.
  *
  * @author Simon Fischer
  *

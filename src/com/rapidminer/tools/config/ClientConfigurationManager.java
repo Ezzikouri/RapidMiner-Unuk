@@ -33,6 +33,7 @@ import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.container.Pair;
 
 /** Stores configurations in files (one file per {@link Configurator}.
  * 
@@ -42,7 +43,7 @@ import com.rapidminer.tools.LogService;
 public class ClientConfigurationManager extends ConfigurationManager {
 	
 	@Override
-	protected Map<String, Map<String, String>> loadAllParameters(Configurator configurator) throws ConfigurationException {
+	protected Map<Pair<Integer, String>, Map<String, String>> loadAllParameters(Configurator configurator) throws ConfigurationException {
 		final File file = getConfigFile(configurator);
 		if (!file.exists()) {
 			//LogService.getRoot().info("No configuration file found for "+configurator.getName());
@@ -84,7 +85,7 @@ public class ClientConfigurationManager extends ConfigurationManager {
 	public void saveConfiguration(String typeId) throws ConfigurationException {
 		Configurator configurator = getConfigurator(typeId);
 		try {
-			Document xml = getConfigurablesAsXML(configurator);
+			Document xml = getConfigurablesAsXML(configurator, true);
 			File file = getConfigFile(configurator);
 			XMLTools.stream(xml, file, null);
 		} catch (Exception e) {

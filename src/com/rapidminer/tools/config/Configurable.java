@@ -47,8 +47,19 @@ public interface Configurable {
 	 * @see #configure(Map) */
 	public Map<String,String> getParameters();
 	
+	/** Returns the ID of this configurable in case it was retrieved from RapidAnalytics. 
+	 *  This ID must be used when editing and saving a configurable. 
+	 * @see #getSource()
+	 * @return -1 if this configurable was not loaded from RapidAnalytics */
+	public int getId();
+
+	/** Called when loading and creating configurables. 
+	 *  @see #getId() */
+	public void setId(int id);
+	
 	/** If this configurable was loaded from a RapidAnalytics instance, this is the connection
-	 *  it was loaded from. May be null for local entries. */
+	 *  it was loaded from. May be null for local entries. 
+	 *  @see #getId() */
 	public RemoteRepository getSource();
 
 	/** Set when this configurable was loaded from a RapidAnalytics instance. */

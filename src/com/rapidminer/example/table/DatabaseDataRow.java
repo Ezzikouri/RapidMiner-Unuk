@@ -33,7 +33,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 
 import com.rapidminer.example.Attribute;
-import com.rapidminer.operator.OperatorException;
 import com.rapidminer.tools.Ontology;
 
 /**

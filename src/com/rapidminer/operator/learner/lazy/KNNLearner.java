@@ -35,7 +35,6 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.learner.AbstractLearner;
 import com.rapidminer.operator.learner.PredictionModel;
-import com.rapidminer.operator.learner.bayes.NaiveBayes;
 import com.rapidminer.operator.ports.metadata.DistanceMeasurePrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;

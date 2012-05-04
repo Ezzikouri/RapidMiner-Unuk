@@ -8,6 +8,7 @@ Changes from RapidMiner 5.2.3 to 5.2.4
 * Dialog to see preview for regular expressions
 * Update Database operator
 * Easier mechanism for Extensions to create configurable items
+* Japanese and German translation
 
 Changes from RapidMiner 5.2.1 to 5.2.2
 --------------------------------------

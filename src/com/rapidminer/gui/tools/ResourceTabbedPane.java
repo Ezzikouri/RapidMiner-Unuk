@@ -24,8 +24,6 @@ package com.rapidminer.gui.tools;
 
 import java.awt.Component;
 import java.text.MessageFormat;
-import java.util.logging.Level;
-
 import javax.swing.Icon;
 import javax.swing.JTabbedPane;
 

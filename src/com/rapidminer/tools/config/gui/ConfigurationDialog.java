@@ -74,6 +74,8 @@ import com.rapidminer.tools.config.Configurator;
  * @param <T> A subclass of {@link Configurable} which should be configured through the dialog.
  */
 public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
+
+	private static final long serialVersionUID = 1L;
 	
 	public static Action getOpenWindowAction(String typeID) {
 		final String finalTypeID = typeID;
@@ -233,15 +235,11 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 		}
 	}
 	
-	public void setI18NVariables(String baseKey) {
-		entryIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + baseKey + ".connection_entry.icon"));
-		entryReadOnlyIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + baseKey + ".connection_readonly_entry.icon"));
-		
-		
+	private void setI18NVariables(String baseKey) {
+		//entryIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog." + baseKey + ".connection_entry.icon"));
+		entryIcon = SwingTools.createIcon("16/" + configurator.getIconName());
+		entryReadOnlyIcon = SwingTools.createIcon("16/lock.png");		
 	}
-
-	private static final long serialVersionUID = 1L;
-	
 	
 	public void addEntries(Configurable configurable) {
 		model.addElement(configurable);
@@ -251,11 +249,11 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	public JPanel makeConfigurableManagementPanel() {
 		JPanel panel = new JPanel(createGridLayout(1, 2));
 		JScrollPane configurableListPane = new ExtendedJScrollPane(configurableList);
-		configurableListPane.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui.border." + I18NKey + ".list")));
+		configurableListPane.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui." + I18NKey + ".list")));
 		panel.add(configurableListPane);
 		//panel.add(new JPanel());
 		JComponent configPanel = configurationPanel.getComponent();
-		configPanel.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui.border." + I18NKey + ".config")));
+		configPanel.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui." + I18NKey + ".configuration")));
 		panel.add(configPanel);
 		return panel;
 	}
@@ -275,16 +273,15 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 				}
 				if (value instanceof Configurable) {
 					Configurable entry = (Configurable) value;
-					String remoteSource = (entry.getSource() != null) ? "<br/>Taken from: " + entry.getSource() : "";
+					String remoteSource = (entry.getSource() != null) ? "<br/>Taken from: " + entry.getSource().toHtmlString() : "";
 					String shortInfo = (entry.getShortInfo() != null) ?  " (" + entry.getShortInfo() + ")" : "";
 					label.setText("<html>" + entry.getName() + "<small>" + shortInfo + remoteSource + "</small></html>");
 					label.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-					//TODO: Check if the entry is readonly (from a server), change the icon if needed
-					/*if (entry.isReadOnly()) {
+					if (entry.getSource() != null) {
 						label.setIcon(entryReadOnlyIcon);
-					} else {*/
-					label.setIcon(entryIcon);
-					//}
+					} else {
+						label.setIcon(entryIcon);						
+					}
 				}
 				return label;
 			}
@@ -297,8 +294,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 					if (hideListChangeConfirmationDialog) {
 						// Directly open the selected value
 						openEntry(getSelectedEntry());
-					}
-					else if (currentlyEditedEntry == null) {
+					} else if (currentlyEditedEntry == null) {
 						// The first time the user selects an entry
 						try {
 							if (hasUnsavedChanges()) {
@@ -313,7 +309,6 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 							configurableList.clearSelection();
 							return;
 						}
-					//} else if (!lastSelectedName.equals(((Configurable)configurableList.getSelectedValue()).getName()) && !currentlyEditedEntry.equals((Configurable) configurableList.getSelectedValue())) {
 					} else if (!lastSelectedName.equals(((Configurable)configurableList.getSelectedValue()).getName()) && !currentlyEditedEntry.equals((Configurable) configurableList.getSelectedValue())) {
 						// The user selected an entry which differs from the previous selected entry
 						if (isNewEntry) {

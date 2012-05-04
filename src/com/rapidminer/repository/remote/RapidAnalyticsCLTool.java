@@ -24,7 +24,6 @@ package com.rapidminer.repository.remote;
 
 import java.io.PrintStream;
 import java.net.MalformedURLException;
-import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -44,8 +43,6 @@ import com.rapid_i.repository.wsimport.mgt.ManagementServiceService;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
-import com.rapidminer.tools.GlobalAuthenticator;
-import com.rapidminer.tools.GlobalAuthenticator.URLAuthenticator;
 import com.rapidminer.tools.Tools;
 
 /** This class can be used to access a RapidAnalytics installation from a remote machine.

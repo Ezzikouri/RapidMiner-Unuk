@@ -22,15 +22,10 @@
  */
 package com.rapidminer.gui.new_plotter;
 
-import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.listener.events.DimensionConfigChangeEvent;
-import com.rapidminer.gui.new_plotter.listener.events.DimensionConfigChangeEvent.DimensionConfigChangeType;
 import com.rapidminer.gui.new_plotter.listener.events.PlotConfigurationChangeEvent;
-import com.rapidminer.gui.new_plotter.listener.events.PlotConfigurationChangeEvent.PlotConfigurationChangeType;
 import com.rapidminer.gui.new_plotter.listener.events.RangeAxisConfigChangeEvent;
-import com.rapidminer.gui.new_plotter.listener.events.RangeAxisConfigChangeEvent.RangeAxisConfigChangeType;
 import com.rapidminer.gui.new_plotter.listener.events.ValueSourceChangeEvent;
-import com.rapidminer.gui.new_plotter.listener.events.ValueSourceChangeEvent.ValueSourceChangeType;
 
 /**
  * @author Nils Woehler

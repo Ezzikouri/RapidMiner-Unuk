@@ -63,7 +63,6 @@ import javax.swing.text.html.StyleSheet;
 
 import com.rapidminer.gui.ApplicationFrame;
 import com.rapidminer.gui.MainFrame;
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceLabel;

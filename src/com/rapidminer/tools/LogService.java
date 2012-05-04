@@ -178,6 +178,12 @@ public class LogService extends WrapperLoggingHandler {
 	    getRoot().setLevel(LEVELS[level]);
 	}
 
+	/** The methods in {@link Logger} do not provide a means to pass an exception AND I18N arguments,
+	 *  so this method provides a shortcut for this. */
+	public static void log(Logger logger, Level level, Throwable exception, String i18NKey, Object ... arguments) {
+		logger.log(level, I18N.getMessage(logger.getResourceBundle(), i18NKey, arguments), exception);
+	}
+	
 	/**
 	 * @deprecated Use {@link Logger#isLoggable(Level)}
 	 */

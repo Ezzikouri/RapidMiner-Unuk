@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 
 import javax.swing.Action;
@@ -305,7 +304,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public String getState() {
-		return (offline ? "offline" : (repositoryService != null ? "connected" : "disconnected"));
+		return (isOffline() ? "offline" : (repositoryService != null ? "connected" : "disconnected"));
 	}
 	
 	@Override
@@ -313,9 +312,14 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.remote.icon");
 	}
 
+	/** Returns a short HTML description of this repository. Does not include surrounding <html> tags. */
+	public String toHtmlString() {
+		return getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small>";
+	}
+	
 	@Override
 	public String toString() {
-		return "<html>" + getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small></html>";
+		return "TEST" + super.toString();
 	}
 
 	private PasswordAuthentication getAuthentiaction() {		
@@ -356,9 +360,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				
 				setCredentials((BindingProvider)repositoryService);
 				 
-				offline = false;
+				setOffline(false);
 			} catch (Exception e) {
-				offline = true;
+				setOffline(true);
 				setPassword(null);
 				repositoryService = null;
 				throw new RepositoryException("Cannot connect to " + getBaseUrl() + ": " + e, e);
@@ -385,9 +389,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				
 				setCredentials((BindingProvider)processService);
 
-				offline = false;
+				setOffline(false);
 			} catch (Exception e) {
-				offline = true;
+				setOffline(true);
 				setPassword(null);
 				processService = null;
 				throw new RepositoryException("Cannot connect to " + getBaseUrl() + ": " + e, e);
@@ -403,7 +407,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public void refresh() throws RepositoryException {
-		offline = false;
+		setOffline(false);
 		cachedEntries.clear();
 		super.refresh();
 		removeJDBCConnectionEntries();
@@ -433,7 +437,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public HttpURLConnection getHTTPConnection(String pathInfo, boolean preAuthHeader) throws IOException {
 		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), pathInfo).openConnection();
 		conn.setRequestProperty("Accept-Charset", "UTF-8"); 
-		if (preAuthHeader) {
+		if (preAuthHeader && (username != null) && (password != null)) {
 			String userpass = username + ":" + new String(password);
 			String basicAuth = "Basic " + new String(Base64.encodeBytes(userpass.getBytes()));
 			conn.setRequestProperty ("Authorization", basicAuth);
@@ -486,7 +490,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	public boolean isConnected() {
-		return !offline;
+		return !isOffline();
 	}
 
 	@Override
@@ -684,4 +688,30 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		return alias;
 	}
 
+	private boolean isOffline() {
+		return offline;
+	}
+	
+	/** If value changes, notifies {@link #connectionListeners}. */
+	private void setOffline(boolean offline) {
+		if (offline == this.offline) {
+			return;
+		}
+		this.offline = offline;
+		for (ConnectionListener l : connectionListeners) {
+			if (isConnected()) {
+				l.connectionEstablished(this);
+			} else {
+				l.connectionLost(this);
+			}
+		}
+	}
+	
+	private List<ConnectionListener> connectionListeners = new LinkedList<ConnectionListener>();
+	public void addConnectionListener(ConnectionListener l) {
+		connectionListeners.add(l);
+	}
+	public void removeConnectionListener(ConnectionListener l) {
+		connectionListeners.remove(l);
+	}
 }

@@ -34,9 +34,20 @@ import com.rapidminer.repository.remote.RemoteRepository;
  */
 public abstract class AbstractConfigurable implements Configurable {
 
+	private int id = -1;
 	private String name;
 	private Map<String,String> parameters = new HashMap<String, String>();
 	private RemoteRepository source;
+	
+	@Override
+	public int getId() {
+		return id;
+	}
+	
+	@Override
+	public void setId(int id) {
+		this.id = id;
+	}
 	
 	@Override
 	public String getParameter(String key) {

@@ -237,8 +237,7 @@ public class XMLTools {
     			LogService.getRoot().log(Level.WARNING,
     					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
     					"com.rapidminer.io.process.XMLTools.xml_transformer_does_not_support_identation", 
-    					e),
-    					e);
+    					e));
             }
             transformer = tf.newTransformer();
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");

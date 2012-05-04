@@ -25,8 +25,6 @@ package com.rapidminer.operator.meta;
 import java.util.Collection;
 import java.util.List;
 
-import org.codehaus.groovy.tools.shell.IO;
-
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;

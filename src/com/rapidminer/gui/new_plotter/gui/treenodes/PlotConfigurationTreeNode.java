@@ -25,7 +25,6 @@ package com.rapidminer.gui.new_plotter.gui.treenodes;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 
-import com.rapidminer.gui.new_plotter.StaticDebug;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
