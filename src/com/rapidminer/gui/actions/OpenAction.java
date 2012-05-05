@@ -50,102 +50,109 @@ import com.rapidminer.tools.XMLException;
  */
 public class OpenAction extends ResourceAction {
 
-	private static final long serialVersionUID = -323403851840397447L;
-	
-	public OpenAction() {
-		super("open");	
-		
-		setCondition(EDIT_IN_PROGRESS, DONT_CARE);
-	}
+    private static final long serialVersionUID = -323403851840397447L;
 
-	public void actionPerformed(ActionEvent e) {
-		open();
-	}
-		
-	/** Loads the data held by the given entry (in the background) and opens it as a result. */
-	public static void showAsResult(final IOObjectEntry data) {
-		if (data == null) {
-			throw new IllegalArgumentException("data entry must not be null");
-		}
-		final ProgressThread downloadProgressThread = new ProgressThread("download_from_repository") {
-			public void run() {
-				try {
-					ResultObject result = (ResultObject)data.retrieveData(this.getProgressListener());
-					result.setSource(data.getLocation().toString());
-					RapidMinerGUI.getMainFrame().getResultDisplay().showResult(result);
-				} catch (Exception e1) {
-					SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", e1);
-				}
-			}
-		};
-		downloadProgressThread.start();
-	}
+    public OpenAction() {
+        super("open");
 
-	public static void open() {
-		if (RapidMinerGUI.getMainFrame().close()) {
-			String locationString = RepositoryLocationChooser.selectLocation(null, null, RapidMinerGUI.getMainFrame(), true, false);			
-			if (locationString != null) {
-				try {
-					RepositoryLocation location = new RepositoryLocation(locationString);
-					Entry entry = location.locateEntry();
-					if (entry instanceof ProcessEntry) {
-						open(new RepositoryProcessLocation(location), true);
-					} else if (entry instanceof IOObjectEntry) {
-						showAsResult((IOObjectEntry) entry);
-					} else {
-						SwingTools.showVerySimpleErrorMessage("no_data_or_process");	
-					}
-				} catch (MalformedRepositoryLocationException e) {
-					SwingTools.showSimpleErrorMessage("while_loading", e, locationString, e.getMessage());
-				} catch (RepositoryException e) {
-					SwingTools.showSimpleErrorMessage("while_loading", e, locationString, e.getMessage());
-				}
-			}			
-		}
-	}
+        setCondition(EDIT_IN_PROGRESS, DONT_CARE);
+    }
 
-	
-	public static void open(final ProcessLocation processLocation, final boolean showInfo) {
-		RapidMinerGUI.getMainFrame().stopProcess();
-		ProgressThread openProgressThread = new ProgressThread("open_file") {
-			public void run() {
-				getProgressListener().setTotal(100);
-				getProgressListener().setCompleted(10);
-				try {				
-					Process process = processLocation.load(getProgressListener());
-					process.setProcessLocation(processLocation);
-					RapidMinerGUI.getMainFrame().setOpenedProcess(process, showInfo, processLocation.toString());					
-				} catch (XMLException ex) {
-					try {
-						RapidMinerGUI.getMainFrame().handleBrokenProxessXML(processLocation, processLocation.getRawXML(), ex);
-					} catch (IOException e) {
-						SwingTools.showSimpleErrorMessage("while_loading", e, processLocation, e.getMessage());
-						return;
-					}					
-				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("while_loading", e, processLocation, e.getMessage());
-					return;
-				} finally {
-					getProgressListener().complete();
-				}
-			}
-		};
-		openProgressThread.start();
-	}
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        open();
+    }
 
-	public static void open(String openLocation, boolean showInfo) {
-		try {
-			final RepositoryLocation location = new RepositoryLocation(openLocation);
-			Entry entry = location.locateEntry();
-			if (entry instanceof ProcessEntry) {
-				open(new RepositoryProcessLocation(location), false);
-			} else if (entry instanceof IOObjectEntry){
-				OpenAction.showAsResult((IOObjectEntry) entry);
-			} else {
-				throw new RepositoryException("Cannot open entries of type "+entry.getType()+".");	
-			}
-		} catch (Exception e) {
-			SwingTools.showSimpleErrorMessage("while_loading", e, openLocation, e.getMessage());
-		}		
-	}
+    /** Loads the data held by the given entry (in the background) and opens it as a result. */
+    public static void showAsResult(final IOObjectEntry data) {
+        if (data == null) {
+            throw new IllegalArgumentException("data entry must not be null");
+        }
+        final ProgressThread downloadProgressThread = new ProgressThread("download_from_repository") {
+            @Override
+            public void run() {
+                try {
+                    ResultObject result = (ResultObject)data.retrieveData(this.getProgressListener());
+                    result.setSource(data.getLocation().toString());
+                    RapidMinerGUI.getMainFrame().getResultDisplay().showResult(result);
+                } catch (Exception e1) {
+                    SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", e1);
+                }
+            }
+        };
+        downloadProgressThread.start();
+    }
+
+    public static void open() {
+        if (RapidMinerGUI.getMainFrame().close()) {
+            String locationString = RepositoryLocationChooser.selectLocation(null, null, RapidMinerGUI.getMainFrame(), true, false);
+            if (locationString != null) {
+                try {
+                    RepositoryLocation location = new RepositoryLocation(locationString);
+                    Entry entry = location.locateEntry();
+                    if (entry instanceof ProcessEntry) {
+                        open(new RepositoryProcessLocation(location), true);
+                    } else if (entry instanceof IOObjectEntry) {
+                        showAsResult((IOObjectEntry) entry);
+                    } else {
+                        SwingTools.showVerySimpleErrorMessage("no_data_or_process");
+                    }
+                } catch (MalformedRepositoryLocationException e) {
+                    SwingTools.showSimpleErrorMessage("while_loading", e, locationString, e.getMessage());
+                } catch (RepositoryException e) {
+                    SwingTools.showSimpleErrorMessage("while_loading", e, locationString, e.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * This method will open the process specified by the process location. If showInfo is true, the description of the
+     * process will be shown depending on the fact if this feature is enabled or disabled in the settings. So if
+     * you don't want to silently load a process, this should be true.
+     */
+    public static void open(final ProcessLocation processLocation, final boolean showInfo) {
+        RapidMinerGUI.getMainFrame().stopProcess();
+        ProgressThread openProgressThread = new ProgressThread("open_file") {
+            @Override
+            public void run() {
+                getProgressListener().setTotal(100);
+                getProgressListener().setCompleted(10);
+                try {
+                    Process process = processLocation.load(getProgressListener());
+                    process.setProcessLocation(processLocation);
+                    RapidMinerGUI.getMainFrame().setOpenedProcess(process, showInfo, processLocation.toString());
+                } catch (XMLException ex) {
+                    try {
+                        RapidMinerGUI.getMainFrame().handleBrokenProxessXML(processLocation, processLocation.getRawXML(), ex);
+                    } catch (IOException e) {
+                        SwingTools.showSimpleErrorMessage("while_loading", e, processLocation, e.getMessage());
+                        return;
+                    }
+                } catch (Exception e) {
+                    SwingTools.showSimpleErrorMessage("while_loading", e, processLocation, e.getMessage());
+                    return;
+                } finally {
+                    getProgressListener().complete();
+                }
+            }
+        };
+        openProgressThread.start();
+    }
+
+    public static void open(String openLocation, boolean showInfo) {
+        try {
+            final RepositoryLocation location = new RepositoryLocation(openLocation);
+            Entry entry = location.locateEntry();
+            if (entry instanceof ProcessEntry) {
+                open(new RepositoryProcessLocation(location), showInfo);
+            } else if (entry instanceof IOObjectEntry){
+                OpenAction.showAsResult((IOObjectEntry) entry);
+            } else {
+                throw new RepositoryException("Cannot open entries of type "+entry.getType()+".");
+            }
+        } catch (Exception e) {
+            SwingTools.showSimpleErrorMessage("while_loading", e, openLocation, e.getMessage());
+        }
+    }
 }
