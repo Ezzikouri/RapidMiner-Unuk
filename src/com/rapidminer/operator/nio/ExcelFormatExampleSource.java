@@ -312,7 +312,7 @@ public class ExcelFormatExampleSource extends AbstractExampleSource {
 		 * types.add(fileParam);
 		 */
 		types.add(FileInputPortHandler.makeFileParameterType(this,
-				PARAMETER_EXCEL_FILE, "xls", new PortProvider() {
+				PARAMETER_EXCEL_FILE, "Name of the file to read the data from.", "xls", new PortProvider() {
 					@Override
 					public Port getPort() {
 						return fileInputPort;

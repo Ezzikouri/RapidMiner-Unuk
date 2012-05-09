@@ -48,20 +48,11 @@ public class ExcelFileSelectionWizardStep extends FileSelectionWizardStep {
 		super(parent, new FileFilter() {
 			@Override
 			public boolean accept(File f) {
-				return f.isDirectory() || f.getName().endsWith("xlsx");
+				return f.isDirectory() || f.getName().endsWith("xls") || f.getName().endsWith("xlsx");
 			}
 			@Override
 			public String getDescription() {
-				return "Excel 2007 Files";
-			}			
-		}, new FileFilter() {
-			@Override
-			public boolean accept(File f) {
-				return f.isDirectory() || f.getName().endsWith("xls");
-			}
-			@Override
-			public String getDescription() {
-				return "Excel Files";
+				return "Excel Spreadsheets (.xls, .xlsx)";
 			}			
 		});
 		this.configuration = configuration;

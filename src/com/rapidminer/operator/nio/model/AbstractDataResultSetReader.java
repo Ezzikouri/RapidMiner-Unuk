@@ -224,7 +224,7 @@ public abstract class AbstractDataResultSetReader extends AbstractExampleSource 
 	/** Creates (but does not add) the file parameter named by {@link #getFileParameterName()} 
 	 *  that depends on whether or not {@link #fileInputPort} is connected. */
 	protected ParameterType makeFileParameterType() {
-		return FileInputPortHandler.makeFileParameterType(this, getFileParameterName(), new PortProvider() {
+		return FileInputPortHandler.makeFileParameterType(this, getFileParameterName(), "Name of the file to read the data from.", new PortProvider() {
 			@Override
 			public Port getPort() {
 				return fileInputPort;

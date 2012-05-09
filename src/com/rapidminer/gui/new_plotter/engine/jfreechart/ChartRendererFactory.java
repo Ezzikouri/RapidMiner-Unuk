@@ -25,6 +25,7 @@ package com.rapidminer.gui.new_plotter.engine.jfreechart;
 import java.awt.Color;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.renderer.category.AreaRenderer;
@@ -67,6 +68,7 @@ import com.rapidminer.gui.new_plotter.engine.jfreechart.renderer.FormattedXYDiff
 import com.rapidminer.gui.new_plotter.engine.jfreechart.renderer.FormattedXYErrorRenderer;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.renderer.FormattedXYLineAndShapeRenderer;
 import com.rapidminer.gui.new_plotter.utility.DataStructureUtils;
+import com.rapidminer.tools.LogService;
 
 /**
  * Helper class for created JFreeChart renderers for a given ValueSource.
@@ -136,8 +138,12 @@ public class ChartRendererFactory {
 	private static void initFormatDelegate(ValueSource valueSource, FormattedRenderer formattedRenderer, PlotInstance plotInstance) {
 		ValueSourceData valueSourceData = plotInstance.getPlotData().getValueSourceData(valueSource);
 		List<Integer> seriesIndices = new LinkedList<Integer>();
-		for (int i = 0; i < valueSourceData.getSeriesCount(); ++i) {
-			seriesIndices.add(i);
+		if (valueSourceData != null) {
+			for (int i = 0; i < valueSourceData.getSeriesCount(); ++i) {
+				seriesIndices.add(i);
+			}
+		} else {
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.engine.jfreechart.ChartRendererFactory.null_value_source");
 		}
 		initFormatDelegate(valueSource, seriesIndices, formattedRenderer, plotInstance);
 	}

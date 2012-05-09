@@ -102,7 +102,7 @@ public abstract class KDBExampleSource extends ResultSetExampleSource {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		types.add(FileInputPortHandler.makeFileParameterType(this, PARAMETER_DATA_FILE, "xrff", new PortProvider() {
+		types.add(FileInputPortHandler.makeFileParameterType(this, PARAMETER_DATA_FILE, "Name of the XRFF file to read the data from.", "xrff", new PortProvider() {
 			@Override
 			public Port getPort() {			
 				return fileInputPort;

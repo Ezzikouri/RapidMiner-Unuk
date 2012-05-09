@@ -277,7 +277,7 @@ public abstract class BytewiseExampleSource extends AbstractExampleSource {
     @Override
 	public List<ParameterType> getParameterTypes() {
         List<ParameterType> types = super.getParameterTypes();
-        ParameterType type = FileInputPortHandler.makeFileParameterType(this, PARAMETER_FILENAME, "arff", new PortProvider() {
+        ParameterType type = FileInputPortHandler.makeFileParameterType(this, PARAMETER_FILENAME, "Name of the file to read the data from.", getFileSuffix(), new PortProvider() {
 			@Override
 			public Port getPort() {			
 				return fileInputPort;

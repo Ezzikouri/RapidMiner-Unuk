@@ -467,6 +467,19 @@
         </help>
     <key>write_database</key>
   </operator>
+  <operator>
+        <name>Update Database</name>
+        <synopsis>Updates the values of all examples with a matching ID value in a
+            database.</synopsis>
+        <help>&lt;p&gt;This operator updates an &lt;i&gt;ExampleSet&lt;/i&gt;
+            in an SQL database. The user can specify the database connection, a table 
+            name and an ID column name.&lt;/p&gt; &lt;p&gt;The most convenient
+            way of defining the necessary parameters is the configuration wizard.
+            The most important parameters (database URL and user name) will be
+            automatically determined by this wizard.&lt;/p&gt;
+        </help>
+    <key>update_database</key>
+  </operator>
     <operator>
         <name>Subprocess</name>
         <synopsis>A chain of operators that is subsequently applied.

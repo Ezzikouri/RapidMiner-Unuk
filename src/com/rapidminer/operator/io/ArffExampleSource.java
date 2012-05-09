@@ -371,7 +371,7 @@ public class ArffExampleSource extends AbstractDataReader {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = new LinkedList<ParameterType>();
-		types.add(FileInputPortHandler.makeFileParameterType(this, PARAMETER_DATA_FILE, "arff", new PortProvider() {
+		types.add(FileInputPortHandler.makeFileParameterType(this, PARAMETER_DATA_FILE, "Name of the Arff file to read the data from.", "arff", new PortProvider() {
 			@Override
 			public Port getPort() {			
 				return fileInputPort;

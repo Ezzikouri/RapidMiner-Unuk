@@ -105,30 +105,52 @@ public class FileInputPortHandler {
 	}
 
 	/** Creates the file parameter named by fileParameterName 
-	 *  that depends on whether or not the port returned by the given PortProvider is connected. */
-	public static ParameterType makeFileParameterType(
+	 *  that depends on whether or not the port returned by the given PortProvider is connected. 
+	 * 
+	 * @param parameterHandler used to check dependencies
+	 * @param parameterName Name of the parameter that is created
+	 * @param description Description of the parameter
+	 * @param portProvider port which accepts the FileObject. If this port is connected, the parameter will be hidden.
+	 * @param fileExtensions allowed file types. 
+	 * */public static ParameterType makeFileParameterType(
 			ParameterHandler parameterHandler,
-			String parameterName, PortProvider portProvider, String... fileExtensions) {
+			String parameterName,
+			String description,
+			PortProvider portProvider, String... fileExtensions) {
 		String[] fileExtArray = new String[fileExtensions.length];
 		int i=0;
 		for (String fileExtension : fileExtensions) {
 			fileExtArray[i++] = fileExtension;
 		}
-		final ParameterTypeFile fileParam = new ParameterTypeFile(parameterName, "Name of the file to read the data from.", true, fileExtArray);
+		final ParameterTypeFile fileParam = new ParameterTypeFile(parameterName, description, true, fileExtArray);
 		fileParam.setExpert(false);
 		fileParam.registerDependencyCondition(new PortConnectedCondition(parameterHandler, portProvider, true, false));
 		return fileParam;
 	}
 
-	/** Creates the file parameter named by fileParameterName 
-	 *  that depends on whether or not the port returned by the given PortProvider is connected. */
+
+	/**Uses a default description and a single file extension.
+	 * 
+	 * @see #makeFileParameterType(ParameterHandler, String, String, PortProvider, String...) 
+	 * */
 	public static ParameterType makeFileParameterType(
 			ParameterHandler parameterHandler,
 			String parameterName, String fileExtension, PortProvider portProvider) {
-		final ParameterTypeFile fileParam = new ParameterTypeFile(parameterName, "Name of the file to read the data from.", fileExtension, true);
-		fileParam.setExpert(false);
-		fileParam.registerDependencyCondition(new PortConnectedCondition(parameterHandler, portProvider, true, false));
-		return fileParam;
+		return makeFileParameterType(parameterHandler, parameterName, "Name of the file to read the data from.", fileExtension, portProvider);
+	}
+	
+	/** Uses a single allowed file extension.
+	 * 
+	 * @see #makeFileParameterType(ParameterHandler, String, String, PortProvider, String...) 
+	 * */
+	public static ParameterType makeFileParameterType(
+			ParameterHandler parameterHandler,
+			String parameterName, String description, String fileExtension, PortProvider portProvider) {
+		return makeFileParameterType(parameterHandler, parameterName, description, portProvider, fileExtension);
+//		final ParameterTypeFile fileParam = new ParameterTypeFile(parameterName, description, fileExtension, true);
+//		fileParam.setExpert(false);
+//		fileParam.registerDependencyCondition(new PortConnectedCondition(parameterHandler, portProvider, true, false));
+//		return fileParam;
 	}
 
 	/**

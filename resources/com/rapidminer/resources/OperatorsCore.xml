@@ -975,6 +975,10 @@
 					<replaces>DatabaseExampleSetWriter</replaces>
 				</operator>
 				<operator>
+					<key>update_database</key>
+					<class>com.rapidminer.operator.io.DatabaseExampleSetUpdater</class>
+				</operator>
+				<operator>
 					<key>write_special</key>
 					<class>com.rapidminer.operator.io.SpecialFormatExampleSetWriter
 					</class>

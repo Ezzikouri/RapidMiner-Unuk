@@ -98,6 +98,7 @@ import com.rapidminer.gui.new_plotter.data.ValueSourceData;
 import com.rapidminer.gui.new_plotter.engine.PlotEngine;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.AddParallelLineAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.ClearParallelLinesAction;
+import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.CopyChartAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.ManageParallelLinesAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.actions.ManageZoomAction;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.dataset.ValueSourceToMultiValueCategoryDatasetAdapter;
@@ -212,6 +213,8 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 	{
 		// create popup menu for chart here
 		popupMenuChart = new JPopupMenu();
+        popupMenuChart.add(new CopyChartAction(this));
+        popupMenuChart.addSeparator();
 		popupMenuChart.add(new ManageZoomAction(this));
 		popupMenuChart.addSeparator();
 		addParallelLineAction = new AddParallelLineAction(this);

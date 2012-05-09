@@ -157,7 +157,7 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		listOfColors.add(new ColorRGB(0, 0, 255));
 		listOfColors.add(new ColorRGB(0, 255, 0));
 		listOfColors.add(new ColorRGB(255, 0, 0));
-		ColorScheme cs = new ColorScheme("Full spectrum", listOfColors);
+		ColorScheme cs = new ColorScheme("Classic", listOfColors);
 		listOfColorSchemes.add(cs);
 		listOfDefaultColorSchemes.add(cs);
 		

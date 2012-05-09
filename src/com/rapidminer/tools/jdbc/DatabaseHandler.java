@@ -24,6 +24,7 @@ package com.rapidminer.tools.jdbc;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -40,6 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -501,6 +503,13 @@ public class DatabaseHandler {
         statement.close();
     }
     
+    /**
+     * Deletes all entries of the table with the given name.
+     * 
+     * @param tableName
+     * @throws SQLException
+     * @Deprecated use {@link #emptyTable(TableName)} instead.
+     */
     @Deprecated
     public void emptyTable(String tableName) throws SQLException{
     	emptyTable(new TableName(tableName));
@@ -1234,6 +1243,139 @@ public class DatabaseHandler {
             statement.close();
         }
         return resultSet;
+    }
+    
+    /**
+     * Updates a given table with the values from the given {@link ExampleSet}. The row(s) to update are specified via dbIdColumn and idAtt parameters.
+     * If the id column of the table does not contain an id value of the {@link ExampleSet}, the row is inserted instead.
+     * The {@link ExampleSet} attribute names must be a subset of the table column names, otherwise the operation will fail.
+     * @param exampleSet the {@link ExampleSet}
+     * @param selectedTableName the name of the table in the database
+     * @param idAttributes the id {@link Attribute}s of the {@link ExampleSet}
+     * @param logger optional: a {@link Logger}
+     * @throws SQLException
+     */
+    public void updateTable(ExampleSet exampleSet, TableName selectedTableName, Set<Attribute> idAttributes, Logger logger) throws SQLException {
+    	StatementCreator sc = new StatementCreator(getConnection());
+    	
+		List<ColumnIdentifier> allColumnNames = getAllColumnNames(selectedTableName, getConnection().getMetaData());
+		List<String> columnTableNames = new LinkedList<String>();
+		for (ColumnIdentifier identifier : allColumnNames) {
+			columnTableNames.add(identifier.getColumnName());
+		}
+		StringBuilder updateAttStringBuilder = new StringBuilder();
+		StringBuilder updateIdStringBuilder = new StringBuilder();
+		StringBuilder insertAttStringBuilder = new StringBuilder();
+		StringBuilder insertValStringBuilder = new StringBuilder();
+		updateAttStringBuilder.append("SET ");
+		insertAttStringBuilder.append('(');
+		insertValStringBuilder.append('(');
+		Iterator<Attribute> it = exampleSet.getAttributes().allAttributes();
+		int attCount = 0;
+		List<Attribute> attList = new LinkedList<Attribute>();
+		List<Attribute> allAttList = new LinkedList<Attribute>();
+		List<String> idAttNameList = new LinkedList<String>();
+		for (Attribute idAtt : idAttributes) {
+			idAttNameList.add(idAtt.getName());
+		}
+		while (it.hasNext()) {
+			Attribute att = it.next();
+			String attName = att.getName();
+			
+			// make sure the table contains all columns of the example set
+			if (!columnTableNames.contains(attName)) {
+				throw new SQLException("Table does not contain column for attribute " + attName + "!");
+			}
+			
+			// iterate over all attributes except for the id attributes and add them to the update statement
+			if (!idAttNameList.contains(attName)) {
+				attCount++;
+				attList.add(att);
+				updateAttStringBuilder.append(sc.makeIdentifier(attName) + " = ?");
+				updateAttStringBuilder.append(", ");
+				insertAttStringBuilder.append(sc.makeIdentifier(attName) + ", ");
+				insertValStringBuilder.append("?, ");
+			} else {
+				// id attributes need to be added to the insert statement as well
+				insertAttStringBuilder.append(sc.makeIdentifier(attName) + ", ");
+				insertValStringBuilder.append("?, ");
+				updateIdStringBuilder.append(sc.makeIdentifier(attName) + " = ?");
+				updateIdStringBuilder.append(" AND ");
+			}
+			allAttList.add(att);
+		}
+		
+		// fix the StringBuilders
+		if (updateAttStringBuilder.substring(updateAttStringBuilder.length() - 2, updateAttStringBuilder.length()).equals(", ")) {
+			updateAttStringBuilder.delete(updateAttStringBuilder.length() - 2, updateAttStringBuilder.length());
+		}
+		if (updateIdStringBuilder.substring(updateIdStringBuilder.length() - 5, updateIdStringBuilder.length()).equals(" AND ")) {
+			updateIdStringBuilder.delete(updateIdStringBuilder.length() - 5, updateIdStringBuilder.length());
+		}
+		if (insertAttStringBuilder.substring(insertAttStringBuilder.length() - 2, insertAttStringBuilder.length()).equals(", ")) {
+			insertAttStringBuilder.delete(insertAttStringBuilder.length() - 2, insertAttStringBuilder.length());
+			insertAttStringBuilder.append(')');
+		}
+		if (insertValStringBuilder.substring(insertValStringBuilder.length() - 2, insertValStringBuilder.length()).equals(", ")) {
+			insertValStringBuilder.delete(insertValStringBuilder.length() - 2, insertValStringBuilder.length());
+			insertValStringBuilder.append(')');
+		}
+		
+		// create prepared statements for UPDATE and INSERT (which is used in case UPDATE finds no matching row to update)		
+		String updateStatementString = "UPDATE " + sc.makeIdentifier(selectedTableName) + " " + updateAttStringBuilder.toString() + " WHERE " + updateIdStringBuilder.toString();
+		String insertStatementString = "INSERT INTO " + sc.makeIdentifier(selectedTableName) + " " + insertAttStringBuilder.toString() + " VALUES " + insertValStringBuilder.toString();
+		PreparedStatement prepUpdateStatement = createPreparedStatement(updateStatementString, false);
+		PreparedStatement prepInsertStatement = createPreparedStatement(insertStatementString, false);
+		
+		// iterate over all examples
+		for (Example ex : exampleSet) {
+			// get the id value and set it in the statements
+			int idCount = 0;
+			for (Attribute idAtt : idAttributes) {
+				double idValue = ex.getValue(idAtt);
+				prepUpdateStatement.setDouble(attCount + ++idCount, idValue);
+				prepInsertStatement.setDouble(allAttList.indexOf(idAtt) + 1, ex.getValue(idAtt));
+			}
+			
+			// fill statements with attribute values
+			for (Attribute att : attList) {
+				if (att.isNumerical()) {
+					prepUpdateStatement.setDouble(attList.indexOf(att) + 1, ex.getValue(att));
+					prepInsertStatement.setDouble(allAttList.indexOf(att) + 1, ex.getValue(att));
+				} else if (att.isNominal()) {
+					prepUpdateStatement.setString(attList.indexOf(att) + 1, ex.getValueAsString(att));
+					prepInsertStatement.setString(allAttList.indexOf(att) + 1, ex.getValueAsString(att));
+				} else {
+					// date, time, date_time are not covered above, so handle them here
+					if (att.getValueType() == Ontology.DATE) {
+						Date date = new Date(new Double(ex.getValue(att)).longValue());
+						prepUpdateStatement.setDate(attList.indexOf(att) + 1, date);
+						prepInsertStatement.setDate(allAttList.indexOf(att) + 1, date);
+					} else if (att.getValueType() == Ontology.TIME) {
+						Time time = new Time(new Double(ex.getValue(att)).longValue());
+						prepUpdateStatement.setTime(attList.indexOf(att) + 1, time);
+						prepInsertStatement.setTime(allAttList.indexOf(att) + 1, time);
+					} else if (att.getValueType() == Ontology.DATE_TIME) {
+						Timestamp timestamp = new Timestamp(new Double(ex.getValue(att)).longValue());
+						prepUpdateStatement.setTimestamp(attList.indexOf(att) + 1, timestamp);
+						prepInsertStatement.setTimestamp(allAttList.indexOf(att) + 1, timestamp);
+					}
+				}
+			}
+			
+			// try to update
+			if (logger != null) {
+				logger.info(prepUpdateStatement.toString());
+			}
+			int updatedRowCount = prepUpdateStatement.executeUpdate();
+			// no update done -> row with given id value does not yet exist, so insert it
+			if (updatedRowCount <= 0) {
+				if (logger != null) {
+					logger.info(prepInsertStatement.toString());
+				}
+				prepInsertStatement.executeUpdate();
+			}
+		}
     }
 
 }

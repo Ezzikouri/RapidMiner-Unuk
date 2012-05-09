@@ -45,7 +45,7 @@ import com.rapidminer.tools.LogService;
  * @author Simon Fischer
  *
  */
-public class PasswordDialog extends ButtonDialog{
+public class PasswordDialog extends ButtonDialog {
 
     private static final long serialVersionUID = 1L;
 
@@ -60,11 +60,11 @@ public class PasswordDialog extends ButtonDialog{
     private PasswordDialog(String i18nKey, UserCredential preset) {
         super(i18nKey, (preset != null) ? preset.getURL() : null);        
         setModal(true);
-        if (preset != null) {
+        if ((preset != null) && (preset.getPassword() != null)) {
             usernameField.setText(preset.getUsername());
         }
-        if (preset!= null) {
-            passwordField.setText(new String(preset.getPassword()));
+        if ((preset!= null) && (preset.getPassword() != null))  {
+        	passwordField.setText(new String(preset.getPassword()));        	
             rememberBox.setSelected(true);
         }
         String url = (preset != null) ? preset.getURL() : null;
@@ -122,6 +122,9 @@ public class PasswordDialog extends ButtonDialog{
             //authentication = new PasswordAuthentication(authentication.getUserName(), null);
         	authentication.setPassword(null);
             Wallet.getInstance().registerCredentials(authentication);
+        }
+        if (authentication == null) {
+        	authentication = new UserCredential(forUrl, null, null);
         }
         final PasswordDialog pd = new PasswordDialog(authentication);
         pd.setVisible(true);

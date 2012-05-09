@@ -98,15 +98,6 @@ public class LinkAndBrushChartPanel extends ChartPanel {
 		
 		this.zoomOnLinkAndBrushSelection = zoomOnLinkAndBrushSelection;
 		setInitialDelay(200);
-//
-//		Class<JPanel> cpClass = JPanel.class;
-//		try {
-//			Field xField = cpClass.getField("x");
-//			JPanel panel = new JPanel();
-//			xField.setAccessible(true);
-//			Object x = xField.get(panel);
-//		} catch (Exception e) {
-//		}
 		
 		setMouseWheelEnabled(false);
 	}
