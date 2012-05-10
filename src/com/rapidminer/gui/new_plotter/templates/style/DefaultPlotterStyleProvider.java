@@ -98,6 +98,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	
 	private static final String SCHEME_NAME_ATTRIBUTE = "name";
 	
+	private static final String LEGEND_ELEMENT = "legend";
+	
+	private static final String SHOW_LEGEND_ATTRIBUTE = "show_legend";
+	
 	
 	/** if this is set to true, will NOT notify observers about changes. Used for batch updating. */
 	private transient volatile boolean blockUpdates;
@@ -116,6 +120,9 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 	
 	/** the title of the chart */
 	private String chartTitle;
+	
+	/** if true, shows the legend; otherwise hides it */
+	private boolean showLegend;
 	
 	/** the current axes font */
 	private Font axesFont;
@@ -203,6 +210,8 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		
 		chartTitle = "";
 		
+		showLegend = true;
+		
 		defaultStyleProviderPanel = new DefaultPlotterStyleProviderGUI(this);
 	}
 
@@ -218,6 +227,11 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		return chartTitle;
 	}
 	
+	@Override
+	public boolean isShowLegend() {
+		return showLegend;
+	}
+	
 	/**
 	 * Set the chart title.
 	 * @param title
@@ -228,6 +242,19 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		}
 		
 		this.chartTitle = title;
+		
+		if (!blockUpdates) {
+			setChanged();
+			notifyObservers();
+		}
+	}
+	
+	/**
+	 * Set whether the legend should be shown or not.
+	 * @param showLegend if <code>true</code>, shows the legend; otherwise hides it
+	 */
+	public void setShowLegend(boolean showLegend) {
+		this.showLegend = showLegend;
 		
 		if (!blockUpdates) {
 			setChanged();
@@ -499,6 +526,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 		chartTitle.setAttribute(TITLE_ATTRIBUTE, getTitleText());
 		styleElement.appendChild(chartTitle);
 		
+		Element legendElement = document.createElement(LEGEND_ELEMENT);
+		legendElement.setAttribute(SHOW_LEGEND_ATTRIBUTE, String.valueOf(isShowLegend()));
+		styleElement.appendChild(legendElement);
+		
 		// store axes font
 		Element axesFont = document.createElement(AXES_FONT_ELEMENT);
 		axesFont.setAttribute(FONT_NAME_ATTRIBUTE, String.valueOf(getAxesFont().getName()));
@@ -618,6 +649,10 @@ public class DefaultPlotterStyleProvider extends PlotterStyleProvider {
 					// load chart title
 					String title = setting.getAttribute(TITLE_ATTRIBUTE);
 					setTitleText(title);
+				} else if (setting.getNodeName().equals(LEGEND_ELEMENT)) {
+					// load show legend flag
+					String showLegend = setting.getAttribute(SHOW_LEGEND_ATTRIBUTE);
+					setShowLegend(Boolean.parseBoolean(showLegend));
 				} else if (setting.getNodeName().equals(AXES_FONT_ELEMENT)) {
 					// load axes font
 					try {

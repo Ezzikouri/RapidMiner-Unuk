@@ -50,6 +50,7 @@ import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
+import com.rapidminer.tools.Tools;
 
 /**
  * <p>This operator transforms the specified date attribute and writes a new nominal attribute 
@@ -197,6 +198,8 @@ public class Date2Nominal extends AbstractDateDataProcessing {
 	public static final String PARAMETER_ATTRIBUTE_NAME = "attribute_name";
 
 	public static final String PARAMETER_DATE_FORMAT = "date_format";
+	
+	public static final String PARAMETER_TIME_ZONE = "time_zone";
 
 	public static final String PARAMETER_LOCALE = "locale";
 
@@ -264,6 +267,7 @@ public class Date2Nominal extends AbstractDateDataProcessing {
 			selectedLocale = availableLocales.get(getParameterAsInt(PARAMETER_LOCALE));
 
 		SimpleDateFormat parser = new SimpleDateFormat(dateFormat, selectedLocale);
+		parser.setTimeZone(Tools.getTimeZone(getParameterAsInt(PARAMETER_TIME_ZONE)));
 
 		for (Example example : exampleSet) {
 			if (Double.isNaN(example.getValue(dateAttribute))) {
@@ -290,6 +294,9 @@ public class Date2Nominal extends AbstractDateDataProcessing {
 		ParameterTypeAttribute attributeParamType = new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "The attribute which should be parsed.", getExampleSetInputPort(), false, false, Ontology.DATE_TIME);
 		types.add(attributeParamType);
 		ParameterType type = new ParameterTypeStringCategory(PARAMETER_DATE_FORMAT, "The output format of the date values, for example \"yyyy/MM/dd\".", ParameterTypeDateFormat.PREDEFINED_DATE_FORMATS);
+		types.add(type);
+		
+		type = new ParameterTypeCategory(PARAMETER_TIME_ZONE, "The time zone used for the date objects if not specified in the date string itself.", Tools.getAllTimeZones(), Tools.getPreferredTimeZoneIndex());
 		types.add(type);
 
 		type = new ParameterTypeCategory(PARAMETER_LOCALE, "The used locale for date texts, for example \"Wed\" (English) in contrast to \"Mi\" (German).", availableLocaleNames, defaultLocale);

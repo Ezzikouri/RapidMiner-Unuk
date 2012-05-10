@@ -36,6 +36,7 @@ import java.util.Observer;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -81,6 +82,9 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 	
 	/** the combo box containing the color schemes */
 	private JComboBox colorSchemeComboBox;
+	
+	/** the checkbox defining whether to show or hide the legend */
+	private JCheckBox showLegendCheckBox;
 	
 	
 	private static final long serialVersionUID = -6394913829696833045L;
@@ -249,13 +253,31 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		
 		stylePanelGBC.gridx = 0;
 		stylePanelGBC.gridy = 5;
+		stylePanelGBC.weightx = 1;
+		stylePanelGBC.gridwidth = 2;
+		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
+		showLegendCheckBox = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.legend.hide_legend.label"));
+		showLegendCheckBox.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.legend.hide_legend.tip"));
+		showLegendCheckBox.setSelected(defaultStyleProvider.isShowLegend());
+		showLegendCheckBox.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				defaultStyleProvider.setShowLegend(showLegendCheckBox.isSelected());
+			}
+		});
+		stylePanel.add(showLegendCheckBox, stylePanelGBC);
+		
+		stylePanelGBC.gridx = 0;
+		stylePanelGBC.gridy = 6;
 		stylePanelGBC.weightx = 0;
+		stylePanelGBC.gridwidth = 1;
 		stylePanelGBC.fill = GridBagConstraints.NONE;
 		JLabel colorLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.colorscheme.label"));
 		stylePanel.add(colorLabel, stylePanelGBC);
 		
 		stylePanelGBC.gridx = 1;
-		stylePanelGBC.gridy = 5;
+		stylePanelGBC.gridy = 6;
 		stylePanelGBC.weightx = 1;
 		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
 		colorSchemeComboBox = new JComboBox(defaultStyleProvider.getColorSchemes().toArray());
@@ -271,13 +293,13 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		
 		JLabel plotBackgroundColorLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.plot_bg_color.label"));
 		stylePanelGBC.gridx = 0;
-		stylePanelGBC.gridy = 6;
+		stylePanelGBC.gridy = 7;
 		stylePanelGBC.weightx = 0;
 		stylePanelGBC.fill = GridBagConstraints.NONE;
 		stylePanel.add(plotBackgroundColorLabel, stylePanelGBC);
 		
 		stylePanelGBC.gridx = 1;
-		stylePanelGBC.gridy = 6;
+		stylePanelGBC.gridy = 7;
 		stylePanelGBC.weightx = 1;
 		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
 		plotBackgroundColorButton = new JButton(new ResourceAction(true, "plotter.configuration_dialog.select_plot_color") {
@@ -293,13 +315,13 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 		
 		JLabel frameBackgroundColorLabel = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.styleprovider.frame_bg_color.label"));
 		stylePanelGBC.gridx = 0;
-		stylePanelGBC.gridy = 7;
+		stylePanelGBC.gridy = 8;
 		stylePanelGBC.weightx = 0;
 		stylePanelGBC.fill = GridBagConstraints.NONE;
 		stylePanel.add(frameBackgroundColorLabel, stylePanelGBC);
 		
 		stylePanelGBC.gridx = 1;
-		stylePanelGBC.gridy = 7;
+		stylePanelGBC.gridy = 8;
 		stylePanelGBC.weightx = 1;
 		stylePanelGBC.fill = GridBagConstraints.HORIZONTAL;
 		frameBackgroundColorButton = new JButton(new ResourceAction(true, "plotter.configuration_dialog.select_frame_color") {
@@ -381,6 +403,8 @@ public class DefaultPlotterStyleProviderGUI extends JPanel implements Observer {
 			
 			// update title field
 			titleField.setText(defaultStyleProvider.getTitleText());
+			
+			showLegendCheckBox.setSelected(defaultStyleProvider.isShowLegend());
 		}
 	}
 

@@ -56,6 +56,12 @@ public abstract class PlotterStyleProvider extends Observable {
 	public abstract String getTitleText();
 	
 	/**
+	 * Returns <code>true</code> when the legend should be shown; <code>false</code> otherwise.
+	 * @return
+	 */
+	public abstract boolean isShowLegend();
+	
+	/**
 	 * Returns the {@link Font} which the user chose for the axes.
 	 * @return
 	 */

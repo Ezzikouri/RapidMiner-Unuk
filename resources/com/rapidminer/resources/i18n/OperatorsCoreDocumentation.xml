@@ -469,11 +469,11 @@
   </operator>
   <operator>
         <name>Update Database</name>
-        <synopsis>Updates the values of all examples with a matching ID value in a
+        <synopsis>Updates the values of all examples with matching ID values in a
             database.</synopsis>
         <help>&lt;p&gt;This operator updates an &lt;i&gt;ExampleSet&lt;/i&gt;
             in an SQL database. The user can specify the database connection, a table 
-            name and an ID column name.&lt;/p&gt; &lt;p&gt;The most convenient
+            name and ID column names.&lt;/p&gt; &lt;p&gt;The most convenient
             way of defining the necessary parameters is the configuration wizard.
             The most important parameters (database URL and user name) will be
             automatically determined by this wizard.&lt;/p&gt;
@@ -2572,6 +2572,12 @@
          real numbers occur, it will be of type real. Columns containing values which can't be interpreted as numbers will be nominal, as long as they don't match the date and time pattern of the &lt;b&gt;date format&lt;/b&gt; parameter. If they do, this attribute will be automatically parsed as date and the according feature will be of type date.
          &lt;/p&gt;</help>
        <key>read_xml</key>
+  </operator>
+  <operator>
+        <name>Read SAS</name>
+        <synopsis>This operator can read SAS (.sas7bdat) files.</synopsis>
+        <help>&lt;p&gt;This operator can read SAS files.</help>
+    <key>read_sas</key>
   </operator>
       <operator>
         <name>Stream Database</name>

@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableRow;
@@ -52,6 +53,7 @@ import com.rapidminer.gui.new_plotter.utility.ShapeProvider;
 import com.rapidminer.gui.new_plotter.utility.SizeProvider;
 import com.rapidminer.gui.new_plotter.utility.ValueRange;
 import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
 
 /**
  * @author Marius Helf, Nils Woehler
@@ -553,23 +555,27 @@ public class DimensionConfigData {
 		List<PlotConfigurationError> warnings = new LinkedList<PlotConfigurationError>();
 
 		// check if there are enough defined colors for all categories, or if we use darker.darker 
-		if (getDimensionConfig().getDimension() == PlotDimension.COLOR) {
-			if (getDimensionConfig().getValueType() == ValueType.NOMINAL) {
-				ColorProvider colorProvider = getColorProvider();
-				int categoryCount = getDistinctValueCount();
-				int colorListSize = plotInstance.getCurrentPlotConfigurationClone().getActiveColorScheme().getColors().size();
-				if (colorProvider != null && colorListSize < categoryCount) {
-					PlotConfigurationError warning = new PlotConfigurationError("darken_category_colors", categoryCount, colorListSize);
-					warnings.add(warning);
+		if (getDimensionConfig() != null) {
+			if (getDimensionConfig().getDimension() == PlotDimension.COLOR) {
+				if (getDimensionConfig().getValueType() == ValueType.NOMINAL) {
+					ColorProvider colorProvider = getColorProvider();
+					int categoryCount = getDistinctValueCount();
+					int colorListSize = plotInstance.getCurrentPlotConfigurationClone().getActiveColorScheme().getColors().size();
+					if (colorProvider != null && colorListSize < categoryCount) {
+						PlotConfigurationError warning = new PlotConfigurationError("darken_category_colors", categoryCount, colorListSize);
+						warnings.add(warning);
+					}
+
 				}
-
 			}
-		}
 
-		PlotData plotData = plotInstance.getPlotData();
-		if ((getDimensionConfig().isUsingUserDefinedLowerBound() || getDimensionConfig().isUsingUserDefinedUpperBound()) && plotData.isDataTableValid()
-				&& plotData.getDataTable().getRowNumber() == 0) {
-			warnings.add(new PlotConfigurationError("user_range_includes_no_data", getDimensionConfig().getDimension().getName()));
+			PlotData plotData = plotInstance.getPlotData();
+			if ((getDimensionConfig().isUsingUserDefinedLowerBound() || getDimensionConfig().isUsingUserDefinedUpperBound()) && plotData.isDataTableValid()
+					&& plotData.getDataTable().getRowNumber() == 0) {
+				warnings.add(new PlotConfigurationError("user_range_includes_no_data", getDimensionConfig().getDimension().getName()));
+			}
+		} else {
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.new_plotter.data.DimensionConfigData.null_dimension_config");
 		}
 
 		return warnings;

@@ -116,7 +116,7 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 						throw new IOException("Upload failed. Server responded with code "+code+": "+error);
 					} else {
 						//LogService.getRoot().info("Uploaded blob. ("+code+": "+error+")");
-						LogService.getRoot().log(Level.INFO, "com.rapidminer.repository.remote.RemoteBlobEntry.uploaded_blob");
+						LogService.getRoot().log(Level.INFO, "com.rapidminer.repository.remote.RemoteBlobEntry.uploaded_blob", new Object[] {code, error});
 						try {
 							EntryResponse entryResponse = getRepository().getRepositoryService().getEntry(getPath());
 							extractData(entryResponse);

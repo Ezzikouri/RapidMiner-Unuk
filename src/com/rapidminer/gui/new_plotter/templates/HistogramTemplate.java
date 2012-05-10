@@ -429,7 +429,11 @@ public class HistogramTemplate extends PlotterTemplate {
 			plotConfiguration.setTitleFont(styleProvider.getTitleFont());
 			plotConfiguration.getLegendConfiguration().setLegendFont(styleProvider.getLegendFont());
 			plotConfiguration.addColorSchemeAndSetActive(styleProvider.getColorScheme());
-			plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.BOTTOM);
+			if (styleProvider.isShowLegend()) {
+				plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.BOTTOM);
+			} else {
+				plotConfiguration.getLegendConfiguration().setLegendPosition(LegendPosition.NONE);
+			}
 			plotConfiguration.setFrameBackgroundColor(ColorRGB.convertToColor(styleProvider.getFrameBackgroundColor()));
 			plotConfiguration.setPlotBackgroundColor(ColorRGB.convertToColor(styleProvider.getPlotBackgroundColor()));
 			plotConfiguration.setTitleText(styleProvider.getTitleText());
