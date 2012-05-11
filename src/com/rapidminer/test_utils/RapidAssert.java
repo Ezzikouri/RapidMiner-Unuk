@@ -218,7 +218,7 @@ public class RapidAssert extends Assert {
 				ExampleSet expected = (ExampleSet) expectedObj;
 				ExampleSet actual = (ExampleSet) actualObj;
 
-				message = message + "ExampleSets are not equal";
+				message = message + " - ExampleSets are not equal";
 
 				boolean compareAttributeDefaultValues = true;
 				if (expected.getExampleTable().size() > 0) {
