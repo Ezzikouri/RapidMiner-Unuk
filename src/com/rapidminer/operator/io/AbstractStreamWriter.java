@@ -55,6 +55,14 @@ public abstract class AbstractStreamWriter extends AbstractWriter<ExampleSet> {
 	}
 
 	@Override
+	public boolean shouldAutoConnect(OutputPort outputPort) {
+		if (outputPort == fileOutputPort) {
+			return false;
+		} else {
+			return super.shouldAutoConnect(outputPort);
+		}
+	}
+	@Override
 	public ExampleSet write(ExampleSet exampleSet) throws OperatorException {
 
 		OutputStream outputStream = null;

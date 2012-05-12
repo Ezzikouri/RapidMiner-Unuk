@@ -89,6 +89,7 @@ do
 	LAUNCH=0
 	$JAVA \
 	    -Xmx${MAX_JAVA_MEMORY}m \
+	    -XX:MaxPermSize=128m\
 		-cp ${CLASSPATH} \
 		-Drapidminer.home=${RAPIDMINER_HOME} \
 		-Drapidminer.operators.additional=${RAPIDMINER_OPERATORS_ADDITIONAL} \

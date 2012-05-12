@@ -66,7 +66,7 @@ morethan1:
 done:
 
   ; invoking RapidMiner via laucher.jar  
-  StrCpy $0 '"$R0" $R2 -Xmx$1m -Xms$1m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
+  StrCpy $0 '"$R0" $R2 -Xmx$1m -XX:MaxPermSize=128m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
   
   SetOutPath $EXEDIR
 
