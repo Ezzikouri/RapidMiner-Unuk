@@ -100,7 +100,7 @@ public abstract class ResourceAction extends ConditionalAction {
 			putValue(LARGE_ICON_KEY, smallIcon ? (small != null ? small : large) : large);
 			putValue(SMALL_ICON, small != null ? small : large);
 		}
-		String acc = getMessageOrNull(i18nKey + ".acc");
+		String acc = getMessageOrNull(i18nKey + ".aycc");
 		if (acc != null) {
 			KeyStroke stroke = KeyStroke.getKeyStroke(acc);
 			putValue(ACCELERATOR_KEY, stroke);			

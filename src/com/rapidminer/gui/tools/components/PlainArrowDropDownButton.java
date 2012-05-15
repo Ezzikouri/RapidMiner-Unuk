@@ -47,23 +47,21 @@ import com.vlsolutions.swing.toolbars.VLToolBar;
 
 /**
  * 
- * @author Tobias Malbrecht
+ * @author Dominik Halfkann
  */
-public abstract class DropDownButton extends JButton { 
+public abstract class PlainArrowDropDownButton extends JButton { 
 
 	private static final long serialVersionUID = -5987392204641149649L;
 
 	private final PopupMenuListener popupMenuListener = new PopupMenuListener() {
 		public void popupMenuWillBecomeVisible(PopupMenuEvent e){ 
 			popupVisible = true; 
-			mainButton.getModel().setRollover(true); 
 			arrowButton.getModel().setSelected(true); 
 		} 
 
 		public void popupMenuWillBecomeInvisible(PopupMenuEvent e){ 
 			popupVisible = false; 
 
-			mainButton.getModel().setRollover(false); 
 			arrowButton.getModel().setSelected(false); 
 			((JPopupMenu)e.getSource()).removePopupMenuListener(this); // act as good programmer :)
 		} 
@@ -75,24 +73,14 @@ public abstract class DropDownButton extends JButton {
 
 	private final ChangeListener changeListener = new ChangeListener() {
 		public void stateChanged(ChangeEvent e){ 
-			if(e.getSource()==mainButton.getModel()){ 
-				if(popupVisible && !mainButton.getModel().isRollover()){ 
-					mainButton.getModel().setRollover(true); 
-					return; 
-				} 
-				arrowButton.getModel().setRollover(mainButton.getModel().isRollover()); 
-				arrowButton.setSelected(mainButton.getModel().isArmed() && mainButton.getModel().isPressed()); 
-			} else{ 
+
 				if(popupVisible && !arrowButton.getModel().isSelected()){ 
 					arrowButton.getModel().setSelected(true); 
 					return; 
 				} 
-				mainButton.getModel().setRollover(arrowButton.getModel().isRollover()); 
-			} 
+			
 		}
 	};
-
-	private JButton mainButton = this;
 	
 	public static class DropDownArrowButton extends ArrowButton {
 		private static final long serialVersionUID = -398619111521186260L;
@@ -106,27 +94,17 @@ public abstract class DropDownButton extends JButton {
 
 	private boolean popupVisible = false; 
 
-	public DropDownButton(Action action){
+	public PlainArrowDropDownButton(Action action){
 		super(action);
-		mainButton.setText(null);
-		mainButton.setOpaque(false);
-		mainButton.setBorderPainted(false);
-		mainButton.setMargin(new Insets(0,0,0,0));
-		mainButton.getModel().addChangeListener(changeListener);
 		arrowButton.getModel().addChangeListener(changeListener);
 		arrowButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae){ 
 				JPopupMenu popup = getPopupMenu(); 
 				popup.addPopupMenuListener(popupMenuListener); 
-				popup.show(mainButton, 0, mainButton.getHeight()); 
+				popup.show(arrowButton, 0, arrowButton.getHeight()); 
 			}		
 		}); 
 		arrowButton.setMargin(new Insets(0, 0, 0, 0)); 
-		mainButton.addPropertyChangeListener("enabled", new PropertyChangeListener() {
-			public void propertyChange(PropertyChangeEvent evt){ 
-				arrowButton.setEnabled(mainButton.isEnabled()); 
-			} 
-		}); 
 	}
 
 	protected abstract JPopupMenu getPopupMenu();
@@ -140,43 +118,32 @@ public abstract class DropDownButton extends JButton {
 	}
 
 	public JButton addToToolBar(JToolBar toolbar){ 
-		toolbar.add(mainButton); 
 		toolbar.add(arrowButton); 
-		return mainButton; 
+		return arrowButton; 
 	}
 
 	public JButton addToToolBar(VLToolBar toolbar) {
-		toolbar.add(mainButton); 
 		toolbar.add(arrowButton); 
-		return mainButton;		
+		return arrowButton;		
 	}
 	
 	public JButton addToToolBar(ViewToolBar toolbar, int alignment) {
-		toolbar.add(mainButton, alignment);
 		toolbar.add(arrowButton, alignment);
-		return mainButton;
+		return arrowButton;
 	}
 	
-	public JButton addToFlowLayoutPanel(JPanel panel) {
-		panel.add(mainButton);
-		panel.add(arrowButton);
-		return mainButton;
+	public JButton getDropDownArrowButton() {
+		return arrowButton;
 	}
 	
-	public JButton addArrowToFlowLayoutPanel(JPanel panel) {
-		//mainButton.setVisible(false);
-		panel.add(mainButton);
-		panel.add(arrowButton);
-		return mainButton;
-	}
 
 	// factory methods
-	public static DropDownButton makeDropDownButton(Action mainAction, Action ... actions) {
+	public static PlainArrowDropDownButton makeDropDownButton(Action mainAction, Action ... actions) {
 		final JPopupMenu menu = new JPopupMenu();
 		for (Action action : actions) {
 			menu.add(action);
 		}		
-		return new DropDownButton(mainAction) {
+		return new PlainArrowDropDownButton(mainAction) {
 			private static final long serialVersionUID = -7359018188605409766L;
 
 			@Override
@@ -186,9 +153,9 @@ public abstract class DropDownButton extends JButton {
 		};
 	}
 
-	public static DropDownButton makeDropDownButton(Action action) {
+	public static PlainArrowDropDownButton makeDropDownButton(Action action) {
 		final JPopupMenu menu = new JPopupMenu();
-		return new DropDownButton(action) {
+		return new PlainArrowDropDownButton(action) {
 			private static final long serialVersionUID = -7359018188605409766L;
 
 			@Override
