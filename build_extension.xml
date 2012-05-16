@@ -258,7 +258,7 @@ Name "${extension.name.long}"
 
 
         <!-- Now build installer: Will generate release/${release.installer}-->
-        <exec executable="makensis.exe">
+        <exec executable="makensis">
             <arg line="&quot;${rm.dir}/installation/extension_installer.nsi&quot;" />
         </exec>
     	

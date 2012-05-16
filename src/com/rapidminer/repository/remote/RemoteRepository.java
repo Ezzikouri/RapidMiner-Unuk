@@ -317,10 +317,10 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		return getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small>";
 	}
 	
-	@Override
-	public String toString() {
-		return "TEST" + super.toString();
-	}
+//	@Override
+//	public String toString() {
+//		return "<html>" + getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small></html>"; //super.toString();
+//	}
 
 	private PasswordAuthentication getAuthentiaction() {		
 		if (password == null) {

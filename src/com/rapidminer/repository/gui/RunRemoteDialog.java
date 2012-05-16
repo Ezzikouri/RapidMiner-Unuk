@@ -22,6 +22,7 @@
  */
 package com.rapidminer.repository.gui;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -37,10 +38,12 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
@@ -158,6 +161,21 @@ public class RunRemoteDialog extends ButtonDialog {
 		List<RemoteRepository> remoteRepositories = RepositoryManager.getInstance(null).getRemoteRepositories();
 		DefaultComboBoxModel aModel = new DefaultComboBoxModel(remoteRepositories.toArray());
 		repositoryBox.setModel(aModel);
+		repositoryBox.setRenderer(new DefaultListCellRenderer() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public Component getListCellRendererComponent(JList list,
+					Object value, int index, boolean isSelected,
+					boolean cellHasFocus) {
+				JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected,
+								cellHasFocus);
+				if (value instanceof RemoteRepository) {
+					RemoteRepository repo = (RemoteRepository) value;
+					label.setText("<html>" + repo.getAlias() + "<br/><small style=\"color:gray\">(" + repo.getBaseUrl() + ")</small></html>");
+				}
+				return label;
+			}
+		});
 		if (repositoryBox.getItemCount() < lastRepositoryIndexSelected) {
 			lastRepositoryIndexSelected = 0;
 		}
