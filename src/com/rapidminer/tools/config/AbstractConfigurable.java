@@ -23,8 +23,10 @@
 package com.rapidminer.tools.config;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.repository.remote.RemoteRepository;
 
 /**
@@ -35,7 +37,7 @@ import com.rapidminer.repository.remote.RemoteRepository;
 public abstract class AbstractConfigurable implements Configurable {
 
 	private int id = -1;
-	private String name;
+	private String name = "name undefined";
 	private Map<String,String> parameters = new HashMap<String, String>();
 	private RemoteRepository source;
 	
@@ -111,12 +113,21 @@ public abstract class AbstractConfigurable implements Configurable {
 	}
 	
 	@Override
-	public boolean isEmpty() {
+	public boolean isEmptyOrDefault(Configurator configurator) {
 		if (this.getName() != null && !this.getName().equals("")) {
 			return false;
 		} else if (this.getParameters() != null && this.getParameters().size() > 0) {
 			for (String key : this.getParameters().keySet()) {
-				if (this.getParameters().get(key) != null && !this.getParameters().get(key).equals("")) {
+				// find default value
+				String defaultValue = "";
+				@SuppressWarnings("unchecked")
+				List<ParameterType> types = configurator.getParameterTypes();
+				for (ParameterType type : types) {
+					if (type.getKey().equals(key)) {
+						defaultValue = type.getDefaultValueAsString();
+					}
+				}
+				if (this.getParameters().get(key) != null && !this.getParameters().get(key).equals("") && !this.getParameters().get(key).equals(defaultValue)) {
 					return false;
 				}
 			}

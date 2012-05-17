@@ -678,8 +678,8 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	/** Returns true if the user has changed any values and hasn't saved them, false otherwise **/
     private boolean hasUnsavedChanges() throws ConfigurationException {
     	if (currentlyEditedEntry == null) {
-			// The first time the user selects an entry, make sure everything is empty
-    		if (getConfigurableFromInputFields().isEmpty()) {
+			// The first time the user selects an entry, make sure everything is empty or the default value
+    		if (getConfigurableFromInputFields().isEmptyOrDefault(configurator)) {
     			return false;
     		} else {
     			return true;

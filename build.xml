@@ -121,7 +121,7 @@
 		<property name="lock.isCopied" value="true" />
 	</target>
 
-	<target name="build" depends="init, copy-resources" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
+	<target name="build" depends="init, copy-resources,version.updateFiles" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<echo message="RapidMiner: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner: using Java version: ${java.version}" />
 		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false">

@@ -101,7 +101,7 @@ public class DefaultConfigurationPanel extends ConfigurationPanel<Configurable> 
 	}
 
 	@Override
-	public void updateConfigurable(Configurable configurable) {
+	public void updateConfigurable(Configurable configurable)  {
 		panel.fireEditingStoppedEvent();
 		Parameters parameters = panel.getParameters();
 
@@ -109,17 +109,20 @@ public class DefaultConfigurationPanel extends ConfigurationPanel<Configurable> 
 		Map<String, String> parameterValues = new HashMap<String, String>();
 		for (String key : keys) {
 			String value = null;
+			Exception cause;
 			try {
 				value = parameters.getParameter(key);
 			} catch (UndefinedParameterError e) {
-				// do nothing
+				// may occur, do nothing
 			}
-			// value may be null
+			// value may be null, so change it to an empty string to prevent unwanted errors
+			if (value == null) value = "";
 			if (key.equals("Name")) {
 				configurable.setName(value);
 			} else {
 				parameterValues.put(key, value);
 			}
+			
 		}
 
 		configurable.configure(parameterValues);

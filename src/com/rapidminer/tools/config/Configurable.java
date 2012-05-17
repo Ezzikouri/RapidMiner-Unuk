@@ -27,60 +27,89 @@ import java.util.Map;
 import com.rapidminer.repository.remote.RemoteRepository;
 
 /**
- * Interface, describing objects which can be listed and configured through a {@link ConfigurationDialog}.
+ * Interface, describing objects which can be listed and configured through a
+ * {@link ConfigurationDialog}.
+ * 
  * @author Simon Fischer, Dominik Halfkann
- *
+ * 
  */
 public interface Configurable {
 
 	/** Sets the user defined unique name. */
 	public void setName(String name);
-	
+
 	/** Gets the user defined unique name. */
 	public String getName();
-	
-	/** Sets the given parameters.
-	 * @see #getParameters() */
+
+	/**
+	 * Sets the given parameters.
+	 * 
+	 * @see #getParameters()
+	 */
 	public void configure(Map<String, String> parameterValues);
-	
-	/** The parameter values representing this Configurable. 
-	 * @see #configure(Map) */
-	public Map<String,String> getParameters();
-	
-	/** Returns the ID of this configurable in case it was retrieved from RapidAnalytics. 
-	 *  This ID must be used when editing and saving a configurable. 
+
+	/**
+	 * The parameter values representing this Configurable.
+	 * 
+	 * @see #configure(Map)
+	 */
+	public Map<String, String> getParameters();
+
+	/**
+	 * Returns the ID of this configurable in case it was retrieved from
+	 * RapidAnalytics. This ID must be used when editing and saving a
+	 * configurable.
+	 * 
 	 * @see #getSource()
-	 * @return -1 if this configurable was not loaded from RapidAnalytics */
+	 * @return -1 if this configurable was not loaded from RapidAnalytics
+	 */
 	public int getId();
 
-	/** Called when loading and creating configurables. 
-	 *  @see #getId() */
+	/**
+	 * Called when loading and creating configurables.
+	 * 
+	 * @see #getId()
+	 */
 	public void setId(int id);
-	
-	/** If this configurable was loaded from a RapidAnalytics instance, this is the connection
-	 *  it was loaded from. May be null for local entries. 
-	 *  @see #getId() */
+
+	/**
+	 * If this configurable was loaded from a RapidAnalytics instance, this is
+	 * the connection it was loaded from. May be null for local entries.
+	 * 
+	 * @see #getId()
+	 */
 	public RemoteRepository getSource();
 
 	/** Set when this configurable was loaded from a RapidAnalytics instance. */
 	public void setSource(RemoteRepository source);
-	
-	/** Gets the user defined short info which will be shown in the list on the left */
+
+	/**
+	 * Gets the user defined short info which will be shown in the list on the
+	 * left
+	 */
 	public String getShortInfo();
-	
+
 	/** Sets the parameter value for the given key **/
 	public void setParameter(String key, String value);
-	
+
 	/** Gets the parameter value for the given key **/
 	public String getParameter(String key);
-	
-	/** Compares the name and the parameter values of this Configurable with a given Configurable **/
+
+	/**
+	 * Compares the name and the parameter values of this Configurable with a
+	 * given Configurable
+	 **/
 	public boolean hasSameValues(Configurable comparedConfigurable);
 
-	/** Checks if the Configurable is empty (has no values/only empty values) **/
-	public boolean isEmpty();
-	
+	/**
+	 * Checks if the Configurable is empty (has no values/only empty
+	 * values/default values)
+	 * 
+	 * @param configurator The configurator to resolve the default values from
+	 **/
+	public boolean isEmptyOrDefault(Configurator configurator);
+
 	/** Returns the type id of the corresponding {@link Configurator}. */
 	public String getTypeId();
-	
+
 }
