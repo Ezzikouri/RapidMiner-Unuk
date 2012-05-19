@@ -47,6 +47,10 @@ public class GenericParameterPanel extends PropertyPanel {
 //	private Map<String, ParameterType> keyTypeMap = new LinkedHashMap<String, ParameterType>();
 	
 	
+	public GenericParameterPanel() {
+		
+	}
+	
 	public GenericParameterPanel(Parameters parameters) {
 		super();
 		setParameters(parameters);
