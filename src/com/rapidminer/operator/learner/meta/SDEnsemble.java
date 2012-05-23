@@ -118,13 +118,14 @@ public class SDEnsemble extends PredictionModel implements MetaModel {
 	 * single classifiers are written to. <code>print_to_stdout</code> prints
 	 * some statistics about the base classifiers to the standard output.
 	 */
-	public void setParameter(String name, String value) throws OperatorException {
+	@Override
+	public void setParameter(String name, Object value) throws OperatorException {
 		if (name.equalsIgnoreCase("print_to_stdout")) {
 			this.print_to_stdout = true;
 			return;
 		} else if (name.equalsIgnoreCase(PRED_TO_FILE)) {
 			if (value != null) {
-				String filename = value;
+				String filename = (String) value;
 				File file = new File(filename);
 				if (file.exists()) {
 					boolean result = file.delete();
@@ -143,7 +144,7 @@ public class SDEnsemble extends PredictionModel implements MetaModel {
 		} else
 			try {
 				if (name.equalsIgnoreCase(MAX_MODEL_NUMBER)) {
-					this.maxModelNumber = Integer.parseInt(value);
+					this.maxModelNumber = Integer.parseInt((String)value);
 					return;
 				}
 			} catch (NumberFormatException e) {}

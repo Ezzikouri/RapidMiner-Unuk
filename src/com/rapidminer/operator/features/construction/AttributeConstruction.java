@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.features.construction;
 
 import java.util.Iterator;
@@ -256,7 +257,9 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 
-		ParameterType type = new ParameterTypeList(PARAMETER_FUNCTIONS, "List of functions to generate.", new ParameterTypeString("attribute_name", "Specifies the name of the constructed attribute"), new ParameterTypeExpression("function_expressions", "Function and arguments to use for generation.", getInputPort()));
+		ParameterType type = new ParameterTypeList(PARAMETER_FUNCTIONS, "List of functions to generate.", new ParameterTypeString("attribute_name",
+				"Specifies the name of the constructed attribute"), new ParameterTypeExpression("function_expressions", "Function and arguments to use for generation.",
+				getInputPort()));
 		type.setExpert(false);
 		types.add(type);
 

@@ -90,14 +90,16 @@ public class BayBoostModel extends PredictionModel implements MetaModel {
 	 * all but the first n models for specified n. <code>CONV_TO_CRISP</code>
 	 * allows to set another threshold than 0.5 for boolean prediction problems.
 	 */
-	public void setParameter(String name, String value) throws OperatorException {
+	@Override
+	public void setParameter(String name, Object value) throws OperatorException {
+		String stringValue = (String)value;
 		if (name.equalsIgnoreCase(MAX_MODEL_NUMBER)) {
 			try {
-				this.maxModelNumber = Integer.parseInt(value);
+				this.maxModelNumber = Integer.parseInt(stringValue);
 				return;
 			} catch (NumberFormatException e) {}
 		} else if (name.equalsIgnoreCase(CONV_TO_CRISP)) {
-			this.threshold = Double.parseDouble(value.trim());
+			this.threshold = Double.parseDouble(stringValue.trim());
 			return;
 		}
 

@@ -72,10 +72,12 @@ public class AdaBoostModel extends PredictionModel implements MetaModel {
 	 * Setting the parameter <code>MAX_MODEL_NUMBER</code> allows to discard
 	 * all but the first n models for specified n.
 	 */
-	public void setParameter(String name, String value) throws OperatorException {
+	@Override
+	public void setParameter(String name, Object value) throws OperatorException {
 		if (name.equalsIgnoreCase(MAX_MODEL_NUMBER)) {
+			String stringValue = (String)value;
 			try {
-				this.maxModelNumber = Integer.parseInt(value);
+				this.maxModelNumber = Integer.parseInt(stringValue);
 				return;
 			}
 			catch (NumberFormatException e) {}
