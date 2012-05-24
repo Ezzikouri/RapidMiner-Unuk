@@ -42,10 +42,7 @@ public class GenericParameterPanel extends PropertyPanel {
 
 	private static final long serialVersionUID = -8633435565053835262L;
 
-	private Parameters parameters = null;
-//	private Map<String, String> keyValueMap = new LinkedHashMap<String, String>();
-//	private Map<String, ParameterType> keyTypeMap = new LinkedHashMap<String, ParameterType>();
-	
+	private Parameters parameters = new Parameters();
 	
 	public GenericParameterPanel() {
 		
@@ -84,7 +81,6 @@ public class GenericParameterPanel extends PropertyPanel {
 		} else {
 			return null;
 		}
-		//return keyValueMap.get(type.getKey());
 	}
 
 	@Override
@@ -101,25 +97,18 @@ public class GenericParameterPanel extends PropertyPanel {
 	
 	public void setValue(String key, String value) {
 		parameters.setParameter(key, value);
-		//keyValueMap.put(key, value);
 		setupComponents();
 	}
 	
 	public void setParameters(Parameters parameters) {
 		this.parameters = parameters;
-//		keyValueMap.clear();
-//		keyTypeMap.clear();
-//		for (ParameterType type: parameters) {
-//			keyValueMap.put(type.getKey(), type.getDefaultValueAsString());
-//			keyTypeMap.put(type.getKey(), type);
-//		}
-//		
+		
 		// calling super method for rebuilding panel
 		setupComponents();
 	}
 	
 	public void clearProperties() {
-		this.parameters = null;
+		this.parameters = new Parameters();
 		
 		setupComponents();
 	}
@@ -127,12 +116,15 @@ public class GenericParameterPanel extends PropertyPanel {
 	public Parameters getParameters() {
 		return parameters;
 	}
+
+	@Override
+	protected void setValue(Operator operator, ParameterType type,
+			String value, boolean updateComponents) {
+		if (updateComponents) {
+			setValue(operator,type,value);
+		} else {
+			parameters.setParameter(type.getKey(), value);
+		}
+	}
 	
-//	public Collection<String> getPropertyKeys() {
-//		return keyValueMap.keySet();
-//	}
-//	
-//	public String getValue(String key) {
-//		return keyValueMap.get(key);
-//	}
 }

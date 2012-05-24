@@ -262,7 +262,7 @@ public abstract class PropertyPanel extends JPanel {
 					if (((value != null) && (last  == null)) ||
 							((last  == null) && (value != null)) ||
 							((value != null) && (last  != null) && !value.equals(last))) {						
-						setValue(typesOperator, type, value);	
+						setValue(typesOperator, type, value, false);	
 					}										
 				}				
 			});
@@ -351,6 +351,11 @@ public abstract class PropertyPanel extends JPanel {
 	protected abstract void setValue(Operator operator, ParameterType type, String value);
 	protected abstract Collection<ParameterType> getProperties();
 	protected abstract Operator getOperator();
+	
+	/** Subclasses of PropertyPanel (e.g. GenericParameterPanel) can overwrite this method in order to specify if GUI elements should be updated after setting the Value. **/
+	protected void setValue(Operator operator, ParameterType type, String value, boolean updateComponents) {
+		setValue(operator, type, value);
+	}
 
 	public static PropertyValueCellEditor instantiateValueCellEditor(final ParameterType type, Operator operator) {
 		PropertyValueCellEditor editor;
