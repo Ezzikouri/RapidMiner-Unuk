@@ -81,6 +81,30 @@ public class FileOutputPortHandler {
 		}
 	}
 	
+	/**
+	 * Returns an OutputStream, depending on whether the {@link #fileOutputPort}
+	 * is connected, a file name is given and it should be appended to the end of the file.
+	 */
+	public OutputStream openSelectedFile(boolean append) throws OperatorException {
+		if (!fileOutputPort.isConnected()) {
+			try {
+				return new FileOutputStream(
+						operator.getParameterAsFile(fileParameterName), append);
+			} catch (FileNotFoundException e) {
+				throw new UserError(operator, 301,
+						operator.getParameterAsFile(fileParameterName));
+			}
+		} else {
+			return new ByteArrayOutputStream() {
+				@Override
+				public void close() throws IOException {
+					super.close();
+					fileOutputPort.deliver(new BufferedFileObject(this.toByteArray()));
+				}
+			};
+		}
+	}
+	
 	
 	
 	/** Returns either the selected file referenced by the value of the parameter with the name

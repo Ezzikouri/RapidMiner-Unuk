@@ -288,27 +288,33 @@
 		<copy file="${lib}/launcher.jar" todir="${release.files}/lib" />
 
 		<!-- Now build launcher: Will generate release/files/RapidMiner.exe -->
+		<echo message="Building launcher..." />
 		<exec executable="${makensis}">
 			<arg line="installation/launcher.nsi" />
 		</exec>
 
 		<!-- Copy JRE -->
+		<echo message="Copying JRE..." />
 		<copy todir="${release.files}/jre">
 			<fileset dir="${jre32}" />
 		</copy>
 
 		<!-- Now build installer: Will generate release/rapidminer-${SHORT_VERSION}x32-install.exe -->
+		<echo message="Building installer..." />
 		<exec executable="${makensis}">
 			<arg line="installation/installer.nsi" />
 		</exec>
 		<!-- rename it to long version-->
+		<echo message="Renaming to long version..." />
 		<move tofile="${release}/rapidminer-${rapidminer.longversion}x32-install.exe" file="${release}/rapidminer-${rapidminer.shortversion}x32-install.exe" />
 
 		<!-- delete OS-dependent files: RapidMiner.exe, JRE -->
+		<echo message="Deleting OS-dependent files..." />
 		<delete file="${release.files}/RapidMiner.exe" />
 		<delete dir="${release.files}/jre" />
 
 		<!-- Now tidy up release/files if not needed anymore -->
+		<echo message="Cleaning up..." />
 		<ant target="release.finish" />
 	</target>
 
@@ -594,6 +600,7 @@
 	<target name="version.get">
 		<property name="rapidminer.shortversion" value="${rapidminer.version}.${rapidminer.revision}" />
 		<property name="rapidminer.longversion" value="${rapidminer.version}.${rapidminer.revision}.${rapidminer.update}" />
+		<echo message="Long version: ${rapidminer.longversion}; short version: ${rapidminer.shortversion}" />
 
 		<!-- ant target="version.updateFiles" / -->
 	</target>

@@ -46,8 +46,12 @@ import com.rapidminer.parameter.PortProvider;
  */
 public abstract class AbstractStreamWriter extends AbstractWriter<ExampleSet> {
 
-	private OutputPort fileOutputPort = getOutputPorts().createPort("file");
+	protected OutputPort fileOutputPort = getOutputPorts().createPort("file");
 	private FileOutputPortHandler filePortHandler = new FileOutputPortHandler(this, fileOutputPort, getFileParameterName());
+	
+	protected boolean shouldAppend() {
+		return false;
+	}
 
 	public AbstractStreamWriter(OperatorDescription description) {
 		super(description, ExampleSet.class);
@@ -67,7 +71,11 @@ public abstract class AbstractStreamWriter extends AbstractWriter<ExampleSet> {
 
 		OutputStream outputStream = null;
 		try {
-			outputStream = filePortHandler.openSelectedFile();
+			if (shouldAppend()) {
+				outputStream = filePortHandler.openSelectedFile(true);
+			} else {
+				outputStream = filePortHandler.openSelectedFile();
+			}
 			writeStream(exampleSet, outputStream);
 
 		} finally {

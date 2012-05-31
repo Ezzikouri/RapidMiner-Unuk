@@ -44,6 +44,9 @@ public class ParameterTypeConfigurable extends ParameterTypeSingle {
 	
 	public ParameterTypeConfigurable(String key, String description, String typeId) {
         super(key, description);
+        if (!ConfigurationManager.getInstance().hasTypeId(typeId)) {
+			throw new IllegalArgumentException("Unknown configurable type: "+typeId);
+		}
         this.typeId = typeId;
     }
 	

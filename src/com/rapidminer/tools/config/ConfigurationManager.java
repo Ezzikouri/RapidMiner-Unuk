@@ -150,6 +150,10 @@ public abstract class ConfigurationManager {
 		return result ;
 	}
 	
+	public boolean hasTypeId(String typeId) {
+		return configurators.keySet().contains(typeId);
+	}
+	
 	public List<String> getAllConfigurableNames(String typeId) {
 		Map<String, Configurable> configurablesForType = configurables.get(typeId);
 		if (configurablesForType == null) {

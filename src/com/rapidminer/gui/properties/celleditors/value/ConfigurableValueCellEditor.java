@@ -95,7 +95,9 @@ public class ConfigurableValueCellEditor extends AbstractCellEditor implements P
 	
 	public ConfigurableValueCellEditor(final ParameterTypeConfigurable type) {
 		this.typeId = type.getTypeId();
-		
+		if (!ConfigurationManager.getInstance().hasTypeId(typeId)) {
+			throw new IllegalArgumentException("Unknown configurable type: "+typeId);
+		}
 		panel.setLayout(new GridBagLayout());
 		panel.setToolTipText(type.getDescription());
 		comboBox.setToolTipText(type.getDescription());

@@ -35,9 +35,12 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ports.Port;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.PortProvider;
+import com.rapidminer.parameter.conditions.PortConnectedCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.io.Encoding;
 
@@ -66,6 +69,8 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 	 * inside of nominal values will be escaped by a backslash.
 	 */
 	public static final String PARAMETER_QUOTE_NOMINAL_VALUES = "quote_nominal_values";
+	
+	public static final String PARAMETER_APPEND_FILE = "append_to_file";
 
 	/**
 	 * Indicates if date attributes are written as a formated string or as
@@ -82,13 +87,13 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 	@Override
 	public void writeStream(ExampleSet exampleSet,
 			java.io.OutputStream outputStream) throws OperatorException {
+		
 		String columnSeparator = getParameterAsString(PARAMETER_COLUMN_SEPARATOR);
 		boolean quoteNominalValues = getParameterAsBoolean(PARAMETER_QUOTE_NOMINAL_VALUES);
 		PrintWriter out = null;
 		try {
-			out = new PrintWriter(new OutputStreamWriter(outputStream, Encoding
-					.getEncoding(this)));
-
+				out = new PrintWriter(new OutputStreamWriter(outputStream, Encoding
+						.getEncoding(this)));
 			// write column names
 			if (getParameterAsBoolean(PARAMETER_WRITE_ATTRIBUTE_NAMES)) {
 				Iterator<Attribute> a = exampleSet.getAttributes()
@@ -160,6 +165,11 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 	protected boolean supportsEncoding() {
 		return true;
 	}
+	
+	@Override 
+	protected boolean shouldAppend() {
+		return getParameterAsBoolean(PARAMETER_APPEND_FILE);
+	}
 
 	@Override
 	public List<ParameterType> getParameterTypes() {
@@ -184,6 +194,14 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 						PARAMETER_FORMAT_DATE,
 						"Indicates if date attributes are written as a formated string or as milliseconds past since January 1, 1970, 00:00:00 GMT",
 						true, true));
+		ParameterType type = new ParameterTypeBoolean(PARAMETER_APPEND_FILE, "Indicates that new content will be appended to the file instead of overwriting it.", false, false);
+		type.registerDependencyCondition(new PortConnectedCondition(this, new PortProvider() {
+			@Override
+			public Port getPort() {			
+				return fileOutputPort;
+			}
+		}, true, false));
+		types.add(type);
 		types.addAll(super.getParameterTypes());
 		return types;
 	}
