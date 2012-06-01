@@ -343,12 +343,11 @@ Name "${extension.name.long}"
         <echo message="Releasing started..." />
 
 		<antcall target="version.get" />
+		<antcall target="release.publishToRapidShare" />
         <antcall target="release.publish" />
 		<antcall target="update.publish" />
     </target>
-
-
-
+	
     <!-- Uploading updates -->
 
     <target name="update.publish" depends="createJar" description="This will generate a new update and upload files for all platforms (currently only platform independent). The update number will ne increased automatically.">
@@ -370,6 +369,17 @@ Name "${extension.name.long}"
 		<antcall target="version.get" />
         <antcall target="update.publish" />
     </target>
+	
+	<target name="release.publishToRapidShare" depends="createJar" description="Copies the created jar file into Rapid-I's internal file share.">
+        <echo message="Publishing release ${extension.longversion}..." />
+		<property name="server.rapidshare.path.release" value="${server.rapidshare.path}/RapidMiner Extensions/${extension.name}/${extension.longversion}" />
+        <mkdir dir="${server.rapidshare.path.release}" />
+        <copy todir="${server.rapidshare.path.release}">
+            <fileset dir="${release.targetDir}/">
+                <include name="${release.name}" />
+            </fileset>
+        </copy>
+	</target>
 
 
 
@@ -379,17 +389,32 @@ Name "${extension.name.long}"
         <property name="extension.shortversion" value="${extension.version}.${extension.revision}" />
         <property name="extension.longversion" value="${extension.version}.${extension.revision}.${extension.update}" />
 
-        <antcall target="version.updateFiles" />
+    	<echo message="Long version: ${extension.longversion}; short version: ${extension.shortversion}" />
+
+        <!-- <antcall target="version.updateFiles" /> -->
     </target>
 
-    <target name="version.updateFiles">
+	<target name="version.increaseUpdate" description="This might be called seperately to increase the update number of the version.">
+		<echo message="Increasing Update Number..." />
+
+		<propertyfile file="build.properties">
+			<entry type="int" key="extension.update" operation="+" value="1" pattern="000" />
+		</propertyfile>
+
+		<property name="extension.shortversion" value="${extension.version}.${extension.revision}" />
+		<property name="extension.longversion" value="${extension.version}.${extension.revision}.${extension.update}" />
+
+		<ant target="version.updateFiles" />
+	</target>
+
+
+	<target name="version.updateFiles">
         <!-- Installer version-->
         <echo file="${rm.dir}/installation/extension_version.nsi">
                 !define SHORT_VERSION ${extension.shortversion}
                 !define LONG_VERSION ${extension.longversion}.0
         	    !define RM_LONG_VERSION ${extension.longversion}
-            </echo>
-
+        </echo>
     </target>
 
 

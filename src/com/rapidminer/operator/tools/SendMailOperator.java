@@ -20,15 +20,19 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.tools;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.rapidminer.operator.MailNotSentException;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.DummyPortPairExtender;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -37,27 +41,30 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.ParameterTypeText;
 import com.rapidminer.parameter.TextType;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
+import com.rapidminer.parameter.conditions.AboveOperatorVersionCondition;
 import com.rapidminer.tools.MailUtilities;
 
 /**
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Nils Woehler
  *
  */
 public class SendMailOperator extends Operator {
 
+	public static final OperatorVersion VERSION_SWAPPED_INPUT_PORTS = new OperatorVersion(5, 2, 6);
+
 	private DummyPortPairExtender through = new DummyPortPairExtender("through", getInputPorts(), getOutputPorts());
-	
+
 	public static final String PARAMETER_TO = "to";
 	public static final String PARAMETER_SUBJECT = "subject";
 	public static final String PARAMETER_BODY_PLAIN = "body_plain";
 	public static final String PARAMETER_BODY_HTML = "body_html";
 	public static final String PARAMETER_USE_HTML = "use_html";
-	
+
 	public static final String PARAMETER_HEADERS = "headers";
-	
-	
-	
+
+	public static final String PARAMETER_THROW_ERROR = "stop_on_error";
+
 	public SendMailOperator(OperatorDescription description) {
 		super(description);
 		through.start();
@@ -68,54 +75,69 @@ public class SendMailOperator extends Operator {
 	public void doWork() throws OperatorException {
 		String to = getParameterAsString(PARAMETER_TO);
 		String subject = getParameterAsString(PARAMETER_SUBJECT);
-		
-		Map<String,String> headers = new HashMap<String,String>();
+
+		Map<String, String> headers = new HashMap<String, String>();
 		for (String[] entry : getParameterList(PARAMETER_HEADERS)) {
 			headers.put(entry[0], entry[1]);
-		}		 
+		}
 		String body;
 		if (getParameterAsBoolean(PARAMETER_USE_HTML)) {
 			body = getParameterAsString(PARAMETER_BODY_HTML);
 			headers.put("Content-Type", "text/html");
 		} else {
-			body = getParameterAsString(PARAMETER_BODY_PLAIN);			
-		}				
-		MailUtilities.sendEmail(to, subject, body, headers);
+			body = getParameterAsString(PARAMETER_BODY_PLAIN);
+		}
+		if (getCompatibilityLevel().isAtMost(VERSION_SWAPPED_INPUT_PORTS)) {
+			MailUtilities.sendEmail(to, subject, body, headers);
+		} else {
+			if (getParameterAsBoolean(PARAMETER_THROW_ERROR)) {
+				try {
+					MailUtilities.sendEmailWithException(to, subject, body, headers);
+				} catch (MailNotSentException e) {
+					throw new UserError(this, e.getCause(), e.getErrorKey(), e.getArguments());
+				}
+			} else {
+				MailUtilities.sendEmail(to, subject, body, headers);
+			}
+		}
 		through.passDataThrough();
 	}
-	
+
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		final List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeString(PARAMETER_TO, "Receiver of the email.", false, false));
 		types.add(new ParameterTypeString(PARAMETER_SUBJECT, "Subject the email.", false, false));
-		
+
 		types.add(new ParameterTypeBoolean(PARAMETER_USE_HTML, "Format text as HTML?.", false, false));
 
 		ParameterType type = new ParameterTypeText(PARAMETER_BODY_PLAIN, "Body of the email.", TextType.PLAIN, false);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_HTML, false, false));			
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_HTML, false, false));
 		type.setExpert(false);
 		types.add(type);
-		
-		type = new ParameterTypeText(PARAMETER_BODY_HTML, "Body of the email in HTML format.", TextType.HTML, 
-				"<html>\n" +
-				"	<head>\n" +
-				"		<title>RapidMiner Mail Message</title>\n" +
-				"	</head>\n" +
-				"	<body>\n" +
-				"		<p>\n" +
-				"		</p>\n" +
-				"	</body>\n" +
-				"</html>\n");
+
+		type = new ParameterTypeText(PARAMETER_BODY_HTML, "Body of the email in HTML format.", TextType.HTML, "<html>\n" + "	<head>\n"
+				+ "		<title>RapidMiner Mail Message</title>\n" + "	</head>\n" + "	<body>\n" + "		<p>\n" + "		</p>\n" + "	</body>\n" + "</html>\n");
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_HTML, false, true));
 		type.setExpert(false);
 		types.add(type);
-		
-		type = new ParameterTypeList(PARAMETER_HEADERS, "Additional mail headers", 
-				new ParameterTypeString("header", "Name of the header"), 
-				new ParameterTypeString("value", "value of the header"));
+
+		type = new ParameterTypeList(PARAMETER_HEADERS, "Additional mail headers", new ParameterTypeString("header", "Name of the header"), new ParameterTypeString("value",
+				"value of the header"));
 		type.setExpert(true);
 		types.add(type);
+
+		type = new ParameterTypeBoolean(PARAMETER_THROW_ERROR, "If set the process will stop and show an error if sending mail was not succesful.", true);
+		type.setExpert(false);
+		types.add(type);
+		type.registerDependencyCondition(new AboveOperatorVersionCondition(this, VERSION_SWAPPED_INPUT_PORTS));
+
 		return types;
 	}
+
+	@Override
+	public OperatorVersion[] getIncompatibleVersionChanges() {
+		return new OperatorVersion[] { VERSION_SWAPPED_INPUT_PORTS };
+	}
+
 }

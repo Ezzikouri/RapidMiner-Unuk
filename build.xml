@@ -403,6 +403,20 @@
 		</move>
 		<delete dir="${release}/scp" />
 	</target>
+	
+	<target name="release.publishToRapidShare" depends="release.makeAll" description="Copies the created jar file into Rapid-I's internal file share.">
+        <echo message="Publishing release ${rapidminer.longversion} to Rapid Share..." />
+		<property name="server.rapidshare.path.release" value="${server.rapidshare.path}/RapidMiner/Community/${rapidminer.longversion}" />
+        <mkdir dir="${server.rapidshare.path.release}" />
+        <copy todir="${server.rapidshare.path.release}">
+			<fileset dir="${release}">
+				<include name="*.zip" />
+				<include name="*.exe" />
+				<exclude name="update*.*" />
+			</fileset>
+        </copy>
+	</target>
+
 
 
 	<target name="release" depends="init" description="This will increase the version counter and generate all files with the new version, including update files and javadoc.">
@@ -424,6 +438,7 @@
 
 		<ant target="version.updateFiles" />
 		<ant target="javaDoc.makeZip" />
+		<ant target="release.publishToRapidShare" />
 		<ant target="release.publish" />
 		<ant target="update.makeAll" />
 		<ant target="update.publish" />

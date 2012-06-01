@@ -481,6 +481,9 @@ public class ExampleSetToStream {
 	}
 
 	private void writeString(DataOutput out, String value) throws IOException {
+		if(value==null) {
+			value = "";
+		}
 		switch (version) {
 		case VERSION_1:
 			out.writeUTF(value);
