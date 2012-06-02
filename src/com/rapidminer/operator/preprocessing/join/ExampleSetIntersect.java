@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.preprocessing.join;
 
 import java.util.LinkedList;
@@ -60,6 +61,8 @@ public class ExampleSetIntersect extends AbstractDataProcessing {
 	public ExampleSetIntersect(OperatorDescription description) {
 		super(description);
 		secondInput.addPrecondition(new ExampleSetPrecondition(secondInput, Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME));
+		((InputPort) getInputPort().getPorts().getPortByIndex(0)).addPrecondition(new ExampleSetPrecondition((InputPort) getInputPort().getPorts().getPortByIndex(0),
+				Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME));
 	}
 
 	@Override
@@ -84,7 +87,8 @@ public class ExampleSetIntersect extends AbstractDataProcessing {
 			throw new UserError(this, 129);
 		}
 		if (firstId.getValueType() != secondId.getValueType()) {
-			throw new UserError(this, 120, new Object[] { secondId.getName(), Ontology.VALUE_TYPE_NAMES[secondId.getValueType()], Ontology.VALUE_TYPE_NAMES[firstId.getValueType()] });
+			throw new UserError(this, 120,
+					new Object[] { secondId.getName(), Ontology.VALUE_TYPE_NAMES[secondId.getValueType()], Ontology.VALUE_TYPE_NAMES[firstId.getValueType()] });
 		}
 
 		List<Integer> indices = new LinkedList<Integer>();
@@ -94,7 +98,7 @@ public class ExampleSetIntersect extends AbstractDataProcessing {
 				double id = firstExample.getValue(firstId);
 				Example secondExample = null;
 				if (firstId.isNominal()) {
-					secondExample = secondSet.getExampleFromId(secondId.getMapping().getIndex(firstId.getMapping().mapIndex((int) id))); 
+					secondExample = secondSet.getExampleFromId(secondId.getMapping().getIndex(firstId.getMapping().mapIndex((int) id)));
 				} else {
 					secondExample = secondSet.getExampleFromId(id);
 				}
@@ -107,17 +111,17 @@ public class ExampleSetIntersect extends AbstractDataProcessing {
 
 		int[] indexArray = new int[indices.size()];
 		for (int i = 0; i < indices.size(); i++) {
-			indexArray[i] = indices.get(i); 
+			indexArray[i] = indices.get(i);
 		}
 
 		return new MappedExampleSet(firstSet, indexArray);
 	}
-	
+
 	@Override
 	public boolean writesIntoExistingData() {
 		return false;
 	}
-	
+
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), ExampleSetIntersect.class, null);

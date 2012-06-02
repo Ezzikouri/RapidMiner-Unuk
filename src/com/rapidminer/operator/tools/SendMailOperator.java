@@ -27,11 +27,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.rapidminer.RapidMiner;
 import com.rapidminer.operator.MailNotSentException;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.OperatorVersion;
+import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.DummyPortPairExtender;
 import com.rapidminer.parameter.ParameterType;
@@ -40,9 +43,10 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.ParameterTypeText;
 import com.rapidminer.parameter.TextType;
-import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.parameter.conditions.AboveOperatorVersionCondition;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.tools.MailUtilities;
+import com.rapidminer.tools.ParameterService;
 
 /**
  * 
@@ -69,6 +73,40 @@ public class SendMailOperator extends Operator {
 		super(description);
 		through.start();
 		getTransformer().addRule(through.makePassThroughRule());
+	}
+
+	@Override
+	protected void performAdditionalChecks() {
+		super.performAdditionalChecks();
+
+		String method = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD);
+		if (method.equals(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD_VALUES[0])) { // sendmail
+			String command = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SENDMAIL_COMMAND);
+			if (command == null || command.equals("")) {
+				addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "no_send_mail_command"));
+			}
+		} else if (method.equals(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_MAIL_METHOD_VALUES[1])) { //smtp
+			String user = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_USER);
+			if (user == null || user.equals("")) {
+				addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "no_smtp_mail_user_set"));
+			}
+
+			String passwd = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_PASSWD);
+			if (passwd == null || passwd.equals("")) {
+				addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "no_smtp_mail_passwd_set"));
+			}
+
+			String host = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_HOST);
+			if (host == null || host.equals("")) {
+				addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "no_smtp_mail_host_set"));
+			}
+
+			String port = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_PORT);
+			if (port == null || port.equals("")) {
+				addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "no_smtp_mail_port_set"));
+			}
+		}
+
 	}
 
 	@Override

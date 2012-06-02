@@ -247,7 +247,7 @@
         </zip>
     </target>
 
-    <target name="release.makeWin" depends="createJar" description="This creates the installer for the Windows platform">
+    <target name="release.makeWin" depends="createJar, version.updateFiles" description="This creates the installer for the Windows platform">
         <echo message="Releasing Windows Installer..." />
 
         <!-- writing informations into extension_settings.nsi -->
