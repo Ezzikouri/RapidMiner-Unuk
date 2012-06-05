@@ -294,9 +294,9 @@ Name "${extension.name.long}"
             </fileset>
         </move>
 
-        <echo message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net:${server.sf.url}..." />
+        <echo message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net:${server.sf.url.rapidminer}..." />
         <!-- scping -->
-        <scp remoteTodir="${server.sf.user},${server.sf.project}@frs.sourceforge.net:${server.sf.url}" password="${server.sf.password}" failonerror="false" trust="true">
+        <scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net:${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="false" trust="true">
             <fileset dir="${release.targetDir}/scp" includes="**/*.*" />
         </scp>
 

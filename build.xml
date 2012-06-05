@@ -380,9 +380,9 @@
 			</fileset>
 		</move>
 
-		<echo message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net:${server.sf.url}..." />
+		<echo message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net:${server.sf.url.rapidminer}..." />
 		<!-- scping -->
-		<scp remoteTodir="${server.sf.user},${server.sf.project}@frs.sourceforge.net:${server.sf.url}" password="${server.sf.password}" failonerror="false" trust="true">
+		<scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net:${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="false" trust="true">
 			<fileset dir="${release}/scp" includes="**/*.*" />
 		</scp>
 
@@ -390,7 +390,7 @@
 		<!--<for param="file">
 			<fileset dir="${release}/scp" includes="**/*.*" />
 			<sequential>
-			    <sshexec command="chmod 775 ${file}"  host="frs.sourceforge.net:${server.sf.url}" username="${server.sf.user},${server.sf.project}" password="${server.sf.password}" />
+			    <sshexec command="chmod 775 ${file}"  host="frs.sourceforge.net:${server.sf.url.rapidminer}" username="${server.sf.user},${server.sf.project.rapidminer}" password="${server.sf.password}" />
 			</sequential>
 		</for>
         -->

@@ -20,8 +20,12 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.example.set;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.regex.PatternSyntaxException;
 
@@ -33,7 +37,7 @@ import com.rapidminer.tools.Tools;
 /**
  * The condition is fulfilled if an attribute has a value equal to, not equal to, less than, ... a given value.
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Nils Woehler
  */
 public class AttributeValueFilterSingleCondition implements Condition {
 
@@ -57,6 +61,8 @@ public class AttributeValueFilterSingleCondition implements Condition {
 
 	public static final int GREATER = 6;
 
+	public static String DATE_PATTERN = "yyyy-MM-dd HH:mm:ss Z";
+
 	private int comparisonType = EQUALS;
 
 	private Attribute attribute;
@@ -65,11 +71,13 @@ public class AttributeValueFilterSingleCondition implements Condition {
 
 	private String nominalValue;
 
+	private Date dateValue;
+
 	private HashSet<Integer> allowedNominalValueIndices;
 	private boolean isMissingAllowed = false;
 
 	/**
-	 * Creates a new AttributeValueFilter. If attribute is not nominal, value must be a number.
+	 * Creates a new AttributeValueFilter. If attribute is not nominal, value must be either a number or a date string.
 	 */
 	public AttributeValueFilterSingleCondition(Attribute attribute, int comparisonType, String value) {
 		this.attribute = attribute;
@@ -121,10 +129,9 @@ public class AttributeValueFilterSingleCondition implements Condition {
 				try {
 					if (attributeValue.equals(nominalValue) || attributeValue.matches(nominalValue))
 						allowedNominalValueIndices.add(attribute.getMapping().mapString(attributeValue));
-				} catch (PatternSyntaxException e) {
-				}
+				} catch (PatternSyntaxException e) {}
 			}
-		} else {
+		} else if (attribute.isNumerical()) {
 			if (value.equals("?")) {
 				this.numericalValue = Double.NaN;
 			} else {
@@ -133,6 +140,13 @@ public class AttributeValueFilterSingleCondition implements Condition {
 				} catch (NumberFormatException e) {
 					throw new IllegalArgumentException("Value for attribute '" + attribute.getName() + "' must be numerical!");
 				}
+			}
+		} else { // date
+			SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);
+			try {
+				dateValue = dateFormat.parse(value);
+			} catch (ParseException e) {
+				throw new IllegalArgumentException("Could not parse value '" + value + "' with date pattern " + DATE_PATTERN);
 			}
 		}
 	}
@@ -158,43 +172,63 @@ public class AttributeValueFilterSingleCondition implements Condition {
 			double doubleValue = e.getValue(attribute);
 			if (Double.isNaN(doubleValue)) {
 				switch (comparisonType) {
-				case NEQ1:
-				case NEQ2:
-					return !isMissingAllowed;
-				case EQUALS:
-					return isMissingAllowed;
-				default:
-					return false;
+					case NEQ1:
+					case NEQ2:
+						return !isMissingAllowed;
+					case EQUALS:
+						return isMissingAllowed;
+					default:
+						return false;
 				}
 			} else {
 				int value = (int) doubleValue;
 				switch (comparisonType) {
-				case NEQ1:
-				case NEQ2:
-					return !allowedNominalValueIndices.contains(value);
-				case EQUALS:
-					return allowedNominalValueIndices.contains(value);
-				default:
-					return false;
+					case NEQ1:
+					case NEQ2:
+						return !allowedNominalValueIndices.contains(value);
+					case EQUALS:
+						return allowedNominalValueIndices.contains(value);
+					default:
+						return false;
 				}
 			}
-		} else {
+		} else if (attribute.isNumerical()) {
 			switch (comparisonType) {
-			case LEQ:
-				return Tools.isLessEqual(e.getNumericalValue(attribute), numericalValue);
-			case GEQ:
-				return Tools.isGreaterEqual(e.getNumericalValue(attribute), numericalValue);
-			case NEQ1:
-			case NEQ2:
-				return Tools.isNotEqual(e.getNumericalValue(attribute), numericalValue);
-			case EQUALS:
-				return Tools.isEqual(e.getNumericalValue(attribute), numericalValue);
-			case LESS:
-				return Tools.isLess(e.getNumericalValue(attribute), numericalValue);
-			case GREATER:
-				return Tools.isGreater(e.getNumericalValue(attribute), numericalValue);
-			default:
-				return false;
+				case LEQ:
+					return Tools.isLessEqual(e.getNumericalValue(attribute), numericalValue);
+				case GEQ:
+					return Tools.isGreaterEqual(e.getNumericalValue(attribute), numericalValue);
+				case NEQ1:
+				case NEQ2:
+					return Tools.isNotEqual(e.getNumericalValue(attribute), numericalValue);
+				case EQUALS:
+					return Tools.isEqual(e.getNumericalValue(attribute), numericalValue);
+				case LESS:
+					return Tools.isLess(e.getNumericalValue(attribute), numericalValue);
+				case GREATER:
+					return Tools.isGreater(e.getNumericalValue(attribute), numericalValue);
+				default:
+					return false;
+			}
+		} else { // date
+			Date currentDateValue = e.getDateValue(attribute);
+			switch (comparisonType) {
+				case LEQ:
+					return Tools.isLessEqual(currentDateValue, dateValue);
+				case GEQ:
+					return Tools.isGreaterEqual(currentDateValue, dateValue);
+				case NEQ1:
+				case NEQ2:
+					return Tools.isNotEqual(currentDateValue, dateValue);
+				case EQUALS:
+					return Tools.isEqual(currentDateValue, dateValue);
+				case LESS:
+					return Tools.isLess(currentDateValue, dateValue);
+				case GREATER:
+					return Tools.isGreater(currentDateValue, dateValue);
+				default:
+					return false;
+
 			}
 		}
 	}

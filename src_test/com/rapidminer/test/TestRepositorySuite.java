@@ -28,9 +28,9 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import org.junit.runner.RunWith;
 
 import com.rapidminer.Process;
 import com.rapidminer.RepositoryProcessLocation;
@@ -59,10 +59,12 @@ import com.rapidminer.tools.XMLException;
  *  
  *  <p>The alias for the repository will be 'junit'.</p>
  * 
- * @author Marcin Skirzynski
+ * @author Marcin Skirzynski, Marius Helf
  *
  */
-public class TestRepositorySuite extends TestCase {
+
+@RunWith(org.junit.runners.AllTests.class)
+public class TestRepositorySuite {
 	
 	/**
 	 * Creates and returns a suite with all process tests found in the specified repository or an empty
@@ -73,7 +75,7 @@ public class TestRepositorySuite extends TestCase {
 	 * @throws IOException
 	 * @throws XMLException
 	 */
-	public static Test suite() throws RepositoryException, IOException, XMLException {
+	public static TestSuite suite() throws RepositoryException, IOException, XMLException {
 
 		final TestSuite suite = new TestSuite(TestRepositorySuite.class.toString());
 		TestContext ctx = TestContext.get();

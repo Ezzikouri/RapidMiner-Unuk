@@ -67,7 +67,7 @@ public class SendMailOperator extends Operator {
 
 	public static final String PARAMETER_HEADERS = "headers";
 
-	public static final String PARAMETER_THROW_ERROR = "stop_on_error";
+	public static final String PARAMETER_THROW_ERROR = "ignore_errors";
 
 	public SendMailOperator(OperatorDescription description) {
 		super(description);
@@ -128,7 +128,7 @@ public class SendMailOperator extends Operator {
 		if (getCompatibilityLevel().isAtMost(VERSION_SWAPPED_INPUT_PORTS)) {
 			MailUtilities.sendEmail(to, subject, body, headers);
 		} else {
-			if (getParameterAsBoolean(PARAMETER_THROW_ERROR)) {
+			if (!getParameterAsBoolean(PARAMETER_THROW_ERROR)) {
 				try {
 					MailUtilities.sendEmailWithException(to, subject, body, headers);
 				} catch (MailNotSentException e) {
@@ -165,7 +165,8 @@ public class SendMailOperator extends Operator {
 		type.setExpert(true);
 		types.add(type);
 
-		type = new ParameterTypeBoolean(PARAMETER_THROW_ERROR, "If set the process will stop and show an error if sending mail was not succesful.", true);
+		type = new ParameterTypeBoolean(PARAMETER_THROW_ERROR, "If set errors will be logged only. Otherwise the process will be stopped and an error will be shown.",
+				false);
 		type.setExpert(false);
 		types.add(type);
 		type.registerDependencyCondition(new AboveOperatorVersionCondition(this, VERSION_SWAPPED_INPUT_PORTS));

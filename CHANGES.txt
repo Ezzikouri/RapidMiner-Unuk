@@ -1,7 +1,12 @@
 History of changes of the RapidMiner versions
 ====================================================
 
-Changes from RapidMiner 5.2.3 to 5.2.4
+Changes from RapidMiner 5.2.6 to 5.2.7
+--------------------------------------
+* Send Mail operator has a new behavior: Stop process and show error if mail cannot be send
+* Send Mail operator has a new parameter: 'Ignore errors'
+
+Changes from RapidMiner 5.2.3 to 5.2.6
 --------------------------------------
 * Read SAS operator
 * Added timezone parameter to Date to Nominal operator

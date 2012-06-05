@@ -25,9 +25,9 @@ package com.rapidminer.operator.learner.test;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import org.junit.runner.RunWith;
 
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
@@ -41,20 +41,23 @@ import com.rapidminer.tools.OperatorService;
  *  according to their capabilities to check whether they operate without throwing exceptions /
  *  throwing the correct exceptions.
  *   
- * @author Simon Fischer, Marcin Skirzynski
+ * @author Simon Fischer, Marcin Skirzynski, Marius Helf
  * */
-public class LearnerTestSuite extends TestCase {
+
+@RunWith(org.junit.runners.AllTests.class)
+public class LearnerTestSuite {
 	
 	private static final Set<Class> SKIP_CLASSES = new HashSet<Class>();
 	static {
 		SKIP_CLASSES.add(SeeminglyUnrelatedRegressionOperator.class);
 		SKIP_CLASSES.add(SimpleNeuralNetLearner.class);
 	}
-	public static Test suite() {
+	
+	public static TestSuite suite() {
 		TestContext.get().initRapidMiner();
 		TestSuite suite = new TestSuite("Learner test suite");
 		for (String key : OperatorService.getOperatorKeys()) {
-			if (key.startsWith("weka:")) {
+			if (key.startsWith("weka:") || key.startsWith("r:")) {
 				continue;
 			}
 			OperatorDescription opDesc = OperatorService.getOperatorDescription(key);
