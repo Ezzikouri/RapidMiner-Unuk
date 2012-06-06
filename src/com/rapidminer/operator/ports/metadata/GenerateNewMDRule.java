@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.ports.metadata;
 
+import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ports.OutputPort;
 
@@ -36,7 +37,7 @@ public class GenerateNewMDRule implements MDTransformationRule {
 	private MetaData unmodifiedMetaData;
 
 	public GenerateNewMDRule(OutputPort outputPort, Class<? extends IOObject> clazz) {
-		this(outputPort, new MetaData(clazz));
+		this(outputPort, ExampleSet.class.equals(clazz) ? new ExampleSetMetaData() : new MetaData(clazz));
 	}
 
 	public GenerateNewMDRule(OutputPort outputPort, MetaData unmodifiedMetaData) {	

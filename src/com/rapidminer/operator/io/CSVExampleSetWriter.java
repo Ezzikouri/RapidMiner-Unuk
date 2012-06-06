@@ -194,7 +194,7 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 						PARAMETER_FORMAT_DATE,
 						"Indicates if date attributes are written as a formated string or as milliseconds past since January 1, 1970, 00:00:00 GMT",
 						true, true));
-		ParameterType type = new ParameterTypeBoolean(PARAMETER_APPEND_FILE, "Indicates that new content will be appended to the file instead of overwriting it.", false, false);
+		ParameterType type = new ParameterTypeBoolean(PARAMETER_APPEND_FILE, "Indicates if new content should be appended to the file or if the pre-existing file content should be overwritten.", false, false);
 		type.registerDependencyCondition(new PortConnectedCondition(this, new PortProvider() {
 			@Override
 			public Port getPort() {			

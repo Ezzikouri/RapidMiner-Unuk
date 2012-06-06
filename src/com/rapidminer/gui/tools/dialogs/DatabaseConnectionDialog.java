@@ -698,10 +698,14 @@ public class DatabaseConnectionDialog extends ButtonDialog {
 			
 			// add properties to driver
 			Properties givenProperties = currentlyEditedEntry.getConnectionProperties();
-			return driver.getPropertyInfo(driverURL, givenProperties);
+			DriverPropertyInfo[] propertyInfo = driver.getPropertyInfo(driverURL, givenProperties);
+			if (propertyInfo == null) {
+				propertyInfo = new DriverPropertyInfo[0];
+			}
+			return propertyInfo;
 		} catch (SQLException e) {
 			//LogService.getGlobal().log("Could not load jdbc driver properties.", LogService.ERROR);
-			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.tools.dialogs.DatabaseConnectionDialog.loading_jdbc_driver_properties_error");
+			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.tools.dialogs.DatabaseConnectionDialog.loading_jdbc_driver_properties_error", e);
 			return null;
 		}
 	}
