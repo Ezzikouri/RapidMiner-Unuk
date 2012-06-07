@@ -47,8 +47,8 @@ public abstract class FileObject extends ResultObjectAdapter {
 	public abstract InputStream openStream() throws OperatorException;
 	
 	/**
-	 * Returns the data as a file. Maybe slow if underlaying implementation needs to copy the data into the file first.
-	 * 
+	 * Returns the data as a file. Maybe slow if underlying implementation needs to copy the data into the file first.
+	 * This file should be used only for reading. Writing to this file has an undefined effect.
 	 */
 	public abstract File getFile() throws OperatorException ;
 

@@ -41,8 +41,11 @@ import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetUnionRule;
+import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
+import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.tools.Ontology;
@@ -111,7 +114,14 @@ public abstract class AbstractExampleSetJoin extends Operator {
         	 protected String getPrefix() {
         		 return getParameterAsBoolean(PARAMETER_REMOVE_DOUBLE_ATTRIBUTES) ? null : "_from_ES2";
         	 }
+        	 
+        	 @Override
+  			protected ExampleSetMetaData modifyMetaData(ExampleSetMetaData emd) {
+  				emd = joinedMetaData(emd);
+  				return super.modifyMetaData(emd);
+  			}
         });
+    	
     }
     
 	public InputPort getLeftInput() {
@@ -125,7 +135,10 @@ public abstract class AbstractExampleSetJoin extends Operator {
 	public OutputPort getJoinOutput() {
 		return joinOutput;
 	}
-
+	
+	protected ExampleSetMetaData joinedMetaData(ExampleSetMetaData emd) {
+		return emd;
+	}
 
     protected abstract MemoryExampleTable joinData(ExampleSet es1, ExampleSet es2, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList) throws OperatorException;
 

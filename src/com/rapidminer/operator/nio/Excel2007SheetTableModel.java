@@ -52,9 +52,17 @@ public class Excel2007SheetTableModel extends AbstractTableModel {
 	public Object getValueAt(int rowIndex, int columnIndex) {
 		Cell cell;
 		if (config != null) {
-			cell = sheet.getRow(rowIndex + config.getRowOffset()).getCell(columnIndex + config.getColumnOffset());
+			Row row = sheet.getRow(rowIndex + config.getRowOffset());
+			if (row == null) {
+				return null;
+			}
+			cell = row.getCell(columnIndex + config.getColumnOffset());
 		} else {
-			cell = sheet.getRow(rowIndex).getCell(columnIndex);
+			Row row = sheet.getRow(rowIndex);
+			if (row == null) {
+				return null;
+			}
+			cell = row.getCell(columnIndex);
 		}
 		if (cell == null) {
 			return null;
@@ -71,6 +79,8 @@ public class Excel2007SheetTableModel extends AbstractTableModel {
 			}
 		} else if (cell.getCellType() == Cell.CELL_TYPE_ERROR) {
 			return cell.getErrorCellValue();
+		} else if (cell.getCellType() == Cell.CELL_TYPE_FORMULA) {
+			return cell.getNumericCellValue();
 		} else {
 			// last resort, should not come to this
 			// maybe return null?

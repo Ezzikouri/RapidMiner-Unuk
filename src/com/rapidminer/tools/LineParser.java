@@ -244,6 +244,11 @@ public class LineParser {
 				tempString.setLength(0); //faster??
 				if (currentChar == splitChar) {
 					resultList.add("");
+					if(nextChar == NONE) {
+						resultList.add("");
+						tempString = new StringBuilder();
+						machineState = SplitMachineState.END_OF_LINE;
+					}
 					continue;
 				}
 				if (currentChar == ' ' || currentChar == '\t') {

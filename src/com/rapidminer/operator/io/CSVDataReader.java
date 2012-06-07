@@ -58,9 +58,9 @@ public class CSVDataReader extends AbstractDataReader {
 
 	public static final String PARAMETER_CSV_FILE = "file_name";
 	
-	static {
-		AbstractReader.registerReaderDescription(new ReaderDescription("csv", CSVDataReader.class, PARAMETER_CSV_FILE));
-	}
+//	static {
+//		AbstractReader.registerReaderDescription(new ReaderDescription("csv", CSVDataReader.class, PARAMETER_CSV_FILE));
+//	}
 
 	public static final String PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES = "use_first_row_as_attribute_names";
 

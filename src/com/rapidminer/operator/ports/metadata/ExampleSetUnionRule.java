@@ -61,6 +61,7 @@ public class ExampleSetUnionRule implements MDTransformationRule {
 						transformAddedAttributeMD(newEMD, newEMD.getAttributeByName(possibleNew.getName()));
 					}
 				}
+				newEMD = modifyMetaData(newEMD);
 				outputPort.deliverMD(newEMD);
 			} else {	
 				outputPort.deliverMD(new ExampleSetMetaData());
@@ -72,6 +73,10 @@ public class ExampleSetUnionRule implements MDTransformationRule {
 
 	protected void transformAddedAttributeMD(ExampleSetMetaData emd, AttributeMetaData newAttribute) {
 
+	}
+	
+	protected ExampleSetMetaData modifyMetaData(ExampleSetMetaData emd) {
+		return emd;
 	}
 
 }

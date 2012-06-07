@@ -165,7 +165,11 @@ public abstract class AbstractReader<T extends IOObject> extends Operator {
 		READER_DESCRIPTIONS.put(rd.fileExtension.toLowerCase(), rd);
 	}
 
-	public static AbstractReader createReader(URL url) throws OperatorCreationException {		
+	/** Returns a reader that can read the given file or URL. The type is determined by looking at the
+	 *  file extension. Only Operators registered via {@link #registerReaderDescription(ReaderDescription)} 
+	 *  will be checked.
+	 */
+	public static AbstractReader createReader(URL url) throws OperatorCreationException {
 		String file = url.getFile();
 		int dot = file.lastIndexOf('.');
 		if (dot == -1) {

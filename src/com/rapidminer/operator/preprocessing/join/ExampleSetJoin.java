@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Attributes;
@@ -42,6 +43,8 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ParameterConditionedPrecondition;
 import com.rapidminer.parameter.ParameterType;
@@ -49,7 +52,10 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeList;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
+import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.container.Pair;
@@ -117,6 +123,31 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 
 		getLeftInput().addPrecondition(new ParameterConditionedPrecondition(getLeftInput(),  new ExampleSetPrecondition(getLeftInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this, PARAMETER_USE_ID, "true"));
 		getRightInput().addPrecondition(new ParameterConditionedPrecondition(getRightInput(),  new ExampleSetPrecondition(getRightInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this, PARAMETER_USE_ID, "true"));
+	}
+	
+	@Override
+	protected ExampleSetMetaData joinedMetaData(ExampleSetMetaData emd) {
+		try {
+			if (!getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES)) {
+				for (int i = 0; i < emd.getAllAttributes().size(); i++) {
+					AttributeMetaData attributeMetaData = (AttributeMetaData) emd.getAllAttributes().toArray()[i];
+					for (String[] keyAttribute : getParameterList(PARAMETER_JOIN_ATTRIBUTES)) {
+						if (keyAttribute[1] != null && attributeMetaData.getName().equals(keyAttribute[1])) {
+							emd.removeAttribute(attributeMetaData);
+							i--;
+						}
+					}
+				
+				}
+			}
+		} catch (UndefinedParameterError e) {
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+					"com.rapidminer.gui.tools.SwingTools.show_simple_get_message", 
+					e.getMessage()),
+					e);           
+		}
+		return emd;
 	}
 
 	@Override

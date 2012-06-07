@@ -94,9 +94,9 @@ public class ExcelExampleSource extends AbstractDataReader {
 	 */
 	public static final String PARAMETER_EXCEL_FILE = "excel_file";
 
-	static {
-		AbstractReader.registerReaderDescription(new ReaderDescription("xls", ExcelExampleSource.class, PARAMETER_EXCEL_FILE));
-	}
+//	static {
+//		AbstractReader.registerReaderDescription(new ReaderDescription("xls", ExcelExampleSource.class, PARAMETER_EXCEL_FILE));
+//	}
 
 	/**
 	 * The parameter name for &quot;The number of the sheet which should be

@@ -24,6 +24,8 @@ package com.rapidminer.operator.nio.model;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
@@ -121,7 +123,11 @@ public class Excel2007ResultSet implements DataResultSet {
 		for (int r = 0; r < totalNumberOfRows; r++) {
 			for (int c = 0; c < totalNumberOfColumns; c++) {
 				if (emptyRows[r] || emptyColumns[c]) {
-					final Cell cell = sheet.getRow(r + rowOffset).getCell(c + columnOffset);
+					final Row rowItem = sheet.getRow(r + rowOffset);
+					if (rowItem == null) {
+						continue;
+					}
+					final Cell cell = rowItem.getCell(c + columnOffset);
 					if (cell == null) {
 						continue;
 					}
@@ -145,19 +151,20 @@ public class Excel2007ResultSet implements DataResultSet {
 
 		// retrieve attribute names: first count columns
 		int numberOfAttributes = 0;
+		List<Integer> nonEmptyColumnsList = new LinkedList<Integer>();
 		for (int i = 0; i < totalNumberOfColumns; i++) {
-			if (!emptyColumns[i])
+			if (!emptyColumns[i]) {
 				numberOfAttributes++;
+				nonEmptyColumnsList.add(i);
+			}
 		}
 
 		// retrieve or generate attribute names
-		attributeNames = new String[numberOfAttributes];
+		attributeNames = new String[nonEmptyColumnsList.size()];
 		
 		if (!configuration.isEmulatingOldNames()) {
 			for (int i = 0; i < numberOfAttributes; i++) {
-				if (!emptyColumns[i]) {
-					attributeNames[i] = Tools.getExcelColumnName(i);
-				}
+				attributeNames[i] = Tools.getExcelColumnName(nonEmptyColumnsList.get(i));
 			}
 		} else {
 			// emulate old 5.0.x style
@@ -288,6 +295,9 @@ public class Excel2007ResultSet implements DataResultSet {
 	public String getString(int columnIndex) {
 		final Cell cell = getCurrentCell(columnIndex);
 		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+			String value = String.valueOf(cell.getNumericCellValue());
+			return value;
+		} else if (cell.getCellType() == Cell.CELL_TYPE_FORMULA) {
 			String value = String.valueOf(cell.getNumericCellValue());
 			return value;
 		} else {

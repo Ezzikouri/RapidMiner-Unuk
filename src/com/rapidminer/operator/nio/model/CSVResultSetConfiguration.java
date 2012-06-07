@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.nio.model;
 
 import java.io.File;
@@ -43,183 +44,183 @@ import com.rapidminer.tools.io.Encoding;
  */
 public class CSVResultSetConfiguration implements DataResultSetFactory {
 
-    private String csvFile;
+	private String csvFile;
 
-    private boolean skipComments = true;
-    private boolean useQuotes = true;
-    private boolean skipUTF8BOM = false;
-    private boolean trimLines = false;
-    private String columnSeparators = ";";
+	private boolean skipComments = true;
+	private boolean useQuotes = true;
+	private boolean skipUTF8BOM = false;
+	private boolean trimLines = false;
+	private String columnSeparators = ";";
 
-    private char quoteCharacter = '"';
-    private char escapeCharacter = '\\';
-    private String commentCharacters ="#";
+	private char quoteCharacter = '"';
+	private char escapeCharacter = '\\';
+	private String commentCharacters = "#";
 
-    private Charset encoding = Charset.defaultCharset();
+	private Charset encoding = Charset.defaultCharset();
 
-    private List<ParsingError> errors;
+	private List<ParsingError> errors;
 
-    /**
-     * This will create a completely empty result set configuration
-     */
-    public CSVResultSetConfiguration() {
-    }
+	/**
+	 * This will create a completely empty result set configuration
+	 */
+	public CSVResultSetConfiguration() {
+	}
 
-    /**
-     * This constructor reads all settings from the parameters of the given operator.
-     */
-    public CSVResultSetConfiguration(CSVExampleSource csvExampleSource) throws OperatorException {
-//        if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_CSV_FILE)) {
-//        	setCsvFile(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_CSV_FILE));
-//        }
-    	if (csvExampleSource.isFileSpecified()) {
-        	setCsvFile(csvExampleSource.getSelectedFile().getAbsolutePath());
-        }
-        setSkipComments(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_SKIP_COMMENTS));
-        setUseQuotes(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_USE_QUOTES));
-        //setFirstRowAsAttributeNames(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES));
-        setTrimLines(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_TRIM_LINES));
-        if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_COLUMN_SEPARATORS)) {
-            setColumnSeparators(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_COLUMN_SEPARATORS));
-        }
-        if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_ESCAPE_CHARACTER)) {
-            setEscapeCharacter(csvExampleSource.getParameterAsChar(CSVExampleSource.PARAMETER_ESCAPE_CHARACTER));
-        }
-        if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_COMMENT_CHARS)) {
-            setCommentCharacters(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_COMMENT_CHARS));
-        }
-        if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_QUOTES_CHARACTER)) {
-            setQuoteCharacter(csvExampleSource.getParameterAsChar(CSVExampleSource.PARAMETER_QUOTES_CHARACTER));
-        }
-        encoding = Encoding.getEncoding(csvExampleSource);
-    }
+	/**
+	 * This constructor reads all settings from the parameters of the given operator.
+	 */
+	public CSVResultSetConfiguration(CSVExampleSource csvExampleSource) throws OperatorException {
+		//        if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_CSV_FILE)) {
+		//        	setCsvFile(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_CSV_FILE));
+		//        }
+		if (csvExampleSource.isFileSpecified()) {
+			setCsvFile(csvExampleSource.getSelectedFile().getAbsolutePath());
+		}
+		setSkipComments(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_SKIP_COMMENTS));
+		setUseQuotes(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_USE_QUOTES));
+		//setFirstRowAsAttributeNames(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES));
+		setTrimLines(csvExampleSource.getParameterAsBoolean(CSVExampleSource.PARAMETER_TRIM_LINES));
+		if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_COLUMN_SEPARATORS)) {
+			setColumnSeparators(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_COLUMN_SEPARATORS));
+		}
+		if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_ESCAPE_CHARACTER)) {
+			setEscapeCharacter(csvExampleSource.getParameterAsChar(CSVExampleSource.PARAMETER_ESCAPE_CHARACTER));
+		}
+		if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_COMMENT_CHARS)) {
+			setCommentCharacters(csvExampleSource.getParameterAsString(CSVExampleSource.PARAMETER_COMMENT_CHARS));
+		}
+		if (csvExampleSource.isParameterSet(CSVExampleSource.PARAMETER_QUOTES_CHARACTER)) {
+			setQuoteCharacter(csvExampleSource.getParameterAsChar(CSVExampleSource.PARAMETER_QUOTES_CHARACTER));
+		}
+		encoding = Encoding.getEncoding(csvExampleSource);
+	}
 
-    @Override
-    public void setParameters(AbstractDataResultSetReader source) {
-        source.setParameter(CSVExampleSource.PARAMETER_CSV_FILE, getCsvFile());
-        source.setParameter(CSVExampleSource.PARAMETER_SKIP_COMMENTS, String.valueOf(isSkipComments()));
-        source.setParameter(CSVExampleSource.PARAMETER_USE_QUOTES, String.valueOf(isUseQuotes()));
-        //source.setParameter(CSVExampleSource.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES, String.valueOf(isFirstRowAsAttributeNames()));
-        source.setParameter(CSVExampleSource.PARAMETER_COLUMN_SEPARATORS, getColumnSeparators());
-        source.setParameter(CSVExampleSource.PARAMETER_TRIM_LINES, String.valueOf(isTrimLines()));
-        source.setParameter(CSVExampleSource.PARAMETER_QUOTES_CHARACTER, String.valueOf(getQuoteCharacter()));
-        source.setParameter(CSVExampleSource.PARAMETER_ESCAPE_CHARACTER, String.valueOf(getEscapeCharacter()));
-        source.setParameter(CSVExampleSource.PARAMETER_COMMENT_CHARS, getCommentCharacters());
+	@Override
+	public void setParameters(AbstractDataResultSetReader source) {
+		source.setParameter(CSVExampleSource.PARAMETER_CSV_FILE, getCsvFile());
+		source.setParameter(CSVExampleSource.PARAMETER_SKIP_COMMENTS, String.valueOf(isSkipComments()));
+		source.setParameter(CSVExampleSource.PARAMETER_USE_QUOTES, String.valueOf(isUseQuotes()));
+		//source.setParameter(CSVExampleSource.PARAMETER_USE_FIRST_ROW_AS_ATTRIBUTE_NAMES, String.valueOf(isFirstRowAsAttributeNames()));
+		source.setParameter(CSVExampleSource.PARAMETER_COLUMN_SEPARATORS, getColumnSeparators());
+		source.setParameter(CSVExampleSource.PARAMETER_TRIM_LINES, String.valueOf(isTrimLines()));
+		source.setParameter(CSVExampleSource.PARAMETER_QUOTES_CHARACTER, String.valueOf(getQuoteCharacter()));
+		source.setParameter(CSVExampleSource.PARAMETER_ESCAPE_CHARACTER, String.valueOf(getEscapeCharacter()));
+		source.setParameter(CSVExampleSource.PARAMETER_COMMENT_CHARS, getCommentCharacters());
 
-        source.setParameter(Encoding.PARAMETER_ENCODING, encoding.name());
-    }
+		source.setParameter(Encoding.PARAMETER_ENCODING, encoding.name());
+	}
 
-    @Override
-    public DataResultSet makeDataResultSet(Operator operator) throws OperatorException  {
-        return new CSVResultSet(this, operator);
-    }
+	@Override
+	public DataResultSet makeDataResultSet(Operator operator) throws OperatorException {
+		return new CSVResultSet(this, operator);
+	}
 
-    @Override
-    public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException, ParseException {
-        final DataResultSet resultSet = makeDataResultSet(null);
-        this.errors = ((CSVResultSet) resultSet).getErrors();
-        return new DefaultPreview(resultSet, listener);
-    }
+	@Override
+	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException, ParseException {
+		final DataResultSet resultSet = makeDataResultSet(null);
+		this.errors = ((CSVResultSet) resultSet).getErrors();
+		return new DefaultPreview(resultSet, listener);
+	}
 
-    public void setCsvFile(String csvFile) {
-        this.csvFile = csvFile;
-    }
+	public void setCsvFile(String csvFile) {
+		this.csvFile = csvFile;
+	}
 
-    public String getCsvFile() {
-        return csvFile;
-    }
+	public String getCsvFile() {
+		return csvFile;
+	}
 
-    public File getCsvFileAsFile() {
-        return csvFile == null ? null : new File(csvFile);
-    }
+	public File getCsvFileAsFile() {
+		return csvFile == null ? null : new File(csvFile);
+	}
 
-    public void setUseQuotes(boolean useQuotes) {
-        this.useQuotes = useQuotes;
-    }
+	public void setUseQuotes(boolean useQuotes) {
+		this.useQuotes = useQuotes;
+	}
 
-    public boolean isUseQuotes() {
-        return useQuotes;
-    }
+	public boolean isUseQuotes() {
+		return useQuotes;
+	}
 
-    public void setSkipComments(boolean skipComments) {
-        this.skipComments = skipComments;
-    }
+	public void setSkipComments(boolean skipComments) {
+		this.skipComments = skipComments;
+	}
 
-    public boolean isSkipComments() {
-        return skipComments;
-    }
+	public boolean isSkipComments() {
+		return skipComments;
+	}
 
-    public void setColumnSeparators(String columnSeparators) {
-        this.columnSeparators = columnSeparators;
-    }
+	public void setColumnSeparators(String columnSeparators) {
+		this.columnSeparators = columnSeparators;
+	}
 
-    public String getColumnSeparators() {
-        return columnSeparators;
-    }
+	public String getColumnSeparators() {
+		return columnSeparators;
+	}
 
-    public void setCommentCharacters(String commentCharacters) {
-        this.commentCharacters = commentCharacters;
-    }
+	public void setCommentCharacters(String commentCharacters) {
+		this.commentCharacters = commentCharacters;
+	}
 
-    public String getCommentCharacters() {
-        return commentCharacters;
-    }
+	public String getCommentCharacters() {
+		return commentCharacters;
+	}
 
-    public void setEscapeCharacter(char escapeCharacter) {
-        this.escapeCharacter = escapeCharacter;
-    }
+	public void setEscapeCharacter(char escapeCharacter) {
+		this.escapeCharacter = escapeCharacter;
+	}
 
-    public char getEscapeCharacter() {
-        return escapeCharacter;
-    }
+	public char getEscapeCharacter() {
+		return escapeCharacter;
+	}
 
-    public void setQuoteCharacter(char quoteCharacter) {
-        this.quoteCharacter = quoteCharacter;
-    }
+	public void setQuoteCharacter(char quoteCharacter) {
+		this.quoteCharacter = quoteCharacter;
+	}
 
-    public char getQuoteCharacter() {
-        return quoteCharacter;
-    }
+	public char getQuoteCharacter() {
+		return quoteCharacter;
+	}
 
-    public void setTrimLines(boolean trimLines) {
-        this.trimLines = trimLines;
-    }
+	public void setTrimLines(boolean trimLines) {
+		this.trimLines = trimLines;
+	}
 
-    public boolean isTrimLines() {
-        return trimLines;
-    }
+	public boolean isTrimLines() {
+		return trimLines;
+	}
 
-    public void setEncoding(Charset encoding) {
-        this.encoding = encoding;
-    }
+	public void setEncoding(Charset encoding) {
+		this.encoding = encoding;
+	}
 
-    public Charset getEncoding() {
-        return encoding;
-    }
+	public Charset getEncoding() {
+		return encoding;
+	}
 
-    public boolean isSkippingUTF8BOM() {
-        return skipUTF8BOM;
-    }
+	public boolean isSkippingUTF8BOM() {
+		return skipUTF8BOM;
+	}
 
-    public void setSkipUTF8BOM(boolean skipUTF8BOM) {
-        this.skipUTF8BOM = skipUTF8BOM;
-    }
+	public void setSkipUTF8BOM(boolean skipUTF8BOM) {
+		this.skipUTF8BOM = skipUTF8BOM;
+	}
 
-    @Override
-    public String getResourceName() {
-        return getCsvFile();
-    }
+	@Override
+	public String getResourceName() {
+		return getCsvFile();
+	}
 
-    @Override
-    public ExampleSetMetaData makeMetaData() {
-        return new ExampleSetMetaData();
-    }
+	@Override
+	public ExampleSetMetaData makeMetaData() {
+		return new ExampleSetMetaData();
+	}
 
-    public List<ParsingError> getErrors() {
-        return errors;
-    }
+	public List<ParsingError> getErrors() {
+		return errors;
+	}
 
-    @Override
-    public void close() {
-    }
+	@Override
+	public void close() {
+	}
 }

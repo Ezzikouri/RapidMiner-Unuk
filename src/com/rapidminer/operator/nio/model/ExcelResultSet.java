@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import jxl.Cell;
@@ -145,19 +147,20 @@ public class ExcelResultSet implements DataResultSet {
 
 		// retrieve attribute names: first count columns
 		int numberOfAttributes = 0;
+		List<Integer> nonEmptyColumnsList = new LinkedList<Integer>();
 		for (int i = 0; i < totalNumberOfColumns; i++) {
-			if (!emptyColumns[i])
+			if (!emptyColumns[i]) {
 				numberOfAttributes++;
+				nonEmptyColumnsList.add(i);
+			}
 		}
 
 		// retrieve or generate attribute names
-		attributeNames = new String[numberOfAttributes];
+		attributeNames = new String[nonEmptyColumnsList.size()];
 		
 		if (!configuration.isEmulatingOldNames()) {
 			for (int i = 0; i < numberOfAttributes; i++) {
-				if (!emptyColumns[i]) {
-					attributeNames[i] = Tools.getExcelColumnName(i);
-				}
+				attributeNames[i] = Tools.getExcelColumnName(nonEmptyColumnsList.get(i));
 			}
 		} else {
 			// emulate old 5.0.x style
