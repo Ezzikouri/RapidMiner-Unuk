@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -59,8 +60,10 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 	private JPanel panel;
 	private JComboBox formatCombo;
 	private AbstractButton selectButton;
+	private final ParameterTypeDateFormat type;
 
-	public DateFormatValueCellEditor(final ParameterTypeDateFormat type) {
+	public DateFormatValueCellEditor(ParameterTypeDateFormat type_param) {
+		this.type = type_param;
 		panel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
@@ -71,6 +74,7 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 		formatCombo.setEditable(true);
 		panel.add(formatCombo, c);
 		selectButton = new JButton(new ResourceAction(true, "dateformat.select_sample") {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -82,12 +86,14 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 						ExampleSetMetaData emd = (ExampleSetMetaData) md;
 						final ParameterTypeAttribute attributeParameterType = type.getAttributeParameterType();
 						if (attributeParameterType != null) {
-							String selectedAttributeName = type.getInputPort().getPorts().getOwner().getOperator().getParameters().getParameterOrNull(attributeParameterType.getKey());
+							String selectedAttributeName = type.getInputPort().getPorts().getOwner().getOperator().getParameters()
+									.getParameterOrNull(attributeParameterType.getKey());
 							AttributeMetaData selectedAttribute = emd.getAttributeByName(selectedAttributeName);
 							if (selectedAttribute != null && (selectedAttribute.isNominal()) && (selectedAttribute.getValueSet() != null)) {
 								boolean isNotMenuEmpty = false;
 								for (final String value : selectedAttribute.getValueSet()) {
 									menu.add(new JMenuItem(new AbstractAction(value) {
+
 										private static final long serialVersionUID = 1L;
 
 										@Override
@@ -97,9 +103,17 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 									}));
 									isNotMenuEmpty = true;
 								}
-								if (isNotMenuEmpty)
-									menu.show(selectButton, 0, selectButton.getHeight());
-								selectButton.setEnabled(isNotMenuEmpty);
+								if (!isNotMenuEmpty) {
+									menu.add(new JMenuItem(new ResourceAction("no_matches_found") {
+
+										private static final long serialVersionUID = 5312694774573705215L;
+
+										@Override
+										public void actionPerformed(ActionEvent e) {
+										}
+									}));
+								}
+								menu.show(selectButton, 0, selectButton.getHeight());
 							} else if (emd.getAllAttributes() != null) {
 								int j = 0;
 								boolean isNotMenuEmpty = false;
@@ -110,13 +124,15 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 										int i = 0;
 										for (final String value : amd.getValueSet()) {
 											subMenu.add(new JMenuItem(new AbstractAction(value) {
+
 												private static final long serialVersionUID = 1L;
 
 												@Override
 												public void actionPerformed(ActionEvent e) {
 													formatCombo.setSelectedItem(value);
 													if (attributeParameterType != null && type.getInputPort() != null)
-														type.getInputPort().getPorts().getOwner().getOperator().getParameters().setParameter(attributeParameterType.getKey(), amd.getName());
+														type.getInputPort().getPorts().getOwner().getOperator().getParameters()
+																.setParameter(attributeParameterType.getKey(), amd.getName());
 												}
 											}));
 											i++;
@@ -125,13 +141,21 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 										}
 										isNotMenuEmpty = true;
 										j++;
-										if (j>13) // don't show to many attributes
+										if (j > 13) // don't show to many attributes
 											break;
 									}
 								}
-								if (isNotMenuEmpty)
-									menu.show(selectButton, 0, selectButton.getHeight());
-								selectButton.setEnabled(isNotMenuEmpty);
+								if (!isNotMenuEmpty) {
+									menu.add(new JMenuItem(new ResourceAction("no_matches_found") {
+
+										private static final long serialVersionUID = 5312694774573705015L;
+
+										@Override
+										public void actionPerformed(ActionEvent e) {
+										}
+									}));
+								}
+								menu.show(selectButton, 0, selectButton.getHeight());
 							}
 						}
 					}
@@ -144,6 +168,7 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 		panel.add(selectButton, c);
 
 		formatCombo.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				fireEditingStopped();
@@ -174,6 +199,7 @@ public class DateFormatValueCellEditor extends AbstractCellEditor implements Pro
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 		formatCombo.setSelectedItem(value);
+		selectButton.setEnabled(type.getInputPort() != null);
 		return panel;
 	}
 

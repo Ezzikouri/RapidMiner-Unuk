@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.test_utils;
 
 import java.io.ByteArrayOutputStream;
@@ -77,22 +78,22 @@ public class RapidAssert extends Assert {
 	static {
 		/* asserter for ParameterSet */
 		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
-			
+
 			@Override
 			public Class<?> getAssertable() {
 				return ParameterSet.class;
 			}
-			
+
 			@Override
 			public void assertEquals(String message, Object expectedObj, Object actualObj) {
 				ParameterSet expected = (ParameterSet) expectedObj;
 				ParameterSet actual = (ParameterSet) actualObj;
-				
+
 				RapidAssert.assertEquals(message + " (performance vectors do not match)", expected.getPerformance(), actual.getPerformance());
-				
+
 				Iterator<ParameterValue> expectedIt = expected.getParameterValues();
 				Iterator<ParameterValue> actualIt = actual.getParameterValues();
-				
+
 				while (expectedIt.hasNext()) {
 					assertTrue(message + "(expected parameter vector is longer than actual parameter vector)", actualIt.hasNext());
 					ParameterValue expectedParValue = expectedIt.next();
@@ -102,7 +103,7 @@ public class RapidAssert extends Assert {
 				assertFalse(message + "(expected parameter vector is shorter than actual parameter vector)", actualIt.hasNext());
 			}
 		});
-		
+
 		/* asserter for PerformanceCriterion */
 		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
 
@@ -206,6 +207,7 @@ public class RapidAssert extends Assert {
 
 		// Asserter for ExampleSet
 		ASSERTER_REGISTRY.registerAsserter(new Asserter() {
+
 			/**
 			 * Tests two example sets by iterating over all examples.
 			 * 
@@ -224,14 +226,13 @@ public class RapidAssert extends Assert {
 				if (expected.getExampleTable().size() > 0) {
 					compareAttributeDefaultValues = expected.getExampleTable().getDataRow(0) instanceof SparseDataRow;
 				}
-				
-				
+
 				// compare attributes
 				RapidAssert.assertEquals(message, expected.getAttributes(), actual.getAttributes(), compareAttributeDefaultValues);
-				
+
 				// compare number of examples
 				Assert.assertEquals(message + " (number of examples)", expected.size(), actual.size());
-				
+
 				// compare example values
 				Iterator<Example> i1 = expected.iterator();
 				Iterator<Example> i2 = actual.iterator();
@@ -529,11 +530,14 @@ public class RapidAssert extends Assert {
 	 */
 	public static void assertEquals(String message, Attribute expected, Attribute actual, boolean compareDefaultValues) {
 		Assert.assertEquals(message + " (attribute name)", expected.getName(), actual.getName());
-		Assert.assertEquals(message + " (attribute type of attribute '"+expected.getName()+"': expected '" + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(expected.getValueType()) + "' but was '" + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(actual.getValueType()) + "')", expected.getValueType(), actual.getValueType());
-		Assert.assertEquals(message + " (attribute block type of attribute '"+expected.getName()+": expected '" + Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(expected.getBlockType()) + "' but was '" + Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(actual.getBlockType()) + "')", expected.getBlockType(), actual.getBlockType());
+		Assert.assertEquals(message + " (attribute type of attribute '" + expected.getName() + "': expected '" + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(expected.getValueType())
+				+ "' but was '" + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(actual.getValueType()) + "')", expected.getValueType(), actual.getValueType());
+		Assert.assertEquals(
+				message + " (attribute block type of attribute '" + expected.getName() + ": expected '" + Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(expected.getBlockType())
+						+ "' but was '" + Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(actual.getBlockType()) + "')", expected.getBlockType(), actual.getBlockType());
 
 		if (compareDefaultValues) {
-			Assert.assertEquals(message + " (default value of attribute '"+expected.getName()+")", expected.getDefault(), actual.getDefault());
+			Assert.assertEquals(message + " (default value of attribute '" + expected.getName() + ")", expected.getDefault(), actual.getDefault());
 		}
 		if (expected.isNominal()) {
 			assertEqualsIgnoreOrder(message + " (nominal mapping of attribute '" + expected.getName() + ")", expected.getMapping(), actual.getMapping());
@@ -639,10 +643,10 @@ public class RapidAssert extends Assert {
 	public static void assertLinewiseEquals(String message, String expected, String actual) {
 		Scanner expectedScanner = new Scanner(expected);
 		Scanner actualScanner = new Scanner(actual);
-		
+
 		StringBuilder expectedBuilder = new StringBuilder();
 		StringBuilder actualBuilder = new StringBuilder();
-		
+
 		while (expectedScanner.hasNextLine()) {
 			expectedBuilder.append(expectedScanner.nextLine()).append("\n");
 		}
@@ -651,7 +655,7 @@ public class RapidAssert extends Assert {
 		}
 		assertEquals(message, expectedBuilder.toString(), actualBuilder.toString());
 	}
-	
+
 	/**
 	 * Tests all objects in the array.
 	 * 
@@ -759,8 +763,10 @@ public class RapidAssert extends Assert {
 			}
 			if (a1.isNominal()) {
 				Assert.assertEquals(MessageFormat.format(message, "nominal", a1.getName()), expected.getNominalValue(a1), actual.getNominalValue(a2));
-			} else {
+			} else if (a1.isNumerical()) {
 				assertEqualsWithRelativeErrorOrBothNaN(MessageFormat.format(message, "numerical", a1.getName()), expected.getValue(a1), actual.getValue(a2));
+			} else {
+				Assert.assertEquals(expected.getDateValue(a1), actual.getDateValue(a2));
 			}
 		}
 	}
@@ -786,7 +792,7 @@ public class RapidAssert extends Assert {
 			RapidAssert.assertEquals(message, expectedRole, actualRole, compareDefaultValues);
 		}
 	}
-	
+
 	public static void assertEquals(String message, ParameterValue expected, ParameterValue actual) {
 		Assert.assertEquals(message + " - operator", expected.getOperator(), actual.getOperator());
 		Assert.assertEquals(message + " - parameterKey", expected.getParameterKey(), actual.getParameterKey());

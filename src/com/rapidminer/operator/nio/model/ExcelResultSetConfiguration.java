@@ -88,6 +88,14 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		}
     	if (excelExampleSource.isFileSpecified()) {
     		this.workbookFile = excelExampleSource.getSelectedFile();
+        } else {
+        	String excelParamter = excelExampleSource.getParameter(ExcelExampleSource.PARAMETER_EXCEL_FILE);
+        	if (excelParamter != null && !"".equals(excelParamter)) {
+        		File excelFile = new File(excelParamter);
+        		if (excelFile.exists()) {
+        			this.workbookFile = excelFile;
+        		}
+        	}
         }
 //		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE)) {
 //			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
