@@ -103,12 +103,12 @@ public abstract class AbstractStreamWriter extends AbstractWriter<ExampleSet> {
 	 * {@link #fileOutputPort} is connected.
 	 */
 	protected ParameterType makeFileParameterType() {
-		return FileOutputPortHandler.makeFileParameterType(this, getFileParameterName(), getFileExtension(), new PortProvider() {
+		return FileOutputPortHandler.makeFileParameterType(this, getFileParameterName(), new PortProvider() {
 			@Override
 			public Port getPort() {			
 				return fileOutputPort;
 			}
-		});
+		}, getFileExtensions());
 	}
 
 	/**
@@ -124,6 +124,6 @@ public abstract class AbstractStreamWriter extends AbstractWriter<ExampleSet> {
 	abstract String getFileParameterName();
 
 	/** Returns the allowed file extension. */
-	abstract String getFileExtension();
+	abstract String[] getFileExtensions();
 
 }

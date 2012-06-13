@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.io;
 
 import java.io.OutputStream;
@@ -74,8 +75,7 @@ public class XrffExampleSetWriter extends AbstractStreamWriter {
 	}
 
 	@Override
-	void writeStream(ExampleSet exampleSet, OutputStream outputStream)
-			throws OperatorException {
+	void writeStream(ExampleSet exampleSet, OutputStream outputStream) throws OperatorException {
 		final Charset encoding = Encoding.getEncoding(this);
 		writeXrff(exampleSet, outputStream, encoding);
 	}
@@ -96,33 +96,25 @@ public class XrffExampleSetWriter extends AbstractStreamWriter {
 		return exampleSet;
 	}*/
 
-	public static void writeXrff(ExampleSet exampleSet,
-			final OutputStream outputStream, final Charset encoding) {
+	public static void writeXrff(ExampleSet exampleSet, final OutputStream outputStream, final Charset encoding) {
 		PrintWriter out = null;
 		try {
-			out = new PrintWriter(
-					new OutputStreamWriter(outputStream, encoding));
-			out
-					.println("<?xml version=\"1.0\" encoding=\"" + encoding
-							+ "\"?>");
+			out = new PrintWriter(new OutputStreamWriter(outputStream, encoding));
+			out.println("<?xml version=\"1.0\" encoding=\"" + encoding + "\"?>");
 			out.println("<dataset name=\"RapidMinerData\" version=\"3.5.4\">");
 
 			out.println("  <header>");
 			out.println("    <attributes>");
 
-			Iterator<AttributeRole> a = exampleSet.getAttributes()
-					.allAttributeRoles();
+			Iterator<AttributeRole> a = exampleSet.getAttributes().allAttributeRoles();
 			while (a.hasNext()) {
 				AttributeRole role = a.next();
 				// ignore weight attribute in order to use instance weights
 				// directly later
-				if ((role.getSpecialName() != null)
-						&& (role.getSpecialName()
-								.equals(Attributes.WEIGHT_NAME)))
+				if ((role.getSpecialName() != null) && (role.getSpecialName().equals(Attributes.WEIGHT_NAME)))
 					continue;
 				Attribute attribute = role.getAttribute();
-				boolean label = (role.getSpecialName() != null)
-						&& (role.getSpecialName().equals(Attributes.LABEL_NAME));
+				boolean label = (role.getSpecialName() != null) && (role.getSpecialName().equals(Attributes.LABEL_NAME));
 				printAttribute(attribute, out, label);
 			}
 			out.println("    </attributes>");
@@ -135,8 +127,7 @@ public class XrffExampleSetWriter extends AbstractStreamWriter {
 			for (Example example : exampleSet) {
 				String weightString = "";
 				if (weightAttribute != null) {
-					weightString = " weight=\""
-							+ example.getValue(weightAttribute) + "\"";
+					weightString = " weight=\"" + example.getValue(weightAttribute) + "\"";
 				}
 				out.println("      <instance" + weightString + ">");
 				a = exampleSet.getAttributes().allAttributeRoles();
@@ -144,14 +135,10 @@ public class XrffExampleSetWriter extends AbstractStreamWriter {
 					AttributeRole role = a.next();
 					// ignore weight attribute in order to use instance weights
 					// directly later
-					if ((role.getSpecialName() != null)
-							&& (role.getSpecialName()
-									.equals(Attributes.WEIGHT_NAME)))
+					if ((role.getSpecialName() != null) && (role.getSpecialName().equals(Attributes.WEIGHT_NAME)))
 						continue;
 					Attribute attribute = role.getAttribute();
-					out.println("        <value>"
-							+ Tools.escapeXML(example
-									.getValueAsString(attribute)) + "</value>");
+					out.println("        <value>" + Tools.escapeXML(example.getValueAsString(attribute)) + "</value>");
 				}
 				out.println("      </instance>");
 			}
@@ -166,24 +153,18 @@ public class XrffExampleSetWriter extends AbstractStreamWriter {
 		}
 	}
 
-	private static void printAttribute(Attribute attribute, PrintWriter out,
-			boolean isClass) {
+	private static void printAttribute(Attribute attribute, PrintWriter out, boolean isClass) {
 		String classString = isClass ? "class=\"yes\" " : "";
 		if (attribute.isNominal()) {
-			out.println("      <attribute name=\""
-					+ Tools.escapeXML(attribute.getName()) + "\" "
-					+ classString + "type=\"nominal\">");
+			out.println("      <attribute name=\"" + Tools.escapeXML(attribute.getName()) + "\" " + classString + "type=\"nominal\">");
 			out.println("        <labels>");
 			for (String s : attribute.getMapping().getValues()) {
-				out.println("          <label>" + Tools.escapeXML(s)
-						+ "</label>");
+				out.println("          <label>" + Tools.escapeXML(s) + "</label>");
 			}
 			out.println("        </labels>");
 			out.println("      </attribute>");
 		} else {
-			out.println("      <attribute name=\""
-					+ Tools.escapeXML(attribute.getName()) + "\" "
-					+ classString + "type=\"numeric\"/>");
+			out.println("      <attribute name=\"" + Tools.escapeXML(attribute.getName()) + "\" " + classString + "type=\"numeric\"/>");
 		}
 	}
 
@@ -205,14 +186,12 @@ public class XrffExampleSetWriter extends AbstractStreamWriter {
 	}
 
 	@Override
-	String getFileExtension() {
-		// TODO Auto-generated method stub
-		return "xrff";
+	String[] getFileExtensions() {
+		return new String[] { "xrff" };
 	}
 
 	@Override
 	String getFileParameterName() {
-		// TODO Auto-generated method stub
 		return PARAMETER_EXAMPLE_SET_FILE;
 	}
 

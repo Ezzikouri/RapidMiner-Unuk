@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.io;
 
 import java.io.OutputStreamWriter;
@@ -69,7 +70,7 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 	 * inside of nominal values will be escaped by a backslash.
 	 */
 	public static final String PARAMETER_QUOTE_NOMINAL_VALUES = "quote_nominal_values";
-	
+
 	public static final String PARAMETER_APPEND_FILE = "append_to_file";
 
 	/**
@@ -85,19 +86,16 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 	}
 
 	@Override
-	public void writeStream(ExampleSet exampleSet,
-			java.io.OutputStream outputStream) throws OperatorException {
-		
+	public void writeStream(ExampleSet exampleSet, java.io.OutputStream outputStream) throws OperatorException {
+
 		String columnSeparator = getParameterAsString(PARAMETER_COLUMN_SEPARATOR);
 		boolean quoteNominalValues = getParameterAsBoolean(PARAMETER_QUOTE_NOMINAL_VALUES);
 		PrintWriter out = null;
 		try {
-				out = new PrintWriter(new OutputStreamWriter(outputStream, Encoding
-						.getEncoding(this)));
+			out = new PrintWriter(new OutputStreamWriter(outputStream, Encoding.getEncoding(this)));
 			// write column names
 			if (getParameterAsBoolean(PARAMETER_WRITE_ATTRIBUTE_NAMES)) {
-				Iterator<Attribute> a = exampleSet.getAttributes()
-						.allAttributes();
+				Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
 				boolean first = true;
 				while (a.hasNext()) {
 					if (!first)
@@ -116,8 +114,7 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 
 			// write data
 			for (Example example : exampleSet) {
-				Iterator<Attribute> a = exampleSet.getAttributes()
-						.allAttributes();
+				Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
 				boolean first = true;
 				while (a.hasNext()) {
 					Attribute attribute = a.next();
@@ -125,8 +122,7 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 						out.print(columnSeparator);
 					if (!Double.isNaN(example.getValue(attribute))) {
 						if (attribute.isNominal()) {
-							String stringValue = example
-									.getValueAsString(attribute);
+							String stringValue = example.getValueAsString(attribute);
 							if (quoteNominalValues) {
 								stringValue = stringValue.replaceAll("\"", "'");
 								stringValue = "\"" + stringValue + "\"";
@@ -134,12 +130,10 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 							out.print(stringValue);
 						} else {
 							Double value = example.getValue(attribute);
-							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute
-									.getValueType(), Ontology.DATE_TIME)) {
+							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
 								if (getParameterAsBoolean(PARAMETER_FORMAT_DATE)) {
 									Date date = new Date(value.longValue());
-									String s = DateFormat.getInstance().format(
-											date);
+									String s = DateFormat.getInstance().format(date);
 									out.print(s);
 								} else {
 									out.print(value);
@@ -165,8 +159,8 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 	protected boolean supportsEncoding() {
 		return true;
 	}
-	
-	@Override 
+
+	@Override
 	protected boolean shouldAppend() {
 		return getParameterAsBoolean(PARAMETER_APPEND_FILE);
 	}
@@ -177,27 +171,17 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 		types.add(makeFileParameterType());
 		// types.add(new ParameterTypeFile(PARAMETER_CSV_FILE,
 		// "The CSV file which should be written.", "csv", false));
-		types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATOR,
-				"The column separator.", ";", false));
-		types
-				.add(new ParameterTypeBoolean(
-						PARAMETER_WRITE_ATTRIBUTE_NAMES,
-						"Indicates if the attribute names should be written as first row.",
-						true, false));
-		types
-				.add(new ParameterTypeBoolean(
-						PARAMETER_QUOTE_NOMINAL_VALUES,
-						"Indicates if nominal values should be quoted with double quotes.",
-						true, false));
-		types
-				.add(new ParameterTypeBoolean(
-						PARAMETER_FORMAT_DATE,
-						"Indicates if date attributes are written as a formated string or as milliseconds past since January 1, 1970, 00:00:00 GMT",
-						true, true));
-		ParameterType type = new ParameterTypeBoolean(PARAMETER_APPEND_FILE, "Indicates if new content should be appended to the file or if the pre-existing file content should be overwritten.", false, false);
+		types.add(new ParameterTypeString(PARAMETER_COLUMN_SEPARATOR, "The column separator.", ";", false));
+		types.add(new ParameterTypeBoolean(PARAMETER_WRITE_ATTRIBUTE_NAMES, "Indicates if the attribute names should be written as first row.", true, false));
+		types.add(new ParameterTypeBoolean(PARAMETER_QUOTE_NOMINAL_VALUES, "Indicates if nominal values should be quoted with double quotes.", true, false));
+		types.add(new ParameterTypeBoolean(PARAMETER_FORMAT_DATE,
+				"Indicates if date attributes are written as a formated string or as milliseconds past since January 1, 1970, 00:00:00 GMT", true, true));
+		ParameterType type = new ParameterTypeBoolean(PARAMETER_APPEND_FILE,
+				"Indicates if new content should be appended to the file or if the pre-existing file content should be overwritten.", false, false);
 		type.registerDependencyCondition(new PortConnectedCondition(this, new PortProvider() {
+
 			@Override
-			public Port getPort() {			
+			public Port getPort() {
 				return fileOutputPort;
 			}
 		}, true, false));
@@ -208,13 +192,11 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 
 	@Override
 	String getFileParameterName() {
-		// TODO Auto-generated method stub
 		return PARAMETER_CSV_FILE;
 	}
 
 	@Override
-	String getFileExtension() {
-		// TODO Auto-generated method stub
-		return "csv";
+	String[] getFileExtensions() {
+		return new String[] { "csv" };
 	}
 }

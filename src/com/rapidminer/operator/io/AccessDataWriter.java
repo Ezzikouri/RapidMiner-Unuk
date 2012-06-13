@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.io;
 
 import java.io.File;
@@ -39,7 +40,6 @@ import com.rapidminer.parameter.ParameterTypePassword;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 
-
 /**
  * Writes an ExampleSet to an existing Access database using
  * the JDBC-ODBC-Bridge.
@@ -47,7 +47,7 @@ import com.rapidminer.tools.jdbc.DatabaseHandler;
  * @author Tobias Malbrecht
  */
 public class AccessDataWriter extends AbstractStreamWriter {
-	
+
 	public static final String PARAMETER_DATABASE_FILE = "database_file";
 
 	public static final String PARAMETER_USERNAME = "username";
@@ -59,11 +59,10 @@ public class AccessDataWriter extends AbstractStreamWriter {
 	/** The parameter name for &quot;Indicates if an existing table should be overwritten.&quot; */
 	public static final String PARAMETER_OVERWRITE_MODE = "overwrite_mode";
 
-	
 	public AccessDataWriter(OperatorDescription description) {
-		super(description);	
+		super(description);
 	}
-	
+
 	@Override
 	public ExampleSet write(ExampleSet exampleSet) throws OperatorException {
 		File databaseFile = getParameterAsFile(PARAMETER_DATABASE_FILE);
@@ -96,26 +95,23 @@ public class AccessDataWriter extends AbstractStreamWriter {
 		type.setExpert(false);
 		types.add(type);
 		types.add(new ParameterTypeString(PARAMETER_TABLE_NAME, "The name of the table within the Access database to which the data set should be written.", false, false));
-		types.add(new ParameterTypeCategory(PARAMETER_OVERWRITE_MODE, "Indicates if an existing table should be overwritten or if data should be appended.", DatabaseHandler.OVERWRITE_MODES, DatabaseHandler.OVERWRITE_MODE_NONE));
+		types.add(new ParameterTypeCategory(PARAMETER_OVERWRITE_MODE, "Indicates if an existing table should be overwritten or if data should be appended.",
+				DatabaseHandler.OVERWRITE_MODES, DatabaseHandler.OVERWRITE_MODE_NONE));
 		return types;
 	}
 
 	@Override
-	String getFileExtension() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	String getFileParameterName() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	void writeStream(ExampleSet exampleSet, OutputStream outputStream)
-			throws OperatorException {
+	void writeStream(ExampleSet exampleSet, OutputStream outputStream) throws OperatorException {
 
-		
+	}
+
+	@Override
+	String[] getFileExtensions() {
+		return null;
 	}
 }

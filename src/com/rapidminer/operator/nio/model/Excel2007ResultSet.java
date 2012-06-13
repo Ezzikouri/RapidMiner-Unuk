@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.nio.model;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
@@ -69,6 +70,10 @@ public class Excel2007ResultSet implements DataResultSet {
 
 	private String[] attributeNames;
 
+	private String timezone;
+	private String dateFormat;
+
+
 	/**
 	 * The constructor to build an ExcelResultSet from the given configuration. The calling operator might be null. It
 	 * is only needed for error handling.
@@ -78,6 +83,9 @@ public class Excel2007ResultSet implements DataResultSet {
 		columnOffset = configuration.getColumnOffset();
 		rowOffset = configuration.getRowOffset();
 		currentRow = configuration.getRowOffset() - 1;
+		
+		timezone = configuration.getTimezone();
+		dateFormat = configuration.getDatePattern();
 		
 		try {
 			workbook = WorkbookFactory.create(configuration.getFile());
@@ -238,7 +246,7 @@ public class Excel2007ResultSet implements DataResultSet {
 	public boolean isMissing(int columnIndex) {
 		Cell cell = getCurrentCell(columnIndex);
 		try {
-		boolean missing = cell.getCellType() == Cell.CELL_TYPE_BLANK ||
+		boolean missing = cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK ||
 				cell.getCellType() == Cell.CELL_TYPE_ERROR ||
 				"".equals(cell.getStringCellValue().trim());
 		return missing;
@@ -280,11 +288,16 @@ public class Excel2007ResultSet implements DataResultSet {
 	public Date getDate(int columnIndex) throws ParseException {
 		final Cell cell = getCurrentCell(columnIndex);
 		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
-			return cell.getDateCellValue();
+			Date dateCellValue = cell.getDateCellValue();
+			return dateCellValue;
 		} else {
 			try {
 				String valueString = cell.getStringCellValue();
-				throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_DATE, valueString));
+				try {
+					return new SimpleDateFormat(dateFormat).parse(valueString);
+				} catch (java.text.ParseException e) {
+					throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_DATE, valueString));
+				}
 			} catch (IllegalStateException e) {
 				throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_DATE, "CELL_NEITHER_NUMERIC_NOR_NOMINAL"));
 			}

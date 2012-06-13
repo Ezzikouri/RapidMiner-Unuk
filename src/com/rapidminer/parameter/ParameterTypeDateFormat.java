@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.parameter;
 
 import com.rapidminer.operator.ports.InputPort;
@@ -37,7 +38,7 @@ public class ParameterTypeDateFormat extends ParameterTypeStringCategory {
 
 	private ParameterTypeAttribute attributeParameter;
 
-	public static final String[] PREDEFINED_DATE_FORMATS = new String[] {
+	public static final String[] PREDEFINED_DATE_FORMATS = new String[] { 
 		"",
 		"yyyy.MM.dd G 'at' HH:mm:ss z",
 		"EEE, MMM d, ''yy",
@@ -47,8 +48,8 @@ public class ParameterTypeDateFormat extends ParameterTypeStringCategory {
 		"yyyy.MMMMM.dd GGG hh:mm aaa",
 		"EEE, d MMM yyyy HH:mm:ss Z",
 		"yyMMddHHmmssZ",
-		"yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-	};
+		"yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+		"yyyy-MM-dd HH:mm:ss" };
 
 	/**
 	 * This is the constructor for date format if no example set meta data is available.
@@ -56,12 +57,26 @@ public class ParameterTypeDateFormat extends ParameterTypeStringCategory {
 	public ParameterTypeDateFormat(String key, String description, boolean expert) {
 		this(null, key, description, null, expert);
 	}
-	
+
+	/**
+	 * This is the constructor for date format if no example set meta data is available.
+	 */
+	public ParameterTypeDateFormat(String key, String description, String defaultValue, boolean expert) {
+		this(null, key, description, defaultValue, null, expert);
+	}
+
 	/**
 	 * This is the constructor for parameter types of operators which transform an example set.
 	 */
 	public ParameterTypeDateFormat(ParameterTypeAttribute attributeParameter, String key, String description, InputPort inPort, boolean expert) {
-		super(key, description, PREDEFINED_DATE_FORMATS, "", true);
+		this(attributeParameter, key, description, "", inPort, expert);
+	}
+
+	/**
+	 * This is the constructor for parameter types of operators which transform an example set.
+	 */
+	public ParameterTypeDateFormat(ParameterTypeAttribute attributeParameter, String key, String description, String defaultValue, InputPort inPort, boolean expert) {
+		super(key, description, PREDEFINED_DATE_FORMATS, defaultValue, true);
 		setExpert(expert);
 		this.inPort = inPort;
 		this.attributeParameter = attributeParameter;
@@ -70,7 +85,7 @@ public class ParameterTypeDateFormat extends ParameterTypeStringCategory {
 	public InputPort getInputPort() {
 		return inPort;
 	}
-	
+
 	/**
 	 * This method returns the referenced attribute parameter or null if 
 	 * non exists.

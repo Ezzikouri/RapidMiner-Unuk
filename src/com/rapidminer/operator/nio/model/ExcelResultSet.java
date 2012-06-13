@@ -20,15 +20,18 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.nio.model;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.TimeZone;
 
 import jxl.Cell;
 import jxl.CellType;
@@ -73,6 +76,9 @@ public class ExcelResultSet implements DataResultSet {
 
 	private String[] attributeNames;
 
+	private String timeZone;
+	private String dateFormat;
+
 	/**
 	 * The constructor to build an ExcelResultSet from the given configuration. The calling operator might be null. It
 	 * is only needed for error handling.
@@ -84,11 +90,15 @@ public class ExcelResultSet implements DataResultSet {
 		columnOffset = configuration.getColumnOffset();
 		rowOffset = configuration.getRowOffset();
 		currentRow = configuration.getRowOffset() - 1;
-		
+
+		timeZone = configuration.getTimezone(); //getParameterAsString(AbstractDataResultSetReader.PARAMETER_TIME_ZONE);
+		dateFormat = configuration.getDatePattern();
+
 		// check range
 		if (columnOffset > configuration.getColumnLast() || rowOffset > configuration.getRowLast() || columnOffset < 0 || rowOffset < 0)
-			throw new UserError(callingOperator, 223, Tools.getExcelColumnName(columnOffset) + rowOffset + ":" + Tools.getExcelColumnName(configuration.getColumnLast()) + configuration.getRowLast());
-		
+			throw new UserError(callingOperator, 223, Tools.getExcelColumnName(columnOffset) + rowOffset + ":" + Tools.getExcelColumnName(configuration.getColumnLast())
+					+ configuration.getRowLast());
+
 		// check file presence
 		if (configuration.getFile() == null) {
 			throw new UserError(callingOperator, "file_consumer.no_file_defined");
@@ -101,13 +111,13 @@ public class ExcelResultSet implements DataResultSet {
 			if (configuration.getEncoding() != null) {
 				workbookSettings.setEncoding(configuration.getEncoding().name());
 			}
-			workbook = Workbook.getWorkbook(file, workbookSettings);			
+			workbook = Workbook.getWorkbook(file, workbookSettings);
 		} catch (IOException e) {
 			throw new UserError(callingOperator, 302, configuration.getFile().getPath(), e.getMessage());
 		} catch (BiffException e) {
 			throw new UserError(callingOperator, 302, configuration.getFile().getPath(), e.getMessage());
 		}
-		
+
 		try {
 			sheet = workbook.getSheet(configuration.getSheet());
 		} catch (IndexOutOfBoundsException e) {
@@ -119,7 +129,7 @@ public class ExcelResultSet implements DataResultSet {
 
 		if (totalNumberOfColumns < 0 || totalNumberOfRows < 0)
 			throw new UserError(callingOperator, 404);
-		
+
 		emptyColumns = new boolean[totalNumberOfColumns];
 		emptyRows = new boolean[totalNumberOfRows];
 
@@ -157,7 +167,7 @@ public class ExcelResultSet implements DataResultSet {
 
 		// retrieve or generate attribute names
 		attributeNames = new String[nonEmptyColumnsList.size()];
-		
+
 		if (!configuration.isEmulatingOldNames()) {
 			for (int i = 0; i < numberOfAttributes; i++) {
 				attributeNames[i] = Tools.getExcelColumnName(nonEmptyColumnsList.get(i));
@@ -233,11 +243,8 @@ public class ExcelResultSet implements DataResultSet {
 	@Override
 	public boolean isMissing(int columnIndex) {
 		Cell cell = getCurrentCell(columnIndex);
-		return cell.getType() == CellType.EMPTY ||
-				cell.getType() == CellType.ERROR ||
-				cell.getType() == CellType.FORMULA_ERROR ||
-				cell.getContents() == null ||
-				"".equals(cell.getContents().trim());
+		return cell.getType() == CellType.EMPTY || cell.getType() == CellType.ERROR || cell.getType() == CellType.FORMULA_ERROR || cell.getContents() == null
+				|| "".equals(cell.getContents().trim());
 	}
 
 	private Cell getCurrentCell(int index) {
@@ -248,8 +255,7 @@ public class ExcelResultSet implements DataResultSet {
 	@Override
 	public Number getNumber(int columnIndex) throws ParseException {
 		final Cell cell = getCurrentCell(columnIndex);
-		if ((cell.getType() == CellType.NUMBER) ||
-				(cell.getType() == CellType.NUMBER_FORMULA)) {
+		if ((cell.getType() == CellType.NUMBER) || (cell.getType() == CellType.NUMBER_FORMULA)) {
 			final double value = ((NumberCell) cell).getValue();
 			return Double.valueOf(value);
 		} else {
@@ -265,16 +271,20 @@ public class ExcelResultSet implements DataResultSet {
 	@Override
 	public Date getDate(int columnIndex) throws ParseException {
 		final Cell cell = getCurrentCell(columnIndex);
-		if ((cell.getType() == CellType.DATE) ||
-				(cell.getType() == CellType.DATE_FORMULA)) {
-			return ((DateCell) cell).getDate();
+		if ((cell.getType() == CellType.DATE) || (cell.getType() == CellType.DATE_FORMULA)) {
+
+			Date date = ((DateCell) cell).getDate();
+			//			int offset = TimeZone.getTimeZone(timeZone).getOffset(date.getTime());
+			//			date.setTime(date.getTime() - offset);
+			return date;
 		} else {
 			String valueString = cell.getContents();
-			throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_DATE, valueString));
+			try {
+				return new SimpleDateFormat(dateFormat).parse(valueString);
+			} catch (java.text.ParseException e) {
+				throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_DATE, valueString));
+			}
 		}
-		// // TODO: Why is that???
-		// int offset = TimeZone.getDefault().getOffset(date.getTime());
-		// return new Date(date.getTime() - offset);
 	}
 
 	@Override

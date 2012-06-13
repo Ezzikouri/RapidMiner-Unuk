@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.nio.model;
 
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_SHEET_NUMBER;
@@ -70,6 +71,9 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
 	private boolean isEmulatingOldNames;
 
+	private String timezone;
+	private String datePattern;
+
 	/**
 	 * This constructor must read in all settings from the parameters of the given operator.
 	 * 
@@ -79,30 +83,38 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		if (excelExampleSource.isParameterSet(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE)) {
 			parseExcelRange(excelExampleSource.getParameterAsString(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE));
 		}
-//		else {
-//			throw new UserError(null, 205, ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE, excelExampleSource.getName());
-//		}
-		
+		//		else {
+		//			throw new UserError(null, 205, ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE, excelExampleSource.getName());
+		//		}
+
 		if (excelExampleSource.isParameterSet(PARAMETER_SHEET_NUMBER)) {
 			this.sheet = excelExampleSource.getParameterAsInt(PARAMETER_SHEET_NUMBER) - 1;
 		}
-    	if (excelExampleSource.isFileSpecified()) {
-    		this.workbookFile = excelExampleSource.getSelectedFile();
-        } else {
-        	String excelParamter = excelExampleSource.getParameter(ExcelExampleSource.PARAMETER_EXCEL_FILE);
-        	if (excelParamter != null && !"".equals(excelParamter)) {
-        		File excelFile = new File(excelParamter);
-        		if (excelFile.exists()) {
-        			this.workbookFile = excelFile;
-        		}
-        	}
-        }
-//		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE)) {
-//			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
-//		}
+		if (excelExampleSource.isFileSpecified()) {
+			this.workbookFile = excelExampleSource.getSelectedFile();
+		} else {
+			String excelParamter = excelExampleSource.getParameter(ExcelExampleSource.PARAMETER_EXCEL_FILE);
+			if (excelParamter != null && !"".equals(excelParamter)) {
+				File excelFile = new File(excelParamter);
+				if (excelFile.exists()) {
+					this.workbookFile = excelFile;
+				}
+			}
+		}
+		//		if (excelExampleSource.isParameterSet(PARAMETER_EXCEL_FILE)) {
+		//			this.workbookFile = excelExampleSource.getParameterAsFile(PARAMETER_EXCEL_FILE);
+		//		}
 
-	    encoding = Encoding.getEncoding(excelExampleSource);
-	    
+		if (excelExampleSource.isParameterSet(AbstractDataResultSetReader.PARAMETER_DATE_FORMAT)) {
+			datePattern = excelExampleSource.getParameterAsString(AbstractDataResultSetReader.PARAMETER_DATE_FORMAT);
+		}
+
+		if (excelExampleSource.isParameterSet(AbstractDataResultSetReader.PARAMETER_TIME_ZONE)) {
+			timezone = excelExampleSource.getParameterAsString(AbstractDataResultSetReader.PARAMETER_TIME_ZONE);
+		}
+
+		encoding = Encoding.getEncoding(excelExampleSource);
+
 		isEmulatingOldNames = excelExampleSource.getCompatibilityLevel().isAtMost(ExcelExampleSource.CHANGE_5_0_11_NAME_SCHEMA);
 	}
 
@@ -133,7 +145,6 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		return workbookJXL != null || workbookPOI != null;
 	}
 
-	
 	/**
 	 * Creates an excel table model (either {@link ExcelSheetTableModel} or {@link Excel2007SheetTableModel}, depending on file).
 	 * @param sheetIndex the index of the sheet (0-based)
@@ -159,7 +170,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			return excelSheetTableModel;
 		}
 	}
-	
+
 	/**
 	 * Returns the number of sheets in the excel file
 	 * @return
@@ -182,7 +193,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			return workbookJXL.getNumberOfSheets();
 		}
 	}
-	
+
 	/**
 	 * Returns the names of all sheets in the excel file
 	 * @return
@@ -197,7 +208,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 				createWorkbookPOI();
 			}
 			String[] sheetNames = new String[getNumberOfSheets()];
-			for (int i=0; i<getNumberOfSheets(); i++) {
+			for (int i = 0; i < getNumberOfSheets(); i++) {
 				sheetNames[i] = workbookPOI.getSheetName(i);
 			}
 			return sheetNames;
@@ -209,7 +220,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			return workbookJXL.getSheetNames();
 		}
 	}
-	
+
 	/**
 	 * Returns the encoding for this configuration.
 	 * @return
@@ -217,7 +228,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	public Charset getEncoding() {
 		return this.encoding;
 	}
-	
+
 	/**
 	 * This returns the file of the referenced excel file
 	 */
@@ -303,23 +314,23 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	 *  In fact we are using a {@link DefaultPreview} here as well. */
 	@Override
 	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException {
-        final DataResultSet resultSet = makeDataResultSet(null);
-        //this.errors = ((CSVResultSet) resultSet).getErrors();
-        try {
+		final DataResultSet resultSet = makeDataResultSet(null);
+		//this.errors = ((CSVResultSet) resultSet).getErrors();
+		try {
 			return new DefaultPreview(resultSet, listener);
 		} catch (ParseException e) {
 			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
 		}
-//
-//		try {
-//			return new ExcelSheetTableModel(this);
-//		} catch (IndexOutOfBoundsException e) {
-//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
-//		} catch (BiffException e) {
-//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
-//		} catch (IOException e) {
-//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
-//		}
+		//
+		//		try {
+		//			return new ExcelSheetTableModel(this);
+		//		} catch (IndexOutOfBoundsException e) {
+		//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+		//		} catch (BiffException e) {
+		//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+		//		} catch (IOException e) {
+		//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+		//		}
 	}
 
 	public void closeWorkbook() {
@@ -332,10 +343,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
 	@Override
 	public void setParameters(AbstractDataResultSetReader source) {
-		String range =
-				Tools.getExcelColumnName(columnOffset) + (rowOffset + 1) +
-						":" +
-						Tools.getExcelColumnName(columnLast) + (rowLast + 1);
+		String range = Tools.getExcelColumnName(columnOffset) + (rowOffset + 1) + ":" + Tools.getExcelColumnName(columnLast) + (rowLast + 1);
 		source.setParameter(ExcelExampleSource.PARAMETER_IMPORTED_CELL_RANGE, range);
 		source.setParameter(PARAMETER_SHEET_NUMBER, String.valueOf(sheet + 1));
 		source.setParameter(ExcelExampleSource.PARAMETER_EXCEL_FILE, workbookFile.getAbsolutePath());
@@ -425,7 +433,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		}
 		workbookJXL = Workbook.getWorkbook(file, workbookSettings);
 	}
-	
+
 	/**
 	 * Creates the POI workbook.
 	 * @throws InvalidFormatException
@@ -434,4 +442,33 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	private void createWorkbookPOI() throws InvalidFormatException, IOException {
 		workbookPOI = WorkbookFactory.create(getFile());
 	}
+
+	/**
+	 * @return the timezone
+	 */
+	public String getTimezone() {
+		return this.timezone;
+	}
+
+	/**
+	 * @return the datePattern
+	 */
+	public String getDatePattern() {
+		return this.datePattern;
+	}
+
+	/**
+	 * @param timezone the timezone to set
+	 */
+	public void setTimezone(String timezone) {
+		this.timezone = timezone;
+	}
+
+	/**
+	 * @param datePattern the datePattern to set
+	 */
+	public void setDatePattern(String datePattern) {
+		this.datePattern = datePattern;
+	}
+
 }
