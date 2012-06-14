@@ -20,36 +20,16 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.test;
+package com.rapidminer.test.asserter;
 
-import static junit.framework.Assert.assertEquals;
+import java.util.List;
 
-import java.util.ArrayList;
-
-import org.junit.Test;
-
-import com.rapidminer.tools.IterationArrayList;
+import com.rapidminer.test_utils.Asserter;
 
 /**
- * A test for the  {@link IterationArrayList}.
- * 
- * @author Michael Wurst
+ * @author Marius Helf
+ *
  */
-public class IterationArrayListTest {
-
-	@Test
-	public void testAccess() {
-
-		ArrayList<String> l = new ArrayList<String>();
-		l.add("a");
-		l.add("b");
-		l.add("c");
-
-		ArrayList<String> l2 = new IterationArrayList<String>(l.iterator());
-
-		for (int i = 0; i < l.size(); i++)
-			assertEquals(l2.get(i), l.get(i));
-
-	}
-
+public interface AsserterFactory {
+	public List<Asserter> createAsserters();
 }

@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.operator.nio.model;
 
 import java.io.File;
@@ -272,15 +271,19 @@ public class ExcelResultSet implements DataResultSet {
 	public Date getDate(int columnIndex) throws ParseException {
 		final Cell cell = getCurrentCell(columnIndex);
 		if ((cell.getType() == CellType.DATE) || (cell.getType() == CellType.DATE_FORMULA)) {
-
 			Date date = ((DateCell) cell).getDate();
-			//			int offset = TimeZone.getTimeZone(timeZone).getOffset(date.getTime());
-			//			date.setTime(date.getTime() - offset);
+			
+			// hack to get actual date written in excel sheet. converts date to UTC
+			int offset = TimeZone.getDefault().getOffset(date.getTime());
+			date.setTime(date.getTime() - offset);
+			
 			return date;
 		} else {
 			String valueString = cell.getContents();
 			try {
-				return new SimpleDateFormat(dateFormat).parse(valueString);
+				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
+				simpleDateFormat.setTimeZone(TimeZone.getTimeZone(this.timeZone));
+				return simpleDateFormat.parse(valueString);
 			} catch (java.text.ParseException e) {
 				throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_DATE, valueString));
 			}

@@ -56,6 +56,9 @@ import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypePassword;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.test.asserter.AsserterFactory;
+import com.rapidminer.test.asserter.AsserterFactoryRapidMiner;
+import com.rapidminer.test_utils.RapidAssert;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.I18N;
@@ -544,6 +547,8 @@ public class RapidMiner {
 		// initialize xml serialization
 		RapidMiner.splashMessage("xml_serialization");
 		XMLSerialization.init(Plugin.getMajorClassLoader());
+		
+		RapidAssert.ASSERTER_REGISTRY.registerAllAsserters(new AsserterFactoryRapidMiner());
 	}
 
 	private static void showSplashInfos() {

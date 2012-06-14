@@ -25,6 +25,8 @@ package com.rapidminer.test_utils;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.rapidminer.test.asserter.AsserterFactory;
+
 /**
  * @author Marius Helf
  *
@@ -34,6 +36,12 @@ public class AsserterRegistry {
 	
 	public void registerAsserter(Asserter asserter) {
 		registeredAsserters.add(asserter);
+	}
+	
+	public void registerAllAsserters(AsserterFactory factory) {
+		for (Asserter asserter : factory.createAsserters()) {
+			registerAsserter(asserter);
+		}
 	}
 	
 	public List<Asserter> getAsserterForObject(Object object) {

@@ -22,9 +22,9 @@
 	<property name="jre32" location="jre/jre32" />
 	<property name="jre64" location="jre/jre64" />
 
-	<property name="junit.reports" location="junit-reports" />
 	<property name="junit.tests.dir" value="" />
-
+	<property name="rapidminer.tests.dir" value="../RapidMiner_Tests" />
+	
 	<!-- compiler options -->
 	<property name="compiler.version" value="modern" />
 	<property name="compiler.debug" value="true" />
@@ -60,10 +60,6 @@
 	<path id="classpath">
 		<path refid="javadoc.classpath" />
 		<pathelement location="${build}" />
-	</path>
-	<path id="classpath.test">
-		<pathelement location="${test.build}" />
-		<path refid="classpath" />
 	</path>
 
 
@@ -134,7 +130,7 @@
 			<!-- includes all ... -->
 			<include name="**/*.java" />
 			<!-- ...but Tests -->
-			<exclude name="**/test/*" />
+			<!-- <exclude name="**/test/*" /> -->
 		</javac>
 
 		<property name="lock.isBuilt" value="true" />
@@ -577,36 +573,16 @@
 
 			<classpath refid="classpath" />
 			<src path="${src_test}" />
-			<src path="${src}/com/rapidminer/test_utils" />
+			<!--<src path="${src}/com/rapidminer/test_utils" /> -->
 		</javac>
 	</target>
 
 	<target name="test.clean">
-		<mkdir dir="${junit.reports}" />
-		<delete>
-			<fileset dir="${test.build}" includes="**/test/*.class" />
-			<fileset dir="${junit.reports}" />
-		</delete>
+		<ant antfile="${rapidminer.tests.dir}/build.xml" target="test.clean" dir="${rapidminer.tests.dir}" inheritall="true" />
 	</target>
 	
-    <target name="test.init.test_class" unless="rapidminer.test.test_class">
-       <property name="rapidminer.test.test_class" value="com.rapidminer.test.AllTests" />
-    </target>
-
-
-	<target name="test" depends="test.compile, test.init.test_class">
-		<junit>
-			<sysproperty key="rapidminer.test.repository.url" value="${rapidminer.test.repository.url}" />
-			<sysproperty key="rapidminer.test.repository.location" value="${rapidminer.test.repository.location}" />
-			<sysproperty key="rapidminer.test.repository.user" value="${rapidminer.test.repository.user}" />
-			<sysproperty key="rapidminer.test.repository.password" value="${rapidminer.test.repository.password}" />
-			<sysproperty key="rapidminer.config.dir" value="${rapidminer.test.config.dir}" />
-			<sysproperty key="java.util.logging.config.file" value="${java.util.logging.config.file}" />
-			<classpath refid="classpath.test" />
-			<formatter type="xml" usefile="true" />
-			<!-- <formatter type="plain" usefile="false" /> -->
-			<test name="${rapidminer.test.test_class}" todir="${junit.reports}" />
-		</junit>
+	<target name="test" depends="test.compile">
+		<ant antfile="${rapidminer.tests.dir}/build.xml" target="test" dir="${rapidminer.tests.dir}" inheritall="false" />
 	</target>
 	<!-- END Test targets -->
 

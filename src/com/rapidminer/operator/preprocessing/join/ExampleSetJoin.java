@@ -20,12 +20,14 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.preprocessing.join;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +62,6 @@ import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.container.Pair;
 
-
 /**
  * <p>
  * Build the join of two example sets using the id attributes of the sets, i.e. both example sets must have an id attribute where the same id indicate the same examples. If examples are missing an
@@ -75,7 +76,9 @@ import com.rapidminer.tools.container.Pair;
  * @author Ingo Mierswa, Tobias Malbrecht, Marius Helf
  */
 public class ExampleSetJoin extends AbstractExampleSetJoin {
+
 	public static class DoubleArrayWrapper {
+
 		public DoubleArrayWrapper(double[] data) {
 			this.data = data;
 		}
@@ -91,7 +94,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 			if (!(other instanceof DoubleArrayWrapper)) {
 				return false;
 			}
-			return Arrays.equals(data, ((DoubleArrayWrapper)other).data);
+			return Arrays.equals(data, ((DoubleArrayWrapper) other).data);
 		}
 
 		@Override
@@ -106,9 +109,9 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	public static final String PARAMETER_JOIN_ATTRIBUTES = "key_attributes";
 	public static final String PARAMETER_USE_ID = "use_id_attribute_as_key";
 	public static final String PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES = "keep_both_join_attributes";
+	public static final String PARAMETER_FILL_LEFT_ID = "";
 
-
-	public static final String[] JOIN_TYPES = { "inner" , "left" , "right" , "outer" };
+	public static final String[] JOIN_TYPES = { "inner", "left", "right", "outer" };
 
 	public static final int JOIN_TYPE_INNER = 0;
 
@@ -121,37 +124,41 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	public ExampleSetJoin(OperatorDescription description) {
 		super(description);
 
-		getLeftInput().addPrecondition(new ParameterConditionedPrecondition(getLeftInput(),  new ExampleSetPrecondition(getLeftInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this, PARAMETER_USE_ID, "true"));
-		getRightInput().addPrecondition(new ParameterConditionedPrecondition(getRightInput(),  new ExampleSetPrecondition(getRightInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this, PARAMETER_USE_ID, "true"));
+		getLeftInput().addPrecondition(
+				new ParameterConditionedPrecondition(getLeftInput(), new ExampleSetPrecondition(getLeftInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this,
+						PARAMETER_USE_ID, "true"));
+		getRightInput().addPrecondition(
+				new ParameterConditionedPrecondition(getRightInput(), new ExampleSetPrecondition(getRightInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this,
+						PARAMETER_USE_ID, "true"));
 	}
-	
+
 	@Override
-	protected ExampleSetMetaData joinedMetaData(ExampleSetMetaData emd) {
+	protected ExampleSetMetaData joinedMetaData(ExampleSetMetaData emd, ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) {
 		try {
-			if (!getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES)) {
-				for (int i = 0; i < emd.getAllAttributes().size(); i++) {
-					AttributeMetaData attributeMetaData = (AttributeMetaData) emd.getAllAttributes().toArray()[i];
-					for (String[] keyAttribute : getParameterList(PARAMETER_JOIN_ATTRIBUTES)) {
+			if (!getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES) && !getParameterAsBoolean(PARAMETER_USE_ID)) {
+				List<String[]> joinAttributes = getParameterList(PARAMETER_JOIN_ATTRIBUTES);
+				Iterator<AttributeMetaData> i = emd.getAllAttributes().iterator();
+				while (i.hasNext()) {
+					AttributeMetaData attributeMetaData = i.next();
+					for (String[] keyAttribute : joinAttributes) {
 						if (keyAttribute[1] != null && attributeMetaData.getName().equals(keyAttribute[1])) {
-							emd.removeAttribute(attributeMetaData);
-							i--;
+							i.remove();
 						}
 					}
-				
 				}
 			}
 		} catch (UndefinedParameterError e) {
+			// cannot happen: PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES is boolean and has default, 
+			// PARAMETER_JOIN_ATTRIBUTES is list and returns empty list if undefined 
 			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.gui.tools.SwingTools.show_simple_get_message", 
-					e.getMessage()),
-					e);           
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.gui.tools.SwingTools.show_simple_get_message", e.getMessage()), e);
 		}
 		return emd;
 	}
 
 	@Override
-	protected MemoryExampleTable joinData(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList) throws OperatorException {
+	protected MemoryExampleTable joinData(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList)
+			throws OperatorException {
 		int joinType = getParameterAsInt(PARAMETER_JOIN_TYPE);
 		leftExampleSet.remapIds();
 		rightExampleSet.remapIds();
@@ -160,17 +167,17 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		Pair<Attribute[], Attribute[]> keyAttributes = getKeyAttributes(leftExampleSet, rightExampleSet);
 
 		switch (joinType) {
-		case JOIN_TYPE_INNER:
-			return performInnerJoin(leftExampleSet, rightExampleSet, originalAttributeSources, unionAttributeList, keyAttributes);
-		case JOIN_TYPE_LEFT:
-			return performLeftJoin( leftExampleSet, rightExampleSet, originalAttributeSources, unionAttributeList, keyAttributes, null);
-		case JOIN_TYPE_RIGHT:
-			return performRightJoin(leftExampleSet, rightExampleSet, originalAttributeSources, unionAttributeList, keyAttributes);
-		case JOIN_TYPE_OUTER:
-			return performOuterJoin(leftExampleSet, rightExampleSet, originalAttributeSources, unionAttributeList, keyAttributes);
-		default:
-			assert(false);	// illegal join type
-			return null;
+			case JOIN_TYPE_INNER:
+				return performInnerJoin(leftExampleSet, rightExampleSet, originalAttributeSources, unionAttributeList, keyAttributes);
+			case JOIN_TYPE_LEFT:
+				return performLeftJoin(leftExampleSet, rightExampleSet, originalAttributeSources, unionAttributeList, keyAttributes, null);
+			case JOIN_TYPE_RIGHT:
+				return performRightJoin(leftExampleSet, rightExampleSet, originalAttributeSources, unionAttributeList, keyAttributes);
+			case JOIN_TYPE_OUTER:
+				return performOuterJoin(leftExampleSet, rightExampleSet, originalAttributeSources, unionAttributeList, keyAttributes);
+			default:
+				assert (false);	// illegal join type
+				return null;
 		}
 	}
 
@@ -182,8 +189,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	 * the the first entry of the pair is for the left example set, the second one for the
 	 * right example set.  
 	 */
-	private Pair<Attribute[], Attribute[]> getKeyAttributes(
-			ExampleSet leftExampleSet, ExampleSet rightExampleSet) throws OperatorException {
+	private Pair<Attribute[], Attribute[]> getKeyAttributes(ExampleSet leftExampleSet, ExampleSet rightExampleSet) throws OperatorException {
 		boolean useIdForJoin = getParameterAsBoolean(PARAMETER_USE_ID);
 		Pair<Attribute[], Attribute[]> keyAttributes;
 		if (!useIdForJoin) {
@@ -206,8 +212,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 				}
 
 				// check for incompatible types
-				if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(leftAttribute.getValueType(), rightAttribute.getValueType()) 
-						&& !Ontology.ATTRIBUTE_VALUE_TYPE.isA(rightAttribute.getValueType(), leftAttribute.getValueType()) ){
+				if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(leftAttribute.getValueType(), rightAttribute.getValueType())
+						&& !Ontology.ATTRIBUTE_VALUE_TYPE.isA(rightAttribute.getValueType(), leftAttribute.getValueType())) {
 					throw new UserError(this, "join.illegal_key_attribute", attributePair[1], "right", attributePair[0], "left");
 				}
 
@@ -217,7 +223,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 				++i;
 			}
 		} else {
-			keyAttributes = new Pair<Attribute[], Attribute[]>(new Attribute[] {leftExampleSet.getAttributes().getId()}, new Attribute[]{rightExampleSet.getAttributes().getId()});
+			keyAttributes = new Pair<Attribute[], Attribute[]>(new Attribute[] { leftExampleSet.getAttributes().getId() }, new Attribute[] { rightExampleSet.getAttributes()
+					.getId() });
 		}
 		return keyAttributes;
 	}
@@ -226,7 +233,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	 * Performs an inner join, i.e. the result table contains all examples from the source example
 	 * sets whose key attributes match.
 	 */
-	private MemoryExampleTable performInnerJoin(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList, Pair<Attribute[], Attribute[]> keyAttributes) throws ProcessStoppedException {
+	private MemoryExampleTable performInnerJoin(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources,
+			List<Attribute> unionAttributeList, Pair<Attribute[], Attribute[]> keyAttributes) throws ProcessStoppedException {
 		MemoryExampleTable unionTable = new MemoryExampleTable(unionAttributeList);
 
 		Attribute[] leftKeyAttributes = null;
@@ -234,7 +242,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		Map<DoubleArrayWrapper, List<Example>> rightKeyMapping = null;
 		boolean useId = getParameterAsBoolean(PARAMETER_USE_ID);
 
-		if (!useId){
+		if (!useId) {
 			// create key mapping for right example set
 			leftKeyAttributes = keyAttributes.getFirst();
 			rightKeyAttributes = keyAttributes.getSecond();
@@ -256,7 +264,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	/**
 	 * Performs a left join. 
 	 */
-	private MemoryExampleTable performLeftJoin(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList, Pair<Attribute[], Attribute[]> keyAttributes, Set<DoubleArrayWrapper> matchedExamplesInRightTable) throws ProcessStoppedException {
+	private MemoryExampleTable performLeftJoin(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources,
+			List<Attribute> unionAttributeList, Pair<Attribute[], Attribute[]> keyAttributes, Set<DoubleArrayWrapper> matchedExamplesInRightTable) throws ProcessStoppedException {
 		MemoryExampleTable unionTable = new MemoryExampleTable(unionAttributeList);
 
 		Attribute[] leftKeyAttributes = null;
@@ -264,9 +273,9 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		Map<DoubleArrayWrapper, List<Example>> rightKeyMapping = null;
 		boolean useId = getParameterAsBoolean(PARAMETER_USE_ID);
 
-		leftKeyAttributes =  keyAttributes.getFirst();
+		leftKeyAttributes = keyAttributes.getFirst();
 		rightKeyAttributes = keyAttributes.getSecond();
-		if (!useId){
+		if (!useId) {
 			// create key mapping for right example set
 			rightKeyMapping = createKeyMapping(rightExampleSet, rightKeyAttributes, leftKeyAttributes);
 		}
@@ -293,7 +302,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	/**
 	 * Performs a right join.
 	 */
-	private MemoryExampleTable performRightJoin(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList, Pair<Attribute[], Attribute[]> keyAttributes) throws ProcessStoppedException {
+	private MemoryExampleTable performRightJoin(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources,
+			List<Attribute> unionAttributeList, Pair<Attribute[], Attribute[]> keyAttributes) throws ProcessStoppedException {
 		MemoryExampleTable unionTable = new MemoryExampleTable(unionAttributeList);
 
 		Attribute[] leftKeyAttributes = null;
@@ -305,10 +315,10 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		Attribute rightIdAttribute = null;
 		if (useId) {
 			// needed for getting the right id when adding examples which occur only in right table 
-			leftIdAttribute =  leftExampleSet.getAttributes().getId();
+			leftIdAttribute = leftExampleSet.getAttributes().getId();
 			rightIdAttribute = rightExampleSet.getAttributes().getId();
-			leftKeyAttributes = new Attribute[]{leftIdAttribute};
-			rightKeyAttributes = new Attribute[]{rightIdAttribute};
+			leftKeyAttributes = new Attribute[] { leftIdAttribute };
+			rightKeyAttributes = new Attribute[] { rightIdAttribute };
 		} else {
 			// create key mapping for right example set
 			leftKeyAttributes = keyAttributes.getFirst();
@@ -325,7 +335,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 					addCombinedOccurence(originalAttributeSources, unionAttributeList, unionTable, leftExample, rightExample);
 				}
 			} else {
-				addRightOnlyOccurence(originalAttributeSources,	unionAttributeList, unionTable, rightExample, leftKeyAttributes, rightKeyAttributes);
+				addRightOnlyOccurence(originalAttributeSources, unionAttributeList, unionTable, rightExample, leftKeyAttributes, rightKeyAttributes);
 			}
 			checkForStop();
 		}
@@ -335,7 +345,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	/**
 	 * Performs an outer join (not to be confused with a full outer join).
 	 */
-	private MemoryExampleTable performOuterJoin(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList, Pair<Attribute[], Attribute[]> keyAttributes) throws ProcessStoppedException {
+	private MemoryExampleTable performOuterJoin(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources,
+			List<Attribute> unionAttributeList, Pair<Attribute[], Attribute[]> keyAttributes) throws ProcessStoppedException {
 		MemoryExampleTable unionTable = new MemoryExampleTable(unionAttributeList);
 
 		Attribute[] leftKeyAttributes = keyAttributes.getFirst();
@@ -360,9 +371,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	 * Only those attributes are added, which are present in originalAttributeSources.
 	 * The newly constructed example is added to unionTable.
 	 */
-	private void addCombinedOccurence(List<AttributeSource> originalAttributeSources,
-			List<Attribute> unionAttributeList, MemoryExampleTable unionTable,
-			Example leftExample, Example rightExample) {
+	private void addCombinedOccurence(List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList, MemoryExampleTable unionTable, Example leftExample,
+			Example rightExample) {
 		double[] unionDataRow = new double[unionAttributeList.size()];
 		int attributeIndex = 0;
 		for (AttributeSource attributeSource : originalAttributeSources) {
@@ -375,7 +385,6 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		}
 		unionTable.addDataRow(new DoubleArrayDataRow(unionDataRow));
 	}
-
 
 	/**
 	 * Creates an example and adds it to unionTable.
@@ -400,10 +409,11 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	 * Creates an example and adds it to unionTable.
 	 * The example contains all attributes from rightExample, which are also in originalAttributeSources,
 	 * and NaN for all attributes which should normally be taken from a left example.
-	 * Exception: if key attributes would be taken from left example, instead of NaN the value
-	 * of the corresponding attribute in rightExample is taken.   
+	 * Exception: if key attributes would be taken from left example and only one id attribute is kept,
+	 * instead of NaN the value of the corresponding attribute in rightExample is taken.   
 	 */
-	private void addRightOnlyOccurence(List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList, MemoryExampleTable unionTable, Example rightExample, Attribute[] leftKeyAttributes, Attribute[] rightKeyAttributes) {
+	private void addRightOnlyOccurence(List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList, MemoryExampleTable unionTable, Example rightExample,
+			Attribute[] leftKeyAttributes, Attribute[] rightKeyAttributes) {
 		double[] unionDataRow = new double[unionAttributeList.size()];
 		int attributeIndex = 0;
 		for (AttributeSource attributeSource : originalAttributeSources) {
@@ -422,16 +432,22 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 
 				// now use correct key attribute
 				if (id >= 0) {
-					if (leftKeyAttributes[id].isNominal()) {
-						// consider different mapping in left and right attribute
-						Attribute rightAttribute = rightKeyAttributes[id];
-						Attribute leftAttribute = leftKeyAttributes[id];
-						int rightIndex = (int)rightExample.getValue(rightAttribute);
-						String valueAsString = rightAttribute.getMapping().mapIndex(rightIndex);
-						int leftIndex = leftAttribute.getMapping().mapString(valueAsString);
-						unionDataRow[attributeIndex] = leftIndex;
+					boolean keepBoth = getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES);
+					boolean sameIdNames = leftKeyAttributes[id].getName().equals(rightKeyAttributes[id].getName());
+					if (keepBoth && !sameIdNames) {
+						unionDataRow[attributeIndex] = Double.NaN;
 					} else {
-						unionDataRow[attributeIndex] = rightExample.getValue(rightKeyAttributes[id]);
+						if (leftKeyAttributes[id].isNominal()) {
+							// consider different mapping in left and right attribute
+							Attribute rightAttribute = rightKeyAttributes[id];
+							Attribute leftAttribute = leftKeyAttributes[id];
+							int rightIndex = (int) rightExample.getValue(rightAttribute);
+							String valueAsString = rightAttribute.getMapping().mapIndex(rightIndex);
+							int leftIndex = leftAttribute.getMapping().mapString(valueAsString);
+							unionDataRow[attributeIndex] = leftIndex;
+						} else {
+							unionDataRow[attributeIndex] = rightExample.getValue(rightKeyAttributes[id]);
+						}
 					}
 				} else {
 					unionDataRow[attributeIndex] = Double.NaN;
@@ -454,18 +470,18 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	private Map<DoubleArrayWrapper, List<Example>> createKeyMapping(ExampleSet exampleSet, Attribute[] keyAttributes, Attribute[] matchKeyAttributes) {
 		Map<DoubleArrayWrapper, List<Example>> keyMapping = new HashMap<DoubleArrayWrapper, List<Example>>();
 
-		assert(keyAttributes.length == matchKeyAttributes.length);
+		assert (keyAttributes.length == matchKeyAttributes.length);
 
 		// create mapping from nominal values of keyAttributes to matchKeyAttributes
-		Map<Attribute,Map<Double,Double>> valueMapping = null;
+		Map<Attribute, Map<Double, Double>> valueMapping = null;
 		if (matchKeyAttributes != null) {
-			valueMapping = new HashMap<Attribute, Map<Double,Double>>();
+			valueMapping = new HashMap<Attribute, Map<Double, Double>>();
 			for (int attributeNumber = 0; attributeNumber < keyAttributes.length; ++attributeNumber) {
 				if (keyAttributes[attributeNumber].isNominal()) {
-					Map<Double,Double> valueMap = new HashMap<Double, Double>();
+					Map<Double, Double> valueMap = new HashMap<Double, Double>();
 					for (int valueNumber = 0; valueNumber < keyAttributes[attributeNumber].getMapping().size(); ++valueNumber) {
 						String valueString = keyAttributes[attributeNumber].getMapping().mapIndex(valueNumber);
-						valueMap.put((double)valueNumber, (double)matchKeyAttributes[attributeNumber].getMapping().mapString(valueString));
+						valueMap.put((double) valueNumber, (double) matchKeyAttributes[attributeNumber].getMapping().mapString(valueString));
 					}
 					valueMapping.put(keyAttributes[attributeNumber], valueMap);
 				}
@@ -473,7 +489,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		}
 
 		double[] keyValues;
-		for(Example example : exampleSet) {
+		for (Example example : exampleSet) {
 			// fetch key values from example
 			keyValues = getKeyValues(example, keyAttributes);
 			if (valueMapping != null) {
@@ -500,14 +516,14 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		return keyMapping;
 	}
 
-
 	/**
 	 * Gets examples from secondExampleSet which match the values of the 
 	 * keyAttributes from firstExample.
 	 * If PARAMETER_USE_ID_FOR_JOIN is true, the standard id-mapping of example sets is used.
 	 * If not, secondKeyMapping is used (@see createKeyMapping())   
 	 */
-	private List<Example> getMatchingExamples(ExampleSet firstExampleSet, ExampleSet secondExampleSet, Attribute[] firstKeyAttributes, Map<DoubleArrayWrapper, List<Example>> secondKeyMapping, boolean useId, Example referenceExample) {
+	private List<Example> getMatchingExamples(ExampleSet firstExampleSet, ExampleSet secondExampleSet, Attribute[] firstKeyAttributes,
+			Map<DoubleArrayWrapper, List<Example>> secondKeyMapping, boolean useId, Example referenceExample) {
 		// find right examples matching current left example:
 		List<Example> matchingExamples = null;
 		if (useId) {
@@ -517,7 +533,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 			double firstIdValue = referenceExample.getValue(firstIdAttribute);
 			int[] matchingExampleIndices = null;
 			if (firstIdAttribute.isNominal()) {
-				matchingExampleIndices = secondExampleSet.getExampleIndicesFromId(secondIdAttribute.getMapping().getIndex(firstIdAttribute.getMapping().mapIndex((int) firstIdValue)));
+				matchingExampleIndices = secondExampleSet.getExampleIndicesFromId(secondIdAttribute.getMapping().getIndex(
+						firstIdAttribute.getMapping().mapIndex((int) firstIdValue)));
 			} else {
 				matchingExampleIndices = secondExampleSet.getExampleIndicesFromId(firstIdValue);
 			}
@@ -535,8 +552,6 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		}
 		return matchingExamples;
 	}
-
-
 
 	/**
 	 * Returns an array of doubles, which contains the values of the keyAttributes of example.
@@ -558,19 +573,18 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	 * Thus, the right key attributes are excluded.
 	 */
 	@Override
-	protected Set<Pair<Integer,Attribute>> getExcludedAtttributes(ExampleSet leftExampleSet, ExampleSet rightExampleSet) throws OperatorException {
+	protected Set<Pair<Integer, Attribute>> getExcludedAtttributes(ExampleSet leftExampleSet, ExampleSet rightExampleSet) throws OperatorException {
 		if (getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES)) {
 			return Collections.emptySet();
 		} else {
 			Attribute[] keyAttributes = getKeyAttributes(leftExampleSet, rightExampleSet).getSecond();
-			Set<Pair<Integer,Attribute>> excludedAttributes = new HashSet<Pair<Integer,Attribute>>();
+			Set<Pair<Integer, Attribute>> excludedAttributes = new HashSet<Pair<Integer, Attribute>>();
 			for (int i = 0; i < keyAttributes.length; ++i) {
-				excludedAttributes.add(new Pair<Integer,Attribute>(AttributeSource.SECOND_SOURCE, keyAttributes[i]));
+				excludedAttributes.add(new Pair<Integer, Attribute>(AttributeSource.SECOND_SOURCE, keyAttributes[i]));
 			}
 			return excludedAttributes;
 		}
 	}
-
 
 	@Override
 	protected boolean isIdNeeded() {
@@ -582,26 +596,19 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeCategory(PARAMETER_JOIN_TYPE, "Specifies which join should be executed.", JOIN_TYPES, JOIN_TYPE_INNER, false));
 		types.add(new ParameterTypeBoolean(PARAMETER_USE_ID, "Indicates if the id attribute is used for join.", true, false));
-		ParameterType joinAttributes = new ParameterTypeList(
-				PARAMETER_JOIN_ATTRIBUTES,
-				"The attributes which shall be used for join. Attributes which shall be matched must be of the same type.", 
-				new ParameterTypeAttribute(	
-						PARAMETER_LEFT_ATTRIBUTE_FOR_JOIN,
-						"The attribute in the left example set to be used for the join.",	
-						getInputPorts().getPortByName(LEFT_EXAMPLE_SET_INPUT),
-						true), 
-						new ParameterTypeAttribute(
-								PARAMETER_RIGHT_ATTRIBUTE_FOR_JOIN, 
-								"The attribute in the left example set to be used for the join.", 
-								getInputPorts().getPortByName(RIGHT_EXAMPLE_SET_INPUT),
-								true), 
-								false);
+		ParameterType joinAttributes = new ParameterTypeList(PARAMETER_JOIN_ATTRIBUTES,
+				"The attributes which shall be used for join. Attributes which shall be matched must be of the same type.", new ParameterTypeAttribute(
+						PARAMETER_LEFT_ATTRIBUTE_FOR_JOIN, "The attribute in the left example set to be used for the join.", getInputPorts().getPortByName(LEFT_EXAMPLE_SET_INPUT),
+						true), new ParameterTypeAttribute(PARAMETER_RIGHT_ATTRIBUTE_FOR_JOIN, "The attribute in the left example set to be used for the join.", getInputPorts()
+						.getPortByName(RIGHT_EXAMPLE_SET_INPUT), true), false);
 		joinAttributes.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_ID, true, false));
 
 		types.add(joinAttributes);
 
-		ParameterType keepBoth = new ParameterTypeBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES, "If checked, both columns of a join pair will be kept. Usually this is unneccessary since both attributes are identical.", false, true);
-		types.add(keepBoth);		
+		ParameterType keepBoth = new ParameterTypeBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES,
+				"If checked, both columns of a join pair will be kept. Usually this is unneccessary since both attributes are identical.", false, true);
+		types.add(keepBoth);
+
 		return types;
 	}
 

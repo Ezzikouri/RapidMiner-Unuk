@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.TimeZone;
 
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -70,7 +71,7 @@ public class Excel2007ResultSet implements DataResultSet {
 
 	private String[] attributeNames;
 
-	private String timezone;
+	private String timeZone;
 	private String dateFormat;
 
 
@@ -84,7 +85,7 @@ public class Excel2007ResultSet implements DataResultSet {
 		rowOffset = configuration.getRowOffset();
 		currentRow = configuration.getRowOffset() - 1;
 		
-		timezone = configuration.getTimezone();
+		timeZone = configuration.getTimezone();
 		dateFormat = configuration.getDatePattern();
 		
 		try {
@@ -294,7 +295,9 @@ public class Excel2007ResultSet implements DataResultSet {
 			try {
 				String valueString = cell.getStringCellValue();
 				try {
-					return new SimpleDateFormat(dateFormat).parse(valueString);
+					SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
+					simpleDateFormat.setTimeZone(TimeZone.getTimeZone(this.timeZone));
+					return simpleDateFormat.parse(valueString);
 				} catch (java.text.ParseException e) {
 					throw new ParseException(new ParsingError(currentRow, columnIndex, ParsingError.ErrorCode.UNPARSEABLE_DATE, valueString));
 				}
@@ -307,6 +310,9 @@ public class Excel2007ResultSet implements DataResultSet {
 	@Override
 	public String getString(int columnIndex) {
 		final Cell cell = getCurrentCell(columnIndex);
+		if(cell == null) {
+			return "";
+		}
 		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
 			String value = String.valueOf(cell.getNumericCellValue());
 			return value;

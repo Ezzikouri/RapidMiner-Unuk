@@ -44,8 +44,6 @@ import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetUnionRule;
-import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
-import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.tools.Ontology;
@@ -108,7 +106,7 @@ public abstract class AbstractExampleSetJoin extends Operator {
         super(description);
         leftInput.addPrecondition(new ExampleSetPrecondition(leftInput));
     	rightInput.addPrecondition(new ExampleSetPrecondition(rightInput));
-
+   
     	getTransformer().addRule(new ExampleSetUnionRule(rightInput, leftInput, joinOutput, "_from_ES2") {
         	 @Override
         	 protected String getPrefix() {
@@ -116,9 +114,9 @@ public abstract class AbstractExampleSetJoin extends Operator {
         	 }
         	 
         	 @Override
-  			protected ExampleSetMetaData modifyMetaData(ExampleSetMetaData emd) {
-  				emd = joinedMetaData(emd);
-  				return super.modifyMetaData(emd);
+  			protected ExampleSetMetaData modifyMetaData(ExampleSetMetaData emd, ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) {
+  				emd = joinedMetaData(emd, leftEMD, rightEMD);
+  				return super.modifyMetaData(emd, leftEMD, rightEMD);
   			}
         });
     	
@@ -136,7 +134,7 @@ public abstract class AbstractExampleSetJoin extends Operator {
 		return joinOutput;
 	}
 	
-	protected ExampleSetMetaData joinedMetaData(ExampleSetMetaData emd) {
+	protected ExampleSetMetaData joinedMetaData(ExampleSetMetaData emd, ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) {
 		return emd;
 	}
 
