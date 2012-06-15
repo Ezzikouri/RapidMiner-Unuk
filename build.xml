@@ -568,7 +568,8 @@
 	</target>
 
 	<!-- BEGIN Test targets -->
-	<target name="test.compile" depends="test.clean">
+	<target name="test.build" depends="test.clean">
+		<mkdir dir="${test.build}" />
 		<javac debug="${compiler.debug}" destdir="${test.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m">
 
 			<classpath refid="classpath" />
@@ -581,7 +582,29 @@
 		<ant antfile="${rapidminer.tests.dir}/build.xml" target="test.clean" dir="${rapidminer.tests.dir}" inheritall="true" />
 	</target>
 	
-	<target name="test" depends="test.compile">
+	<target name="test.createJar" depends="createJar,test.build" description="Generate the lib/rapidminer.jar file">
+		<echo message="Creating jar..." />
+		<!--<pathconvert pathsep=" " property="manifest.classpath" refid="rm.classpath" dirsep="/">
+			<map from="${lib}/" to="" />
+		</pathconvert> 
+		<echo message="Manifest Classpath: ${manifest.classpath}" /> -->
+		<jar jarfile="${lib}/rapidminer_test.jar" update="false">
+			<fileset dir="${test.build}" includes="**/*" />
+			<manifest>
+				<attribute name="Specification-Title" value="RapidMiner Tests" />
+				<attribute name="Specification-Version" value="${rapidminer.longversion}" />
+				<attribute name="Implementation-Title" value="RapidMiner Tests" />
+				<attribute name="Implementation-Version" value="${rapidminer.longversion}-${platform}" />
+				<attribute name="Implementation-Vendor" value="Rapid-I" />
+				<attribute name="Specification-Vendor" value="Rapid-I" />
+				<attribute name="Implementation-URL" value="http://www.rapidminer.com" />
+				<attribute name="Class-Path" value="rapidminer.jar ${manifest.classpath}" />
+			</manifest>
+		</jar>
+	</target>
+
+	
+	<target name="test">
 		<ant antfile="${rapidminer.tests.dir}/build.xml" target="test" dir="${rapidminer.tests.dir}" inheritall="false" />
 	</target>
 	<!-- END Test targets -->

@@ -164,6 +164,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		rightExampleSet.remapIds();
 
 		// the attributes that are used in the left and the right table as key attributes:
+
 		Pair<Attribute[], Attribute[]> keyAttributes = getKeyAttributes(leftExampleSet, rightExampleSet);
 
 		switch (joinType) {
@@ -433,8 +434,9 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 				// now use correct key attribute
 				if (id >= 0) {
 					boolean keepBoth = getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES);
-					boolean sameIdNames = leftKeyAttributes[id].getName().equals(rightKeyAttributes[id].getName());
-					if (keepBoth && !sameIdNames) {
+					boolean sameName = leftKeyAttributes[id].getName().equals(rightKeyAttributes[id].getName());
+					boolean removeDoubleAttributes = getParameterAsBoolean(PARAMETER_REMOVE_DOUBLE_ATTRIBUTES);
+					if (keepBoth && !(removeDoubleAttributes && sameName)) {
 						unionDataRow[attributeIndex] = Double.NaN;
 					} else {
 						if (leftKeyAttributes[id].isNominal()) {

@@ -32,6 +32,7 @@
 		</fileset>
 		<fileset dir="${rm.lib}/">
 			<include name="*.jar" />
+			<exclude name="**/${release.name}" />
 		</fileset>
 		<fileset dir="${rm.lib}/freehep">
 			<include name="*.jar" />
@@ -62,7 +63,7 @@
 		<pathelement location="${java.home}/classes" />
 	</path>
 
-	
+
 	<!-- HTTP and Documentation tasks -->
 	<taskdef onerror="fail" resource="antlib.xml" classpath="${rm.ant}/rapidAntTasks.jar" />
 
@@ -176,7 +177,7 @@
 		<!--<subant target="install" verbose="true" inheritall="false">
 			<union refid="build.dependentExtensions.actual" />
 		</subant>-->
-		
+
 		<for param="buildfile">
 			<path>
 				<union refid="build.dependentExtensions.actual" />
@@ -185,7 +186,7 @@
 				<ant antfile="@{buildfile}" target="install" inheritall="false" useNativeBasedir="true" />
 			</sequential>
 		</for>
-		
+
 		<echo message="...Finished" />
 	</target>
 
