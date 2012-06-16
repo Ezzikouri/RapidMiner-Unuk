@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.tools;
 
 import java.io.BufferedInputStream;
@@ -414,13 +415,13 @@ public class Tools {
 		return !isGreater(d1, d2) || Double.isNaN(d1) || Double.isNaN(d2);
 	}
 
-	/** Returns true if date d1 is equal to date d2 */
+	/** Returns <code>true</code> if date d1 is equal to date d2. If d1 or d2 are <code>null</code> returns <code>false</code> */
 	public static boolean isEqual(Date d1, Date d2) {
-		if (d1 == d2) {
-			return true;
-		}
 		if (d1 == null || d2 == null) {
 			return false;
+		}
+		if (d1 == d2) {
+			return true;
 		}
 		return d1.compareTo(d2) == 0;
 	}

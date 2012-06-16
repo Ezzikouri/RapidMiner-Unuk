@@ -32,7 +32,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.CSVResultSetConfiguration;
 
 /**
- * @author Tobias Malbrecht, Marco Boeck
+ * @author Tobias Malbrecht, Marco Boeck, Nils Woehler
  */
 public class LineParser {
 	

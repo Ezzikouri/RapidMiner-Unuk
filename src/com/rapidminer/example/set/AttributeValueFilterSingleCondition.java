@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.example.set;
 
 import java.text.ParseException;
@@ -165,7 +166,8 @@ public class AttributeValueFilterSingleCondition implements Condition {
 		return attribute.getName() + " " + COMPARISON_TYPES[comparisonType] + " " + (attribute.isNominal() ? nominalValue : "" + numericalValue);
 	}
 
-	/** Returns true if the condition is fulfilled for the given example. */
+	/** Returns true if the condition is fulfilled for the given example. 
+	 * Comparisons with NaN and <code>null</code> return <code>false</code>.*/
 	public boolean conditionOk(Example e) {
 		if (attribute.isNominal()) {
 			double doubleValue = e.getValue(attribute);
@@ -194,18 +196,24 @@ public class AttributeValueFilterSingleCondition implements Condition {
 		} else if (attribute.isNumerical()) {
 			switch (comparisonType) {
 				case LEQ:
-					return Tools.isLessEqual(e.getNumericalValue(attribute), numericalValue);
+					return e.getNumericalValue(attribute) <= numericalValue;
+					//					return Tools.isLessEqual(e.getNumericalValue(attribute), numericalValue);
 				case GEQ:
-					return Tools.isGreaterEqual(e.getNumericalValue(attribute), numericalValue);
+					return e.getNumericalValue(attribute) >= numericalValue;
+					//					return Tools.isGreaterEqual(e.getNumericalValue(attribute), numericalValue);
 				case NEQ1:
 				case NEQ2:
-					return Tools.isNotEqual(e.getNumericalValue(attribute), numericalValue);
+					return e.getNumericalValue(attribute) != numericalValue;
+					//					return Tools.isNotEqual(e.getNumericalValue(attribute), numericalValue);
 				case EQUALS:
-					return Tools.isEqual(e.getNumericalValue(attribute), numericalValue);
+					return e.getNumericalValue(attribute) == numericalValue;
+					//					return Tools.isEqual(e.getNumericalValue(attribute), numericalValue);
 				case LESS:
-					return Tools.isLess(e.getNumericalValue(attribute), numericalValue);
+					return e.getNumericalValue(attribute) < numericalValue;
+					//					return Tools.isLess(e.getNumericalValue(attribute), numericalValue);
 				case GREATER:
-					return Tools.isGreater(e.getNumericalValue(attribute), numericalValue);
+					return e.getNumericalValue(attribute) > numericalValue;
+					//					return Tools.isGreater(e.getNumericalValue(attribute), numericalValue);
 				default:
 					return false;
 			}
