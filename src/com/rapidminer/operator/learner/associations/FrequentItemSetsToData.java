@@ -144,6 +144,7 @@ public class FrequentItemSetsToData extends Operator {
 		
 		ExampleSet exampleSet = exampleTable.createExampleSet();
 		exampleSetOutput.deliver(exampleSet);
+		frequentItemSetsOutput.deliver(sets);
 	}
 	
 	@Override
