@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties;
 
 import java.awt.Point;
@@ -51,111 +52,126 @@ import com.rapidminer.parameter.ParameterTypeStringCategory;
  */
 public class ListPropertyTable2 extends JTable {
 
-    private static final long serialVersionUID = 1L;
-    private List<TableCellRenderer[]> renderers = new LinkedList<TableCellRenderer[]>();
-    private List<TableCellEditor[]> editors = new LinkedList<TableCellEditor[]>();
-    private ParameterType[] types;
-    private Operator operator;
+	private static final long serialVersionUID = 1L;
+	private List<TableCellRenderer[]> renderers = new LinkedList<TableCellRenderer[]>();
+	private List<TableCellEditor[]> editors = new LinkedList<TableCellEditor[]>();
+	private ParameterType[] types;
+	private Operator operator;
 
+	public ListPropertyTable2(ParameterTypeList type, List<String[]> parameterList, Operator operator) {
+		this(new ParameterType[] { type.getKeyType(), type.getValueType() }, parameterList, operator);
+	}
 
-    public ListPropertyTable2(ParameterTypeList type, List<String[]> parameterList, Operator operator) {
-        this(new ParameterType[] { type.getKeyType(), type.getValueType() }, parameterList, operator);
-    }
+	public ListPropertyTable2(ParameterTypeEnumeration type, List<String> parameterList, Operator operator) {
+		this(new ParameterType[] { type.getValueType() }, to2DimList(parameterList), operator);
+	}
 
-    public ListPropertyTable2(ParameterTypeEnumeration type, List<String> parameterList, Operator operator) {
-        this(new ParameterType[] { type.getValueType() }, to2DimList(parameterList), operator);
-    }
+	private List<String[]> createParameterListCopy(List<String[]> parameterList) {
+		List<String[]> copiedParameterList = new LinkedList<String[]>();
+		for (String[] paramArray : parameterList) {
+			String[] copiedParamArray = new String[paramArray.length];
+			int i = 0;
+			for (String string : paramArray) {
+				copiedParamArray[i] = string;
+				i++;
+			}
+			copiedParameterList.add(copiedParamArray);
+		}
+		return copiedParameterList;
+	}
 
-    private ListPropertyTable2(ParameterType[] types, List<String[]> parameterList, Operator operator) {
-        this.types = types;
-        this.operator = operator;
-        setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        getTableHeader().setReorderingAllowed(false);
-        setRowSelectionAllowed(true);
-        setColumnSelectionAllowed(false);
-        setRowHeight(PropertyPanel.VALUE_CELL_EDITOR_HEIGHT);
-        setModel(new ListTableModel(types, parameterList));
+	private ListPropertyTable2(ParameterType[] types, List<String[]> parameterList, Operator operator) {
+		this.types = types;
+		this.operator = operator;
+		setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+		getTableHeader().setReorderingAllowed(false);
+		setRowSelectionAllowed(true);
+		setColumnSelectionAllowed(false);
+		setRowHeight(PropertyPanel.VALUE_CELL_EDITOR_HEIGHT);
 
-        //		for (int i = 0; i < types.length; i++) {
-        //			getColumnModel().getColumn(i).setCellEditor(PropertyPanel.instantiateValueCellEditor(types[i], operator));
-        //			getColumnModel().getColumn(i).setCellRenderer(PropertyPanel.instantiateValueCellEditor(types[i], operator));
-        //		}
-        fillEditors();
-    }
+		setModel(new ListTableModel(types, createParameterListCopy(parameterList)));
 
-    private static List<String[]> to2DimList(List<String> parameterList) {
-        List<String[]> result = new LinkedList<String[]>();
-        for (String v : parameterList) {
-            result.add(new String[] { v });
-        }
-        return result;
-    }
+		//		for (int i = 0; i < types.length; i++) {
+		//			getColumnModel().getColumn(i).setCellEditor(PropertyPanel.instantiateValueCellEditor(types[i], operator));
+		//			getColumnModel().getColumn(i).setCellRenderer(PropertyPanel.instantiateValueCellEditor(types[i], operator));
+		//		}
+		fillEditors();
+	}
 
-    public void addRow() {
-        ((ListTableModel) getModel()).addRow();
-        fillEditors();
-    }
+	private static List<String[]> to2DimList(List<String> parameterList) {
+		List<String[]> result = new LinkedList<String[]>();
+		for (String v : parameterList) {
+			result.add(new String[] { v });
+		}
+		return result;
+	}
 
-    public boolean isEmpty() {
-    	return renderers.isEmpty();
-    }
-    
-    private void fillEditors() {
-        while(editors.size() < getModel().getRowCount()) {
-            TableCellRenderer rowRenderers[] = new TableCellRenderer[types.length];
-            TableCellEditor   rowEditors[] = new TableCellEditor[types.length];
-            for (int i = 0; i < types.length; i++) {
-                rowRenderers[i] = PropertyPanel.instantiateValueCellEditor(types[i], operator);
-                rowEditors[i]  = PropertyPanel.instantiateValueCellEditor(types[i], operator);
-            }
-            renderers.add(rowRenderers);
-            editors.add(rowEditors);
-        }
-    }
+	public void addRow() {
+		((ListTableModel) getModel()).addRow();
+		fillEditors();
+	}
 
-    public void removeSelected() {
-        if (getSelectedRow() != -1) {
-            ((ListTableModel) getModel()).removeRow(getSelectedRow());
-        }
-    }
+	public boolean isEmpty() {
+		return renderers.isEmpty();
+	}
 
-    public void storeParameterList(List<String[]> parameterList2) {
-        parameterList2.clear();
-        parameterList2.addAll(((ListTableModel) getModel()).getParameterList());
-    }
+	private void fillEditors() {
+		while (editors.size() < getModel().getRowCount()) {
+			TableCellRenderer rowRenderers[] = new TableCellRenderer[types.length];
+			TableCellEditor rowEditors[] = new TableCellEditor[types.length];
+			for (int i = 0; i < types.length; i++) {
+				rowRenderers[i] = PropertyPanel.instantiateValueCellEditor(types[i], operator);
+				rowEditors[i] = PropertyPanel.instantiateValueCellEditor(types[i], operator);
+			}
+			renderers.add(rowRenderers);
+			editors.add(rowEditors);
+		}
+	}
 
-    public void storeParameterEnumeration(List<String> parameterList2) {
-        parameterList2.clear();
-        for (String[] values : ((ListTableModel) getModel()).getParameterList()) {
-            parameterList2.add(values[0]);
-        }
-    }
+	public void removeSelected() {
+		if (getSelectedRow() != -1) {
+			((ListTableModel) getModel()).removeRow(getSelectedRow());
+		}
+	}
 
-    @Override
-    public TableCellRenderer getCellRenderer(int row, int column) {
-        return renderers.get(row)[column];
-    }
-    @Override
-    public TableCellEditor getCellEditor(int row, int column) {
-        return editors.get(row)[column];
-    }
+	public void storeParameterList(List<String[]> parameterList2) {
+		parameterList2.clear();
+		parameterList2.addAll(((ListTableModel) getModel()).getParameterList());
+	}
 
-    /** This method ensures that the correct tool tip for the current table cell is delivered. */
-    @Override
-    public String getToolTipText(MouseEvent e) {
-        Point p = e.getPoint();
-        int column = columnAtPoint(p);
-        ParameterType type = types[column];
-        StringBuffer toolTip = new StringBuffer(type.getDescription());
-        if ((!(type instanceof ParameterTypeCategory)) && (!(type instanceof ParameterTypeStringCategory))) {
-            String range = type.getRange();
-            if ((range != null) && (range.trim().length() > 0)) {
-                toolTip.append(" (");
-                toolTip.append(type.getRange());
-                toolTip.append(")");
-            }
-        }
-        String toolTipText = SwingTools.transformToolTipText(toolTip.toString());
-        return toolTipText;
-    }
+	public void storeParameterEnumeration(List<String> parameterList2) {
+		parameterList2.clear();
+		for (String[] values : ((ListTableModel) getModel()).getParameterList()) {
+			parameterList2.add(values[0]);
+		}
+	}
+
+	@Override
+	public TableCellRenderer getCellRenderer(int row, int column) {
+		return renderers.get(row)[column];
+	}
+
+	@Override
+	public TableCellEditor getCellEditor(int row, int column) {
+		return editors.get(row)[column];
+	}
+
+	/** This method ensures that the correct tool tip for the current table cell is delivered. */
+	@Override
+	public String getToolTipText(MouseEvent e) {
+		Point p = e.getPoint();
+		int column = columnAtPoint(p);
+		ParameterType type = types[column];
+		StringBuffer toolTip = new StringBuffer(type.getDescription());
+		if ((!(type instanceof ParameterTypeCategory)) && (!(type instanceof ParameterTypeStringCategory))) {
+			String range = type.getRange();
+			if ((range != null) && (range.trim().length() > 0)) {
+				toolTip.append(" (");
+				toolTip.append(type.getRange());
+				toolTip.append(")");
+			}
+		}
+		String toolTipText = SwingTools.transformToolTipText(toolTip.toString());
+		return toolTipText;
+	}
 }

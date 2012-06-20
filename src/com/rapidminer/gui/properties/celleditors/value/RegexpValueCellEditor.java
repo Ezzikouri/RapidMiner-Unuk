@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -147,7 +148,7 @@ public class RegexpValueCellEditor extends AbstractCellEditor implements Propert
 
 	@Override
 	public boolean useEditorAsRenderer() {
-		return true;
+		return false;
 	}
 
 	@Override

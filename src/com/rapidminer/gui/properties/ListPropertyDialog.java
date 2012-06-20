@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties;
 
 import java.awt.event.ActionEvent;
@@ -32,7 +33,6 @@ import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeList;
-
 
 /**
  * A Dialog displaying a {@link ListPropertyTable}. This can be used to add new
@@ -56,26 +56,26 @@ public class ListPropertyDialog extends PropertyDialog {
 		super(type, "list");
 		this.parameterList = parameterList;
 		listPropertyTable = new ListPropertyTable2(type, parameterList, operator);
-		if(listPropertyTable.isEmpty()) {
+		if (listPropertyTable.isEmpty()) {
 			listPropertyTable.addRow();
 		}
 		JScrollPane scrollPane = new ExtendedJScrollPane(listPropertyTable);
 		scrollPane.setBorder(createBorder());
-		layoutDefault(scrollPane,
-					  NORMAL,
-					  new JButton(new ResourceAction("list.add_row") {
-						  private static final long serialVersionUID = 1L;
-						  public void actionPerformed(ActionEvent e) {
-							  listPropertyTable.addRow();
-						  }
-					  }),
-					  new JButton(new ResourceAction("list.remove_row") {
-						  private static final long serialVersionUID = 1L;
-						  public void actionPerformed(ActionEvent e) {
-							  listPropertyTable.removeSelected();
-						  }
-					  }),
-					  makeOkButton(), makeCancelButton());
+		layoutDefault(scrollPane, NORMAL, new JButton(new ResourceAction("list.add_row") {
+
+			private static final long serialVersionUID = 1L;
+
+			public void actionPerformed(ActionEvent e) {
+				listPropertyTable.addRow();
+			}
+		}), new JButton(new ResourceAction("list.remove_row") {
+
+			private static final long serialVersionUID = 1L;
+
+			public void actionPerformed(ActionEvent e) {
+				listPropertyTable.removeSelected();
+			}
+		}), makeOkButton(), makeCancelButton());
 	}
 
 	@Override

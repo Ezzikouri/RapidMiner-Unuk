@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -36,7 +37,6 @@ import com.rapidminer.gui.properties.ListPropertyDialog;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeList;
-
 
 /**
  * A cell editor with a button that opens a {@link ListPropertyDialog}. Values
@@ -61,22 +61,23 @@ public class ListValueCellEditor extends AbstractCellEditor implements PropertyV
 
 	public void setOperator(final Operator operator) {
 		button = new JButton(new ResourceAction(true, "list") {
+
 			private static final long serialVersionUID = 3546416469350908571L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				ListPropertyDialog dialog = new ListPropertyDialog(type, valuesList, operator);
 				dialog.setVisible(true);
-				if (dialog.isOk()) {                    
+				if (dialog.isOk()) {
 					fireEditingStopped();
 					setButtonText();
 				} else {
 					fireEditingCanceled();
 				}
-			} 
+			}
 		});
 		button.setMargin(new Insets(0, 0, 0, 0));
-//		button.setToolTipText(type.getDescription());
+		//		button.setToolTipText(type.getDescription());
 		setButtonText();
 	}
 
@@ -84,8 +85,8 @@ public class ListValueCellEditor extends AbstractCellEditor implements PropertyV
 		return valuesList;
 	}
 
-	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) { 
-		this.valuesList = ParameterTypeList.transformString2List((String)value);
+	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int col) {
+		this.valuesList = ParameterTypeList.transformString2List((String) value);
 		setButtonText();
 		return button;
 	}

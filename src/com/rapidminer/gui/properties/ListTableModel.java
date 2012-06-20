@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties;
 
 import java.util.ArrayList;
@@ -34,10 +35,11 @@ import com.rapidminer.parameter.ParameterType;
  *  
  * @author Simon Fischer*/
 public class ListTableModel extends AbstractTableModel {
+
 	private static final long serialVersionUID = 1L;
 	private List<String[]> parameterList;
 	private ParameterType[] types;
-	
+
 	public ListTableModel(ParameterType[] types, List<String[]> parameterList) {
 		super();
 		this.types = types;
@@ -71,7 +73,7 @@ public class ListTableModel extends AbstractTableModel {
 			parameterList.get(rowIndex)[columnIndex] = columnType.getDefaultValueAsString();
 		} else {
 			parameterList.get(rowIndex)[columnIndex] = aValue.toString();
-		}					
+		}
 	}
 
 	@Override
@@ -85,7 +87,7 @@ public class ListTableModel extends AbstractTableModel {
 			initialValues[i] = types[i].getDefaultValueAsString();
 		}
 		parameterList.add(initialValues);
-		fireTableRowsInserted(parameterList.size()-1, parameterList.size()-1);
+		fireTableRowsInserted(parameterList.size() - 1, parameterList.size() - 1);
 	}
 
 	public void removeRow(int selectedRow) {
@@ -97,5 +99,5 @@ public class ListTableModel extends AbstractTableModel {
 	public List<String[]> getParameterList() {
 		return parameterList;
 	}
-	
+
 }

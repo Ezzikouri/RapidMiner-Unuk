@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -136,12 +137,20 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 		panel.setLayout(new GridLayout(1, editors.length));
 		for (int i = 0; i < types.length; i++) {
 			Component editorComponent = editors[i].getTableCellEditorComponent(null, values[i], false, 0, 0);
+
 			if (editorComponent instanceof JComboBox && ((JComboBox) editorComponent).isEditable()) {
 				ComboBoxEditor editor = ((JComboBox) editorComponent).getEditor();
 				if (editor instanceof BasicComboBoxEditor) {
 					editor.getEditorComponent().addFocusListener(focusListener);
 				}
+			} else if (editorComponent instanceof JPanel) {
+				JPanel editorPanel = (JPanel) editorComponent;
+				Component[] components = editorPanel.getComponents();
+				for (Component comp : components) {
+					comp.addFocusListener(focusListener);
+				}
 			} else {
+
 				editorComponent.addFocusListener(focusListener);
 			}
 			panel.add(editorComponent);
