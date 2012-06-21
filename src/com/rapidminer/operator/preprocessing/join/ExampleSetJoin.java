@@ -27,12 +27,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Attributes;
@@ -42,6 +40,8 @@ import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.SimpleProcessSetupError;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
@@ -49,15 +49,13 @@ import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ParameterConditionedPrecondition;
+import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeList;
-import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
-import com.rapidminer.tools.I18N;
-import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.container.Pair;
@@ -134,27 +132,60 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 
 	@Override
 	protected ExampleSetMetaData joinedMetaData(ExampleSetMetaData emd, ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) {
-		try {
-			if (!getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES) && !getParameterAsBoolean(PARAMETER_USE_ID)) {
-				List<String[]> joinAttributes = getParameterList(PARAMETER_JOIN_ATTRIBUTES);
-				Iterator<AttributeMetaData> i = emd.getAllAttributes().iterator();
-				while (i.hasNext()) {
-					AttributeMetaData attributeMetaData = i.next();
-					for (String[] keyAttribute : joinAttributes) {
-						if (keyAttribute[1] != null && attributeMetaData.getName().equals(keyAttribute[1])) {
-							i.remove();
-						}
-					}
-				}
-			}
-		} catch (UndefinedParameterError e) {
-			// cannot happen: PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES is boolean and has default, 
-			// PARAMETER_JOIN_ATTRIBUTES is list and returns empty list if undefined 
-			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.gui.tools.SwingTools.show_simple_get_message", e.getMessage()), e);
-		}
+		List<AttributeMetaData> joinedAttributesMetaData = getUnionAttributesMetaData(leftEMD, rightEMD);
+		emd = new ExampleSetMetaData();
+		emd.addAllAttributes(joinedAttributesMetaData);
 		return emd;
 	}
+	
+	
+	
+	private Pair<AttributeMetaData[], AttributeMetaData[]> getKeyAttributesMD(ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) throws OperatorException {
+		boolean useIdForJoin = getParameterAsBoolean(PARAMETER_USE_ID);
+		Pair<AttributeMetaData[], AttributeMetaData[]> keyAttributes;
+		
+		if (!useIdForJoin) {
+			List<String[]> parKeyAttributes;
+			parKeyAttributes = getParameterList(PARAMETER_JOIN_ATTRIBUTES);
+			int numKeyAttributes = parKeyAttributes.size();
+			keyAttributes = new Pair<AttributeMetaData[], AttributeMetaData[]>(new AttributeMetaData[numKeyAttributes], new AttributeMetaData[numKeyAttributes]);
+			int i = 0;
+
+			// iterate user input
+			for (String[] attributePair : parKeyAttributes) {
+				// map user input to actual Attribute objects:
+				AttributeMetaData amdLeft = leftEMD.getAttributeByName(attributePair[0]);
+				AttributeMetaData amdRight = rightEMD.getAttributeByName(attributePair[1]);
+
+				// check if attributes could be found:
+				if (amdLeft == null) {
+					getLeftInput().addError(new SimpleMetaDataError(Severity.ERROR, getLeftInput(), "missing_attribute", attributePair[0]));
+					throw new UserError(this, "join.illegal_key_attribute", attributePair[0], "left", attributePair[1], "right");
+				} else if (amdRight == null) {
+					getRightInput().addError(new SimpleMetaDataError(Severity.ERROR, getRightInput(), "missing_attribute", attributePair[1]));
+					throw new UserError(this, "join.illegal_key_attribute", attributePair[1], "right", attributePair[0], "left");
+				}
+
+				// check for incompatible types
+				if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(amdLeft.getValueType(), amdRight.getValueType())
+						&& !Ontology.ATTRIBUTE_VALUE_TYPE.isA(amdRight.getValueType(), amdLeft.getValueType())) {
+					this.addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "attributes_type_mismatch", attributePair[0], "left", attributePair[1], "right"));
+					throw new UserError(this, "join.illegal_key_attribute", attributePair[1], "right", attributePair[0], "left");
+				}
+
+				// add attributes to list
+				keyAttributes.getFirst()[i] = amdLeft;
+				keyAttributes.getSecond()[i] = amdRight;
+				++i;
+			}
+		} else {
+			keyAttributes = new Pair<AttributeMetaData[], AttributeMetaData[]>(
+					new AttributeMetaData[] { leftEMD.getSpecial(Attributes.ID_NAME) }, 
+					new AttributeMetaData[] { rightEMD.getSpecial(Attributes.ID_NAME) });
+		}
+		return keyAttributes;
+	}
+		
 
 	@Override
 	protected MemoryExampleTable joinData(ExampleSet leftExampleSet, ExampleSet rightExampleSet, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList)
@@ -575,7 +606,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	 * Thus, the right key attributes are excluded.
 	 */
 	@Override
-	protected Set<Pair<Integer, Attribute>> getExcludedAtttributes(ExampleSet leftExampleSet, ExampleSet rightExampleSet) throws OperatorException {
+	protected Set<Pair<Integer, Attribute>> getExcludedAttributes(ExampleSet leftExampleSet, ExampleSet rightExampleSet) throws OperatorException {
 		if (getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES)) {
 			return Collections.emptySet();
 		} else {
@@ -583,6 +614,27 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 			Set<Pair<Integer, Attribute>> excludedAttributes = new HashSet<Pair<Integer, Attribute>>();
 			for (int i = 0; i < keyAttributes.length; ++i) {
 				excludedAttributes.add(new Pair<Integer, Attribute>(AttributeSource.SECOND_SOURCE, keyAttributes[i]));
+			}
+			return excludedAttributes;
+		}
+	}
+	
+	/**
+	 * Returns the metadata from all attributes from the right example which are key attributes.
+	 * 
+	 * As the values of the key attributes of left and right example set are always the same,
+	 * only one set of key attributes is necessary. This is taken from the left example set metadata.
+	 * Thus, the right key attributes are excluded.
+	 */
+	@Override
+	protected Set<Pair<Integer, AttributeMetaData>> getExcludedAttributesMD(ExampleSetMetaData leftExampleSetMD, ExampleSetMetaData rightExampleSetMD) throws OperatorException {
+		if (getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES)) {
+			return Collections.emptySet();
+		} else {
+			AttributeMetaData[] keyAttributes = getKeyAttributesMD(leftExampleSetMD, rightExampleSetMD).getSecond();
+			Set<Pair<Integer, AttributeMetaData>> excludedAttributes = new HashSet<Pair<Integer, AttributeMetaData>>();
+			for (int i = 0; i < keyAttributes.length; ++i) {
+				excludedAttributes.add(new Pair<Integer, AttributeMetaData>(AttributeSource.SECOND_SOURCE, keyAttributes[i]));
 			}
 			return excludedAttributes;
 		}

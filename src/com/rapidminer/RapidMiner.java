@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer;
 
 import java.awt.Frame;
@@ -56,7 +57,6 @@ import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypePassword;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.repository.RepositoryManager;
-import com.rapidminer.test.asserter.AsserterFactory;
 import com.rapidminer.test.asserter.AsserterFactoryRapidMiner;
 import com.rapidminer.test_utils.RapidAssert;
 import com.rapidminer.tools.FileSystemService;
@@ -266,7 +266,7 @@ public class RapidMiner {
 
 	/** The name of the property indicating the preferred globally used time zone. */
 	public static final String PROPERTY_RAPIDMINER_GENERAL_TIME_ZONE = "rapidminer.general.timezone";
-	
+
 	/** The maximum number of working threads that should be used by processes. */
 	public static final String PROPERTY_RAPIDMINER_GENERAL_NUMBER_OF_THREADS = "rapidminer.general.number_of_threads";
 
@@ -375,7 +375,8 @@ public class RapidMiner {
 		ParameterService.registerParameter(new ParameterTypeBoolean(CapabilityProvider.PROPERTY_RAPIDMINER_GENERAL_CAPABILITIES_WARN,
 				"Indicates if only a warning should be made if learning capabilities are not fulfilled (instead of breaking the process).", false));
 
-		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_NUMBER_OF_THREADS, "The maximum number of threads that a RapidMiner process is allowed to use.", 0, Integer.MAX_VALUE, 0), "general");
+		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GENERAL_NUMBER_OF_THREADS,
+				"The maximum number of threads that a RapidMiner process is allowed to use.", 0, Integer.MAX_VALUE, 0), "general");
 
 		// INIT
 		//		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_INIT_JDBC_LIB, "Load JDBC drivers from lib dir?", true));
@@ -425,6 +426,8 @@ public class RapidMiner {
 	private static SplashScreen splashScreen;
 
 	private static final List<Runnable> shutdownHooks = new LinkedList<Runnable>();
+
+	private static boolean performedInitialSettings = false;
 
 	public static String getShortVersion() {
 		return version.getShortVersion();
@@ -524,7 +527,7 @@ public class RapidMiner {
 
 		RapidMiner.splashMessage("init_configurables");
 		ConfigurationManager.getInstance().initialize();
-		
+
 		// generate encryption key if necessary
 		if (!CipherTools.isKeyAvailable()) {
 			RapidMiner.splashMessage("gen_key");
@@ -533,10 +536,7 @@ public class RapidMiner {
 			} catch (KeyGenerationException e) {
 				//LogService.getRoot().log(Level.WARNING, "Cannot generate encryption key: " + e.getMessage(), e);
 				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.RapidMiner.generating_encryption_key_error", 
-						e.getMessage()),
-						e);
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.generating_encryption_key_error", e.getMessage()), e);
 			}
 		}
 
@@ -547,7 +547,7 @@ public class RapidMiner {
 		// initialize xml serialization
 		RapidMiner.splashMessage("xml_serialization");
 		XMLSerialization.init(Plugin.getMajorClassLoader());
-		
+
 		RapidAssert.ASSERTER_REGISTRY.registerAllAsserters(new AsserterFactoryRapidMiner());
 	}
 
@@ -582,6 +582,7 @@ public class RapidMiner {
 
 	/** Displays the message with 18n key gui.splash.messageKey. */
 	public static void splashMessage(String messageKey) {
+		performInitialSettings();
 		if (RapidMiner.splashScreen != null) {
 			RapidMiner.splashScreen.setMessage(I18N.getMessage(I18N.getGUIBundle(), "gui.splash." + messageKey));
 		} else {
@@ -591,12 +592,16 @@ public class RapidMiner {
 
 	/** Displays the formatted message with 18n key gui.splash.messageKey. */
 	public static void splashMessage(String messageKey, Object... args) {
+		performInitialSettings();
 		if (RapidMiner.splashScreen != null) {
 			RapidMiner.splashScreen.setMessage(I18N.getMessage(I18N.getGUIBundle(), "gui.splash." + messageKey, args));
 		}
 	}
 
 	private static void performInitialSettings() {
+		if (performedInitialSettings) {
+			return;
+		}
 		boolean firstStart = false;
 		boolean versionChanged = false;
 		VersionNumber lastVersionNumber = null;
@@ -613,10 +618,8 @@ public class RapidMiner {
 				versionString = in.readLine();
 			} catch (IOException e) {
 				//LogService.getRoot().log(Level.WARNING, "Cannot read global version file of last used version.", e);
-				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.RapidMiner.reading_global_version_file_error"),
-						e);
+				LogService.getRoot()
+						.log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.reading_global_version_file_error"), e);
 			} finally {
 				if (in != null) {
 					try {
@@ -624,10 +627,7 @@ public class RapidMiner {
 					} catch (IOException e) {
 						//LogService.getRoot().log(Level.WARNING, "Cannnot close stream to file " + lastVersionFile, e);
 						LogService.getRoot().log(Level.WARNING,
-								I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-								"com.rapidminer.RapidMiner.closing_stream_error",
-								lastVersionFile),
-								e);
+								I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.closing_stream_error", lastVersionFile), e);
 					}
 				}
 			}
@@ -638,7 +638,7 @@ public class RapidMiner {
 					firstStart = true;
 				}
 				if (currentVersionNumber.compareTo(lastVersionNumber) != 0) {
-					versionChanged  = true;
+					versionChanged = true;
 				}
 			} else {
 				firstStart = true;
@@ -654,6 +654,8 @@ public class RapidMiner {
 			// write version file
 			writeLastVersion(lastVersionFile);
 		}
+
+		performedInitialSettings = true;
 	}
 
 	private static void writeLastVersion(File versionFile) {
@@ -663,10 +665,7 @@ public class RapidMiner {
 			out.println(getLongVersion());
 		} catch (IOException e) {
 			//LogService.getRoot().log(Level.WARNING, "Cannot write current version into property file.", e);
-			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.RapidMiner.writing_current_version_error"),
-					e);
+			LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.writing_current_version_error"), e);
 		} finally {
 			if (out != null)
 				out.close();
@@ -677,17 +676,19 @@ public class RapidMiner {
 		if (currentVersion != null)
 			//LogService.getRoot().info("Performing upgrade" + (lastVersion != null ? " from version " + lastVersion : "") + " to version " + currentVersion);
 			LogService.getRoot().log(Level.INFO, "com.rapidminer.RapidMiner.performing_upgrade",
-			new Object[] {(lastVersion != null ? " from version " + lastVersion : ""), currentVersion});
-		
+					new Object[] { (lastVersion != null ? " from version " + lastVersion : ""), currentVersion });
+
 		// copy old settings to new version file
 		ParameterService.copyMainUserConfigFile(lastVersion, currentVersion);
 	}
 
 	public static SplashScreen getSplashScreen() {
+		performInitialSettings();
 		return RapidMiner.splashScreen;
 	}
 
 	public static Frame getSplashScreenFrame() {
+		performInitialSettings();
 		if (RapidMiner.splashScreen != null)
 			return RapidMiner.splashScreen.getSplashScreenFrame();
 		else
@@ -713,10 +714,7 @@ public class RapidMiner {
 			} catch (Exception e) {
 				//LogService.getRoot().log(Level.WARNING, "Error executing shutdown hook: " + e.getMessage(), e);
 				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.RapidMiner.executing_shotdown_hook_error", 
-						e.getMessage()),
-						e);
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.executing_shotdown_hook_error", e.getMessage()), e);
 			}
 		}
 		try {
@@ -724,10 +722,7 @@ public class RapidMiner {
 		} catch (Exception e) {
 			//LogService.getRoot().log(Level.WARNING, "Error during finalization: " + e.getMessage(), e);
 			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.RapidMiner.error_during_finalization", 
-					e.getMessage()),
-					e);
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.error_during_finalization", e.getMessage()), e);
 		}
 		switch (exitMode) {
 			case NORMAL:

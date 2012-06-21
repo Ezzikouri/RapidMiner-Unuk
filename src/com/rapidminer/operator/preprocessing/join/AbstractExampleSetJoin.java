@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.preprocessing.join;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,18 +33,23 @@ import java.util.Set;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.AttributeRole;
+import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.OperatorVersion;
+import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetUnionRule;
+import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.tools.Ontology;
@@ -107,7 +113,7 @@ public abstract class AbstractExampleSetJoin extends Operator {
         leftInput.addPrecondition(new ExampleSetPrecondition(leftInput));
     	rightInput.addPrecondition(new ExampleSetPrecondition(rightInput));
    
-    	getTransformer().addRule(new ExampleSetUnionRule(rightInput, leftInput, joinOutput, "_from_ES2") {
+    	getTransformer().addRule(new ExampleSetUnionRule(leftInput, rightInput, joinOutput, "_from_ES2") {
         	 @Override
         	 protected String getPrefix() {
         		 return getParameterAsBoolean(PARAMETER_REMOVE_DOUBLE_ATTRIBUTES) ? null : "_from_ES2";
@@ -176,7 +182,7 @@ public abstract class AbstractExampleSetJoin extends Operator {
             }
         }
         
-        Set<Pair<Integer,Attribute>> excludedAttributes = getExcludedAtttributes(es1, es2);
+        Set<Pair<Integer,Attribute>> excludedAttributes = getExcludedAttributes(es1, es2);
         
         // regular attributes
         List<AttributeSource> originalAttributeSources = new LinkedList<AttributeSource>();
@@ -187,7 +193,6 @@ public abstract class AbstractExampleSetJoin extends Operator {
 	            unionAttributeList.add((Attribute) attribute.clone());
         	}
         }
-        
         for (Attribute attribute : es2.getAttributes()) {
         	if (!excludedAttributes.contains(new Pair<Integer,Attribute>(AttributeSource.SECOND_SOURCE, attribute))) {
 	            Attribute cloneAttribute = (Attribute) attribute.clone();
@@ -217,8 +222,25 @@ public abstract class AbstractExampleSetJoin extends Operator {
             AttributeRole role = s.next();
             Attribute specialAttribute = role.getAttribute();
             Attribute specialAttributeClone = (Attribute) specialAttribute.clone();
-            originalAttributeSources.add(new AttributeSource(AttributeSource.FIRST_SOURCE, specialAttribute));
+            
+            Iterator<Attribute> ia = unionAttributeList.iterator();
+            while (ia.hasNext()) {
+            	Attribute unionAttribute = ia.next();
+            	if (unionAttribute.getName().equals(specialAttribute.getName())) {
+            		ia.remove();
+            	}
+            }
+            
+            Iterator<AttributeSource> ias = originalAttributeSources.iterator();
+            while (ias.hasNext()) {
+            	AttributeSource unionAttributeSource = ias.next();
+            	if (unionAttributeSource.getAttribute().getName().equals(specialAttribute.getName())) {
+            		ias.remove();
+            	}
+            }
+            
             unionAttributeList.add(specialAttributeClone);
+            originalAttributeSources.add(new AttributeSource(AttributeSource.FIRST_SOURCE, specialAttribute));
             unionSpecialAttributes.put(specialAttributeClone, role.getSpecialName());
             usedSpecialAttributes.add(role.getSpecialName());
         }
@@ -229,11 +251,21 @@ public abstract class AbstractExampleSetJoin extends Operator {
             String specialName = role.getSpecialName();
             Attribute specialAttribute = role.getAttribute();
             if (!usedSpecialAttributes.contains(specialName)) { // not there
-                originalAttributeSources.add(new AttributeSource(AttributeSource.SECOND_SOURCE, specialAttribute));
                 Attribute specialAttributeClone = (Attribute) specialAttribute.clone();
-                unionAttributeList.add(specialAttributeClone);
-                unionSpecialAttributes.put(specialAttributeClone, specialName);
-                usedSpecialAttributes.add(specialName);
+                boolean addToUnionList = true;
+                for (Attribute unionAttribute : unionAttributeList) {
+                	if (unionAttribute.getName().equals(specialAttribute.getName())) {
+                		addToUnionList = false;
+                		break;
+                	}
+                }
+                if (addToUnionList) {
+                	originalAttributeSources.add(new AttributeSource(AttributeSource.SECOND_SOURCE, specialAttribute));
+                	unionAttributeList.add(specialAttributeClone);
+                	unionSpecialAttributes.put(specialAttributeClone, specialName);
+                    usedSpecialAttributes.add(specialName);
+                }
+                
             } else {
                 logWarning("Special attribute '" + specialName + "' already exist, skipping!");
             }
@@ -245,13 +277,78 @@ public abstract class AbstractExampleSetJoin extends Operator {
         // create new example set
         joinOutput.deliver(unionTable.createExampleSet(unionSpecialAttributes));
     }
+    
+    protected List<AttributeMetaData> getUnionAttributesMetaData(ExampleSetMetaData emd1, ExampleSetMetaData emd2) {
+    	if (!leftInput.isConnected() || !rightInput.isConnected()) {
+    		return new LinkedList<AttributeMetaData>();
+    	}
+    	if (this.isIdNeeded()) {
+            AttributeMetaData id1 = emd1.getSpecial(Attributes.ID_NAME);
+            AttributeMetaData id2 = emd2.getSpecial(Attributes.ID_NAME);
+            
+            // sanity checks
+            if (id1 == null) leftInput.addError(new SimpleMetaDataError(Severity.ERROR, leftInput, "missing_id"));
+            if (id2 == null) rightInput.addError(new SimpleMetaDataError(Severity.ERROR, rightInput, "missing_id"));
+            if ((id1 == null) || (id2 == null)) {
+                return new LinkedList<AttributeMetaData>();
+            }
+            if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(id1.getValueType(), id2.getValueType()) 
+        	    && !Ontology.ATTRIBUTE_VALUE_TYPE.isA(id2.getValueType(), id1.getValueType()) ){
+            	this.addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "attributes_type_mismatch", id1.getName(), "left", id2.getName(), "right"));
+                return new LinkedList<AttributeMetaData>();
+            }
+        }
+        
+        Set<Pair<Integer, AttributeMetaData>> excludedAttributes = new HashSet<Pair<Integer,AttributeMetaData>>();
+		try {
+			excludedAttributes = getExcludedAttributesMD(emd1, emd2);
+		} catch (OperatorException e) {
+			excludedAttributes = Collections.emptySet();
+		}
+        
+        // adding attributes
+        List<AttributeMetaData> unionAttributeList = new LinkedList<AttributeMetaData>();
+        for (AttributeMetaData attributeMD : emd1.getAllAttributes()) {
+        	if (!excludedAttributes.contains(new Pair<Integer,AttributeMetaData>(AttributeSource.FIRST_SOURCE, attributeMD))) {
+	            unionAttributeList.add((AttributeMetaData) attributeMD.clone());
+        	}
+        }
+        
+        for (AttributeMetaData attributeMD : emd2.getAllAttributes()) {
+        	if (!excludedAttributes.contains(new Pair<Integer,AttributeMetaData>(AttributeSource.SECOND_SOURCE, attributeMD))) {
+	            AttributeMetaData cloneAttribute = (AttributeMetaData) attributeMD.clone();
+	            if (containsAttributeMD(unionAttributeList, attributeMD)) { // in list...
+	                if (!getParameterAsBoolean(PARAMETER_REMOVE_DOUBLE_ATTRIBUTES)) { // ... but should not be removed --> rename
+	                    cloneAttribute.setName(cloneAttribute.getName() + "_from_ES2");
+	                    if (containsAttributeMD(unionAttributeList, cloneAttribute)) {
+	                        cloneAttribute.setName(cloneAttribute.getName() + "_from_ES2");
+	                    }
+	                    unionAttributeList.add(cloneAttribute);
+	                } // else do nothing, i.e. remove
+	            } else { // not in list --> add
+	                unionAttributeList.add(cloneAttribute);
+	            }
+        	}
+        }
+
+        return unionAttributeList;
+
+    }
 
     /**
      * Returns a set of original attributes which will not be copied to the output example set.
      * The default implementation returns an empty set. 
      */
-    protected Set<Pair<Integer,Attribute>> getExcludedAtttributes(ExampleSet es1, ExampleSet es2) throws OperatorException {
+    protected Set<Pair<Integer,Attribute>> getExcludedAttributes(ExampleSet es1, ExampleSet es2) throws OperatorException {
     	return new HashSet<Pair<Integer,Attribute>>();
+    }
+    
+    /**
+     * Returns a set of original attributes which will not be copied to the output example set.
+     * The default implementation returns an empty set. 
+     */
+    protected Set<Pair<Integer,AttributeMetaData>> getExcludedAttributesMD(ExampleSetMetaData esm1, ExampleSetMetaData esm2) throws OperatorException {
+    	return new HashSet<Pair<Integer,AttributeMetaData>>();
     }
 
 	/**
@@ -262,6 +359,19 @@ public abstract class AbstractExampleSetJoin extends Operator {
         Iterator<Attribute> i = attributeList.iterator();
         while (i.hasNext()) {
             if (i.next().getName().equals(attribute.getName()))
+                return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Returns true if the list already contains an attribute with the given name. The method contains from List cannot be used since the equals method of Attribute also checks for the same table
+     * index which is not applicable here.
+     */
+    public boolean containsAttributeMD(List<AttributeMetaData> attributeMDList, AttributeMetaData attributeMD) {
+        Iterator<AttributeMetaData> i = attributeMDList.iterator();
+        while (i.hasNext()) {
+            if (i.next().getName().equals(attributeMD.getName()))
                 return true;
         }
         return false;

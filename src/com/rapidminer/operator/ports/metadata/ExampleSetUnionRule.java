@@ -55,14 +55,17 @@ public class ExampleSetUnionRule implements MDTransformationRule {
 		if ((md1 != null) && (md2 != null)) {
 			if ((md1 instanceof ExampleSetMetaData) && (md2 instanceof ExampleSetMetaData)) {
 				ExampleSetMetaData emd1 = (ExampleSetMetaData) md1;
-				ExampleSetMetaData newEMD = (emd1.clone()).joinAttributes((ExampleSetMetaData)md2, getPrefix());
+				ExampleSetMetaData emd2 = (ExampleSetMetaData) md2;
+				ExampleSetMetaData mergedEmd = new ExampleSetMetaData();
+				mergedEmd.addAllAttributes(emd1.getAllAttributes());
+				mergedEmd.addAllAttributes(emd2.getAllAttributes());
 				for (AttributeMetaData possibleNew : ((ExampleSetMetaData)md2).getAllAttributes()) {
 					if (emd1.containsAttributeName(possibleNew.getName()) != MetaDataInfo.YES) {
-						transformAddedAttributeMD(newEMD, newEMD.getAttributeByName(possibleNew.getName()));
+						transformAddedAttributeMD(mergedEmd, mergedEmd.getAttributeByName(possibleNew.getName()));
 					}
 				}
-				newEMD = modifyMetaData(newEMD, emd1, (ExampleSetMetaData) md2);
-				outputPort.deliverMD(newEMD);
+				mergedEmd = modifyMetaData(mergedEmd, emd1, emd2);
+				outputPort.deliverMD(mergedEmd);
 			} else {	
 				outputPort.deliverMD(new ExampleSetMetaData());
 			}
