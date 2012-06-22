@@ -927,8 +927,9 @@ public class PlotConfiguration implements DimensionConfigListener,
 			}
 
 			// then default listeners
-			Iterator<WeakReference<PlotConfigurationListener>> defaultIt = defaultListeners
-					.iterator();
+			List<WeakReference<PlotConfigurationListener>> clonedDefaultListeners = new LinkedList<WeakReference<PlotConfigurationListener>>();
+			clonedDefaultListeners.addAll(defaultListeners);
+			Iterator<WeakReference<PlotConfigurationListener>> defaultIt = clonedDefaultListeners.iterator();
 			while (defaultIt.hasNext()) {
 				WeakReference<PlotConfigurationListener> wrl = defaultIt.next();
 				PlotConfigurationListener l = wrl.get();
