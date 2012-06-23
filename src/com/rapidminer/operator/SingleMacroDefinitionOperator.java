@@ -99,6 +99,9 @@ public class SingleMacroDefinitionOperator extends Operator {
 	public void doWork() throws OperatorException {
 		String macro = getParameterAsString(PARAMETER_MACRO);
 		String value = getParameterAsString(PARAMETER_VALUE);
+		if (value == null) {
+			value = "";
+		}
 		getProcess().getMacroHandler().addMacro(macro, value);
 
 		dummyPorts.passDataThrough();
@@ -108,7 +111,7 @@ public class SingleMacroDefinitionOperator extends Operator {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeString(PARAMETER_MACRO, "The macro name defined by the user.", false, false));
-		types.add(new ParameterTypeString(PARAMETER_VALUE, "The macro value defined by the user.", false, false));
+		types.add(new ParameterTypeString(PARAMETER_VALUE, "The macro value defined by the user.", true, false));
 		return types;
 	}
 }

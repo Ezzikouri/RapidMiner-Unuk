@@ -1552,4 +1552,74 @@ public class Tools {
 		return false;
 	}
 
+	/**
+	 * Iterates over a string an replaces all occurrences of charToMask by '%'.
+	 * Furthermore all appearing '%' will be escaped by '\' and all '\' will also be escaped by '\'.
+	 * To unmask the resulting string again use {@link #unmask(char, String)}.<br>
+	 * Examples (charToMask= '|'):<br>
+	 * hello|mandy  => hello%mandy<br>
+	 * hel\lo|mandy => hel\\lo%mandy<br>
+	 * h%l\lo|mandy => h\%l\\lo%mandy<br>
+	 * @param charToMask the character that should be masked. May not be '%' or '\\'
+	 */
+	public static String mask(char charToMask, String unmasked) {
+		if (charToMask == '%' || charToMask == '\\') {
+			throw new IllegalArgumentException("Parameter charToMask " + charToMask + " is not allowed!");
+		}
+		StringBuilder maskedStringBuilder = new StringBuilder();
+		char maskChar = '%';
+		char escapeChar = '\\'; // this means '\'
+		for (char c : unmasked.toCharArray()) {
+			if (c == charToMask) {
+				maskedStringBuilder.append(maskChar);
+			} else if (c == maskChar || c == escapeChar) {
+				maskedStringBuilder.append(escapeChar);
+				maskedStringBuilder.append(c);
+			} else {
+				maskedStringBuilder.append(c);
+			}
+		}
+
+		return maskedStringBuilder.toString();
+	}
+
+	/**
+	 * Unmaskes a masked string. 
+	 * Examples (charToUnmask= '|'):<br>
+	 * hello%mandy  => hello|mandy<br>
+	 * hel\\lo%mandy => hel\lo|mandy<br>
+	 * h\%l\\lo%mandy => h%l\lo|mandy<br>
+	 * 
+	 * @param charToUnmask the char that should be unmasked
+	 */
+	public static String unmask(char charToUnmask, String masked) {
+		if (charToUnmask == '%' || charToUnmask == '\\') {
+			throw new IllegalArgumentException("Parameter charToMask " + charToUnmask + " is not allowed!");
+		}
+		StringBuilder unmaskedStringBuilder = new StringBuilder();
+		char maskChar = '%';
+		char escapeChar = '\\';
+		boolean escapeCharFound = false;
+		for (char c : masked.toCharArray()) {
+			if (c == maskChar) {
+				if (escapeCharFound) {
+					unmaskedStringBuilder.append(maskChar);
+					escapeCharFound = false;
+				} else {
+					unmaskedStringBuilder.append(charToUnmask);
+				}
+			} else if (c == escapeChar) {
+				if (escapeCharFound) {
+					unmaskedStringBuilder.append(escapeChar);
+					escapeCharFound = false;
+				} else {
+					escapeCharFound = true;
+				}
+			} else {
+				unmaskedStringBuilder.append(c);
+			}
+		}
+
+		return unmaskedStringBuilder.toString();
+	}
 }

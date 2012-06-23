@@ -33,22 +33,24 @@ import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
 import javax.swing.JTable;
 
-import com.rapidminer.gui.properties.AttributesPropertyDialog;
+import com.rapidminer.gui.properties.AttributeOrderingDialog;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.operator.Operator;
-import com.rapidminer.parameter.ParameterTypeAttributes;
+import com.rapidminer.operator.preprocessing.filter.attributes.AttributeOrderingOperator;
+import com.rapidminer.parameter.ParameterTypeAttributeOrderingRules;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.Tools;
 
 /**
- * The value cell editor for the {@link ParameterTypeAttributes}. Displays
- * a button and opens a dialog to select attribute subsets in the case that
- * button is clicked.
+ * The cell editor for {@link ParameterTypeAttributeOrderingRules}.
  * 
- * @author Tobias Malbrecht
+ * @author Nils Woehler
  */
-public class AttributesValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
+public class AttributeOrderingCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 
 	private static final long serialVersionUID = -2387465714767785072L;
+
+	private static final char SEPARATION_CHAR = '|';
 
 	private String attributeListString = "";
 
@@ -56,8 +58,8 @@ public class AttributesValueCellEditor extends AbstractCellEditor implements Pro
 
 	private Operator operator;
 
-	public AttributesValueCellEditor(final ParameterTypeAttributes type) {
-		this.button = new JButton(new ResourceAction(true, "attributes") {
+	public AttributeOrderingCellEditor(final ParameterTypeAttributeOrderingRules type) {
+		this.button = new JButton(new ResourceAction(true, "attribute_ordering") {
 
 			private static final long serialVersionUID = -4890375754223285831L;
 
@@ -66,15 +68,17 @@ public class AttributesValueCellEditor extends AbstractCellEditor implements Pro
 				LinkedList<String> preSelectedAttributeNames = new LinkedList<String>();
 				String combinedNames = null;
 				try {
-					if (operator != null)
+					if (operator != null) {
 						combinedNames = operator.getParameter(type.getKey());
+					}
 				} catch (UndefinedParameterError er) {}
 				if (combinedNames != null) {
 					for (String attributeName : combinedNames.split("\\|")) {
-						preSelectedAttributeNames.add(attributeName);
+						preSelectedAttributeNames.add(Tools.unmask(SEPARATION_CHAR, attributeName));
 					}
 				}
-				AttributesPropertyDialog dialog = new AttributesPropertyDialog(type, preSelectedAttributeNames);
+				AttributeOrderingDialog dialog = new AttributeOrderingDialog(type, preSelectedAttributeNames,
+						operator.getParameterAsBoolean(AttributeOrderingOperator.PARAMETER_USE_REGEXP));
 				dialog.setVisible(true);
 				if (dialog.isOk()) {
 					StringBuilder builder = new StringBuilder();
@@ -82,9 +86,9 @@ public class AttributesValueCellEditor extends AbstractCellEditor implements Pro
 					Collection<String> attributeNames = dialog.getSelectedAttributeNames();
 					for (String attributeName : attributeNames) {
 						if (!first) {
-							builder.append("|");
+							builder.append(SEPARATION_CHAR);
 						}
-						builder.append(attributeName);
+						builder.append(Tools.mask(SEPARATION_CHAR, attributeName));
 						first = false;
 					}
 					attributeListString = builder.toString();

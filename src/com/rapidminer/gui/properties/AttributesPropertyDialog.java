@@ -115,7 +115,7 @@ public class AttributesPropertyDialog extends PropertyDialog {
 		
 		itemListModel = new FilterableListModel();
 		selectedItemListModel = new FilterableListModel();
-		System.err.println(preselectedItems.size());
+//		System.err.println(preselectedItems.size());
 		for (String item : type.getAttributeNames()) {
 			if (!preselectedItems.contains(item)) {
 				items.add(item);

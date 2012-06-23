@@ -38,7 +38,7 @@ import com.rapidminer.parameter.UndefinedParameterError;
 
 /**
  * Abstract superclass of all operators modifying an example set, i.e. accepting an {@link ExampleSet} as input and
- * delivering an {@link ExampleSet} as output. The behaviour is delegated from the {@link #doWork()} method to
+ * delivering an {@link ExampleSet} as output. The behavior is delegated from the {@link #doWork()} method to
  * {@link #apply(ExampleSet)}.
  * 
  * @author Simon Fischer

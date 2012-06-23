@@ -47,6 +47,7 @@ import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 
 import com.rapidminer.gui.properties.celleditors.value.AttributeFileValueCellEditor;
+import com.rapidminer.gui.properties.celleditors.value.AttributeOrderingCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.AttributeValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.AttributesValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.ColorValueCellEditor;
@@ -75,6 +76,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeAttributeFile;
+import com.rapidminer.parameter.ParameterTypeAttributeOrderingRules;
 import com.rapidminer.parameter.ParameterTypeAttributes;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -160,6 +162,7 @@ public abstract class PropertyPanel extends JPanel {
 		registerPropertyValueCellEditor(ParameterTypeDatabaseTable.class, DatabaseTableValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeDatabaseSchema.class, DatabaseTableValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeConfigurable.class, ConfigurableValueCellEditor.class);
+		registerPropertyValueCellEditor(ParameterTypeAttributeOrderingRules.class, AttributeOrderingCellEditor.class);
 	}
 
 	
