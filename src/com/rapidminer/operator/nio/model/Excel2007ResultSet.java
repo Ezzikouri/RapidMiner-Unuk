@@ -269,6 +269,9 @@ public class Excel2007ResultSet implements DataResultSet {
 	@Override
 	public Number getNumber(int columnIndex) throws ParseException {
 		final Cell cell = getCurrentCell(columnIndex);
+		if(cell == null) {
+			return Double.NaN;
+		}
 		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC || cell.getCellType() == Cell.CELL_TYPE_FORMULA) {
 			final double value = cell.getNumericCellValue();
 			return Double.valueOf(value);
@@ -288,6 +291,9 @@ public class Excel2007ResultSet implements DataResultSet {
 	@Override
 	public Date getDate(int columnIndex) throws ParseException {
 		final Cell cell = getCurrentCell(columnIndex);
+		if(cell == null) {
+			return null;
+		}
 		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
 			Date dateCellValue = cell.getDateCellValue();
 			return dateCellValue;

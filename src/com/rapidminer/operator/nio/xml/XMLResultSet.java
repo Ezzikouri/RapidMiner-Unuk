@@ -35,6 +35,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.rapidminer.operator.Operator;
@@ -127,11 +128,12 @@ public class XMLResultSet implements DataResultSet {
 
         for (int i = 0; i < attributeExpressions.length; i++) {
             try {
-            	if (operatorVersion.compareTo(XMLExampleSource.CHANGE_5_1_013_NODE_OUTPUT) > 0) {
-	                NodeList nodeList = (NodeList)attributeExpressions[i].evaluate(exampleNodes.item(currentExampleIndex), XPathConstants.NODESET);
+            	Node item = exampleNodes.item(currentExampleIndex);
+				if (operatorVersion.compareTo(XMLExampleSource.CHANGE_5_1_013_NODE_OUTPUT) > 0) {
+	                NodeList nodeList = (NodeList)attributeExpressions[i].evaluate(item, XPathConstants.NODESET);
 					currentExampleValues[i] = XMLDomHelper.nodeListToString(nodeList);
             	} else {
-					currentExampleValues[i] = (String)attributeExpressions[i].evaluate(exampleNodes.item(currentExampleIndex), XPathConstants.STRING);
+					currentExampleValues[i] = (String)attributeExpressions[i].evaluate(item, XPathConstants.STRING);
             	}
             } catch (XPathExpressionException e) {
                 currentExampleValues[i] = null;

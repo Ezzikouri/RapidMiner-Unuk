@@ -39,6 +39,11 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.features.selection.AbstractFeatureSelection;
+import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.MDTransformationRule;
+import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttributeOrderingRules;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -59,7 +64,7 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 	//--------------------- Order method ---------------------------------
 	public static final String PARAMETER_ORDER_MODE = "sort_mode";
 
-	public static final String USER_SPECIFIED_RULES_MODE = "user_specified";
+	public static final String USER_SPECIFIED_RULES_MODE = "user specified";
 	public static final String ALPHABETICALLY_MODE = "alphabetically";
 
 	public static final String[] SORT_MODES = new String[] { USER_SPECIFIED_RULES_MODE, ALPHABETICALLY_MODE };
@@ -100,6 +105,79 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 	 */
 	public AttributeOrderingOperator(OperatorDescription description) {
 		super(description);
+		getTransformer().addRule(new MDTransformationRule() {
+
+			@Override
+			public void transformMD() {
+				MetaData md1 = getInputPorts().getPortByIndex(0).getMetaData();
+				OutputPort outputPort = getOutputPorts().getPortByIndex(0);
+
+				try {
+					if ((md1 != null)) {
+						if ((md1 instanceof ExampleSetMetaData)) {
+							ExampleSetMetaData emd1 = (ExampleSetMetaData) md1;
+							ExampleSetMetaData sortedEmd = new ExampleSetMetaData();
+
+							List<AttributeMetaData> allAttributes = new LinkedList<AttributeMetaData>(emd1.getAllAttributes());
+
+							if (getParameterAsString(PARAMETER_ORDER_MODE).equals(ALPHABETICALLY_MODE)) {
+								outputPort.deliverMD(emd1); // no attributes will be removed, just deliver old MD
+							} else if (getParameterAsString(PARAMETER_ORDER_MODE).equals(USER_SPECIFIED_RULES_MODE)) {
+								String combinedMaskedRules = getParameterAsString(PARAMETER_ORDER_RULES);
+								if (combinedMaskedRules == null || combinedMaskedRules.length() == 0) {
+									outputPort.deliverMD(emd1);
+								}
+
+								// iterate over all rules
+								for (String maskedRule : combinedMaskedRules.split("\\|")) {
+									String rule = Tools.unmask('|', maskedRule); // unmask them to allow regexp
+
+									// iterate over all attributes and check if rules apply
+									Iterator<AttributeMetaData> iterator = allAttributes.iterator();
+									while (iterator.hasNext()) {
+										AttributeMetaData attrMD = iterator.next();
+										boolean match = false;
+										if (getParameterAsBoolean(PARAMETER_USE_REGEXP)) {
+											try {
+												if (attrMD.getName().matches(rule)) {
+													match = true;
+												}
+											} catch (PatternSyntaxException e) {
+												outputPort.deliverMD(emd1);
+											}
+										} else {
+											if (attrMD.getName().equals(rule)) {
+												match = true;
+											}
+										}
+
+										// if rule applies remove attribute from unmachted list and add it to rules matched list
+										if (match) {
+											iterator.remove();
+											sortedEmd.addAttribute(attrMD);
+										}
+									}
+
+								}
+
+								if (!getParameterAsString(PARAMETER_HANDLE_UNMATCHED_ATTRIBUTES).equals(REMOVE_UNMATCHED_MODE)) {
+									sortedEmd.addAllAttributes(allAttributes);
+								}
+
+								outputPort.deliverMD(sortedEmd);
+							} else {
+								outputPort.deliverMD(new ExampleSetMetaData());
+							}
+						} else {
+							outputPort.deliverMD(null);
+						}
+					}
+				} catch (UndefinedParameterError e) {
+					outputPort.deliverMD(null);
+				}
+			}
+
+		});
 	}
 
 	@Override

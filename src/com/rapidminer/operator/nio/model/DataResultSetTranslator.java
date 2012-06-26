@@ -325,7 +325,11 @@ public class DataResultSetTranslator {
                 try {
                     Number parsedValue;
                     parsedValue = numberFormat.parse(value);
-                    return parsedValue.doubleValue();
+                    if (parsedValue == null) {
+                    	return Double.NaN;
+                    } else {
+                    	return parsedValue.doubleValue();
+                    }
                 } catch (ParseException e) {
                     ParsingError error = new ParsingError(dataResultSet.getCurrentRow(), column, ErrorCode.UNPARSEABLE_REAL, value, e);
                     addOrThrow(isFaultTolerant, error, row);

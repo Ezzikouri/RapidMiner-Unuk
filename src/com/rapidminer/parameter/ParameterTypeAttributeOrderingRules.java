@@ -67,6 +67,9 @@ public class ParameterTypeAttributeOrderingRules extends ParameterTypeAttribute 
 
 	@Override
 	protected boolean isFilteredOut(AttributeMetaData amd) {
+		if (amd.isSpecial()) {
+			return true;
+		}
 		return super.isFilteredOut(amd);
 	}
 }

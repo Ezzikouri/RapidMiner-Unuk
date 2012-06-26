@@ -23,6 +23,8 @@
 
 package com.rapidminer.gui.properties;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.Action;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
@@ -48,6 +51,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.ListCellRenderer;
 
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.FilterTextField;
@@ -160,6 +164,9 @@ public class AttributeOrderingDialog extends PropertyDialog {
 
 				// apply filter to attributes if button is pressed
 				addFilterCondition(newRule);
+
+				// remove old condition
+				currentTextFieldCondition = null;
 			}
 
 		}
@@ -298,7 +305,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 				}
 			}
 		}
-		
+
 		// --------------------- LEFT SIDE ---------------------------------------
 
 		attributeSearchField = new FilterTextField();
@@ -361,6 +368,22 @@ public class AttributeOrderingDialog extends PropertyDialog {
 			public void mouseReleased(MouseEvent e) {
 			}
 		});
+		attributeList.setCellRenderer(new ListCellRenderer() {
+
+			DefaultListCellRenderer renderer = new DefaultListCellRenderer();
+
+			@Override
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				Component renderComp = renderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				if (currentTextFieldCondition != null && currentTextFieldCondition.matches(value.toString())) {
+					renderComp.setForeground(Color.red);
+				} else {
+					renderComp.setForeground(Color.black);
+				}
+
+				return renderComp;
+			}
+		});
 		JScrollPane attributeListPane = new ExtendedJScrollPane(attributeList);
 		attributeListPane.setBorder(createBorder());
 		JPanel attributeListPanel = new JPanel(new GridBagLayout());
@@ -401,18 +424,13 @@ public class AttributeOrderingDialog extends PropertyDialog {
 			public void keyReleased(KeyEvent e) {
 				if (hideMatchedButton.isSelected()) {
 
-					// remove old condition
-					if (currentTextFieldCondition != null) {
-						attributeListModel.removeCondition(currentTextFieldCondition);
-					}
-
 					String text = addRuleTextField.getText();
 					if (text != null && text.trim().length() != 0) {
 						currentTextFieldCondition = createNewCondition(text);
-						attributeListModel.addCondition(currentTextFieldCondition);
 					} else {
 						currentTextFieldCondition = null;
 					}
+					attributeList.repaint();
 
 				}
 			}
@@ -541,7 +559,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 
 		layoutDefault(panel, NORMAL, makeOkButton(), makeCancelButton());
 		addRuleTextField.requestFocusInWindow();
-		
+
 		// finally add conditions
 		addFilterConditions(selectedRules);
 	}
@@ -593,9 +611,6 @@ public class AttributeOrderingDialog extends PropertyDialog {
 		attributeListModel.removeAllConditions();
 		if (hideMatchedButton.isSelected()) {
 			attributeListModel.addConditions(ruleToConditionMap.values());
-			if (currentTextFieldCondition != null) {
-				attributeListModel.addCondition(currentTextFieldCondition);
-			}
 		}
 	}
 }
