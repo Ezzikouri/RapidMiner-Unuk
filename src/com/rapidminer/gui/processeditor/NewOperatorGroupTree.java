@@ -567,9 +567,12 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
             TreePath path = operatorGroupTree.getPathForRow(i);
             Object leaf = path.getLastPathComponent();
             if (leaf instanceof OperatorDescription) {
-                OperatorUsageStatistics operatorStatistics1 = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, (OperatorDescription) leaf);
-                int usageCount1 = operatorStatistics1 == null ? 0 : operatorStatistics1.getStatistics(OperatorStatisticsValue.EXECUTION);
-                max = Math.max(max, usageCount1);
+                OperatorDescription operatorDescription = (OperatorDescription) leaf;
+                if (operatorDescription.getDeprecationInfo() == null) {
+					OperatorUsageStatistics operatorStatistics1 = UsageStatistics.getInstance().getOperatorStatistics(StatisticsScope.ALL_TIME, operatorDescription);
+	                int usageCount1 = operatorStatistics1 == null ? 0 : operatorStatistics1.getStatistics(OperatorStatisticsValue.EXECUTION);
+	                max = Math.max(max, usageCount1);
+                }
             }
         }
         return max;

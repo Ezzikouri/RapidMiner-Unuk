@@ -12,7 +12,7 @@ Changes from RapidMiner 5.2.6 to 5.2.7
 * BUGFIX: Keep old settings after updating RapidMiner
 * BUGFIX: 'Cancel' ParameterTypeList Dialog works correctly now
 * BUGFIX: FP-Growth correctly handles parameter 'must contain'
-
+* BUGFIX: Join Operator displays MetaData correctly
 
 Changes from RapidMiner 5.2.3 to 5.2.6
 --------------------------------------

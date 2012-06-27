@@ -125,21 +125,19 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		getLeftInput().addPrecondition(
 				new ParameterConditionedPrecondition(getLeftInput(), new ExampleSetPrecondition(getLeftInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this,
 						PARAMETER_USE_ID, "true"));
+		getLeftInput().addPrecondition(
+				new ParameterConditionedPrecondition(getLeftInput(), new ExampleSetPrecondition(getLeftInput()), this,
+						PARAMETER_USE_ID, "false"));
+
 		getRightInput().addPrecondition(
 				new ParameterConditionedPrecondition(getRightInput(), new ExampleSetPrecondition(getRightInput(), Ontology.ATTRIBUTE_VALUE, Attributes.ID_NAME), this,
 						PARAMETER_USE_ID, "true"));
-	}
-
-	@Override
-	protected ExampleSetMetaData joinedMetaData(ExampleSetMetaData emd, ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) {
-		List<AttributeMetaData> joinedAttributesMetaData = getUnionAttributesMetaData(leftEMD, rightEMD);
-		emd = new ExampleSetMetaData();
-		emd.addAllAttributes(joinedAttributesMetaData);
-		return emd;
-	}
+		getRightInput().addPrecondition(
+				new ParameterConditionedPrecondition(getRightInput(), new ExampleSetPrecondition(getRightInput()), this,
+						PARAMETER_USE_ID, "false"));
+	}	
 	
-	
-	
+	/** Same as {@link getKeyAttributes}, but returns the MetaData of the KeyAttributes. **/
 	private Pair<AttributeMetaData[], AttributeMetaData[]> getKeyAttributesMD(ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) throws OperatorException {
 		boolean useIdForJoin = getParameterAsBoolean(PARAMETER_USE_ID);
 		Pair<AttributeMetaData[], AttributeMetaData[]> keyAttributes;
@@ -174,16 +172,22 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 				}
 
 				// add attributes to list
-				keyAttributes.getFirst()[i] = amdLeft;
-				keyAttributes.getSecond()[i] = amdRight;
-				++i;
+				if(!getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES)) {
+					keyAttributes.getFirst()[i] = amdLeft;
+					keyAttributes.getSecond()[i] = amdRight;
+					++i;
+				}
 			}
-		} else {
+		} else {		
 			keyAttributes = new Pair<AttributeMetaData[], AttributeMetaData[]>(
-					new AttributeMetaData[] { leftEMD.getSpecial(Attributes.ID_NAME) }, 
-					new AttributeMetaData[] { rightEMD.getSpecial(Attributes.ID_NAME) });
+				new AttributeMetaData[] { leftEMD.getSpecial(Attributes.ID_NAME) }, 
+				new AttributeMetaData[] { rightEMD.getSpecial(Attributes.ID_NAME) });
 		}
-		return keyAttributes;
+		if(!getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES)) {
+			return keyAttributes;
+		} else {
+			return null;
+		}
 	}
 		
 
@@ -628,16 +632,14 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 	 */
 	@Override
 	protected Set<Pair<Integer, AttributeMetaData>> getExcludedAttributesMD(ExampleSetMetaData leftExampleSetMD, ExampleSetMetaData rightExampleSetMD) throws OperatorException {
-		if (getParameterAsBoolean(PARAMETER_KEEP_BOTH_JOIN_ATTRIBUTES)) {
-			return Collections.emptySet();
-		} else {
-			AttributeMetaData[] keyAttributes = getKeyAttributesMD(leftExampleSetMD, rightExampleSetMD).getSecond();
-			Set<Pair<Integer, AttributeMetaData>> excludedAttributes = new HashSet<Pair<Integer, AttributeMetaData>>();
-			for (int i = 0; i < keyAttributes.length; ++i) {
-				excludedAttributes.add(new Pair<Integer, AttributeMetaData>(AttributeSource.SECOND_SOURCE, keyAttributes[i]));
-			}
-			return excludedAttributes;
+		Pair<AttributeMetaData[], AttributeMetaData[]> keyAttributeMD = getKeyAttributesMD(leftExampleSetMD, rightExampleSetMD);
+		if (keyAttributeMD == null ) return Collections.emptySet();
+		AttributeMetaData[] keyAttributes = keyAttributeMD.getSecond();
+		Set<Pair<Integer, AttributeMetaData>> excludedAttributes = new HashSet<Pair<Integer, AttributeMetaData>>();
+		for (int i = 0; i < keyAttributes.length; ++i) {
+			excludedAttributes.add(new Pair<Integer, AttributeMetaData>(AttributeSource.SECOND_SOURCE, keyAttributes[i]));
 		}
+		return excludedAttributes;
 	}
 
 	@Override

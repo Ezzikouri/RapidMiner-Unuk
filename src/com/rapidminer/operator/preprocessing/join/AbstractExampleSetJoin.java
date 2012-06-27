@@ -41,13 +41,11 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.ProcessSetupError.Severity;
-import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
-import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.ExampleSetUnionRule;
 import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.parameter.ParameterType;
@@ -110,9 +108,6 @@ public abstract class AbstractExampleSetJoin extends Operator {
 
     public AbstractExampleSetJoin(OperatorDescription description) {
         super(description);
-        leftInput.addPrecondition(new ExampleSetPrecondition(leftInput));
-    	rightInput.addPrecondition(new ExampleSetPrecondition(rightInput));
-   
     	getTransformer().addRule(new ExampleSetUnionRule(leftInput, rightInput, joinOutput, "_from_ES2") {
         	 @Override
         	 protected String getPrefix() {
@@ -120,9 +115,11 @@ public abstract class AbstractExampleSetJoin extends Operator {
         	 }
         	 
         	 @Override
-  			protected ExampleSetMetaData modifyMetaData(ExampleSetMetaData emd, ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) {
-  				emd = joinedMetaData(emd, leftEMD, rightEMD);
-  				return super.modifyMetaData(emd, leftEMD, rightEMD);
+  			protected ExampleSetMetaData modifyMetaData(ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) { 
+        		 List<AttributeMetaData> joinedAttributesMetaData = getUnionAttributesMetaData(leftEMD, rightEMD);
+        		 ExampleSetMetaData joinedEMD = new ExampleSetMetaData();
+        		 joinedEMD.addAllAttributes(joinedAttributesMetaData);
+        	     return joinedEMD;
   			}
         });
     	
@@ -138,10 +135,6 @@ public abstract class AbstractExampleSetJoin extends Operator {
 	
 	public OutputPort getJoinOutput() {
 		return joinOutput;
-	}
-	
-	protected ExampleSetMetaData joinedMetaData(ExampleSetMetaData emd, ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) {
-		return emd;
 	}
 
     protected abstract MemoryExampleTable joinData(ExampleSet es1, ExampleSet es2, List<AttributeSource> originalAttributeSources, List<Attribute> unionAttributeList) throws OperatorException;
@@ -278,6 +271,9 @@ public abstract class AbstractExampleSetJoin extends Operator {
         joinOutput.deliver(unionTable.createExampleSet(unionSpecialAttributes));
     }
     
+    /**
+     * Returns a list of AttributeMetaData which contains the correctly joined MetaData arising from both input ports.
+     */
     protected List<AttributeMetaData> getUnionAttributesMetaData(ExampleSetMetaData emd1, ExampleSetMetaData emd2) {
     	if (!leftInput.isConnected() || !rightInput.isConnected()) {
     		return new LinkedList<AttributeMetaData>();
@@ -287,14 +283,14 @@ public abstract class AbstractExampleSetJoin extends Operator {
             AttributeMetaData id2 = emd2.getSpecial(Attributes.ID_NAME);
             
             // sanity checks
-            if (id1 == null) leftInput.addError(new SimpleMetaDataError(Severity.ERROR, leftInput, "missing_id"));
-            if (id2 == null) rightInput.addError(new SimpleMetaDataError(Severity.ERROR, rightInput, "missing_id"));
+            //if (id1 == null) leftInput.addError(new SimpleMetaDataError(Severity.ERROR, leftInput, "missing_id"));
+            //if (id2 == null) rightInput.addError(new SimpleMetaDataError(Severity.ERROR, rightInput, "missing_id"));
             if ((id1 == null) || (id2 == null)) {
                 return new LinkedList<AttributeMetaData>();
             }
             if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(id1.getValueType(), id2.getValueType()) 
         	    && !Ontology.ATTRIBUTE_VALUE_TYPE.isA(id2.getValueType(), id1.getValueType()) ){
-            	this.addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "attributes_type_mismatch", id1.getName(), "left", id2.getName(), "right"));
+            	//this.addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "attributes_type_mismatch", id1.getName(), "left", id2.getName(), "right"));
                 return new LinkedList<AttributeMetaData>();
             }
         }
@@ -308,9 +304,13 @@ public abstract class AbstractExampleSetJoin extends Operator {
         
         // adding attributes
         List<AttributeMetaData> unionAttributeList = new LinkedList<AttributeMetaData>();
+        List<String> unionSpecialRoleList = new LinkedList<String>();
         for (AttributeMetaData attributeMD : emd1.getAllAttributes()) {
         	if (!excludedAttributes.contains(new Pair<Integer,AttributeMetaData>(AttributeSource.FIRST_SOURCE, attributeMD))) {
 	            unionAttributeList.add((AttributeMetaData) attributeMD.clone());
+	            if (attributeMD.isSpecial()) {
+	            	unionSpecialRoleList.add(attributeMD.getRole());
+	            }
         	}
         }
         
@@ -319,15 +319,32 @@ public abstract class AbstractExampleSetJoin extends Operator {
 	            AttributeMetaData cloneAttribute = (AttributeMetaData) attributeMD.clone();
 	            if (containsAttributeMD(unionAttributeList, attributeMD)) { // in list...
 	                if (!getParameterAsBoolean(PARAMETER_REMOVE_DOUBLE_ATTRIBUTES)) { // ... but should not be removed --> rename
-	                    cloneAttribute.setName(cloneAttribute.getName() + "_from_ES2");
+	                	if (attributeMD.isSpecial() && unionSpecialRoleList.contains(attributeMD.getRole())) {
+	                		// this special attribute's role already exists
+        		    		rightInput.addError(new SimpleMetaDataError(Severity.WARNING, rightInput, "already_contains_role", attributeMD.getRole()));
+        		    		continue;
+	                	}
+	                	cloneAttribute.setName(cloneAttribute.getName() + "_from_ES2");
 	                    if (containsAttributeMD(unionAttributeList, cloneAttribute)) {
 	                        cloneAttribute.setName(cloneAttribute.getName() + "_from_ES2");
 	                    }
 	                    unionAttributeList.add(cloneAttribute);
 	                } // else do nothing, i.e. remove
 	            } else { // not in list --> add
+	            	if (attributeMD.isSpecial() && unionSpecialRoleList.contains(attributeMD.getRole())) {
+	            		// this special attribute's role already exists
+    		    		rightInput.addError(new SimpleMetaDataError(Severity.WARNING, rightInput, "already_contains_role", attributeMD.getRole()));
+    		    		continue;
+	            	}
 	                unionAttributeList.add(cloneAttribute);
 	            }
+        	}
+        }
+        
+        //special attributes check
+        for (AttributeMetaData attributeMD : unionAttributeList) {
+        	if (attributeMD.isSpecial()) {
+        		
         	}
         }
 

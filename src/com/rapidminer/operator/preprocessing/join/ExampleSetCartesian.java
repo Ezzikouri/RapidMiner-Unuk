@@ -33,6 +33,7 @@ import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
+import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 
@@ -53,6 +54,8 @@ public class ExampleSetCartesian extends AbstractExampleSetJoin {
 
     public ExampleSetCartesian(OperatorDescription description) {
         super(description);
+        getLeftInput().addPrecondition(new ExampleSetPrecondition(getLeftInput()));
+    	getRightInput().addPrecondition(new ExampleSetPrecondition(getRightInput()));
     }
 
     /**

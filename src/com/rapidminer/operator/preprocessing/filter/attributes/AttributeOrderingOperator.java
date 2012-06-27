@@ -24,6 +24,7 @@
 package com.rapidminer.operator.preprocessing.filter.attributes;
 
 import java.text.Collator;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -37,13 +38,17 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.features.selection.AbstractFeatureSelection;
+import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MDTransformationRule;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
+import com.rapidminer.operator.ports.metadata.SimplePrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttributeOrderingRules;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -61,15 +66,24 @@ import com.rapidminer.tools.Tools;
  */
 public class AttributeOrderingOperator extends AbstractFeatureSelection {
 
+	private abstract class FilterConditon {
+
+		public abstract boolean match(String rule, String value);
+	}
+
+	private static final String REFERENCE_DATA_PORT_NAME = "reference_data";
+
 	//--------------------- Order method ---------------------------------
 	public static final String PARAMETER_ORDER_MODE = "sort_mode";
 
 	public static final String USER_SPECIFIED_RULES_MODE = "user specified";
 	public static final String ALPHABETICALLY_MODE = "alphabetically";
+	public static final String REFERENCE_DATA = "reference data";
 
-	public static final String[] SORT_MODES = new String[] { USER_SPECIFIED_RULES_MODE, ALPHABETICALLY_MODE };
+	public static final String[] SORT_MODES = new String[] { USER_SPECIFIED_RULES_MODE, ALPHABETICALLY_MODE, REFERENCE_DATA };
 	public static final int USER_SPECIFIED_RULES_MODE_INDEX = 0;
 	public static final int ALPHABETICALLY_MODE_INDEX = 1;
+	public static final int REFERENCE_DATA_INDEX = 2;
 
 	//--------------------- Sort direction -------------------------------
 	public static final String PARAMETER_SORT_DIRECTION = "sort_direction";
@@ -105,6 +119,11 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 	 */
 	public AttributeOrderingOperator(OperatorDescription description) {
 		super(description);
+
+		// add port for reference data
+		InputPort referenceDataPort = getInputPorts().createPort(REFERENCE_DATA_PORT_NAME);
+		referenceDataPort.addPrecondition(new SimplePrecondition(referenceDataPort, new MetaData(ExampleSet.class), false));
+
 		getTransformer().addRule(new MDTransformationRule() {
 
 			@Override
@@ -113,75 +132,148 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 				OutputPort outputPort = getOutputPorts().getPortByIndex(0);
 
 				try {
-					if ((md1 != null)) {
-						if ((md1 instanceof ExampleSetMetaData)) {
-							ExampleSetMetaData emd1 = (ExampleSetMetaData) md1;
-							ExampleSetMetaData sortedEmd = new ExampleSetMetaData();
-
-							List<AttributeMetaData> allAttributes = new LinkedList<AttributeMetaData>(emd1.getAllAttributes());
-
-							if (getParameterAsString(PARAMETER_ORDER_MODE).equals(ALPHABETICALLY_MODE)) {
-								outputPort.deliverMD(emd1); // no attributes will be removed, just deliver old MD
-							} else if (getParameterAsString(PARAMETER_ORDER_MODE).equals(USER_SPECIFIED_RULES_MODE)) {
-								String combinedMaskedRules = getParameterAsString(PARAMETER_ORDER_RULES);
-								if (combinedMaskedRules == null || combinedMaskedRules.length() == 0) {
-									outputPort.deliverMD(emd1);
-								}
-
-								// iterate over all rules
-								for (String maskedRule : combinedMaskedRules.split("\\|")) {
-									String rule = Tools.unmask('|', maskedRule); // unmask them to allow regexp
-
-									// iterate over all attributes and check if rules apply
-									Iterator<AttributeMetaData> iterator = allAttributes.iterator();
-									while (iterator.hasNext()) {
-										AttributeMetaData attrMD = iterator.next();
-										boolean match = false;
-										if (getParameterAsBoolean(PARAMETER_USE_REGEXP)) {
-											try {
-												if (attrMD.getName().matches(rule)) {
-													match = true;
-												}
-											} catch (PatternSyntaxException e) {
-												outputPort.deliverMD(emd1);
-											}
-										} else {
-											if (attrMD.getName().equals(rule)) {
-												match = true;
-											}
-										}
-
-										// if rule applies remove attribute from unmachted list and add it to rules matched list
-										if (match) {
-											iterator.remove();
-											sortedEmd.addAttribute(attrMD);
-										}
-									}
-
-								}
-
-								if (!getParameterAsString(PARAMETER_HANDLE_UNMATCHED_ATTRIBUTES).equals(REMOVE_UNMATCHED_MODE)) {
-									sortedEmd.addAllAttributes(allAttributes);
-								}
-
-								outputPort.deliverMD(sortedEmd);
-							} else {
-								outputPort.deliverMD(new ExampleSetMetaData());
-							}
-						} else {
-							outputPort.deliverMD(null);
-						}
+					if (getParameterAsString(PARAMETER_ORDER_MODE).equals(ALPHABETICALLY_MODE)) {
+						outputPort.deliverMD(md1); // no attributes will be removed, just deliver old MD
+						return;
 					}
+
+					FilterConditon condition = null;
+					List<String> rules = new LinkedList<String>();
+
+					if (getParameterAsString(PARAMETER_ORDER_MODE).equals(REFERENCE_DATA)) {
+						MetaData refMD = getInputPorts().getPortByName(REFERENCE_DATA_PORT_NAME).getMetaData();
+						if ((refMD == null) || !(refMD instanceof ExampleSetMetaData)) {
+							outputPort.deliverMD(new ExampleSetMetaData());
+							return;
+						}
+						ExampleSetMetaData refEsMD = (ExampleSetMetaData) refMD;
+						List<AttributeMetaData> allReferenceAttributes = new LinkedList<AttributeMetaData>(refEsMD.getAllAttributes());
+
+						// add all attributes that are not special to rules list
+						for (AttributeMetaData amd : allReferenceAttributes) {
+							if (!amd.isSpecial()) {
+								rules.add(amd.getName());
+							}
+						}
+
+						condition = new FilterConditon() {
+
+							@Override
+							public boolean match(String rule, String value) {
+								return value.equals(rule);
+							}
+						};
+
+					}
+
+					if (getParameterAsString(PARAMETER_ORDER_MODE).equals(USER_SPECIFIED_RULES_MODE)) {
+						String combinedMaskedRules = getParameterAsString(PARAMETER_ORDER_RULES);
+
+						// if parameter is empty just return old meta data
+						if (combinedMaskedRules == null || combinedMaskedRules.length() == 0) {
+							outputPort.deliverMD(new ExampleSetMetaData());
+							return;
+						}
+
+						String[] splittedRules = combinedMaskedRules.split("\\|");
+
+						// unmask rules
+						for (int i = 0; i < splittedRules.length; i++) {
+							rules.add(Tools.unmask('|', splittedRules[i]));
+						}
+
+						condition = new FilterConditon() {
+
+							@Override
+							public boolean match(String rule, String value) {
+								try {
+									return getParameterAsBoolean(PARAMETER_USE_REGEXP) ? value.matches(rule) : value.equals(rule);
+								} catch (PatternSyntaxException e) {
+									return false;
+								}
+							}
+						};
+
+					}
+
+					// calculate new meta data
+					ExampleSetMetaData sortedEmd = applyRulesOnMetaData(rules, md1, condition);
+
+					outputPort.deliverMD(sortedEmd);
+
 				} catch (UndefinedParameterError e) {
-					outputPort.deliverMD(null);
+					outputPort.deliverMD(new ExampleSetMetaData());
 				}
 			}
 
 		});
 	}
 
+	private ExampleSetMetaData applyRulesOnMetaData(List<String> rules, MetaData metaData, FilterConditon condition) throws UndefinedParameterError {
+		if ((metaData == null) || !(metaData instanceof ExampleSetMetaData) || condition == null) {
+			return new ExampleSetMetaData();
+		}
+		ExampleSetMetaData sortedMetaData = new ExampleSetMetaData();
+		ExampleSetMetaData originalMetaData = (ExampleSetMetaData) metaData;
+		Collection<AttributeMetaData> allAttributes = originalMetaData.getAllAttributes();
+
+		// iterate over all rules
+		for (String currentRule : rules) {
+
+			// iterate over all original attributes and check if rule applies
+			Iterator<AttributeMetaData> iterator = allAttributes.iterator();
+			while (iterator.hasNext()) {
+				AttributeMetaData attrMD = iterator.next();
+
+				// skip special attributes
+				if (attrMD.isSpecial()) {
+					continue;
+				}
+
+				// if rule applies, remove attribute from unmachted list and add it to rules matched list
+				if (condition.match(currentRule, attrMD.getName())) {
+					iterator.remove();
+					sortedMetaData.addAttribute(attrMD);
+				}
+			}
+
+		}
+
+		if (!getParameterAsString(PARAMETER_HANDLE_UNMATCHED_ATTRIBUTES).equals(REMOVE_UNMATCHED_MODE)) {
+			sortedMetaData.addAllAttributes(allAttributes);
+		}
+
+		return sortedMetaData;
+	}
+
+	@Override
+	protected void performAdditionalChecks() {
+		super.performAdditionalChecks();
+		try {
+			InputPort referenceDataPort = getInputPorts().getPortByName(REFERENCE_DATA_PORT_NAME);
+			String orderMode = getParameterAsString(PARAMETER_ORDER_MODE);
+			if (orderMode.equals(REFERENCE_DATA) && !referenceDataPort.isConnected()) {
+				addError(new SimpleMetaDataError(Severity.ERROR, referenceDataPort, "input_missing", REFERENCE_DATA_PORT_NAME));
+			}
+			if (!orderMode.equals(REFERENCE_DATA) && referenceDataPort.isConnected()) {
+				addError(new SimpleMetaDataError(Severity.WARNING, referenceDataPort, "port_connected_but_parameter_not_set", REFERENCE_DATA_PORT_NAME, PARAMETER_ORDER_MODE,
+						orderMode));
+			}
+		} catch (UndefinedParameterError e) {
+			// nothing to do here
+		}
+	}
+
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
+
+		if (exampleSet == null) {
+			throw new UserError(this, 149, getInputPorts().getPortByIndex(0).getName());
+		}
+
+		// get unmachted attributes
+		Attributes attributes = exampleSet.getAttributes();
+		List<Attribute> unmachtedAttributes = getAttributeList(attributes);
 
 		if (getParameterAsString(PARAMETER_ORDER_MODE).equals(ALPHABETICALLY_MODE)) {
 
@@ -189,66 +281,91 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 				return exampleSet;
 			}
 
-			// get attributes
-			Attributes attributes = exampleSet.getAttributes();
-			List<Attribute> sortedAttributeList = getAttributeList(attributes);
-
 			// sort attributes
-			sortAttributeListAlphabetically(sortedAttributeList);
+			sortAttributeListAlphabetically(unmachtedAttributes);
 
 			// apply sorted attributes
-			applySortedAttributes(sortedAttributeList, null, attributes);
+			applySortedAttributes(unmachtedAttributes, null, attributes);
 
-		} else if (getParameterAsString(PARAMETER_ORDER_MODE).equals(USER_SPECIFIED_RULES_MODE)) {
-			String combinedMaskedRules = getParameterAsString(PARAMETER_ORDER_RULES);
-			if (combinedMaskedRules == null || combinedMaskedRules.length() == 0) {
-				throw new UserError(this, 205, PARAMETER_ORDER_RULES, "");
-			}
-
-			Attributes attributes = exampleSet.getAttributes();
-			List<Attribute> unmachtedAttributes = getAttributeList(attributes);
+		} else if (getParameterAsString(PARAMETER_ORDER_MODE).equals(USER_SPECIFIED_RULES_MODE) || getParameterAsString(PARAMETER_ORDER_MODE).equals(REFERENCE_DATA)) {
 			List<Attribute> sortedAttributes = new LinkedList<Attribute>();
 
-			// iterate over all rules
-			for (String maskedRule : combinedMaskedRules.split("\\|")) {
-				String rule = Tools.unmask('|', maskedRule); // unmask them to allow regexp
-				List<Attribute> matchedAttributes = new LinkedList<Attribute>();
+			if (getParameterAsString(PARAMETER_ORDER_MODE).equals(REFERENCE_DATA)) {
+				InputPort referencePort = getInputPorts().getPortByName(REFERENCE_DATA_PORT_NAME);
+				ExampleSet referenceSet = referencePort.getData(ExampleSet.class);
 
-				// iterate over all attributes and check if rules apply
-				Iterator<Attribute> iterator = unmachtedAttributes.iterator();
-				while (iterator.hasNext()) {
-					Attribute attr = iterator.next();
-					boolean match = false;
-					if (getParameterAsBoolean(PARAMETER_USE_REGEXP)) {
-						try {
-							if (attr.getName().matches(rule)) {
+				if (referenceSet == null) {
+					throw new UserError(this, 149, referencePort.getName());
+				}
+
+				// iterate over reference attributes and order unmachted attributes accordingly
+				for (Attribute refAttr : referenceSet.getAttributes()) {
+					System.out.println("Check attribute " + refAttr.getName());
+					Iterator<Attribute> iterator = unmachtedAttributes.iterator();
+					while (iterator.hasNext()) {
+						Attribute unmachtedAttr = iterator.next();
+						if (refAttr.getName().equals(unmachtedAttr.getName())) {
+
+							// only pairwise matching is possible -> directly add attribute to sorted list
+							sortedAttributes.add(unmachtedAttr);
+							System.out.println("Added unmachted attribute to list: " + unmachtedAttr.getName());
+
+							// remove attribute from unmachted attributes
+							iterator.remove();
+						}
+					}
+				}
+			} else {
+				String combinedMaskedRules = getParameterAsString(PARAMETER_ORDER_RULES);
+				if (combinedMaskedRules == null || combinedMaskedRules.length() == 0) {
+					throw new UserError(this, 205, PARAMETER_ORDER_RULES, "");
+				}
+
+				// iterate over all rules
+				for (String maskedRule : combinedMaskedRules.split("\\|")) {
+					String rule = Tools.unmask('|', maskedRule); // unmask them to allow regexp
+					List<Attribute> matchedAttributes = new LinkedList<Attribute>();
+
+					// iterate over all attributes and check if rules apply
+					Iterator<Attribute> iterator = unmachtedAttributes.iterator();
+					while (iterator.hasNext()) {
+						Attribute attr = iterator.next();
+						boolean match = false;
+						if (getParameterAsBoolean(PARAMETER_USE_REGEXP)) {
+							try {
+								if (attr.getName().matches(rule)) {
+									match = true;
+								}
+							} catch (PatternSyntaxException e) {
+								throw new UserError(this, 206, rule, e.getMessage());
+							}
+						} else {
+							if (attr.getName().equals(rule)) {
 								match = true;
 							}
-						} catch (PatternSyntaxException e) {
-							throw new UserError(this, 206, rule, e.getMessage());
 						}
-					} else {
-						if (attr.getName().equals(rule)) {
-							match = true;
+
+						// if rule applies remove attribute from unmachted list and add it to rules matched list
+						if (match) {
+							iterator.remove();
+							matchedAttributes.add(attr);
 						}
 					}
 
-					// if rule applies remove attribute from unmachted list and add it to rules matched list
-					if (match) {
-						iterator.remove();
-						matchedAttributes.add(attr);
+					// sort matched attributes according to sort direction if more then one match has been found
+					if (matchedAttributes.size() > 1) {
+						sortAttributeListAlphabetically(matchedAttributes);
 					}
+
+					// add matched attributes to sorted attribute list
+					sortedAttributes.addAll(matchedAttributes);
+
 				}
-
-				// sort matched attributes according to sort direction if more then one match has been found
-				if (matchedAttributes.size() > 1) {
-					sortAttributeListAlphabetically(matchedAttributes);
-				}
-
-				// add matched attributes to sorted attribute list
-				sortedAttributes.addAll(matchedAttributes);
-
 			}
+
+			/*
+			 * UNMACHTED Handling
+			 */
 
 			if (!getParameterAsString(PARAMETER_HANDLE_UNMATCHED_ATTRIBUTES).equals(REMOVE_UNMATCHED_MODE)) {
 				// sort unmachted attributes according to sort direction
@@ -356,7 +473,7 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 		type = new ParameterTypeCategory(PARAMETER_HANDLE_UNMATCHED_ATTRIBUTES, "Defines the behavior for unmatched attributes.", HANDLE_UNMATCHED_MODES,
 				APPEND_UNMATCHED_MODE_INDEX, false);
 		type.setOptional(true);
-		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_ORDER_MODE, SORT_MODES, false, USER_SPECIFIED_RULES_MODE_INDEX));
+		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_ORDER_MODE, SORT_MODES, false, USER_SPECIFIED_RULES_MODE_INDEX, REFERENCE_DATA_INDEX));
 		parameterTypes.add(type);
 
 		type = new ParameterTypeBoolean(PARAMETER_USE_REGEXP, "If checked attribute orders will be evaluated as regular expressions.", false, true);

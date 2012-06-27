@@ -56,16 +56,8 @@ public class ExampleSetUnionRule implements MDTransformationRule {
 			if ((md1 instanceof ExampleSetMetaData) && (md2 instanceof ExampleSetMetaData)) {
 				ExampleSetMetaData emd1 = (ExampleSetMetaData) md1;
 				ExampleSetMetaData emd2 = (ExampleSetMetaData) md2;
-				ExampleSetMetaData mergedEmd = new ExampleSetMetaData();
-				mergedEmd.addAllAttributes(emd1.getAllAttributes());
-				mergedEmd.addAllAttributes(emd2.getAllAttributes());
-				for (AttributeMetaData possibleNew : ((ExampleSetMetaData)md2).getAllAttributes()) {
-					if (emd1.containsAttributeName(possibleNew.getName()) != MetaDataInfo.YES) {
-						transformAddedAttributeMD(mergedEmd, mergedEmd.getAttributeByName(possibleNew.getName()));
-					}
-				}
-				mergedEmd = modifyMetaData(mergedEmd, emd1, emd2);
-				outputPort.deliverMD(mergedEmd);
+				ExampleSetMetaData joinedEmd = modifyMetaData(emd1, emd2);
+				outputPort.deliverMD(joinedEmd);
 			} else {	
 				outputPort.deliverMD(new ExampleSetMetaData());
 			}
@@ -78,8 +70,17 @@ public class ExampleSetUnionRule implements MDTransformationRule {
 
 	}
 	
-	protected ExampleSetMetaData modifyMetaData(ExampleSetMetaData joinedEmd, ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) {
-		return joinedEmd;
+	protected ExampleSetMetaData modifyMetaData(ExampleSetMetaData leftEMD, ExampleSetMetaData rightEMD) {
+		// Just merge the left and right input together
+		ExampleSetMetaData mergedEmd = new ExampleSetMetaData();
+		mergedEmd.addAllAttributes(leftEMD.getAllAttributes());
+		mergedEmd.addAllAttributes(rightEMD.getAllAttributes());
+		for (AttributeMetaData possibleNew : rightEMD.getAllAttributes()) {
+			if (leftEMD.containsAttributeName(possibleNew.getName()) != MetaDataInfo.YES) {
+				transformAddedAttributeMD(mergedEmd, mergedEmd.getAttributeByName(possibleNew.getName()));
+			}
+		}
+		return mergedEmd;
 	}
 
 }

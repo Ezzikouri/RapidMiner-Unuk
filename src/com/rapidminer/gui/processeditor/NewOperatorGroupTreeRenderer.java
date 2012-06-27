@@ -47,6 +47,9 @@ public class NewOperatorGroupTreeRenderer extends DefaultTreeCellRenderer {
     private static final long serialVersionUID = -6092290820461444236L;
 	private int maxVisibleUsage;
 	
+	private static Color maxUsedColor = new Color(0, 50, 0);
+	private static Color minUsedColor = new Color(75, 25, 25);
+	
     public NewOperatorGroupTreeRenderer() {
 		setLeafIcon(getDefaultClosedIcon());
     }
@@ -73,21 +76,30 @@ public class NewOperatorGroupTreeRenderer extends DefaultTreeCellRenderer {
         	setToolTipText(null);
         	String labelText = op.getName();
         	
-        	int grayLevel;       
+        	// define text color
+        	Color foregroundColor;
         	if (hasFocus || (maxVisibleUsage == 0)) {
-        		grayLevel = 0;        	
+            	foregroundColor = Color.BLACK;
         	} else {
-        		int colorOffset = 100;
-            	grayLevel = (int)((255d - colorOffset) * ((usageCount+1) / (maxVisibleUsage+1d)) + colorOffset);
-            	grayLevel = 255 - Math.min(255, grayLevel);	
+        		// fade text color respective to usage count
+        		
+        		// use log for gentler descent
+            	double usageFactor = Math.min(1, Math.log(usageCount+1) / Math.log(maxVisibleUsage+1d));
+
+            	// merge colors
+            	int r = (int) (maxUsedColor.getRed() * (usageFactor) + minUsedColor.getRed() * (1-usageFactor));
+            	int g = (int) (maxUsedColor.getGreen() * (usageFactor) + minUsedColor.getGreen() * (1-usageFactor));
+            	int b = (int) (maxUsedColor.getBlue() * (usageFactor) + minUsedColor.getBlue() * (1-usageFactor));
+            	foregroundColor = new  Color(r, g, b);
         	}
+			
         	
 			JLabel label = (JLabel)super.getTreeCellRendererComponent(tree, labelText, isSelected, expanded, leaf, row, hasFocus);
         	label.setIcon(op.getSmallIcon());
         	if (isSelected) {
         		label.setForeground(Color.WHITE);
         	} else {
-        		label.setForeground(new Color(grayLevel, grayLevel, grayLevel));
+        		label.setForeground(foregroundColor);
         	}
         	if (op.getDeprecationInfo() != null) {
         		label.setEnabled(false);
