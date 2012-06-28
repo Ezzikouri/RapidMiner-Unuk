@@ -47,8 +47,8 @@ public class NewOperatorGroupTreeRenderer extends DefaultTreeCellRenderer {
     private static final long serialVersionUID = -6092290820461444236L;
 	private int maxVisibleUsage;
 	
-	private static Color maxUsedColor = new Color(0, 50, 0);
-	private static Color minUsedColor = new Color(75, 25, 25);
+	private static final Color maxUsedColor = new Color(0, 125, 0);
+	private static final Color minUsedColor = new Color(75, 25, 25);
 	
     public NewOperatorGroupTreeRenderer() {
 		setLeafIcon(getDefaultClosedIcon());
@@ -87,6 +87,7 @@ public class NewOperatorGroupTreeRenderer extends DefaultTreeCellRenderer {
             	double usageFactor = Math.min(1, Math.log(usageCount+1) / Math.log(maxVisibleUsage+1d));
 
             	// merge colors
+            	
             	int r = (int) (maxUsedColor.getRed() * (usageFactor) + minUsedColor.getRed() * (1-usageFactor));
             	int g = (int) (maxUsedColor.getGreen() * (usageFactor) + minUsedColor.getGreen() * (1-usageFactor));
             	int b = (int) (maxUsedColor.getBlue() * (usageFactor) + minUsedColor.getBlue() * (1-usageFactor));
