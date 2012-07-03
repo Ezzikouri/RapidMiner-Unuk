@@ -114,14 +114,14 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 	public static final int PREPEND_UNMATCHED_MODE_INDEX = 1;
 	public static final int APPEND_UNMATCHED_MODE_INDEX = 2;
 
+	private final InputPort referenceDataPort = getInputPorts().createPort(REFERENCE_DATA_PORT_NAME);
+
 	/**
 	 * @param description
 	 */
 	public AttributeOrderingOperator(OperatorDescription description) {
 		super(description);
 
-		// add port for reference data
-		InputPort referenceDataPort = getInputPorts().createPort(REFERENCE_DATA_PORT_NAME);
 		referenceDataPort.addPrecondition(new SimplePrecondition(referenceDataPort, new MetaData(ExampleSet.class), false));
 
 		getTransformer().addRule(new MDTransformationRule() {
@@ -481,5 +481,13 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 		parameterTypes.add(type);
 
 		return parameterTypes;
+	}
+
+	@Override
+	public boolean shouldAutoConnect(InputPort inputPort) {
+		if (inputPort == referenceDataPort) {
+			return false;
+		}
+		return super.shouldAutoConnect(inputPort);
 	}
 }

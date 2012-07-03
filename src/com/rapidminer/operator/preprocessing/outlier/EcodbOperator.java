@@ -36,8 +36,12 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
+import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.tools.Ontology;
@@ -81,7 +85,7 @@ import com.rapidminer.tools.math.similarity.DistanceMeasures;
  * outlier), and another special attribute "COF Factor" which measures the degree of being Class Outlier for an object.
  * </p>
  * 
- * @author Motaz K. Saad
+ * @author Motaz K. Saad, Marius Helf
  */
 public class EcodbOperator extends AbstractOutlierDetection {
 
@@ -90,6 +94,10 @@ public class EcodbOperator extends AbstractOutlierDetection {
 
 	/** The parameter name for &quot;The number of top-n Class Outliers to be looked for.&quot; */
 	public static final String PARAMETER_NUMBER_OF_Class_OUTLIERS = "number_of_class_outliers";
+	
+	public final static OperatorVersion VERSION_LOWERCASE_ATTRIBUTE_NAME = new OperatorVersion(5,2,6);
+
+	private static final String COF_FACTOR_NAME = "COF Factor";
 
 	public EcodbOperator(OperatorDescription description) {
 		super(description);
@@ -121,19 +129,25 @@ public class EcodbOperator extends AbstractOutlierDetection {
 		}
 		
 		// create a new special attribute for the exampleSet
-		Attribute outlierAttribute = AttributeFactory.createAttribute("Outlier", Ontology.BINOMINAL);
+		String outlierAttributeName = Attributes.OUTLIER_NAME;
+		if (getCompatibilityLevel().isAtMost(VERSION_LOWERCASE_ATTRIBUTE_NAME)) {
+			// in oder version the attribute name started with an uppercase "O"
+			outlierAttributeName = "Outlier";
+		}
+		Attribute outlierAttribute = AttributeFactory.createAttribute(outlierAttributeName, Ontology.BINOMINAL);
+		
 		// class outlier flag (true or false)
 		outlierAttribute.getMapping().mapString("false");
 		outlierAttribute.getMapping().mapString("true");
 		eSet.getExampleTable().addAttribute(outlierAttribute);
 
 		// class outlier factor (COF) attribute
-		Attribute COFoutlierAttribute = AttributeFactory.createAttribute("COF Factor", Ontology.REAL);
+		Attribute COFoutlierAttribute = AttributeFactory.createAttribute(COF_FACTOR_NAME, Ontology.REAL);
 		eSet.getExampleTable().addAttribute(COFoutlierAttribute);
 
 		// add these special attributes (outlier flag and class outlier factor attributes) to the example set
 		eSet.getAttributes().setOutlier(outlierAttribute);
-		eSet.getAttributes().setSpecialAttribute(COFoutlierAttribute, "COF Factor");
+		eSet.getAttributes().setSpecialAttribute(COFoutlierAttribute, COF_FACTOR_NAME);
 
 		// reset all examples to positive infinity COF and class outlier flag to false
 		Iterator<Example> reader = eSet.iterator();
@@ -256,5 +270,34 @@ public class EcodbOperator extends AbstractOutlierDetection {
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), EcodbOperator.class, null);
+	}
+	
+	@Override
+	public OperatorVersion[] getIncompatibleVersionChanges() {
+		OperatorVersion[] oldChanges = super.getIncompatibleVersionChanges();
+    	OperatorVersion[] newChanges = {VERSION_LOWERCASE_ATTRIBUTE_NAME};
+    	OperatorVersion[] changes = new OperatorVersion[oldChanges.length + newChanges.length];
+
+    	int i = 0;
+    	for (OperatorVersion v : oldChanges) {
+    		changes[i] = v;
+    		++i;
+    	}
+    	for (OperatorVersion v : newChanges) {
+    		changes[i] = v;
+    		++i;
+    	}
+    	
+    	return changes;
+	}
+	
+	@Override
+	protected MetaData modifyMetaData(ExampleSetMetaData metaData) {
+		metaData = (ExampleSetMetaData) super.modifyMetaData(metaData);
+
+		// add COF Factor
+		AttributeMetaData amd = new AttributeMetaData(COF_FACTOR_NAME, Ontology.REAL, COF_FACTOR_NAME);
+		metaData.addAttribute(amd);
+		return metaData;
 	}
 }

@@ -51,7 +51,7 @@ public abstract class AbstractOutlierDetection extends AbstractExampleSetProcess
 		AttributeMetaData amd = new AttributeMetaData(Attributes.OUTLIER_NAME, Ontology.BINOMINAL, Attributes.OUTLIER_NAME);
 		amd.setValueSet(getOutlierValues(), SetRelation.EQUAL);
 		metaData.addAttribute(amd);
-		return metaData;		
+		return metaData;
 	}
 
 	protected abstract Set<String> getOutlierValues();
