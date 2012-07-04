@@ -1354,9 +1354,29 @@ public class DatabaseHandler {
 			// get the id value and set it in the statements
 			int idCount = 0;
 			for (Attribute idAtt : idAttributes) {
-				double idValue = ex.getValue(idAtt);
-				prepUpdateStatement.setDouble(attCount + ++idCount, idValue);
-				prepInsertStatement.setDouble(allAttList.indexOf(idAtt) + 1, ex.getValue(idAtt));
+				// id attributes may not be numerical, so check type
+				if (idAtt.isNumerical()) {
+					prepUpdateStatement.setDouble(attCount + ++idCount, ex.getValue(idAtt));
+					prepInsertStatement.setDouble(allAttList.indexOf(idAtt) + 1, ex.getValue(idAtt));
+				} else if (idAtt.isNominal()) {
+					prepUpdateStatement.setString(attCount + ++idCount, ex.getValueAsString(idAtt));
+					prepInsertStatement.setString(allAttList.indexOf(idAtt) + 1, ex.getValueAsString(idAtt));
+				} else {
+					// date, time, date_time are not covered above, so handle them here
+					if (idAtt.getValueType() == Ontology.DATE) {
+						Date date = new Date(new Double(ex.getValue(idAtt)).longValue());
+						prepUpdateStatement.setDate(attCount + ++idCount, date);
+						prepInsertStatement.setDate(allAttList.indexOf(idAtt) + 1, date);
+					} else if (idAtt.getValueType() == Ontology.TIME) {
+						Time time = new Time(new Double(ex.getValue(idAtt)).longValue());
+						prepUpdateStatement.setTime(attCount + ++idCount, time);
+						prepInsertStatement.setTime(allAttList.indexOf(idAtt) + 1, time);
+					} else if (idAtt.getValueType() == Ontology.DATE_TIME) {
+						Timestamp timestamp = new Timestamp(new Double(ex.getValue(idAtt)).longValue());
+						prepUpdateStatement.setTimestamp(attCount + ++idCount, timestamp);
+						prepInsertStatement.setTimestamp(allAttList.indexOf(idAtt) + 1, timestamp);
+					}
+				}
 			}
 			
 			// fill statements with attribute values
@@ -1387,13 +1407,13 @@ public class DatabaseHandler {
 			
 			// try to update
 			if (logger != null) {
-				logger.info(prepUpdateStatement.toString());
+				logger.fine(prepUpdateStatement.toString());
 			}
 			int updatedRowCount = prepUpdateStatement.executeUpdate();
 			// no update done -> row with given id value does not yet exist, so insert it
 			if (updatedRowCount <= 0) {
 				if (logger != null) {
-					logger.info(prepInsertStatement.toString());
+					logger.fine(prepInsertStatement.toString());
 				}
 				prepInsertStatement.executeUpdate();
 			}
