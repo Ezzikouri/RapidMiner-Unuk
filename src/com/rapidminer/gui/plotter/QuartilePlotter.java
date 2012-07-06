@@ -20,7 +20,17 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.plotter;
+
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.Icon;
 
@@ -39,84 +49,131 @@ import com.rapidminer.tools.math.MathFunctions;
  */
 public class QuartilePlotter extends ColorQuartilePlotter {
 
-    private static final long serialVersionUID = -5115095967846809152L;
-    
-    private boolean[] columns = null;
-    
-    
-    public QuartilePlotter(PlotterConfigurationModel settings) {
-        super(settings);
-    }
-    
-    public QuartilePlotter(PlotterConfigurationModel settings, DataTable dataTable) {
-    	super(settings, dataTable);
-    }
-    
-    @Override
+	private static final long serialVersionUID = -5115095967846809152L;
+
+	private boolean[] columns = null;
+
+	public QuartilePlotter(PlotterConfigurationModel settings) {
+		super(settings);
+		setDrawLegend(true);
+		//        setPlotColumn(0, false);
+	}
+
+	public QuartilePlotter(PlotterConfigurationModel settings, DataTable dataTable) {
+		super(settings, dataTable);
+		setDrawLegend(true);
+		//    	setPlotColumn(0, false);
+	}
+
+	@Override
 	public void setDataTable(DataTable dataTable) {
-        this.columns = new boolean[dataTable.getNumberOfColumns()];
-        super.setDataTable(dataTable);
-    }
-    
-    @Override
+		this.columns = new boolean[dataTable.getNumberOfColumns()];
+		super.setDataTable(dataTable);
+	}
+
+	@Override
 	public int getNumberOfAxes() {
-        return 0;
-    }
-    
-    @Override
+		return 0;
+	}
+
+	@Override
 	public String getPlotName() {
-        return "Dimensions";
-    }
-    
+		return "Dimensions";
+	}
+
 	@Override
 	public int getValuePlotSelectionType() {
 		return MULTIPLE_SELECTION;
 	}
-	
+
 	@Override
 	public String getPlotterName() {
 		return PlotterConfigurationModel.QUARTILE_PLOT;
 	}
-	
-    @Override
-	public void setPlotColumn(int index, boolean plot) {
-    	columns[index] = plot;
-        repaint();
-    }
 
-    @Override
+	@Override
+	public void setPlotColumn(int index, boolean plot) {
+		columns[index] = plot;
+		repaint();
+	}
+
+	@Override
 	public boolean getPlotColumn(int index) {
-        return columns[index];
-    }
-    
+		return columns[index];
+	}
+
 	@Override
 	public Icon getIcon(int index) {
 		return null;
 	}
-	
-    @Override
+
+	@Override
 	protected void prepareData() {
-        allQuartiles.clear();
-        this.globalMin = Double.POSITIVE_INFINITY;
-        this.globalMax = Double.NEGATIVE_INFINITY;
-        
-        if (columns != null) {
-        	int totalCount = 0;
-        	for (int i = 0; i < this.dataTable.getNumberOfColumns(); i++) {
-        		if (columns[i]) {
-        			totalCount++;
-        		}
-        	}
-        	
-        	for (int i = 0; i < this.dataTable.getNumberOfColumns(); i++) {
-        		if (columns[i]) {
-                    Quartile quartile = Quartile.calculateQuartile(this.dataTable, i); 
-                    quartile.setColor(getColorProvider().getPointColor((double) i / (double) totalCount));
-                    allQuartiles.add(quartile); 
-                    this.globalMin = MathFunctions.robustMin(this.globalMin, quartile.getMin());
-                    this.globalMax = MathFunctions.robustMax(this.globalMax, quartile.getMax());
-        		}
-        	}
-        }
-    }
+		allQuartiles.clear();
+		this.globalMin = Double.POSITIVE_INFINITY;
+		this.globalMax = Double.NEGATIVE_INFINITY;
+
+		if (columns != null) {
+			int totalCount = 0;
+			for (int i = 0; i < this.dataTable.getNumberOfColumns(); i++) {
+				if (columns[i]) {
+					totalCount++;
+				}
+			}
+
+			for (int i = 0; i < this.dataTable.getNumberOfColumns(); i++) {
+				if (columns[i]) {
+					Quartile quartile = Quartile.calculateQuartile(this.dataTable, i);
+					quartile.setColor(getColorProvider().getPointColor((double) i / (double) totalCount));
+					allQuartiles.add(quartile);
+					this.globalMin = MathFunctions.robustMin(this.globalMin, quartile.getMin());
+					this.globalMax = MathFunctions.robustMax(this.globalMax, quartile.getMax());
+				}
+			}
+		}
+	}
+
+	/** This method can be used to draw a legend on the given graphics context. */
+	@Override
+	protected void drawLegend(Graphics graphics, DataTable table, int legendColumn, int xOffset, int alpha) {
+		Graphics2D g = (Graphics2D) graphics.create();
+		g.translate(xOffset, 0);
+
+		List<Integer> columnIndices = new ArrayList<Integer>();
+		int index = 0;
+		for (Boolean column : columns) {
+			if (column) {
+				columnIndices.add(index);
+			}
+			++index;
+		}
+
+		// painting values
+		int currentX = MARGIN;
+
+		for (Integer i : columnIndices) {
+			if (currentX > getWidth()) {
+				break;
+			}
+			String columnName = table.getColumnName(i);
+			if (columnName.length() > 16) {
+				columnName = columnName.substring(0, 16) + "...";
+			}
+			Shape colorBullet = new Ellipse2D.Double(currentX, 7, 7.0d, 7.0d);
+			Color color;
+			if (columnIndices.size() == 1) {
+				color = getColorProvider().getPointColor((double) i / (double) (1), alpha);
+			} else {
+				color = getColorProvider().getPointColor((double) i / (double) (columnIndices.size()), alpha);
+			}
+			g.setColor(color);
+			g.fill(colorBullet);
+			g.setColor(Color.black);
+			g.draw(colorBullet);
+			currentX += 12;
+			g.drawString(columnName, currentX, 15);
+			Rectangle2D stringBounds = LABEL_FONT.getStringBounds(columnName, g.getFontRenderContext());
+			currentX += stringBounds.getWidth() + 15;
+		}
+	}
 }

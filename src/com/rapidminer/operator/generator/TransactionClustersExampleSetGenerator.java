@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
@@ -202,7 +203,7 @@ public class TransactionClustersExampleSetGenerator extends AbstractExampleSourc
 		for (int i = 0; i < possibleValues.length; i++) {
 			possibleValues[i] = "Id " + (i + 1);
 		}
-		emd.addAttribute(new AttributeMetaData("Id", null, possibleValues));
+		emd.addAttribute(new AttributeMetaData("Id", Attributes.ID_NAME, possibleValues));
 		
 		possibleValues = new String[getParameterAsInt(PARAMETER_NUMBER_ITEMS)];
 		for (int i = 0; i < possibleValues.length; i++) {

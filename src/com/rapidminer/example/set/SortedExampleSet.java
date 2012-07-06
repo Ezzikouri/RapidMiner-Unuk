@@ -91,6 +91,7 @@ public class SortedExampleSet extends AbstractExampleSet {
 			return true;
 		}
 		
+		@Override
 		public int compareTo(SortingIndex o) {
 			if (key instanceof Double) {
 				return ((Double)key).compareTo((Double)o.key);

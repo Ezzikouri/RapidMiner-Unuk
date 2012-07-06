@@ -211,8 +211,9 @@ public class ColorQuartilePlotter extends PlotterAdapter {
     @Override
     public void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
-        if (drawLegend)
-            drawLegend(graphics, dataTable, colorIndex, 50, RectangleStyle.ALPHA);
+        if (drawLegend) {
+        	drawLegend(graphics, dataTable, colorIndex, 50, RectangleStyle.ALPHA);
+        }
         int pixWidth = getWidth() - 2 * MARGIN;
         int pixHeight = getHeight() - 2 * MARGIN;
         Graphics2D translated = (Graphics2D)graphics.create();

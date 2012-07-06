@@ -360,7 +360,7 @@ public abstract class AbstractExampleSet extends ResultObjectAdapter implements 
 	 *  example set has no information about the attribute statistics. That means, that attribute statistics
 	 *  must be (re-)calculated after the clone was created. */
 	@Override
-	public Object clone() {
+	public ExampleSet clone() {
 		try {
 			Class<? extends AbstractExampleSet> clazz = getClass();
 			java.lang.reflect.Constructor cloneConstructor = clazz.getConstructor(new Class[] { clazz });
