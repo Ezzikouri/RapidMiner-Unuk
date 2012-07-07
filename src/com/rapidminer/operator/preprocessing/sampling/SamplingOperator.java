@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.MappedExampleSet;
@@ -37,8 +38,10 @@ import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.MDInteger;
 import com.rapidminer.operator.ports.metadata.MetaDataInfo;
+import com.rapidminer.operator.ports.metadata.ParameterConditionedPrecondition;
 import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.operator.ports.quickfix.ParameterSettingQuickFix;
 import com.rapidminer.operator.preprocessing.sampling.sequences.AbsoluteSamplingSequenceGenerator;
@@ -55,6 +58,7 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 import com.rapidminer.tools.RandomGenerator;
 
@@ -97,6 +101,9 @@ public class SamplingOperator extends AbstractSamplingOperator {
 
 	public SamplingOperator(OperatorDescription description) {
 		super(description);
+		
+		ExampleSetPrecondition needNominalLabelCondition = new ExampleSetPrecondition(getExampleSetInputPort(), Attributes.LABEL_NAME, Ontology.NOMINAL);
+		getExampleSetInputPort().addPrecondition(new ParameterConditionedPrecondition(getExampleSetInputPort(), needNominalLabelCondition, getParameterHandler(), PARAMETER_BALANCE_DATA, Boolean.toString(true)));
 	}
 
 	@Override
@@ -311,5 +318,10 @@ public class SamplingOperator extends AbstractSamplingOperator {
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), SamplingOperator.class, null);
+	}
+	
+	@Override
+	protected void performAdditionalChecks() {
+		super.performAdditionalChecks();
 	}
 }
