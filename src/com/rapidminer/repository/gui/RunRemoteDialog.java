@@ -134,7 +134,7 @@ public class RunRemoteDialog extends ButtonDialog {
 	private CronEditorDialog cronEditor = new CronEditorDialog();
 
 	public RunRemoteDialog(Process process) {
-		super("runremotedialog", true);
+		super("runremotedialog", true, new Object[]{});
 		setModal(true);
 
 		dateField.setStripTime(false);

@@ -336,7 +336,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
-					SwingTools.showFinalErrorMessage("generic_plotter_error", e, true);
+					SwingTools.showFinalErrorMessage("generic_plotter_error", e, true, new Object[] {});
 					handlePlottimeException(new ChartPlottimeException("generic_plotter_error"));
 					return null;
 				}

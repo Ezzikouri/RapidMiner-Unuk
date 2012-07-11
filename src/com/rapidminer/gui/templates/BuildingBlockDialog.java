@@ -229,7 +229,7 @@ public class BuildingBlockDialog extends ButtonDialog {
 	}
 	
 	public BuildingBlockDialog(String i18nKey, int buildingBlockSource) {
-		super(i18nKey, true);
+		super(i18nKey, true,new Object[]{});
 
 		// add components to main panel
 		List<BuildingBlock> buildingBlocks = null;

@@ -60,7 +60,7 @@ public class TemplateWizardDialog extends AbstractWizard {
     private Collection<OperatorParameterPair> parameters = null; 
 	
 	public TemplateWizardDialog() {
-		super(RapidMinerGUI.getMainFrame(), "open_template", true);
+		super(RapidMinerGUI.getMainFrame(), "open_template", true, new Object[]{});
 		addStep(new WizardStep("open_template.choose_template") {
 
 			private TemplatesDialog dialog = new TemplatesDialog(Template.ALL);

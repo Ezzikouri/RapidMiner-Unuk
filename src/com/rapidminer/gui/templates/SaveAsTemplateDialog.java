@@ -93,7 +93,7 @@ public class SaveAsTemplateDialog extends ButtonDialog {
 
     /** Creates a new save as template dialog. */
     public SaveAsTemplateDialog(Process process) {
-        super("save_as_template", true);
+        super("save_as_template", true,new Object[]{});
         this.process = process;
 
         descriptionField.setText(process.getRootOperator().getUserDescription());

@@ -96,7 +96,7 @@ public class SearchDialog extends ButtonDialog {
 	}
 	
 	public SearchDialog(Component owner, SearchableTextComponent textComponent, boolean allowReplace) {
-		super("search_replace", false);
+		super("search_replace", false, new Object[]{});
         
 		this.textComponent = textComponent;
 		this.textComponent.requestFocus();

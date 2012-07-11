@@ -129,7 +129,7 @@ public class CronEditorDialog extends ButtonDialog {
 	 * Creates a new cron editor dialog.
 	 */
 	public CronEditorDialog() {
-		super("croneditordialog", true);
+		super("croneditordialog", true,new Object[]{});
 
 		setupGUI();
 

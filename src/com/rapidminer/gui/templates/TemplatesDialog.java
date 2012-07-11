@@ -206,7 +206,7 @@ public class TemplatesDialog extends ButtonDialog {
     }
 
     public TemplatesDialog(int templateSource) {
-        super("manage_templates", true);
+        super("manage_templates", true,new Object[]{});
         switch (templateSource) {
         case Template.PREDEFINED:
             readSystemTemplates();

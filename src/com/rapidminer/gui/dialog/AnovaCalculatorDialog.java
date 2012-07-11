@@ -89,7 +89,7 @@ public class AnovaCalculatorDialog extends ButtonDialog {
 	private final AnovaTableModel tableModel;
 
 	public AnovaCalculatorDialog() {
-		super("anova_calculator", true);
+		super("anova_calculator", true,new Object[]{});
 
 		JPanel panel = new JPanel(new BorderLayout());
 		this.calculator = new AnovaCalculator();

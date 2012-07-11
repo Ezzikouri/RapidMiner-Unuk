@@ -313,9 +313,9 @@ public class ExcelImportWizard extends DataImportWizard {
 					throw new UndefinedParameterError("");
 				}
 				File file = new File(fileLocation);
-				(new ExcelImportWizard(getI18NKey(), listener, file, false, null)).setVisible(true);
+				(new ExcelImportWizard(getI18NKey(), listener, file, false, new Object[]{null})).setVisible(true);
 			} catch (UndefinedParameterError e) {
-				(new ExcelImportWizard(getI18NKey(), listener, null, false, null)).setVisible(true);
+				(new ExcelImportWizard(getI18NKey(), listener, null, false, new Object[]{null})).setVisible(true);
 			}
 		}
 

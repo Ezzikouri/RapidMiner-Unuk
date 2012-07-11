@@ -65,7 +65,7 @@ public class ExampleVisualizer implements ObjectVisualizer {
 
 	public void startVisualization(final Object objId) {
 		remapIds();
-		JDialog dialog = new ButtonDialog("example_visualizer_dialog", false, objId) {
+		JDialog dialog = new ButtonDialog("example_visualizer_dialog", false,new Object[] {objId}) {
 			private static final long serialVersionUID = 1L;
 			{
 				double idValue = Double.NaN;

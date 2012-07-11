@@ -279,9 +279,9 @@ public class CSVImportWizard extends DataImportWizard {
 					throw new UndefinedParameterError("");
 				}
 				File file = new File(fileLocation);
-				(new CSVImportWizard(getI18NKey(), listener, file, false, null)).setVisible(true);
+				(new CSVImportWizard(getI18NKey(), listener, file, false, new Object[]{null})).setVisible(true);
 			} catch (UndefinedParameterError e) {
-				(new CSVImportWizard(getI18NKey(), listener, null, false, null)).setVisible(true);
+				(new CSVImportWizard(getI18NKey(), listener, null, false, new Object[]{null})).setVisible(true);
 			}
 		}
 

@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.test_utils;
 
 import java.text.MessageFormat;
@@ -243,8 +244,7 @@ public class RapidAssert extends Assert {
 	/**
 	 * Compares a string linewise, i.e. ignores different linebreak characters.
 	 * 
-	 * Does this by transforming all linebreaks into a single \n and then comparing
-	 * the complete texts. Thus you get a nice diff when using junit within eclipse.
+	 * Does this by incrementally reading all expected an actual lines and comparing them linewise.
 	 * 
 	 * @param message
 	 * @param expected
@@ -254,16 +254,22 @@ public class RapidAssert extends Assert {
 		Scanner expectedScanner = new Scanner(expected);
 		Scanner actualScanner = new Scanner(actual);
 
-		StringBuilder expectedBuilder = new StringBuilder();
-		StringBuilder actualBuilder = new StringBuilder();
+		//		StringBuilder expectedBuilder = new StringBuilder();
+		//		StringBuilder actualBuilder = new StringBuilder();
 
+		String expectedLine = null;
+		String actualLine = null;
+		int lineCounter = 1;
 		while (expectedScanner.hasNextLine()) {
-			expectedBuilder.append(expectedScanner.nextLine()).append("\n");
+			expectedLine = expectedScanner.nextLine();
+			if (actualScanner.hasNextLine()) {
+				actualLine = actualScanner.nextLine();
+			} else {
+				fail("Line " + lineCounter + ": actual input has less lines then expected result! Expected: " + expectedLine);
+			}
+			assertEquals("Line " + lineCounter + ": " + message, expectedLine, actualLine);
+			++lineCounter;
 		}
-		while (actualScanner.hasNextLine()) {
-			actualBuilder.append(actualScanner.nextLine()).append("\n");
-		}
-		assertEquals(message, expectedBuilder.toString(), actualBuilder.toString());
 	}
 
 	/**

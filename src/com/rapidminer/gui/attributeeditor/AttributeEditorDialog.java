@@ -85,7 +85,7 @@ public class AttributeEditorDialog extends ButtonDialog implements WindowListene
 	}
 
 	public AttributeEditorDialog(JFrame owner, Operator exampleSource) {
-		super(owner, "attribute_editor", true);
+		super(owner, "attribute_editor", true, new Object[]{});
         
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(this);

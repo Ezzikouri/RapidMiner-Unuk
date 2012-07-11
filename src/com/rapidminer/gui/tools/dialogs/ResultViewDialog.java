@@ -35,7 +35,7 @@ public class ResultViewDialog extends ButtonDialog {
 	private static final long serialVersionUID = -1111667366524535499L;
 	
 	public ResultViewDialog(String i18nKey, JComponent results, Object...i18nArgs) {
-		super("results." + i18nKey, true);
+		super("results." + i18nKey, true,new Object[]{});
 		results.setBorder(createBorder());
 		layoutDefault(results, ButtonDialog.LARGE, makeCloseButton());
 	}

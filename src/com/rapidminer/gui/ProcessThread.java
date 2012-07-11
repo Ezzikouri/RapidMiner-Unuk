@@ -106,20 +106,20 @@ public class ProcessThread extends Thread {// implements ProcessListener {
             } else if (e instanceof NoBugError) { // no bug? Show nice error screen (user error infos)...
                 if (e instanceof UserError) {
                     UserError userError = (UserError) e;
-                    SwingTools.showFinalErrorMessage("process_failed_user_error", e, debugMode, userError.getMessage(), userError.getDetails());
+                    SwingTools.showFinalErrorMessage("process_failed_user_error", e, debugMode,new Object[]{userError.getMessage(), userError.getDetails()});
                 } else {
-                    SwingTools.showFinalErrorMessage("process_failed_simple", e, debugMode);
+                    SwingTools.showFinalErrorMessage("process_failed_simple", e, debugMode, new Object[] {});
                 }
             } else {
                 if (debugMode) {
-                    SwingTools.showFinalErrorMessage("process_failed_simple", e, true);
+                    SwingTools.showFinalErrorMessage("process_failed_simple", e, true, new Object[] {});
                 } else {
                     // perform process check. No bug report if errors...
                     if (e instanceof NullPointerException || e instanceof ArrayIndexOutOfBoundsException) {
                         LogService.getRoot().log(Level.SEVERE, e.toString(), e);
                         SwingTools.showVerySimpleErrorMessage("proc_failed_without_obv_reason");
                     } else {
-                        SwingTools.showSimpleErrorMessage("process_failed_simple", e, false);
+                        SwingTools.showSimpleErrorMessage("process_failed_simple", e, false, new Object[] {});
                     }
                 }
             }

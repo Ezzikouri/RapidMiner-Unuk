@@ -38,7 +38,7 @@ public class RepositoryConfigurationDialog extends ButtonDialog {
 	private Repository repository;
 	
 	public RepositoryConfigurationDialog(Repository repository) {
-		super("repositoryconfigdialog", true);
+		super("repositoryconfigdialog", true,new Object[]{});
 		this.repository = repository;
 		configurationPanel = repository.makeConfigurationPanel();
 		configurationPanel.configureUIElementsFrom(repository);

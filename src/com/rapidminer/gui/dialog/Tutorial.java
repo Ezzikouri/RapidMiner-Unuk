@@ -110,7 +110,7 @@ public class Tutorial extends ButtonDialog implements WindowListener {
 	private final JButton prevButton, nextButton;
 
 	public Tutorial(MainFrame mainFrame) {
-		super("tutorial", false);
+		super("tutorial", false,new Object[]{});
 		this.mainFrame = mainFrame;
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		addWindowListener(this);

@@ -61,7 +61,7 @@ public class SettingsDialog extends ButtonDialog {
     }
 
     public SettingsDialog(String initialSelectedTab) {
-        super("settings", true);
+        super("settings", true,new Object[]{});
         tabs = new SettingsTabs(initialSelectedTab);
 
         // create buttons

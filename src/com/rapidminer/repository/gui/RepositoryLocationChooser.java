@@ -97,7 +97,7 @@ public class RepositoryLocationChooser extends JPanel {
 		private String userSelection = null;
 				
 		public RepositoryLocationChooserDialog(RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders) {
-			super("repository_chooser", true);
+			super("repository_chooser", true,new Object[]{});
 			final JButton okButton = makeOkButton();
 			chooser = new RepositoryLocationChooser(this, resolveRelativeTo, initialValue, allowEntries, allowFolders);
 			chooser.tree.addRepositorySelectionListener(new RepositorySelectionListener() {

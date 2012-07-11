@@ -43,7 +43,7 @@ public class ProcessInfoScreen extends ButtonDialog {
 	private static final long serialVersionUID = 7687035897010730802L;
 
 	public ProcessInfoScreen(String file, String text) {
-		super("process_info", true, file);
+		super("process_info", true, new Object[] {file});
 
 		JEditorPane description = new ExtendedHTMLJEditorPane("text/html", SwingTools.text2DisplayHtml(text));
 		description.setToolTipText("A short description of this process");

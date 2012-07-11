@@ -80,7 +80,7 @@ public class DecisionRememberingConfirmDialog extends ButtonDialog {
     private boolean confirmed;
 
     private DecisionRememberingConfirmDialog(String i18nKey, String property) {
-        super(i18nKey, true);
+        super(i18nKey, true,new Object[]{});
         this.propertyName = property;
 
         dontAskAgainBox = new JCheckBox(new ResourceActionAdapter("remember_decision"));

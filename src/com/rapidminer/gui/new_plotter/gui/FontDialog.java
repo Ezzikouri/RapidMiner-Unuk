@@ -101,7 +101,7 @@ public class FontDialog extends ButtonDialog {
 	private JLabel previewLabel;
 
 	public FontDialog(Component parent, Font font, String i18nKey) {
-		super(i18nKey, true);
+		super(i18nKey, true,new Object[]{});
 		this.font = font;
 		
 		this.setResizable(false);

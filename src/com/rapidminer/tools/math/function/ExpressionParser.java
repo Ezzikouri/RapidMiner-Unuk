@@ -68,6 +68,7 @@ import com.rapidminer.tools.math.function.expressions.BitwiseOr;
 import com.rapidminer.tools.math.function.expressions.BitwiseXor;
 import com.rapidminer.tools.math.function.expressions.Constant;
 import com.rapidminer.tools.math.function.expressions.LogarithmDualis;
+import com.rapidminer.tools.math.function.expressions.MacroValue;
 import com.rapidminer.tools.math.function.expressions.Maximum;
 import com.rapidminer.tools.math.function.expressions.Minimum;
 import com.rapidminer.tools.math.function.expressions.Missing;
@@ -468,6 +469,7 @@ public class ExpressionParser {
 		List<FunctionDescription> processFunctions = new LinkedList<FunctionDescription>();
 		processFunctions.add(new FunctionDescription("param()", "Parameter",
 				"Delivers the specified parameter of the specified operator; example: param(\"Read Excel\", \"file\")", 2));
+		processFunctions.add(new FunctionDescription("macro()", "Macro", "Delivers the macro of the given argument; example: macro(\"x\")", 1));
 		FUNCTIONS.put(FUNCTION_GROUPS[6], processFunctions);
 
 		// miscellaneous functions
@@ -507,6 +509,7 @@ public class ExpressionParser {
 		this(useStandardConstants);
 		if (process != null) {
 			parser.addFunction("param", new ParameterValue(process));
+			parser.addFunction("macro", new MacroValue(process));
 		}
 	}
 

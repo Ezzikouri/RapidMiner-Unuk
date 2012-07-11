@@ -72,7 +72,7 @@ public class OperatorInfoScreen extends ButtonDialog {
 	
 	public OperatorInfoScreen(Operator operator) {
 		// TODO: externalize strings and icon names
-		super("operator_info", true);
+		super("operator_info", true,new Object[]{});
 		this.operator = operator;
 		setTitle(getTitle());  // must be executed after setting member field  
 		

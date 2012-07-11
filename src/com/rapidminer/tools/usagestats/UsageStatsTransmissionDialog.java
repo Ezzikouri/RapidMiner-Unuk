@@ -75,7 +75,7 @@ public class UsageStatsTransmissionDialog extends ButtonDialog {
 	};
 
 	private UsageStatsTransmissionDialog() {
-		super("transmit_usage_statistics", true);
+		super("transmit_usage_statistics", true, new Object[]{});
 
 		JButton neverButton = new JButton(new ResourceAction("never") {
 

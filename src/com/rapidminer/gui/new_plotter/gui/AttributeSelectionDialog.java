@@ -108,7 +108,7 @@ public class AttributeSelectionDialog extends ButtonDialog {
 	};
 
 	public AttributeSelectionDialog(final List<DataTableColumn> columns) { //List<DataTableColumn preselectedColumns) {
-		super("plotter.attribute_selection", true);
+		super("plotter.attribute_selection", true,new Object[]{});
 		JPanel panel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 

@@ -154,7 +154,7 @@ public class OperatorDocLoader {
 						toShowText = loadSelectedOperatorDocuLocally(opDesc);
 					}
 				} catch (Exception e) {
-					SwingTools.showFinalErrorMessage("rapid_doc_bot_importer_showInBrowser", e, true, e.getMessage());
+					SwingTools.showFinalErrorMessage("rapid_doc_bot_importer_showInBrowser", e, true,new Object[] {e.getMessage()});
 					toShowText = ERROR_TEXT_FOR_WIKI;
 				}
 				if (activateCache && StringUtils.isNotBlank(toShowText) && StringUtils.isNotEmpty(toShowText)) {

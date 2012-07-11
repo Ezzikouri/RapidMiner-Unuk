@@ -37,7 +37,7 @@ public class PropertyDialog extends ButtonDialog {
 	private final ParameterType type;
 
 	public PropertyDialog(final ParameterType type, String key) {
-		super("parameter." + key, true);
+		super("parameter." + key, true,new Object[]{});
 		this.type = type;
 	}
 

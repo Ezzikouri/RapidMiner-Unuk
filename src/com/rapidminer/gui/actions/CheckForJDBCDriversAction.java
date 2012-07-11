@@ -47,7 +47,7 @@ public class CheckForJDBCDriversAction extends ResourceAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-    	final ButtonDialog dialog = new ButtonDialog("jdbc_drivers", true) {
+    	final ButtonDialog dialog = new ButtonDialog("jdbc_drivers", true, new Object[]{}) {
 			private static final long serialVersionUID = 8300330464175246257L;
 			
 			{

@@ -64,7 +64,7 @@ public class SaveAsBuildingBlockDialog extends ButtonDialog {
 
     /** Creates a new save as building block dialog. */
     public SaveAsBuildingBlockDialog(Operator operator) {
-        super("save_building_block", true);
+        super("save_building_block", true,new Object[]{});
 
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();

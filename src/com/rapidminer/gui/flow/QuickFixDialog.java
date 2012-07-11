@@ -60,7 +60,7 @@ public class QuickFixDialog extends ButtonDialog {
 	}
 	
 	public QuickFixDialog(Collection<? extends QuickFix> fixes) {
-		super("quick_fix_dialog", true);
+		super("quick_fix_dialog", true,new Object[]{});
 
 		
 		for (final QuickFix fix : fixes) {

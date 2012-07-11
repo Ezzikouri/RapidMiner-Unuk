@@ -116,7 +116,7 @@ public final class NewOperatorDialog extends ButtonDialog {
     }
 
     public NewOperatorDialog(Actions actions, final Class<? extends IOObject> inputClass, final Class<? extends IOObject> outputClass, final OperatorCapability firstCapability, final OperatorCapability secondCapability, boolean modal) {
-        super("new_operator", modal);
+        super("new_operator", modal,new Object[]{});
         this.actions = actions;
         this.inputClass = inputClass;
         this.outputClass = outputClass;

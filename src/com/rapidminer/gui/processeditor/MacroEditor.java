@@ -178,7 +178,7 @@ public class MacroEditor extends JPanel {
 	}
 	
 	public static void showMacroEditorDialog(final ProcessContext context) {
-		ButtonDialog dialog = new ButtonDialog("define_macros", true) {
+		ButtonDialog dialog = new ButtonDialog("define_macros", true,new Object[]{}) {
 			private static final long serialVersionUID = 2874661432345426452L;
 
 			{

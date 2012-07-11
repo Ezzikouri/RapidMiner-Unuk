@@ -85,7 +85,7 @@ public class SQLQueryBuilder extends ButtonDialog {
     private DatabaseHandler databaseHandler;
 
     public SQLQueryBuilder(DatabaseHandler databaseHandler) {
-        super("build_sql_query", true);
+        super("build_sql_query", true,new Object[]{});
         this.databaseHandler = databaseHandler;
     }
 

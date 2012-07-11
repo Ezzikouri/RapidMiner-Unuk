@@ -239,7 +239,7 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 					editor.setText(toShow);
 					editor.setCaretPosition(0);
 				} catch (Exception e) {
-					SwingTools.showFinalErrorMessage("rapid_doc_bot_importer_showInBrowser", e, true, e.getMessage());
+					SwingTools.showFinalErrorMessage("rapid_doc_bot_importer_showInBrowser", e, true,new Object[] {e.getMessage()});
 				}
 			}			
 		}.execute();

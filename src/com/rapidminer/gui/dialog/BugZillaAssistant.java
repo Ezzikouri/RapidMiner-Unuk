@@ -99,7 +99,7 @@ public class BugZillaAssistant extends ButtonDialog {
 
 
         public BugReportViewerDialog() {
-            super("send_bugreport_info", true);
+            super("send_bugreport_info", true, new Object[]{});
 
             final JPanel panel = new JPanel();
             panel.setLayout(new GridBagLayout());
@@ -146,7 +146,7 @@ public class BugZillaAssistant extends ButtonDialog {
 
 
     public BugZillaAssistant(ProgressThread thread, final Throwable exception, final XmlRpcClient client) throws XmlRpcException {
-        super("send_bugreport", true);
+        super("send_bugreport", true,new Object[]{});
         rpcClient = client;
         thread.getProgressListener().setCompleted(35);
         if (thread.isCancelled()) {
