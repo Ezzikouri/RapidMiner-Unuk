@@ -111,5 +111,16 @@ public abstract class NumericalAggregator implements Aggregator {
      * This method has to return the numerical value of this aggregator.
      */
     protected abstract double getValue();
-
+    
+    /**
+     * Explicitly sets the value of this aggregator. The only place where it makes sense
+     * to use this function is in {@link AggregationFunction#postProcessing(java.util.List)}.
+     * 
+     * The default implementation does nothing.
+     * 
+     * @param value
+     */
+    protected void setValue(double value) {
+    	// do nothing
+    }
 }

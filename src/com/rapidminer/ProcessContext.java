@@ -104,6 +104,27 @@ public class ProcessContext extends AbstractObservable<ProcessContext> implement
     public List<Pair<String, String>> getMacros() {
         return macros;
     }
+    
+    /**
+     * Updates the given macro with the given value. Fires an update after applying the changes.
+     * @param macroIndex index of the macro in the {@link #getMacros()} list
+     * @param pairIndex 0 for first value; 1 for second value
+     * @param newValue
+     */
+    public void updateMacroValue(int macroIndex, int pairIndex, String newValue) {
+    	switch (pairIndex) {
+		case 0:
+			getMacros().get(macroIndex).setFirst(newValue);
+			fireUpdate(this);
+			break;
+		case 1:
+			getMacros().get(macroIndex).setSecond(newValue);
+			fireUpdate(this);
+			break;
+		default:
+			throw new IndexOutOfBoundsException(pairIndex+" > 1");
+		}
+    }
 
     /** Adds a macro to the list or sets an existing one. */
     public void addMacro(Pair<String, String> macro) {

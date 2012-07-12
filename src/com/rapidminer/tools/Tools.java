@@ -28,8 +28,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -62,11 +60,22 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
 import org.apache.commons.lang.StringEscapeUtils;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.VersionNumber;
+import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
@@ -708,10 +717,55 @@ public class Tools {
 	public static String readTextFile(InputStream in) throws IOException {
 		return readTextFile(new InputStreamReader(in, "UTF-8"));
 	}
-
-	/** Reads a text file into a single string. */
+	
+	/** Reads a text file into a single string. 
+	 * Process files created with RapidMiner 5.2.008 or earlier will be read with
+	 * the system encoding (for compatibility reasons); all other files will be read
+	 * with UTF-8 encoding.
+	 * */
 	public static String readTextFile(File file) throws IOException {
-		return readTextFile(new FileReader(file));
+		FileInputStream inStream = new FileInputStream(file);
+		
+		// due to a bug in pre-5.2.009, process files were stored in System encoding instead of
+		// UTF-8. So we have to check the process version, and if it's less than 5.2.009 we have
+		// to retrieve the file again with System encoding.
+		// If anything goes wrong while parsing the version number, we continue with the old
+		// method. If something goes wrong, the file is either not utf-8 encoded (so the old
+		// method will probably work), or it is not a valid process file (which will also be
+		// detected by the old method).
+		boolean useFallback = false;
+		try {
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+			Document processXmlDocument = documentBuilder.parse(inStream);
+			XPathFactory xPathFactory = XPathFactory.newInstance();
+			XPath xPath = xPathFactory.newXPath();
+			String versionString = xPath.evaluate("/process/@version", processXmlDocument);
+			VersionNumber version = new VersionNumber(versionString);
+			if (version.isAtMost(5, 2, 8)) {
+				useFallback = true;
+			}
+		} catch (XPathExpressionException e) {
+			useFallback = true;
+		} catch (SAXException e) {
+			useFallback = true;
+		} catch (ParserConfigurationException e) {
+			useFallback = true;
+		} catch (IOException e) {
+			useFallback = true;
+		}
+
+		InputStreamReader reader = null;
+		inStream = new FileInputStream(file);
+		if (useFallback) {
+			// default reader (as in old versions)
+			reader = new InputStreamReader(inStream);
+		} else {
+			// utf8 reader
+			reader = new InputStreamReader(inStream, XMLImporter.PROCESS_FILE_CHARSET);
+		}
+		
+		return readTextFile(reader);
 	}
 
 	public static String readTextFile(Reader r) throws IOException {
@@ -729,11 +783,11 @@ public class Tools {
 	}
 
 	public static void writeTextFile(File file, String text) throws IOException {
-		FileWriter out = new FileWriter(file);
+		FileOutputStream outStream = new FileOutputStream(file);
 		try {
-			out.write(text);
+			outStream.write(text.getBytes(XMLImporter.PROCESS_FILE_CHARSET));
 		} finally {
-			out.close();
+			outStream.close();
 		}
 	}
 

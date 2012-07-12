@@ -179,12 +179,25 @@ public class XMLTools {
     public static Document parse(File file) throws SAXException, IOException {
         return BUILDER.parse(file);
     }
+    
+    public static String toString(Document document) throws XMLException {
+        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        Charset utf8 = Charset.forName("UTF-8");
+		stream(document, buf, utf8);
+        return new String(buf.toByteArray(), utf8);
+    }
 
+    /**
+     * @param document
+     * @param encoding
+     * @return
+     * @throws XMLException
+     * @deprecated use {@link #toString(Document)} instead
+     */
     public static String toString(Document document, Charset encoding) throws XMLException {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        StreamResult result = new StreamResult(new OutputStreamWriter(buf));
-        stream(document, result, encoding);
-        return buf.toString();
+        stream(document, buf, encoding);
+        return new String(buf.toByteArray(), encoding);
     }
 
     public static void stream(Document document, File file, Charset encoding) throws XMLException {

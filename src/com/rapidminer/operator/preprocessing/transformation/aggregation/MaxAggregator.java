@@ -61,5 +61,8 @@ public class MaxAggregator extends NumericalAggregator {
             return Double.NaN;
     }
 
-
+	@Override
+	public void setValue(double value) {
+		this.max = value;
+	}
 }

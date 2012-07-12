@@ -34,6 +34,8 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.SwingUtilities;
 
+import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.actions.CloseAllResultsAction;
 import com.rapidminer.gui.actions.StoreInRepositoryAction;
 import com.rapidminer.gui.tools.components.DropDownButton;
 import com.rapidminer.operator.IOObject;
@@ -64,7 +66,7 @@ public class RadioCardPanel extends JPanel {
 	private int counter = 0;
 
 	public RadioCardPanel(String name, IOObject object) {
-		this(name, object, true, true);
+		this(name, object, true, true, true);
 	}
 	
 	public RadioCardPanel(String name, IOObject object, boolean showRepositoryStorageButton, boolean showExportMenuButton) {
@@ -72,6 +74,23 @@ public class RadioCardPanel extends JPanel {
 		add(mainPanel, BorderLayout.CENTER);
 		add(toolBar, BorderLayout.NORTH);
 
+		if (showRepositoryStorageButton) {
+			toolBar.add(new StoreInRepositoryAction(object), ViewToolBar.RIGHT);
+		}
+		if (showExportMenuButton) {
+			DropDownButton exportButton = PrintingTools.makeExportPrintDropDownButton(mainPanel, (object instanceof ResultObject ? ((ResultObject)object).getName() : "result") + " " + object.getSource());
+			exportButton.addToToolBar(toolBar, ViewToolBar.RIGHT);
+		}
+	}
+	
+	public RadioCardPanel(String name, IOObject object, boolean showRepositoryStorageButton, boolean showExportMenuButton, boolean showCloseAllResultsButton) {
+		setLayout(new BorderLayout());
+		add(mainPanel, BorderLayout.CENTER);
+		add(toolBar, BorderLayout.NORTH);
+
+		if (showCloseAllResultsButton) {
+			toolBar.add(new CloseAllResultsAction(RapidMinerGUI.getMainFrame()), ViewToolBar.RIGHT);
+		}
 		if (showRepositoryStorageButton) {
 			toolBar.add(new StoreInRepositoryAction(object), ViewToolBar.RIGHT);
 		}

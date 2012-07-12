@@ -66,17 +66,21 @@ public class SettingsDialog extends ButtonDialog {
 
         // create buttons
         Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
-        buttons.add(new JButton(new ResourceAction("settings_apply") {
+        buttons.add(new JButton(new ResourceAction("settings_ok") {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-                tabs.applyProperties();
-                fireSettingsChanged();
-                setConfirmed(true);
-                dispose();
+            	try {
+                    tabs.save();
+                    fireSettingsChanged();
+                    setConfirmed(true);
+                    dispose();
+                } catch (IOException ioe) {
+                    SwingTools.showSimpleErrorMessage("cannot_save_properties", ioe);
+                }
             }
         }));
-        buttons.add(new JButton(new ResourceAction("settings_save") {
+        buttons.add(new JButton(new ResourceAction("settings_apply") {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -84,7 +88,6 @@ public class SettingsDialog extends ButtonDialog {
                     tabs.save();
                     fireSettingsChanged();
                     setConfirmed(true);
-                    dispose();
                 } catch (IOException ioe) {
                     SwingTools.showSimpleErrorMessage("cannot_save_properties", ioe);
                 }

@@ -51,4 +51,10 @@ public class ProductAggregator extends NumericalAggregator {
     public double getValue() {
         return product;
     }
+    
+	@Override
+	public void setValue(double value) {
+		this.product = value;
+	}
+
 }

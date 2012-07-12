@@ -91,9 +91,10 @@ public class MacroEditor extends JPanel {
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 			switch (columnIndex) {
 			case 0:
-				context.getMacros().get(rowIndex).setFirst(aValue.toString()); break;
-			case 1: 
-				context.getMacros().get(rowIndex).setSecond(aValue.toString()); break;
+			case 1:
+				// changed to a new method which fires updates so RM notices a process context change and visualizes it immediately
+				context.updateMacroValue(rowIndex, columnIndex, aValue.toString());
+				break;
 			default:
 				throw new IndexOutOfBoundsException(columnIndex+" > 1");
 			}

@@ -60,4 +60,9 @@ public class MinAggregator extends NumericalAggregator {
         else
             return Double.NaN;
     }
+
+	@Override
+	public void setValue(double value) {
+		this.min = value;
+	}
 }

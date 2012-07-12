@@ -53,4 +53,10 @@ public class MeanAggregator extends NumericalAggregator {
     public double getValue() {
         return sum / totalWeight;
     }
+
+    @Override
+	public void setValue(double value) {
+		this.sum = value;
+	}
+
 }

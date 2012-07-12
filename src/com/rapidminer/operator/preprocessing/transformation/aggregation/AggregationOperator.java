@@ -86,7 +86,7 @@ import com.rapidminer.tools.OperatorService;
  * Please note that the known HAVING clause from SQL can be simulated by an additional {@link ExampleFilter} operator following this one.
  * </p>
  * 
- * @author Tobias Malbrecht, Ingo Mierswa, Sebastian Land
+ * @author Tobias Malbrecht, Ingo Mierswa, Sebastian Land, Marius Helf
  */
 public class AggregationOperator extends AbstractDataProcessing {
 
@@ -217,6 +217,7 @@ public class AggregationOperator extends AbstractDataProcessing {
      * Also after this numerical attributes used for grouping will not be transformed into nominal attributes anymore.
      */
     private static final OperatorVersion VERSION_5_1_6 = new OperatorVersion(5, 1, 6);
+	private static final OperatorVersion VERSION_5_2_8 = new OperatorVersion(5, 2, 8);
 
     private final AttributeSubsetSelector attributeSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
 
@@ -357,13 +358,56 @@ public class AggregationOperator extends AbstractDataProcessing {
         DataRowFactory factory = new DataRowFactory(DataRowFactory.TYPE_DOUBLE_ARRAY, '.');
         double[] dataOfUpperLevels = new double[groupAttributes.length];
 
+        // prepare empty lists
+    	ArrayList<List<Aggregator>> allAggregators = new ArrayList<List<Aggregator>>();
+    	for (int aggregatorIdx = 0; aggregatorIdx < aggregationFunctions.size(); ++aggregatorIdx) {
+    		allAggregators.add(new ArrayList<Aggregator>());
+    	}
+    	
+    	ArrayList<double[]> allGroupCombinations = new ArrayList<double[]>();
+
+        
         if (groupAttributes.length > 0) {
             // going through all possible groups recursively
-            parseTree(rootNode, groupAttributes, dataOfUpperLevels, 0, table, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
+            parseTree(rootNode, groupAttributes, dataOfUpperLevels, 0, allGroupCombinations, allAggregators, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
         } else {
             // just enter values from single leaf node
-            parseLeaf(leafNode, dataOfUpperLevels, table, factory, newAttributes, aggregationFunctions);
+            parseLeaf(leafNode, dataOfUpperLevels, allGroupCombinations, allAggregators, factory, newAttributes, aggregationFunctions);
         }
+        
+        
+        // apply post-processing
+        int currentFunctionIdx = 0;
+        for (AggregationFunction aggregationFunction : aggregationFunctions) {
+        	aggregationFunction.postProcessing(allAggregators.get(currentFunctionIdx));
+        	++currentFunctionIdx;
+        }
+        
+        // write data into table
+        int currentRow = 0;
+        for (double[] groupValues : allGroupCombinations) {
+        	double[] rowData = new double[newAttributes.length];
+        	
+        	// copy group values into row
+        	System.arraycopy(groupValues, 0, rowData, 0, groupValues.length);
+          DoubleArrayDataRow dataRow = new DoubleArrayDataRow(rowData);
+
+        	// copy aggregated values into row
+        	int currentColumn = groupValues.length;
+        	for (List<Aggregator> aggregatorsForColumn : allAggregators) {
+        		Aggregator aggregatorForCurrentCell = aggregatorsForColumn.get(currentRow);
+        		Attribute currentAttribute = newAttributes[currentColumn];
+        		if (aggregatorForCurrentCell != null) {
+					aggregatorForCurrentCell.set(currentAttribute, dataRow);
+        		} else {
+        			aggregationFunctions.get(currentColumn-groupAttributes.length).setDefault(currentAttribute, dataRow);
+        		}
+        		++currentColumn;
+        	}
+        	table.addDataRow(dataRow);
+        	++currentRow;
+        }
+
 
         // postprocessing for remaining compatibility: Old versions automatically added group "all". Must remain this way for old operator
         // version
@@ -393,38 +437,43 @@ public class AggregationOperator extends AbstractDataProcessing {
                 }
             }
         }
-
-        // for recent verrsion table is correct: Deliver example set
+        
+        // for recent version table is correct: Deliver example set
         return table.createExampleSet();
     }
 
-    private void parseLeaf(LeafAggregationTreeNode node, double[] dataOfUpperLevels, MemoryExampleTable table, DataRowFactory factory, Attribute[] newAttributes, List<AggregationFunction> aggregationFunctions) {
-        // first copying data from groups
-        double[] newData = new double[newAttributes.length];
-        System.arraycopy(dataOfUpperLevels, 0, newData, 0, dataOfUpperLevels.length);
+    private void parseLeaf(LeafAggregationTreeNode node, double[] dataOfUpperLevels, List<double[]> allGroupCombinations, List<List<Aggregator>> allAggregators, DataRowFactory factory, Attribute[] newAttributes, List<AggregationFunction> aggregationFunctions) {
+    	// first copying data from groups
+        double[] newGroupCombination = new double[dataOfUpperLevels.length];
+        System.arraycopy(dataOfUpperLevels, 0, newGroupCombination, 0, dataOfUpperLevels.length);
+        allGroupCombinations.add(newGroupCombination);
 
-        DoubleArrayDataRow row = new DoubleArrayDataRow(newData);
+//        DoubleArrayDataRow row = new DoubleArrayDataRow(newData);
 
         // check whether leaf exists
         if (node != null) {
-            int i = dataOfUpperLevels.length;
+//            int i = dataOfUpperLevels.length;	// number of group attributes
+        	int i = 0;
             for (Aggregator aggregator : node.getAggregators()) {
-                aggregator.set(newAttributes[i], row);
+            	allAggregators.get(i).add(aggregator);
+//                aggregator.set(newAttributes[i], row);
                 i++;
             }
         } else {
             // fill in defaults for all aggregation functions
-            int i = dataOfUpperLevels.length;
-            for (AggregationFunction function : aggregationFunctions) {
-                function.setDefault(newAttributes[i], row);
-                i++;
-            }
+//            int i = dataOfUpperLevels.length;	// number of group attributes
+//            for (AggregationFunction function : aggregationFunctions) {
+//                function.setDefault(newAttributes[i], row);
+//                i++;
+        	for ( List<Aggregator> current : allAggregators) {
+        		current.add(null);
+        	}
         }
 
-        table.addDataRow(row);
+//        table.addDataRow(row);
     }
-
-    private void parseTree(AggregationTreeNode node, Attribute[] groupAttributes, double[] dataOfUpperLevels, int groupLevel, MemoryExampleTable table, DataRowFactory factory, Attribute[] newAttributes, boolean isCountingAllCombinations, List<AggregationFunction> aggregationFunctions) throws UserError {
+    
+    private void parseTree(AggregationTreeNode node, Attribute[] groupAttributes, double[] dataOfUpperLevels, int groupLevel, List<double[]> allGroupCombinations, List<List<Aggregator>> allAggregators, DataRowFactory factory, Attribute[] newAttributes, boolean isCountingAllCombinations, List<AggregationFunction> aggregationFunctions) throws UserError {
         Attribute currentAttribute = groupAttributes[groupLevel];
         if (currentAttribute.isNominal()) {
             Collection<? extends Object> nominalValues = null;
@@ -437,10 +486,10 @@ public class AggregationOperator extends AbstractDataProcessing {
                 dataOfUpperLevels[groupLevel] = newAttributes[groupLevel].getMapping().mapString(nominalValue.toString());
                 // check if we have more group defining attributes
                 if (groupLevel + 1 < groupAttributes.length) {
-                    parseTree(node.getOrCreateChild(nominalValue), groupAttributes, dataOfUpperLevels, groupLevel + 1, table, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
+                    parseTree(node.getOrCreateChild(nominalValue), groupAttributes, dataOfUpperLevels, groupLevel + 1, allGroupCombinations, allAggregators, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
                 } else {
                     // if not, insert values from aggregation functions
-                    parseLeaf(node.getLeaf(nominalValue), dataOfUpperLevels, table, factory, newAttributes, aggregationFunctions);
+                    parseLeaf(node.getLeaf(nominalValue), dataOfUpperLevels, allGroupCombinations, allAggregators, factory, newAttributes, aggregationFunctions);
                 }
 
             }
@@ -448,10 +497,10 @@ public class AggregationOperator extends AbstractDataProcessing {
             for (Object numericalValue : node.getValues()) {
                 dataOfUpperLevels[groupLevel] = (Double) numericalValue;
                 if (groupLevel + 1 < groupAttributes.length) {
-                    parseTree(node.getOrCreateChild(numericalValue), groupAttributes, dataOfUpperLevels, groupLevel + 1, table, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
+                    parseTree(node.getOrCreateChild(numericalValue), groupAttributes, dataOfUpperLevels, groupLevel + 1, allGroupCombinations, allAggregators, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
                 } else {
                     // if not, insert values from aggregation functions
-                    parseLeaf(node.getLeaf(numericalValue), dataOfUpperLevels, table, factory, newAttributes, aggregationFunctions);
+                    parseLeaf(node.getLeaf(numericalValue), dataOfUpperLevels, allGroupCombinations, allAggregators, factory, newAttributes, aggregationFunctions);
                 }
             }
         } else {
@@ -509,7 +558,14 @@ public class AggregationOperator extends AbstractDataProcessing {
         // building the default aggregations
         if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
             String defaultAggregationFunctionName = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
-            for (Attribute attribute : exampleSet.getAttributes()) {
+            
+            Iterator<Attribute> iterator = attributeSelector.getAttributeSubset(exampleSet, false).iterator();
+            if (getCompatibilityLevel().isAtMost(VERSION_5_2_8)) {
+            	iterator = exampleSet.getAttributes().iterator();
+            }
+            
+			while (iterator.hasNext()) {
+				Attribute attribute = iterator.next();
                 if (!explicitlyAggregatedAttributes.contains(attribute)) {
                     AggregationFunction function = AggregationFunction.createAggregationFunction(defaultAggregationFunctionName, attribute, ignoreMissings, countOnlyDistinct);
                     if (function.isCompatible()) {
@@ -552,7 +608,7 @@ public class AggregationOperator extends AbstractDataProcessing {
 
     @Override
     public OperatorVersion[] getIncompatibleVersionChanges() {
-        return new OperatorVersion[] { VERSION_5_1_6 };
+        return new OperatorVersion[] { VERSION_5_1_6, VERSION_5_2_8 };
     }
 
     @Override

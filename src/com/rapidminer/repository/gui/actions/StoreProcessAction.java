@@ -115,6 +115,7 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 						Process process = RapidMinerGUI.getMainFrame().getProcess();
 						process.setProcessLocation(new RepositoryProcessLocation(processEntry.getLocation()));
 						processEntry.storeXML(process.getRootOperator().getXML(false));
+						RapidMinerGUI.getMainFrame().processHasBeenSaved();
 					} catch (Exception e) {
 						SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e, processEntry.getName());								
 					} finally {

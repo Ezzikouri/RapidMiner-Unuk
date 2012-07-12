@@ -24,6 +24,7 @@ package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -53,7 +54,7 @@ import com.rapidminer.tools.Ontology;
  * extensions, preferable during their initialization. Please notice that there will be no warning prior process execution
  * if the extension is missing but the usage of it's function is still configured.
  *
- * @author Sebastian Land
+ * @author Sebastian Land, Marius Helf
  */
 public abstract class AggregationFunction {
 
@@ -63,6 +64,7 @@ public abstract class AggregationFunction {
     public static final Map<String, Class<? extends AggregationFunction>> AGGREATION_FUNCTIONS = new TreeMap<String, Class<? extends AggregationFunction>>();
     static {
         AGGREATION_FUNCTIONS.put("sum", SumAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("sum (fractional)", SumFractionalAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("median", MedianAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("average", MeanAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("variance", VarianceAggregationFunction.class);
@@ -85,6 +87,7 @@ public abstract class AggregationFunction {
     public static final Map<String, AggregationFunctionMetaDataProvider> AGGREGATION_FUNCTIONS_META_DATA_PROVIDER = new HashMap<String, AggregationFunctionMetaDataProvider>();
     static {
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("sum", new DefaultAggregationFunctionMetaDataProvider("sum", SumAggregationFunction.FUNCTION_SUM, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NUMERICAL }));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("sum (fractional)", new DefaultAggregationFunctionMetaDataProvider("fractionalSum", SumFractionalAggregationFunction.FUNCTION_SUM_FRACTIONAL, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NUMERICAL }));
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("median", new DefaultAggregationFunctionMetaDataProvider("median", MedianAggregationFunction.FUNCTION_MEDIAN, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NUMERICAL, Ontology.DATE_TIME }));
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("average", new DefaultAggregationFunctionMetaDataProvider("average", MeanAggregationFunction.FUNCTION_AVERAGE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NUMERICAL, Ontology.DATE_TIME }, Ontology.REAL));
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("variance", new DefaultAggregationFunctionMetaDataProvider("variance", VarianceAggregationFunction.FUNCTION_VARIANCE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NUMERICAL }, Ontology.REAL));
@@ -221,6 +224,16 @@ public abstract class AggregationFunction {
     public static void registerNewAggregationFunction(String name, Class<? extends AggregationFunction> clazz, AggregationFunctionMetaDataProvider metaDataProvider) {
         AGGREATION_FUNCTIONS.put(name, clazz);
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put(name, metaDataProvider);
+    }
+    
+    /**
+     * This function is called once during the aggregation process, when all {@link Aggregator}s are known.
+     * In this step post-processing like normalization etc. can be done.
+     * 
+     * The default implementation does nothing.
+     */
+    public void postProcessing(List<Aggregator> allAggregators) {
+    	// do nothing
     }
 
 }

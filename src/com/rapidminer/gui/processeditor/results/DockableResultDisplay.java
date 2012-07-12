@@ -331,7 +331,9 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 				toClose.add(state.getDockable());
 			}										
 		}
-		if (!toClose.isEmpty() || !dataTables.isEmpty()) {
+		if ((!toClose.isEmpty() || !dataTables.isEmpty()) && alsoClearLogs) {
+			// only allow deletion of previous results when also clearing logs (that excludes the case "resume breakpoint")
+			// fix for deletion of results after breakpoint resume
 			if (DecisionRememberingConfirmDialog.confirmAction("result.close_before_run", RapidMinerGUI.PROPERTY_CLOSE_RESULTS_BEFORE_RUN)) {
 				DockableResultDisplay.this.dataTables.clear();
 				//updateDataTables();

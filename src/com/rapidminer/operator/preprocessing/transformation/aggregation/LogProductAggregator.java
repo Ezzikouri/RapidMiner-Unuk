@@ -51,4 +51,8 @@ public class LogProductAggregator extends NumericalAggregator {
         return logSum;
     }
 
+	@Override
+	public void setValue(double value) {
+		this.logSum = value;
+	}
 }

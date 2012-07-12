@@ -266,7 +266,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     }
 
     /** The title of the frame. */
-    public static final String TITLE = "RapidMiner";
+    public static final String TITLE = "RapidMiner " + RapidMiner.getLongVersion();
 
     // --------------------------------------------------------------------------------
 
@@ -1197,7 +1197,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     private void setTitle() {
         if (hostname == null) {
             try {
-                hostname = "@" + InetAddress.getLocalHost().getHostName();
+                hostname = " @ " + InetAddress.getLocalHost().getHostName();
             } catch (UnknownHostException e) {
                 hostname = "";
             }

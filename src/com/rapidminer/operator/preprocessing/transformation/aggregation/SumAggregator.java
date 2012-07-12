@@ -49,4 +49,9 @@ public class SumAggregator extends NumericalAggregator {
     public double getValue() {
         return sum;
     }
+    
+	@Override
+	public void setValue(double value) {
+		this.sum = value;
+	}
 }

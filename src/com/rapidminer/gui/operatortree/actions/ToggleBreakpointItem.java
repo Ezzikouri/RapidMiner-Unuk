@@ -28,6 +28,7 @@ import com.rapidminer.BreakpointListener;
 import com.rapidminer.gui.actions.Actions;
 import com.rapidminer.gui.actions.ToggleAction;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.ProcessRootOperator;
 
 /**
  * Start the corresponding action.
@@ -56,8 +57,13 @@ public class ToggleBreakpointItem extends ToggleAction {
 	@Override
 	public void actionToggled(ActionEvent e) {
 		Operator op = this.actions.getFirstSelectedOperator();
-		if (op != null) {
+		// don't allow breakpoints for ProcessRootOperator
+		if (op != null && !(op instanceof ProcessRootOperator)) {
 			op.setBreakpoint(position, !op.hasBreakpoint(position));
+		}
+		// compatibility clause to revoke breakpoints set before the fix above
+		if (op != null && op instanceof ProcessRootOperator && op.hasBreakpoint(position)) {
+			op.setBreakpoint(position, false);
 		}
 
 		// TODO: toggle (rather set to common state!) all operators would be nice
