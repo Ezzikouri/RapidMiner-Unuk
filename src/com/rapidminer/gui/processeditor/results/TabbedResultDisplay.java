@@ -364,6 +364,6 @@ public class TabbedResultDisplay extends JPanel  implements ResultDisplay {
 
 	@Override
 	public void clearAll() {
-		
+		tabs.removeAll();
 	}
 }

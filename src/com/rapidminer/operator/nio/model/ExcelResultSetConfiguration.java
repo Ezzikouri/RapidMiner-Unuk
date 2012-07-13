@@ -45,6 +45,7 @@ import com.rapidminer.operator.nio.Excel2007SheetTableModel;
 import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.nio.ExcelSheetTableModel;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.io.Encoding;
@@ -92,7 +93,13 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		if (excelExampleSource.isFileSpecified()) {
 			this.workbookFile = excelExampleSource.getSelectedFile();
 		} else {
-			String excelParamter = excelExampleSource.getParameter(ExcelExampleSource.PARAMETER_EXCEL_FILE);
+			
+			String excelParamter;
+			try {
+				excelParamter = excelExampleSource.getParameter(ExcelExampleSource.PARAMETER_EXCEL_FILE);
+			} catch (UndefinedParameterError e) {
+				excelParamter = null;
+			}
 			if (excelParamter != null && !"".equals(excelParamter)) {
 				File excelFile = new File(excelParamter);
 				if (excelFile.exists()) {

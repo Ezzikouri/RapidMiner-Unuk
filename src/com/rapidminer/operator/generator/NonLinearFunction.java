@@ -34,4 +34,9 @@ public class NonLinearFunction extends RegressionFunction {
 			throw new FunctionException("Non linear function", "needs at least 3 attributes!");
 		return (att[0] * att[1] * att[2] + att[0] * att[1] + att[1] * att[1]);
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 3;
+	}
 }

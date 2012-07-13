@@ -35,4 +35,9 @@ public class ComplicatedFunction2 extends RegressionFunction {
 			throw new FunctionException("Complicated function2", "needs at least 3 attributes!");
 		return (att[0] * att[0] * att[0] + att[1] * att[1] + att[0] * att[1] + att[0] / Math.abs(att[2]) - 1.0d / (att[2] * att[2]));
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 3;
+	}
 }

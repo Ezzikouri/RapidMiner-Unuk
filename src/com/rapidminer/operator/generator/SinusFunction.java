@@ -33,4 +33,14 @@ public class SinusFunction extends RegressionFunction {
 			throw new FunctionException("Sinus function", "needs 2 attributes!");
 		return (Math.sin(att[0] * att[1]) + Math.sin(att[0] + att[1]));
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 2;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 2;
+	}
 }

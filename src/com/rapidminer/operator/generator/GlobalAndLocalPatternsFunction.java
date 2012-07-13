@@ -82,4 +82,14 @@ public class GlobalAndLocalPatternsFunction extends ClassificationFunction {
             sum += att[i];
         return (sum > 0 ? getLabel().getMapping().mapString("positive") : getLabel().getMapping().mapString("negative"));        
     }
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 2;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 2;
+	}
 }

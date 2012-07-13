@@ -753,6 +753,8 @@ public class Tools {
 			useFallback = true;
 		} catch (IOException e) {
 			useFallback = true;
+		} catch (NumberFormatException e) {
+			useFallback = true;
 		}
 
 		InputStreamReader reader = null;

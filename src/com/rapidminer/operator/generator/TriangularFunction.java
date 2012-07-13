@@ -37,4 +37,14 @@ public class TriangularFunction extends RegressionFunction {
 		// / 4.0d) * Math.PI)) / Math.PI) - 1.0d);
 		return args[0] - (int) args[0];
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 1;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 1;
+	}
 }

@@ -33,4 +33,14 @@ public class SquarePulseFunction extends RegressionFunction {
 			throw new FunctionException("Square pulse function", "needs 1 attribute!");
 		return ((int) args[0] % 2 == 0 ? 1.0d : 0.0d);
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 1;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 1;
+	}
 }

@@ -47,4 +47,14 @@ public class CheckerboardClassificationFunction extends ClassificationFunction {
 				return getLabel().getMapping().mapString("positive");
 		}
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 2;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 2;
+	}
 }

@@ -36,4 +36,9 @@ public class SinusClassificationFunction extends ClassificationFunction {
 		else
 			return getLabel().getMapping().mapString("negative");
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 2;
+	}
 }

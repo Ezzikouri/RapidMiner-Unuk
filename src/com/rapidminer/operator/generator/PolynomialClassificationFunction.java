@@ -31,11 +31,16 @@ package com.rapidminer.operator.generator;
 public class PolynomialClassificationFunction extends ClassificationFunction {
 
 	public double calculate(double[] att) throws FunctionException {
-		if (att.length < 4)
+		if (att.length < getMinNumberOfAttributes())
 			throw new FunctionException("Polynomial classification function", "needs at least 4 attributes!");
 		if ((att[0] * att[0] * att[0] + att[1] * att[1] - att[2] * att[2] + att[3]) > 0)
 			return getLabel().getMapping().mapString("positive");
 		else
 			return getLabel().getMapping().mapString("negative");
+	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 4;
 	}
 }

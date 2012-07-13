@@ -49,6 +49,7 @@ import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SetRelation;
+import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.operator.ports.quickfix.ParameterSettingQuickFix;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -119,9 +120,14 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 			seriesAttributes.add(j, new Vector<AttributeMetaData>());
 			j++;
 		}
-
+		String indexParamName = getParameterAsString(PARAMETER_INDEX_ATTRIBUTE);
 		// identify series attributes and check attribute types
 		for (AttributeMetaData attribute : metaData.getAllAttributes()) {
+			if (attribute.getName().equals(indexParamName)) {
+				addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(),
+						Collections.singletonList(new ParameterSettingQuickFix(this, PARAMETER_INDEX_ATTRIBUTE, "newly_quick_fix_created_index_attr")),
+						"already_contains_attribute", indexParamName));
+			}
 			if (!attribute.isSpecial()) {
 				boolean matched = false;
 				for (int i = 0; i < numberOfSeries; i++) {
@@ -245,7 +251,11 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 		} else {
 			indexAttribute = AttributeFactory.createAttribute(getParameterAsString(PARAMETER_INDEX_ATTRIBUTE), Ontology.POLYNOMINAL);
 		}
-		newAttributes.add(indexAttribute);
+		if (newAttributes.contains(indexAttribute)) {
+			throw new UserError(this, 956, indexAttribute.getName());
+		} else {
+			newAttributes.add(indexAttribute);
+		}
 
 		// series attributes
 		for (int i = 0; i < numberOfSeries; i++) {

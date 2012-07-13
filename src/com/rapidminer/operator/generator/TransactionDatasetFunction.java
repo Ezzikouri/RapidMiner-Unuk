@@ -93,4 +93,14 @@ public class TransactionDatasetFunction implements TargetFunction {
 		emd.setNumberOfExamples(numberOfExamples);
 		return emd;
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 5;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return Integer.MAX_VALUE;
+	}
 }

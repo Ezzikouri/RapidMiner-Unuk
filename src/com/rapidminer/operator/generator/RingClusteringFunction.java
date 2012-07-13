@@ -131,4 +131,14 @@ public class RingClusteringFunction extends ClusterFunction {
 		set.add("second_ring");
 		return set;
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 2;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 2;
+	}
 }

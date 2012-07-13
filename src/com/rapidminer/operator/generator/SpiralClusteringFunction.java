@@ -120,4 +120,14 @@ public class SpiralClusteringFunction extends ClusterFunction {
 		clusters.add("spiral2");
 		return clusters;
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 2;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 2;
+	}
 }

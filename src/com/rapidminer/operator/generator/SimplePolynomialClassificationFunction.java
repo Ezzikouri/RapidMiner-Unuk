@@ -36,4 +36,9 @@ public class SimplePolynomialClassificationFunction extends ClassificationFuncti
 		else
 			return getLabel().getMapping().mapString("negative");
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 1;
+	}
 }

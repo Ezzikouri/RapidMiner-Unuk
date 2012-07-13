@@ -89,5 +89,14 @@ public interface TargetFunction {
 	 * This method returns the meta data of the generated data.
 	 */
 	public ExampleSetMetaData getGeneratedMetaData();
+	
+	/**
+	 * @return The minimum number of attributes this functions must produce
+	 */
+	public int getMinNumberOfAttributes();
 
+	/**
+	 * @return The maximum number of attributes this functions can produce
+	 */
+	public int getMaxNumberOfAttributes();
 }

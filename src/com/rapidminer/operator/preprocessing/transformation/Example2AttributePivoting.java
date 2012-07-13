@@ -255,8 +255,11 @@ public class Example2AttributePivoting extends ExampleSetTransformationOperator 
         
         DataRowFactory dataRowFactory = new DataRowFactory(getParameterAsInt(PARAMETER_DATAMANAGEMENT), '.');
         DataRow dataRow = dataRowFactory.create(newAttributes.size());
-        for (Attribute newAttribute : newAttributes) {
-        	dataRow.set(newAttribute, Double.NaN);
+        if (exampleSet.size() > 0) {
+        	// if the original example set has a size = 0 we would create a size = 1 new example set without the size check here
+        	for (Attribute newAttribute : newAttributes) {
+        		dataRow.set(newAttribute, Double.NaN);
+        	}
         }
         for (Example example : exampleSet) {
             double currentGroupValue = example.getValue(groupAttribute);
@@ -308,7 +311,10 @@ public class Example2AttributePivoting extends ExampleSetTransformationOperator 
         	dataRow.set(newWeightAttribute, aggregationFunction.getValue());
         }
   
-        table.addDataRow(dataRow);
+        if (exampleSet.size() > 0) {
+        	// if the original example set has size = 0 we would create a size = 1 new example set without the size check here
+        	table.addDataRow(dataRow);
+        }
 
         // create and deliver example set
         ExampleSet result = table.createExampleSet();

@@ -32,4 +32,14 @@ public class SimpleSinusFunction extends RegressionFunction {
 			throw new FunctionException("Simple Sinus function", "needs 1 attribute!");
 		return Math.sin(att[0]);
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 1;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 1;
+	}
 }

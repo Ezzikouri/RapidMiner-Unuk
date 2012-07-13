@@ -33,4 +33,16 @@ public class SimpleSuperpositionFunction extends RegressionFunction {
 			throw new FunctionException("Simple superposition function", "needs 1 attribute!");
 		return 5.0d * Math.sin(args[0]) + Math.sin(30.0d * args[0]);
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 1;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 1;
+	}
+	
+	
 }

@@ -56,10 +56,12 @@ public class DrillerOscillationFunction implements TargetFunction {
 
 	public DrillerOscillationFunction() {}
 
+	@Override
 	public double calculate(double[] args) throws FunctionException {
 		return 0;
 	}
 
+	@Override
 	public double[] createArguments(int dimension, RandomGenerator random) throws FunctionException {
 		if (skew == null) {
 			skew = new double[dimension - 1];
@@ -140,5 +142,16 @@ public class DrillerOscillationFunction implements TargetFunction {
 		}
 		emd.setNumberOfExamples(numberOfExamples);
 		return emd;
+	}
+
+	
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 1;
+	}
+	
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return Integer.MAX_VALUE;
 	}
 }

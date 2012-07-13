@@ -36,4 +36,9 @@ public class InteractionClassificationFunction extends ClassificationFunction {
 		else
 			return getLabel().getMapping().mapString("negative");
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 3;
+	}
 }

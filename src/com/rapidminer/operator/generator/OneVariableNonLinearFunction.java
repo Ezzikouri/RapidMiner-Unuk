@@ -35,4 +35,14 @@ public class OneVariableNonLinearFunction extends RegressionFunction {
 			throw new FunctionException("One variable non linear", "needs one attribute!");
 		return 3.0d * att[0] * att[0] * att[0] - att[0] * att[0] + 1000.0d / Math.abs(att[0]) + 2000.0d * Math.abs(att[0]);
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 1;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 1;
+	}
 }

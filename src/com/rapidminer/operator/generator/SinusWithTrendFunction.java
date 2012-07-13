@@ -34,4 +34,14 @@ public class SinusWithTrendFunction extends RegressionFunction {
 			throw new FunctionException("Sinus with Trend", "needs one attribute!");
 		return Math.sin(att[0]) + 0.1 * att[0];
 	}
+
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 1;
+	}
+
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return 1;
+	}
 }

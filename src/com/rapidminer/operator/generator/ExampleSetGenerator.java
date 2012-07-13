@@ -35,10 +35,14 @@ import com.rapidminer.example.table.ListDataRowReader;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.io.AbstractExampleSource;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.ports.quickfix.ParameterSettingQuickFix;
+import com.rapidminer.operator.ports.quickfix.QuickFix;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDouble;
@@ -61,7 +65,7 @@ import com.rapidminer.tools.Tools;
  * positive y and negative z), sinus classification (positive for positive sinus
  * values).
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Marius Helf
  */
 public class ExampleSetGenerator extends AbstractExampleSource {
 
@@ -172,6 +176,7 @@ public class ExampleSetGenerator extends AbstractExampleSource {
 		ExampleSetMetaData generatedMD = function.getGeneratedMetaData();
 		return generatedMD;
 	}
+	
 	@Override
 	public ExampleSet createExampleSet() throws OperatorException {
 
@@ -280,6 +285,41 @@ public class ExampleSetGenerator extends AbstractExampleSource {
 
 		types.add(new ParameterTypeCategory(PARAMETER_DATAMANAGEMENT, "Determines, how the data is represented internally.", DataRowFactory.TYPE_NAMES, DataRowFactory.TYPE_DOUBLE_ARRAY));
 		return types;
+	}
+	
+	@Override
+	public int checkProperties() {
+		int errorCount = super.checkProperties();
+		
+		String functionName;
+		try {
+			functionName = getParameterAsString(PARAMETER_TARGET_FUNCTION);
+			TargetFunction function = getFunctionForName(functionName);
+			int functionMinAttr = function.getMinNumberOfAttributes();
+			int functionMaxAttr = function.getMaxNumberOfAttributes();
+			int setAttr = getParameterAsInt(PARAMETER_NUMBER_OF_ATTRIBUTES);
+			List<QuickFix> quickFixes = new LinkedList<QuickFix>();
+			if (functionMinAttr == functionMaxAttr && setAttr != functionMinAttr) {
+				quickFixes.add(new ParameterSettingQuickFix(this, PARAMETER_NUMBER_OF_ATTRIBUTES, String.valueOf(functionMaxAttr)));
+				addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), quickFixes, "example_set_generator.wrong_number_of_attributes", functionName, functionMaxAttr));
+			} else if (setAttr > functionMaxAttr) {
+				quickFixes.add(new ParameterSettingQuickFix(this, PARAMETER_NUMBER_OF_ATTRIBUTES, String.valueOf(functionMaxAttr)));
+				addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), quickFixes, "example_set_generator.too_many_attributes", functionName, functionMaxAttr));
+			} else if (setAttr < functionMinAttr) {
+				quickFixes.add(new ParameterSettingQuickFix(this, PARAMETER_NUMBER_OF_ATTRIBUTES, String.valueOf(functionMinAttr)));
+				addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), quickFixes, "example_set_generator.too_few_attributes", functionName, functionMinAttr));
+			}
+		} catch (UndefinedParameterError e) {
+			// this should not happen
+		} catch (IllegalAccessException e) {
+			// this should not happen
+		} catch (InstantiationException e) {
+			// this should not happen
+		} catch (ClassNotFoundException e) {
+			// this should not happen
+		}
+		
+		return errorCount;
 	}
 
 }

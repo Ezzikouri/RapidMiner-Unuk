@@ -319,9 +319,4 @@ public class SamplingOperator extends AbstractSamplingOperator {
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), SamplingOperator.class, null);
 	}
-	
-	@Override
-	protected void performAdditionalChecks() {
-		super.performAdditionalChecks();
-	}
 }

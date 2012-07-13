@@ -106,8 +106,23 @@ public class NominalToBinominalModel extends PreprocessingModel {
 				// create new attribute and copy mapping
 				Attribute newAttribute = AttributeFactory.createAttribute(sourceAttributeName + "_binominal", Ontology.BINOMINAL);
 				NominalMapping mapping = new BinominalMapping();
-				mapping.mapString(sourceAttribute.getMapping().getNegativeString());
-				mapping.mapString(sourceAttribute.getMapping().getPositiveString());
+				if (sourceAttribute.getMapping().size() == 0) {
+					// handle border case 1: empty mapping
+					mapping.mapString("false");
+					mapping.mapString("true");
+				} else if (sourceAttribute.getMapping().size() == 1) {
+					// handle border case 2: mapping contains only one value
+					String value = sourceAttribute.getMapping().mapIndex(0);
+					mapping.mapString(value);
+					if ("true".equals(value)) {
+						mapping.mapString("true1");
+					} else {
+						mapping.mapString("true");
+					}
+				} else {
+					mapping.mapString(sourceAttribute.getMapping().getNegativeString());
+					mapping.mapString(sourceAttribute.getMapping().getPositiveString());
+				}
 				newAttribute.setMapping(mapping);
 				changeTypeMap.put(newAttribute, sourceAttribute);
 			}			

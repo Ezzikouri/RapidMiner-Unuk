@@ -114,7 +114,11 @@ public class CostBasedThresholdLearner extends AbstractMetaLearner {
 			String className = classWeightArray[0];
 			double classWeight = Double.valueOf(classWeightArray[1]);
 			int index = label.getMapping().getIndex(className);
-			weights[index] = classWeight;
+			if (index == -1) {
+				throw new UserError(this, 955, className);
+			} else {
+				weights[index] = classWeight;
+			}
 		}
 
 		// logging

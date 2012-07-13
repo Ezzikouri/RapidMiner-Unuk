@@ -116,4 +116,14 @@ public abstract class ClassificationFunction implements TargetFunction {
 		emd.setNumberOfExamples(numberOfExamples);
 		return emd;
 	}
+	
+	@Override
+	public int getMinNumberOfAttributes() {
+		return 1;
+	}
+	
+	@Override
+	public int getMaxNumberOfAttributes() {
+		return Integer.MAX_VALUE;
+	}
 }

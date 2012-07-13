@@ -1,7 +1,25 @@
 History of changes of the RapidMiner versions
 ====================================================
 
-Changes from RapidMiner 5.2.6 to 5.2.7
+Changes from RapidMiner 5.2.8 to 5.2.9
+--------------------------------------
+* Aggregate: new aggregation function: sum (fractional)
+* Result Perspective: Added button in top right corner of a result tab to close all open results at once
+* Preferences menu buttons reworked: 'OK' button saves settings permanently and closes the dialog; 
+  'Apply' button saves settings permanently and does not close the dialog
+* Generate Data: warn user if the selected number of attributes is not supported by the target function
+* BUGFIX: Editing context variables now immediately flags the process as changed
+* BUGFIX: If set to 'ask', the 'close previous results' dialog will no longer appear when resuming from a breakpoint
+* BUGFIX: Breakpoints can no longer be added to the root operator
+* BUGFIX: 'Store process here' popup menu action on another process will now correctly flag the process as saved
+* BUGFIX: Added error message for 'Find Threshold' operator when an invalid class name is entered as parameter
+* BUGFIX: The Pivot operator used on an empty example set no longer creates an example set with one example (filled with missing values)
+* BUGFIX: The De-Pivot operator now has much better error handling when trying to setup the index attribute as an already existing attribute
+* BUGFIX: Bug: Read Excel cannot open the Import Configuration Wizard, if the excel_file parameter is not set
+* BUGFIX: Nominal to Binominal can handle border cases with mapping containing less than 2 values
+
+
+Changes from RapidMiner 5.2.6 to 5.2.8
 --------------------------------------
 * Send Mail operator has a new behavior: Stop process and show error if mail cannot be send
 * Send Mail operator has a new parameter: 'Ignore errors'
@@ -9,6 +27,7 @@ Changes from RapidMiner 5.2.6 to 5.2.7
 * Write Excel operator has a new parameter: File Format (xls, xlsx)
 * New Operator: Reorder Attributes
 * Set Macro: now can define empty macros
+* BUGFIX: Fix a "This should not happen" message in the Advanced Charts.
 * BUGFIX: Keep old settings after updating RapidMiner
 * BUGFIX: 'Cancel' ParameterTypeList Dialog works correctly now
 * BUGFIX: FP-Growth correctly handles parameter 'must contain'
@@ -37,7 +56,6 @@ Changes from RapidMiner 5.2.0 to 5.2.1
 
 Changes from RapidMiner 5.1 to 5.2
 ----------------------------------
-
 * Added "Advanced Charts" view 
 * Added "File" objects to pass to reader operators. 
   - Added operators to open files and URL connections
@@ -3233,6 +3251,5 @@ Changes from Yale 1.0 to Yale 2.0 beta [2003/03/12]
 
 Release of Yale 1.0 [2002/06/19]
 --------------------------------
-
   * Initial public release of the machine learning environment Yale
     (Yet Another Learning Environment).
