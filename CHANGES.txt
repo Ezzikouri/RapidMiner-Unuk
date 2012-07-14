@@ -17,6 +17,8 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * BUGFIX: The De-Pivot operator now has much better error handling when trying to setup the index attribute as an already existing attribute
 * BUGFIX: Bug: Read Excel cannot open the Import Configuration Wizard, if the excel_file parameter is not set
 * BUGFIX: Nominal to Binominal can handle border cases with mapping containing less than 2 values
+* BUGFIX: Configure Repository dialog now saves user credentials fore remote repositores again
+* BUGFIX: Added error shown in Problems view when entering invalid regular expression for 'replace what' parameter of Rename by Replacing operator
 
 
 Changes from RapidMiner 5.2.6 to 5.2.8

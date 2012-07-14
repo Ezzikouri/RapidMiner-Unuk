@@ -25,6 +25,7 @@ package com.rapidminer.operator.preprocessing.filter;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
@@ -69,9 +70,11 @@ public class ChangeAttributeNamesReplace extends AbstractDataProcessing {
 
 	@Override
 	protected MetaData modifyMetaData(ExampleSetMetaData exampleSetMetaData) {
+		String replaceWhat = "";
 		try {
 			ExampleSetMetaData subsetMetaData = attributeSelector.getMetaDataSubset(exampleSetMetaData, false);
-			Pattern replaceWhatPattern = Pattern.compile(getParameterAsString(PARAMETER_REPLACE_WHAT));
+			replaceWhat = getParameterAsString(PARAMETER_REPLACE_WHAT);
+			Pattern replaceWhatPattern = Pattern.compile(replaceWhat);
 			String replaceByString = isParameterSet(PARAMETER_REPLACE_BY) ? getParameterAsString(PARAMETER_REPLACE_BY) : "";
 
 			for (AttributeMetaData attributeMetaData : subsetMetaData.getAllAttributes()) {
@@ -82,6 +85,8 @@ public class ChangeAttributeNamesReplace extends AbstractDataProcessing {
 		} catch (UndefinedParameterError e) {
 		} catch (IndexOutOfBoundsException e) {
 			addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "capturing_group_undefined", PARAMETER_REPLACE_BY, PARAMETER_REPLACE_WHAT));
+		} catch (PatternSyntaxException e) {
+			addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "invalid_regex", replaceWhat));
 		}
 
 		return exampleSetMetaData;

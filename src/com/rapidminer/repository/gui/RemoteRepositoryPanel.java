@@ -34,6 +34,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
+import com.rapidminer.gui.security.UserCredential;
+import com.rapidminer.gui.security.Wallet;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
@@ -169,6 +171,11 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		}
 		((RemoteRepository) repository).setUsername(userField.getText());
 		((RemoteRepository) repository).rename(aliasField.getText());
+		
+		UserCredential authenticationCredentials = new UserCredential(urlField.getText(), userField.getText(), passwordField.getPassword());
+		Wallet.getInstance().registerCredentials(authenticationCredentials);
+		Wallet.getInstance().saveCache();
+		
 		return true;
 	}
 	

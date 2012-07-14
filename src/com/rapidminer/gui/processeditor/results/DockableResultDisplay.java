@@ -88,6 +88,11 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 
 	private final ResultOverview overview = new ResultOverview();
 	
+	/**
+	 * flag indicating if the user chose "close old results" when starting the process. Will be set after processStarts listener fired.
+	 */
+	private Boolean closeResultsPerRun;
+	
 	public DockableResultDisplay() {
 		this.dockKey.setDockGroup(MainFrame.DOCK_GROUP_RESULTS);
 		setLayout(new BorderLayout());
@@ -331,10 +336,9 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 				toClose.add(state.getDockable());
 			}										
 		}
-		if ((!toClose.isEmpty() || !dataTables.isEmpty()) && alsoClearLogs) {
-			// only allow deletion of previous results when also clearing logs (that excludes the case "resume breakpoint")
-			// fix for deletion of results after breakpoint resume
-			if (DecisionRememberingConfirmDialog.confirmAction("result.close_before_run", RapidMinerGUI.PROPERTY_CLOSE_RESULTS_BEFORE_RUN)) {
+		if ((!toClose.isEmpty() || !dataTables.isEmpty()) ) {
+			// fix for "delete old results" dialog after breakpoint resume
+			if (closeResultsPerRun) {
 				DockableResultDisplay.this.dataTables.clear();
 				//updateDataTables();
 				for (Dockable dockable : toClose) {							
@@ -374,7 +378,10 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 
 	private final ProcessListener processListener = new ProcessListener() {
 		@Override
-		public void processEnded(Process process) { }
+		public void processEnded(Process process) {
+			// set to null so we know the process has ended and we need to ask the user again next time
+			DockableResultDisplay.this.closeResultsPerRun = null;
+		}
 
 		@Override
 		public void processFinishedOperator(Process process, Operator op) { }
@@ -384,6 +391,9 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 
 		@Override
 		public void processStarts(Process process) {
+			if (closeResultsPerRun == null) {
+				closeResultsPerRun = DecisionRememberingConfirmDialog.confirmAction("result.close_before_run", RapidMinerGUI.PROPERTY_CLOSE_RESULTS_BEFORE_RUN);
+			}
 			clear();
 		}	
 	};
