@@ -50,7 +50,7 @@ public class AttributeOrderingCellEditor extends AbstractCellEditor implements P
 
 	private static final long serialVersionUID = -2387465714767785072L;
 
-	private static final char SEPARATION_CHAR = '|';
+	public static final char SEPARATION_CHAR = '|';
 
 	private String attributeListString = "";
 

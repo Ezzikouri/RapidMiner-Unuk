@@ -1289,6 +1289,12 @@
       </replaceParameter>
    </principal_component_analysis>
 <!-- Operators: R -->
+   <order_attributes>
+      <replaceParameter appliesSince="5.2.007" appliesBefore="5.2.009">
+       	<oldparameter>handle_unmachted</oldparameter>
+       	<newparameter>handle_unmatched</newparameter>
+      </replaceParameter>
+   </order_attributes>
    <random_tree>
       <setParameter>
          <attribute>use_local_random_seed</attribute>

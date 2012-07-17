@@ -235,12 +235,18 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
-		SimpleProcessEntry entry = new SimpleProcessEntry(name, this, getRepository());
-		if (data != null) {
-			data.add(entry);
+		SimpleProcessEntry entry = null;
+		try {
+			entry = new SimpleProcessEntry(name, this, getRepository());
+			if (data != null) {
+				data.add(entry);
+			}
+			entry.storeXML(processXML);
+		} catch (RepositoryException e) {
+			data.remove(data.size()-1);
+			throw e;
 		}
 		getRepository().fireEntryAdded(entry, this);
-		entry.storeXML(processXML);
 		return entry;
 	}
 

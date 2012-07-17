@@ -484,8 +484,9 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				copy(source, destination, newName, listener);
 				entry.delete();
 			} else {
-				if (destination.containsEntry(newName)) {
-					throw new RepositoryException("Destination contains element with name: " + newName);
+				String effectiveNewName = newName != null ? newName : entry.getName();
+				if (destination.containsEntry(effectiveNewName)) {
+					throw new RepositoryException("Destination contains element with name: " + effectiveNewName);
 				}
 				if (listener != null) {
 					listener.setTotal(100);

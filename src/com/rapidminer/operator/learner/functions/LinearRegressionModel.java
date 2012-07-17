@@ -34,7 +34,7 @@ import com.rapidminer.tools.Tools;
 /**
  * The model for linear regression.
  * 
- * @author Ingo Mierswa
+ * @author Ingo Mierswa, Marius Helf
  */
 public class LinearRegressionModel extends PredictionModel {
 
@@ -107,9 +107,14 @@ public class LinearRegressionModel extends PredictionModel {
 			if (predictedLabel.isNominal()) {
 				int predictionIndex = prediction > 0.5 ? predictedLabel.getMapping().getIndex(secondClassName): predictedLabel.getMapping().getIndex(firstClassName);
 				example.setValue(predictedLabel, predictionIndex);
-				// set confidence to numerical prediction, such that can be scaled later
-				example.setConfidence(secondClassName, 1.0d / (1.0d + java.lang.Math.exp(-prediction)));
-				example.setConfidence(firstClassName, 1.0d / (1.0d + java.lang.Math.exp(prediction)));
+				// set confidence to numerical prediction, such that can be scaled later.
+				// The line below calculates the logistic function of the prediction. The logistic function
+				// is symmetric to the point (0.0, 0.5), but we use 0.5 as a prediction threshold, not 0.0.
+				// For that reason we have to shift the function to the right by 0.5 by subtracting that value
+				// from the function argument.
+				double logFunction = 1.0d / (1.0d + java.lang.Math.exp(-(prediction-0.5)));
+				example.setConfidence(secondClassName, logFunction);
+				example.setConfidence(firstClassName, 1 - logFunction);
 			} else {
 				example.setValue(predictedLabel, prediction);
 			}	

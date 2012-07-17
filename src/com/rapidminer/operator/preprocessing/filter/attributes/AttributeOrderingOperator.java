@@ -102,7 +102,7 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 	public static final String PARAMETER_ORDER_RULES = "attribute_ordering";
 	public static final String PARAMETER_USE_REGEXP = "use_regular_expressions";
 
-	public static final String PARAMETER_HANDLE_UNMATCHED_ATTRIBUTES = "handle_unmachted";
+	public static final String PARAMETER_HANDLE_UNMATCHED_ATTRIBUTES = "handle_unmatched";
 
 	public static final String REMOVE_UNMATCHED_MODE = "remove";
 	public static final String PREPEND_UNMATCHED_MODE = "prepend";
@@ -300,7 +300,7 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 
 				// iterate over reference attributes and order unmachted attributes accordingly
 				for (Attribute refAttr : referenceSet.getAttributes()) {
-					System.out.println("Check attribute " + refAttr.getName());
+//					System.out.println("Check attribute " + refAttr.getName());
 					Iterator<Attribute> iterator = unmachtedAttributes.iterator();
 					while (iterator.hasNext()) {
 						Attribute unmachtedAttr = iterator.next();
@@ -308,7 +308,7 @@ public class AttributeOrderingOperator extends AbstractFeatureSelection {
 
 							// only pairwise matching is possible -> directly add attribute to sorted list
 							sortedAttributes.add(unmachtedAttr);
-							System.out.println("Added unmachted attribute to list: " + unmachtedAttr.getName());
+//							System.out.println("Added unmachted attribute to list: " + unmachtedAttr.getName());
 
 							// remove attribute from unmachted attributes
 							iterator.remove();
