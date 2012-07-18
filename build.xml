@@ -378,7 +378,7 @@
 
 		<echo message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net:${server.sf.url.rapidminer}..." />
 		<!-- scping -->
-		<scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net:${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="false" trust="true">
+		<scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net:${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="true" trust="true">
 			<fileset dir="${release}/scp" includes="**/*.*" />
 		</scp>
 

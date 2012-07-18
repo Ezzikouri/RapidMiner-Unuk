@@ -372,7 +372,7 @@ public class GeneticAlgorithm extends AbstractGeneticAlgorithm {
 
 		type = (new ParameterTypeDouble(PARAMETER_P_INITIALIZE, "Initial probability for an attribute to be switched on.", 0, 1, 0.5));
 		types.add(type);
-		type = new ParameterTypeDouble(PARAMETER_P_MUTATION, "Probability for an attribute to be changed (-1: 1 / numberOfAtt).", -1.0d, 1.0d, -1.0d);
+		type = new ParameterTypeDouble(PARAMETER_P_MUTATION, "Probability for an attribute to be changed. If this parameter is set to -1, then the probability will be 1/numberOfAttributes.", -1.0d, 1.0d, -1.0d);
 		types.add(type);
 		type = new ParameterTypeDouble(PARAMETER_P_CROSSOVER, "Probability for an individual to be selected for crossover.", 0.0d, 1.0d, 0.5d);
 		types.add(type);

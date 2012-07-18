@@ -332,17 +332,17 @@ Name "${extension.name.long}"
 			</fileset>
 		</move>
 
-		<echo message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net:${server.sf.url.rapidminer}..." />
+		<echo message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net/${server.sf.url.rapidminer}..." />
 		<!-- scping -->
-		<scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net:${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="false" trust="true">
+		<scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net/${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="true" trust="true">
 			<fileset dir="${release.targetDir}/scp" includes="**/*.*" />
 		</scp>
 
 		<!-- correcting file permissions -->
-		<echo message="create${line.separator}" file="${release.targetDir}/scp/commands.script" append="false" />
+		<!--<echo message="create${line.separator}" file="${release.targetDir}/scp/commands.script" append="false" />
 		<echo message="cd &quot;/home/frs/project/y/ya/yale/2. Extensions/${extension.name}/${extension.shortversion}&quot;${line.separator}" file="${release.targetDir}/scp/commands.script" append="true" />
 		<echo message="ls${line.separator}" file="${release.targetDir}/scp/commands.script" append="true" />
-
+		-->
 		<!--
 		<for param="file">
 			<fileset dir="${release.targetDir}/scp" includes="**/*.*" />
@@ -414,7 +414,10 @@ Name "${extension.name.long}"
 		<mkdir dir="${server.rapidshare.path.release}" />
 		<copy todir="${server.rapidshare.path.release}">
 			<fileset dir="${release.targetDir}/">
+				<include name="${release.installer.name}" />
 				<include name="${release.name}" />
+				<include name="${release.src.name}" />
+				<include name="${release.javadoc.name}" />
 			</fileset>
 		</copy>
 	</target>
