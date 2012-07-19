@@ -267,7 +267,7 @@ public class RapidAssert extends Assert {
 			} else {
 				fail("Line " + lineCounter + ": actual input has less lines then expected result! Expected: " + expectedLine);
 			}
-			assertEquals("Line " + lineCounter + ": " + message, expectedLine, actualLine);
+			assertEquals("Line " + lineCounter + ": " + message + "\n\nExpected:\n" + expected + "\nActual:\n" + actual, expectedLine, actualLine);
 			++lineCounter;
 		}
 	}
