@@ -8,6 +8,8 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * Preferences menu buttons reworked: 'OK' button saves settings permanently and closes the dialog; 
   'Apply' button saves settings permanently and does not close the dialog
 * Generate Data: warn user if the selected number of attributes is not supported by the target function
+* The RM window title now shows the complete location of the current process to avoid confusion with multiple processes with the same name
+* Trying to create a new process/open another process/exit RM while a process is running now requires user confirmation
 * BUGFIX: Editing context variables now immediately flags the process as changed
 * BUGFIX: If set to 'ask', the 'close previous results' dialog will no longer appear when resuming from a breakpoint
 * BUGFIX: Breakpoints can no longer be added to the root operator
@@ -19,6 +21,8 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * BUGFIX: Nominal to Binominal can handle border cases with mapping containing less than 2 values
 * BUGFIX: Configure Repository dialog now saves user credentials fore remote repositores again
 * BUGFIX: Added error shown in Problems view when entering invalid regular expression for 'replace what' parameter of Rename by Replacing operator
+* BUGFIX: When moving a repository entry to another location which contains an entry with the same name asks for overwrite instead of showing error
+* BUGFIX: Execute Process operator potential error reporting improved
 
 
 Changes from RapidMiner 5.2.6 to 5.2.8

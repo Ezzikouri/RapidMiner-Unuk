@@ -136,6 +136,7 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeColor;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryBrowser;
 import com.rapidminer.repository.gui.process.RemoteProcessViewer;
 import com.rapidminer.tools.LogService;
@@ -230,9 +231,11 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
     /** Determines whether we build a {@link TabbedResultDisplay} or a {@link DockableResultDisplay}. */
     public static final String PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE = "rapidminer.gui.result_display_type";
-
+    
     /** Log level of the LoggingViewer. */
     public static final String PROPERTY_RAPIDMINER_GUI_LOG_LEVEL = "rapidminer.gui.log_level";
+    
+    private static final int MAX_LOCATION_TITLE_LENGTH = 150;
 
     private static final long serialVersionUID = -1602076945350148969L;
 
@@ -933,6 +936,12 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
     /** Creates a new process. */
     public void newProcess() {
+    	// ask for confirmation before stopping the currently running process and opening a new one!
+    	if (getProcessState() == Process.PROCESS_STATE_RUNNING || getProcessState() == Process.PROCESS_STATE_PAUSED) {
+    		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+				return;
+			}
+    	}
         if (close()) {
             stopProcess();
             setProcess(new Process(), true);
@@ -1206,7 +1215,17 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         if (this.process != null) {
             ProcessLocation loc = process.getProcessLocation();
             if (loc != null) {
-                setTitle(loc.getShortName() + (changed ? "*" : "") + " \u2013 " + TITLE + hostname);
+            	String locString = loc.toString();
+            	// location string exceeding arbitrary number will be cut into repository name + /.../ + process name
+            	if (locString.length() > MAX_LOCATION_TITLE_LENGTH) {
+            		locString = RepositoryLocation.REPOSITORY_PREFIX +
+            				process.getRepositoryLocation().getRepositoryName() +
+            				RepositoryLocation.SEPARATOR +
+            				"..." +
+            				RepositoryLocation.SEPARATOR +
+            				loc.getShortName();
+            	}
+                setTitle(locString + (changed ? "*" : "") + " \u2013 " + TITLE + hostname);
             } else {
                 setTitle("<new process" + (changed ? "*" : "") + "> \u2013 " + TITLE + hostname);
             }
@@ -1321,10 +1340,17 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             }
         } else {
             if (!relaunch) { // in this case we have already confirmed
-                int answer = ConfirmDialog.showConfirmDialog("exit", ConfirmDialog.YES_NO_OPTION, RapidMinerGUI.PROPERTY_CONFIRM_EXIT, ConfirmDialog.YES_OPTION);
-                if (answer != ConfirmDialog.YES_OPTION) {
-                    return;
-                }
+            	// ask for special confirmation before exiting RapidMiner while a process is running!
+            	if (getProcessState() == Process.PROCESS_STATE_RUNNING || getProcessState() == Process.PROCESS_STATE_PAUSED) {
+            		if (SwingTools.showConfirmDialog("exit_despite_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+        				return;
+        			}
+            	} else {
+            		int answer = ConfirmDialog.showConfirmDialog("exit", ConfirmDialog.YES_NO_OPTION, RapidMinerGUI.PROPERTY_CONFIRM_EXIT, ConfirmDialog.YES_OPTION);
+            		if (answer != ConfirmDialog.YES_OPTION) {
+            			return;
+            		}
+            	}
             }
         }
         stopProcess();

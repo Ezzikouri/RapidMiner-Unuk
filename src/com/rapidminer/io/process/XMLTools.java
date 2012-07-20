@@ -346,6 +346,37 @@ public class XMLTools {
             throw new XMLException("Contents of tag <" + tag + "> must be integer, but found '" + string + "'.");
         }
     }
+    
+    /**
+     * This will parse the text contents of an child element of element parent with the given tagName as long. If no
+     * such child element can be found an XMLException is thrown. If more than one exists, the first is used. A {@link XMLException} is
+     * thrown if the text content is not a valid long.
+     */
+    public static long getTagContentsAsLong(Element element, String tag) throws XMLException {
+        final String string = getTagContents(element, tag, true);
+        try {
+            return Long.parseLong(string);
+        } catch (NumberFormatException e) {
+            throw new XMLException("Contents of tag <" + tag + "> must be integer, but found '" + string + "'.");
+        }
+    }
+
+    /**
+     * This will parse the text contents of an child element of element parent with the given tagName as long. If no
+     * such child element can be found, the given default value is returned. If more than one exists, the first is used. A
+     * {@link XMLException} is thrown if the text content is not a valid long.
+     */
+    public static long getTagContentsAsLong(Element element, String tag, int dfltValue) throws XMLException {
+        final String string = getTagContents(element, tag, false);
+        if (string == null) {
+            return dfltValue;
+        }
+        try {
+            return Long.parseLong(string);
+        } catch (NumberFormatException e) {
+            throw new XMLException("Contents of tag <" + tag + "> must be integer, but found '" + string + "'.");
+        }
+    }
 
     /**
      * This will parse the text contents of an child element of element parent with the given tagName as double. If no

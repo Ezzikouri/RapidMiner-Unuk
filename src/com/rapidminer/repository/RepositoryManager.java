@@ -45,12 +45,14 @@ import org.w3c.dom.NodeList;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.repository.db.DBRepository;
 import com.rapidminer.repository.gui.NewRepositoryDialog;
 import com.rapidminer.repository.local.LocalRepository;
+import com.rapidminer.repository.local.SimpleFolder;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.repository.resource.ResourceRepository;
 import com.rapidminer.tools.AbstractObservable;
@@ -485,8 +487,27 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				entry.delete();
 			} else {
 				String effectiveNewName = newName != null ? newName : entry.getName();
+				Entry toDeleteEntry = null;
+				for (Folder folderEntry : destination.getSubfolders()) {
+					if (folderEntry.getName().equals(effectiveNewName)) {
+						SwingTools.showVerySimpleErrorMessage("repository_folder_already_exists", effectiveNewName);
+						return;
+					}
+				}
 				if (destination.containsEntry(effectiveNewName)) {
-					throw new RepositoryException("Destination contains element with name: " + effectiveNewName);
+					if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, destination.getLocation().getAbsoluteLocation() + RepositoryLocation.SEPARATOR + effectiveNewName) == ConfirmDialog.NO_OPTION) {
+						return;
+					} else {
+						// overwrite selected by user, find Entry to delete and delete it, then move original entry
+						for (DataEntry dataEntry : destination.getDataEntries()) {
+							if (dataEntry.getName().equals(effectiveNewName)) {
+								toDeleteEntry = dataEntry;
+							}
+						}
+						if (toDeleteEntry != null) {
+							toDeleteEntry.delete();
+						}
+					}
 				}
 				if (listener != null) {
 					listener.setTotal(100);

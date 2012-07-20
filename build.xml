@@ -359,6 +359,23 @@
 		<!-- Deleting all release files without test-->
 		<ant target="release.deleteFiles" />
 	</target>
+	
+	<target name="release.makeAllNoSources" depends="release.prepare" description="This target releases all available platform versions without the source files">
+		<echo message="Releasing all versions (no sources)..." />
+		<property name="release.isMultiple" value="true" />
+		
+		<delete dir="${release.files}/src" />
+		<delete dir="${release.files}/src_generated" />
+		<delete dir="${release.files}/src_launcher" />
+		<delete dir="${release.files}/src_test" />
+		
+		<ant target="release.makePlatformIndependent" />
+		<ant target="release.makeWin32" />
+		<ant target="release.makeWin64" />
+
+		<!-- Deleting all release files without test-->
+		<ant target="release.deleteFiles" />
+	</target>
 
 
 

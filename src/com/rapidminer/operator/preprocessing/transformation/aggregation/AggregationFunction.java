@@ -63,20 +63,23 @@ public abstract class AggregationFunction {
 
     public static final Map<String, Class<? extends AggregationFunction>> AGGREATION_FUNCTIONS = new TreeMap<String, Class<? extends AggregationFunction>>();
     static {
+    	// numerical/date
         AGGREATION_FUNCTIONS.put("sum", SumAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("sum (fractional)", SumFractionalAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("median", MedianAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("average", MeanAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("variance", VarianceAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("standard_deviation", StandardDeviationAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("minimum", MinAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("maximum", MaxAggregationFunction.class);
+        
+        AGGREATION_FUNCTIONS.put("log product", LogProductAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("product", ProductAggregationFunction.class);
+
+        // numerical/date/nominal
         AGGREATION_FUNCTIONS.put("count (ignoring missings)", CountIgnoringMissingsAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("count (including missings)", CountIncludingMissingsAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("count", CountAggregationFunction.class);
-        AGGREATION_FUNCTIONS.put("minimum", MinAggregationFunction.class);
-        AGGREATION_FUNCTIONS.put("maximum", MaxAggregationFunction.class);
-
-        AGGREATION_FUNCTIONS.put("log product", LogProductAggregationFunction.class);
-        AGGREATION_FUNCTIONS.put("product", ProductAggregationFunction.class);
 
         // Nominal Aggregations
         AGGREATION_FUNCTIONS.put("mode", ModeAggregationFunction.class);

@@ -154,6 +154,10 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		aliasField.setText(((RemoteRepository) remote).getAlias());
 		urlField.setText(((RemoteRepository) remote).getBaseUrl().toString());
 		userField.setText(((RemoteRepository) remote).getUsername());
+		UserCredential credentials = Wallet.getInstance().getEntry(urlField.getText());
+		if (credentials != null) {
+			passwordField.setText(new String(credentials.getPassword()));
+		}
 	}
 
 	@Override

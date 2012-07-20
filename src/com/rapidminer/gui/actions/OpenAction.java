@@ -32,6 +32,7 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.operator.ResultObject;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
@@ -91,6 +92,13 @@ public class OpenAction extends ResourceAction {
                     RepositoryLocation location = new RepositoryLocation(locationString);
                     Entry entry = location.locateEntry();
                     if (entry instanceof ProcessEntry) {
+                    	// ask for confirmation before stopping the currently running process and opening another one!
+                    	if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING || 
+                    			RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
+                    		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+                				return;
+                			}
+                    	}
                         open(new RepositoryProcessLocation(location), true);
                     } else if (entry instanceof IOObjectEntry) {
                         showAsResult((IOObjectEntry) entry);

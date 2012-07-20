@@ -24,6 +24,7 @@ package com.rapidminer.operator.meta;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ import com.rapidminer.operator.ports.OutputPortExtender;
 import com.rapidminer.operator.ports.metadata.MDTransformationRule;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
+import com.rapidminer.operator.ports.quickfix.ParameterSettingQuickFix;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeList;
@@ -125,7 +127,7 @@ public class ProcessEmbeddingOperator extends Operator {
 						ProcessRootOperator root = cachedProcess.getRootOperator();
 
 						int requires = root.getSubprocess(0).getInnerSources().getNumberOfConnectedPorts();
-						int gets = getInputPorts().getNumberOfConnectedPorts();						
+						int gets = getInputPorts().getNumberOfConnectedPorts();
 						if (requires != gets) {
 							getInputPorts().getPortByIndex(0).addError(new SimpleMetaDataError(Severity.ERROR, getInputPorts().getPortByIndex(0), "included_process_input_mismatch", requires, gets));
 						}
@@ -133,15 +135,22 @@ public class ProcessEmbeddingOperator extends Operator {
 						int delivers = root.getSubprocess(0).getInnerSinks().getNumberOfConnectedPorts();
 						int consumes = getOutputPorts().getNumberOfConnectedPorts();
 						if (delivers != consumes) {
-							getInputPorts().getPortByIndex(0).addError(new SimpleMetaDataError(Severity.WARNING, getInputPorts().getPortByIndex(0), "included_process_output_mismatch", delivers, consumes));
+							getOutputPorts().getPortByIndex(0).addError(new SimpleMetaDataError(Severity.WARNING, getOutputPorts().getPortByIndex(0), "included_process_output_mismatch", delivers, consumes));
 						}						
 						
-						if (getParameterAsBoolean(PARAMETER_USE_INPUT)) {			
+						if (getParameterAsBoolean(PARAMETER_USE_INPUT)) {
 							root.deliverInputMD(inputExtender.getMetaData(false));
 						}
 						root.transformMetaData();
 						List<MetaData> result = root.getResultMetaData();
 						outputExtender.deliverMetaData(result);
+					}
+				}
+				if (!getParameterAsBoolean(PARAMETER_USE_INPUT)) {
+					if (getInputPorts().getNumberOfConnectedPorts() > 0) {
+						addError(new SimpleMetaDataError(Severity.ERROR, getInputPorts().getPortByIndex(0),
+								Collections.singletonList(new ParameterSettingQuickFix(ProcessEmbeddingOperator.this, PARAMETER_USE_INPUT, "true")),
+								"included_process_input_unused"));
 					}
 				}
 			}
