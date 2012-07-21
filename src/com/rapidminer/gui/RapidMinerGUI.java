@@ -142,6 +142,10 @@ public class RapidMinerGUI extends RapidMiner {
     public static final String PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY = "rapidminer.gui.add_breakpoint_results_to_history";
 
     public static final String PROPERTY_CONFIRM_EXIT = "rapidminer.gui.confirm_exit";
+    
+    public static final String PROPERTY_RUN_REMOTE_NOW = "rapidminer.gui.run_process_on_rapidanalytics_now";
+    
+    public static final String PROPERTY_RUN_REMOTE_NOW_SHOW_SUCCESS = "rapidminer.gui.run_process_now_show_success";
 
     public static final String PROPERTY_FETCH_DATA_BASE_TABLES_NAMES = "rapidminer.gui.fetch_data_base_table_names";
     public static final String PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES  = DatabaseDataReader.PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES;
@@ -156,6 +160,9 @@ public class RapidMinerGUI extends RapidMiner {
         ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_INPUT, "If checked, operator's inputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
         ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_OUTPUT, "If checked, operator's outputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
         ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_CLOSE_RESULTS_BEFORE_RUN, "Close active result tabs when new process starts?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+        ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RUN_REMOTE_NOW, "Really execute the process on RapidAnalytics now?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+        ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RUN_REMOTE_NOW_SHOW_SUCCESS, "Process running on RapidAnalytics now. Show success message?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+        
 
         ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_FETCH_DATA_BASE_TABLES_NAMES, "Fetch the data base tables names in the SQL query dialog of all SQL operators.", true));
         ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES,  "If selected, the SQL meta data will be fetched during meta data evaluation in RapidMiner. For some databases, this may be slow.", true));

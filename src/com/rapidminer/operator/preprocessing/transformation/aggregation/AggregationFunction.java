@@ -24,12 +24,14 @@ package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessSetupError.Severity;
@@ -80,11 +82,14 @@ public abstract class AggregationFunction {
         AGGREATION_FUNCTIONS.put("count (ignoring missings)", CountIgnoringMissingsAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("count (including missings)", CountIncludingMissingsAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("count", CountAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("count (fractional)", CountFractionalAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("count (percentage)", CountPercentageAggregationFunction.class);
 
         // Nominal Aggregations
         AGGREATION_FUNCTIONS.put("mode", ModeAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("least", LeastAggregationFunction.class);
         AGGREATION_FUNCTIONS.put("least (only occurring)", LeastOccurringAggregationFunction.class);
+        AGGREATION_FUNCTIONS.put("concatenation", ConcatAggregationFunction.class);
     }
 
     public static final Map<String, AggregationFunctionMetaDataProvider> AGGREGATION_FUNCTIONS_META_DATA_PROVIDER = new HashMap<String, AggregationFunctionMetaDataProvider>();
@@ -98,6 +103,8 @@ public abstract class AggregationFunction {
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("count (ignoring missings)", new DefaultAggregationFunctionMetaDataProvider("count (ignoring missings)", CountIgnoringMissingsAggregationFunction.FUNCTION_COUNT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.ATTRIBUTE_VALUE }, Ontology.INTEGER));
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("count (including missings)", new DefaultAggregationFunctionMetaDataProvider("count (including missings)", CountIncludingMissingsAggregationFunction.FUNCTION_COUNT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.ATTRIBUTE_VALUE }, Ontology.INTEGER));
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("count", new DefaultAggregationFunctionMetaDataProvider("count", CountAggregationFunction.FUNCTION_COUNT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.ATTRIBUTE_VALUE }, Ontology.INTEGER));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("count (fractional)", new DefaultAggregationFunctionMetaDataProvider("fractionalCount", CountFractionalAggregationFunction.FUNCTION_COUNT_FRACTIONAL, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.ATTRIBUTE_VALUE }, Ontology.REAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("count (percentage)", new DefaultAggregationFunctionMetaDataProvider("percentageCount", CountPercentageAggregationFunction.FUNCTION_COUNT_PERCENTAGE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.ATTRIBUTE_VALUE }, Ontology.REAL));
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("minimum", new DefaultAggregationFunctionMetaDataProvider("minimum", MinAggregationFunction.FUNCTION_MIN, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NUMERICAL, Ontology.DATE_TIME }, Ontology.REAL));
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("maximum", new DefaultAggregationFunctionMetaDataProvider("maximum", MaxAggregationFunction.FUNCTION_MAX, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NUMERICAL, Ontology.DATE_TIME }, Ontology.REAL));
 
@@ -108,6 +115,7 @@ public abstract class AggregationFunction {
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("mode", new DefaultAggregationFunctionMetaDataProvider("mode", ModeAggregationFunction.FUNCTION_MODE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.ATTRIBUTE_VALUE }));
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("least", new DefaultAggregationFunctionMetaDataProvider("least", LeastAggregationFunction.FUNCTION_LEAST, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NOMINAL }, Ontology.POLYNOMINAL));
         AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("least (only occurring)", new DefaultAggregationFunctionMetaDataProvider("least (only occurring)", LeastOccurringAggregationFunction.FUNCTION_LEAST_OCCURRING, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NOMINAL }, Ontology.POLYNOMINAL));
+        AGGREGATION_FUNCTIONS_META_DATA_PROVIDER.put("concatenation", new DefaultAggregationFunctionMetaDataProvider("concatenation", ConcatAggregationFunction.FUNCTION_CONCAT, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE, new int[] { Ontology.NOMINAL }, Ontology.POLYNOMINAL));
     }
 
     private Attribute sourceAttribute;
@@ -219,6 +227,30 @@ public abstract class AggregationFunction {
         }
 
         return names;
+    }
+    
+    
+    /**
+     * This method will return a list of aggregate functions that are compatible with the provided valueType.
+     * 
+     * @param valueType a valueType found in {@link Ontology}.
+     */
+    public static List<String> getCompatibleAggregationFunctionNames(int valueType){
+    	List<String> compatibleAggregationFunctions = new LinkedList<String>();
+    	
+		Attribute sampleAttribute = AttributeFactory.createAttribute(valueType);
+		
+		for(String name : getAvailableAggregationFunctionNames()) {
+			try {
+				if(createAggregationFunction(name, sampleAttribute, true, true).isCompatible()) {
+					compatibleAggregationFunctions.add(name);
+				}
+			} catch (OperatorException e) {
+				// do nothing
+			}
+		}
+		
+		return compatibleAggregationFunctions;
     }
 
     /**

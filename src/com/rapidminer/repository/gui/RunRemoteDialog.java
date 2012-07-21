@@ -57,6 +57,8 @@ import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
 import com.rapidminer.ProcessLocation;
 import com.rapidminer.RepositoryProcessLocation;
+import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.actions.SaveAction;
 import com.rapidminer.gui.dialog.CronEditorDialog;
 import com.rapidminer.gui.processeditor.ProcessContextEditor;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -64,6 +66,7 @@ import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.ResourceTabbedPane;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryConstants;
@@ -464,6 +467,20 @@ public class RunRemoteDialog extends ButtonDialog {
 		RemoteRepository repos = (RemoteRepository) repositoryBox.getSelectedItem();
 		if (repos != null) {
 			String location = processField.getText();
+			
+			// check if process selected is the same as the current process in the GUI, if so check if it has been edited and ask for save
+			// before continuing. Otherwise the last version would be executed which can result in confusion (and therefore support tickets..)
+			if (RapidMinerGUI.getMainFrame().getProcess().getProcessLocation() != null) {
+				String mainFrameProcessLocString = ((RepositoryProcessLocation) RapidMinerGUI.getMainFrame().getProcess().getProcessLocation()).getRepositoryLocation().getPath();
+				if (location.equals(mainFrameProcessLocString) && RapidMinerGUI.getMainFrame().isChanged()) {
+					if (SwingTools.showConfirmDialog("save_before_remote_run", ConfirmDialog.OK_CANCEL_OPTION) == ConfirmDialog.CANCEL_OPTION) {
+						// user does not want to save "dirty" process, abort
+						return;
+					}
+					SaveAction.save(RapidMinerGUI.getMainFrame().getProcess());
+				}
+			}
+			
 			ProcessContextWrapper pcWrapper = new ProcessContextWrapper();
 			for (String loc : context.getInputRepositoryLocations()) {
 				pcWrapper.getInputRepositoryLocations().add(loc);

@@ -3,13 +3,20 @@ History of changes of the RapidMiner versions
 
 Changes from RapidMiner 5.2.8 to 5.2.9
 --------------------------------------
-* Aggregate: new aggregation function: sum (fractional)
+* Aggregate: new aggregation functions: sum (fractional), count (fractional), count (percentage) and string concatenation
 * Result Perspective: Added button in top right corner of a result tab to close all open results at once
 * Preferences menu buttons reworked: 'OK' button saves settings permanently and closes the dialog; 
   'Apply' button saves settings permanently and does not close the dialog
 * Generate Data: warn user if the selected number of attributes is not supported by the target function
 * The RM window title now shows the complete location of the current process to avoid confusion with multiple processes with the same name
 * Trying to create a new process/open another process/exit RM while a process is running now requires user confirmation
+* Local repositories which are inaccessible for any reason now have an annotation which shows that they are inaccessible
+* Improved many error messages
+* Added new run button: "Run process on RapidAnalytics". Can only be used if the process is stored on a RapidAnalytics repository.
+  Instantly runs the process on the RapidAnalytics server the process is stored on.
+* 'Remote' repositories are now called 'RapidAnalytics' repositories.
+* Plugin loading: when loading manually installed plugins from the webstart or plugins folder with multiple versions, 
+  load the one with the highest version number
 * BUGFIX: Editing context variables now immediately flags the process as changed
 * BUGFIX: If set to 'ask', the 'close previous results' dialog will no longer appear when resuming from a breakpoint
 * BUGFIX: Breakpoints can no longer be added to the root operator
@@ -17,12 +24,13 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * BUGFIX: Added error message for 'Find Threshold' operator when an invalid class name is entered as parameter
 * BUGFIX: The Pivot operator used on an empty example set no longer creates an example set with one example (filled with missing values)
 * BUGFIX: The De-Pivot operator now has much better error handling when trying to setup the index attribute as an already existing attribute
-* BUGFIX: Bug: Read Excel cannot open the Import Configuration Wizard, if the excel_file parameter is not set
+* BUGFIX: Read Excel cannot open the Import Configuration Wizard, if the excel_file parameter is not set
 * BUGFIX: Nominal to Binominal can handle border cases with mapping containing less than 2 values
 * BUGFIX: Configure Repository dialog now saves user credentials fore remote repositores again
 * BUGFIX: Added error shown in Problems view when entering invalid regular expression for 'replace what' parameter of Rename by Replacing operator
 * BUGFIX: When moving a repository entry to another location which contains an entry with the same name asks for overwrite instead of showing error
 * BUGFIX: Execute Process operator potential error reporting improved
+* BUGFIX: Creating folders in repository with the same name but different capitalization (e.g. 'test' and 'Test') is now forbidden
 
 
 Changes from RapidMiner 5.2.6 to 5.2.8

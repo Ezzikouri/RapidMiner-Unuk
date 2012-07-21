@@ -78,4 +78,12 @@ public class CountAggregator implements Aggregator {
     public void set(Attribute attribute, DataRow row) {
         row.set(attribute, count);
     }
+    
+    public double getCount() {
+    	return count;
+    }
+    
+    public void setCount(double count) {
+    	this.count = count;
+    }
 }

@@ -71,6 +71,7 @@ import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.gui.templates.BuildingBlock;
 import com.rapidminer.gui.tools.SplashScreen;
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.gui.tools.dialogs.AboutBox;
 import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLImporter;
@@ -651,6 +652,7 @@ public class Plugin {
      * After all Plugins are loaded, they must be assigend their final class loader.
      *  */
     private static void registerPlugins(List<File> files, boolean showWarningForNonPluginJars) {
+    	List<Plugin> newPlugins = new LinkedList<Plugin>();
         for (File file : files) {
             try {
                 JarFile jarFile = new JarFile(file);
@@ -658,13 +660,25 @@ public class Plugin {
                 Attributes attributes = manifest.getMainAttributes();
                 if (RAPIDMINER_TYPE_PLUGIN.equals(attributes.getValue(RAPIDMINER_TYPE))) {
                     final Plugin plugin = new Plugin(file);
-                    final Plugin conflict = getPluginByExtensionId(plugin.getExtensionId());
+                    final Plugin conflict = getPluginByExtensionId(plugin.getExtensionId(), newPlugins);
                     if (conflict == null) {
-                        allPlugins.add(plugin);
+                        newPlugins.add(plugin);
                     } else {
-                        //LogService.getRoot().warning("Duplicate plugin definition for plugin " + plugin.getExtensionId() + " in " + conflict.file + " and " + file + ". Keeping the first.");
-						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.plugin.Plugin.dublicate_plugin_definition",
-								new Object[] { plugin.getExtensionId(), conflict.file, file });
+                    	// keep plugin with higher version number
+                    	VersionNumber newVersion = new VersionNumber(plugin.getVersion());
+                    	VersionNumber conflictVersion = new VersionNumber(conflict.getVersion());
+                    	if (newVersion != null && conflictVersion != null) {
+                    		if (newVersion.compareTo(conflictVersion) > 0) {
+    							LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.plugin.Plugin.duplicate_plugin_definition_higher_version",
+    									new Object[] { plugin.getExtensionId(), file, conflict.file });
+                    			newPlugins.remove(conflict);
+                    			newPlugins.add(plugin);
+                    		}
+                    	} else {
+	                        //LogService.getRoot().warning("Duplicate plugin definition for plugin " + plugin.getExtensionId() + " in " + conflict.file + " and " + file + ". Keeping the first.");
+							LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.plugin.Plugin.duplicate_plugin_definition",
+									new Object[] { plugin.getExtensionId(), conflict.file, file });
+                    	}
                     }
                 } else {
                     if (showWarningForNonPluginJars)
@@ -679,6 +693,15 @@ public class Plugin {
 						I18N.getMessage(LogService.getRoot().getResourceBundle(),
 								"com.rapidminer.tools.plugin.Plugin.plugin_loading_error", file, e.getMessage()), e);
             }
+        }
+        for (Plugin newPlugin : newPlugins) {
+        	Plugin oldPlugin = getPluginByExtensionId(newPlugin.getExtensionId(), allPlugins);
+			if (oldPlugin == null) {
+        		allPlugins.add(newPlugin);
+        	} else {
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.plugin.Plugin.duplicate_plugin_definition",
+						new Object[] { newPlugin.getExtensionId(), oldPlugin.getFile(), newPlugin.getFile() });
+        	}
         }
     }
 
@@ -795,7 +818,12 @@ public class Plugin {
 
     /** Returns the plugin with the given extension id. */
     public static Plugin getPluginByExtensionId(String name) {
-        Iterator<Plugin> i = allPlugins.iterator();
+    	return getPluginByExtensionId(name, allPlugins);
+    }
+
+    /** Returns the plugin with the given extension id. */
+    private static Plugin getPluginByExtensionId(String name, List<Plugin> plugins) {
+        Iterator<Plugin> i = plugins.iterator();
         while (i.hasNext()) {
             Plugin plugin = i.next();
             if (name.equals(plugin.getExtensionId()))

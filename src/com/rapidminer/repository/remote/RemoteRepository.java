@@ -402,7 +402,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public String getDescription() {
-		return "Remote repository at " + getBaseUrl();
+		return "RapidAnalytics repository at " + getBaseUrl();
 	}
 
 	@Override

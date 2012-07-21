@@ -33,6 +33,7 @@ import com.rapidminer.operator.AbstractExampleSetProcessing;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -164,10 +165,11 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		// handle EXPRESSION mode
 		if (mode.equals(EXPRESSION)) {
 			// parse expression
-			expParser.getParser().parseExpression(getParameterAsString(PARAMETER_MISSING_VALUE_EXPRESSION));
+			String expression = getParameterAsString(PARAMETER_MISSING_VALUE_EXPRESSION);
+			expParser.getParser().parseExpression(expression);
 			// error after parsing?
 			if (expParser.getParser().hasError()) {
-		        throw new OperatorException(expParser.getParser().getErrorInfo());
+		        throw new UserError(this, "cannot_parse_expression", expression, expParser.getParser().getErrorInfo());
 			}
 			
 			// let the parser know the attributes

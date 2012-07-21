@@ -109,8 +109,11 @@ public class XMLResultSet implements DataResultSet {
 
         try {
             exampleNodes = (NodeList) exampleExpression.evaluate(configuration.getDocumentObjectModel(), XPathConstants.NODESET);
+        } catch (UserError e) {
+        	e.setOperator(callingOperator);
+        	throw e;
         } catch (XPathExpressionException e) {
-        	throw new UserError(null, 214, configuration.getExampleXPath());
+        	throw new UserError(callingOperator, 214, configuration.getExampleXPath());
         }
     }
 

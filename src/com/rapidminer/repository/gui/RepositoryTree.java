@@ -85,7 +85,9 @@ import com.rapidminer.repository.gui.actions.OpenEntryAction;
 import com.rapidminer.repository.gui.actions.PasteEntryRepositoryAction;
 import com.rapidminer.repository.gui.actions.RefreshAction;
 import com.rapidminer.repository.gui.actions.RenameAction;
+import com.rapidminer.repository.gui.actions.RunRemoteNowProcessAction;
 import com.rapidminer.repository.gui.actions.StoreProcessAction;
+import com.rapidminer.repository.remote.RemoteProcessEntry;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
@@ -160,6 +162,7 @@ public class RepositoryTree extends JTree {
 
     static {
         addRepositoryAction(ConfigureRepositoryAction.class, new RepositoryActionConditionImplConfigRepository(), false, true);
+        addRepositoryAction(RunRemoteNowProcessAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ RemoteProcessEntry.class }, new Class<?>[]{}), false, true);
         addRepositoryAction(OpenEntryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ DataEntry.class }, new Class<?>[]{}), false, false);
         addRepositoryAction(StoreProcessAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ ProcessEntry.class, Folder.class }, new Class<?>[]{}), false, false);
         addRepositoryAction(RenameAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);

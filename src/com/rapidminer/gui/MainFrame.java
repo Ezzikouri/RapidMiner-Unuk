@@ -75,6 +75,7 @@ import com.rapidminer.gui.actions.PrintPreviewAction;
 import com.rapidminer.gui.actions.RedoAction;
 import com.rapidminer.gui.actions.RunAction;
 import com.rapidminer.gui.actions.RunRemoteAction;
+import com.rapidminer.gui.actions.RunRemoteNowAction;
 import com.rapidminer.gui.actions.SaveAction;
 import com.rapidminer.gui.actions.SaveAsAction;
 import com.rapidminer.gui.actions.SaveAsTemplateAction;
@@ -136,9 +137,11 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeColor;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryBrowser;
 import com.rapidminer.repository.gui.process.RemoteProcessViewer;
+import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
@@ -378,6 +381,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public final transient Action EXPORT_ACTION = new ExportViewAction(this, "all");
     public final transient Action EXIT_ACTION = new ExitAction(this);
 
+    public final transient RunRemoteNowAction RUN_REMOTE_NOW_ACTION = new RunRemoteNowAction(this);
     public final transient RunAction RUN_ACTION = new RunAction(this);
     public final transient Action PAUSE_ACTION = new PauseAction(this);
     public final transient Action STOP_ACTION = new StopAction(this);
@@ -716,6 +720,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         layoutMenu.add(processPanel.getProcessRenderer().DECREASE_PROCESS_LAYOUT_HEIGHT_ACTION);
         processMenu.add(layoutMenu);
         processMenu.addSeparator();
+        processMenu.add(RUN_REMOTE_NOW_ACTION);
         processMenu.add(RUN_REMOTE_ACTION);
         menuBar.add(processMenu);
 
@@ -815,6 +820,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         editToolBar.add(makeToolbarButton(REDO_ACTION));
 
         RapidDockingToolbar runToolBar = new RapidDockingToolbar("run");
+        runToolBar.add(makeToolbarButton(RUN_REMOTE_NOW_ACTION));
         runToolBar.add(makeToolbarButton(RUN_ACTION));
         runToolBar.add(makeToolbarButton(PAUSE_ACTION));
         runToolBar.add(makeToolbarButton(STOP_ACTION));
@@ -1067,6 +1073,16 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 if (VALIDATE_AUTOMATICALLY_ACTION.isSelected()) {
                     validateProcess(false);
                 }
+            }
+            try {
+            	RepositoryLocation location = this.process.getRepositoryLocation();
+            	if (location != null && location.getRepository() instanceof RemoteRepository) {
+            		RUN_REMOTE_NOW_ACTION.setEnabled(true);
+            	} else {
+					RUN_REMOTE_NOW_ACTION.setEnabled(false);
+            	}
+            } catch (RepositoryException e) {
+            	RUN_REMOTE_NOW_ACTION.setEnabled(false);
             }
         }
         if (newProcess && !firstProcess) {

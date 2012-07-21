@@ -30,6 +30,7 @@ import static com.rapidminer.operator.nio.xml.XMLExampleSource.PARAMETER_USE_NAM
 import static com.rapidminer.operator.nio.xml.XMLExampleSource.PARAMETER_XPATHS_FOR_ATTRIBUTES;
 import static com.rapidminer.operator.nio.xml.XMLExampleSource.PARAMETER_XPATH_FOR_EXAMPLES;
 
+import java.io.CharConversionException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ import com.rapidminer.tools.ProgressListener;
  * This is the {@link DataResultSetFactory} for the XML Import. It is able
  * to read the parameters stored in the operator to create a {@link DataResultSet} accordingly.
  * 
- * @author Sebastian Land
+ * @author Sebastian Land, Marius Helf
  */
 public class XMLResultSetConfiguration implements DataResultSetFactory {
 
@@ -294,15 +295,22 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
     					"com.rapidminer.operator.nio.xml.XMLResultSetConfiguration.parsing_xml_document_error", 
     					e),
     					e);
-            	throw new OperatorException("Failed to parse XML document: "+e, e);
-            } catch (IOException e) {
+            	throw new UserError(null, 401, e.getMessage());
+            } catch (CharConversionException e) { 
+    			LogService.getRoot().log(Level.WARNING,
+    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+    					"com.rapidminer.operator.nio.xml.XMLResultSetConfiguration.parsing_xml_document_error", 
+    					e),
+    					e);
+    			throw new UserError(null, 401, e.getMessage());
+        	} catch (IOException e) {
             	//LogService.getRoot().log(Level.WARNING, "Failed to parse XML document: "+e, e);
     			LogService.getRoot().log(Level.WARNING,
     					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
     					"com.rapidminer.operator.nio.xml.XMLResultSetConfiguration.parsing_xml_document_error", 
     					e),
     					e);
-            	throw new OperatorException("Failed to parse XML document: "+e, e);
+            	throw new UserError(null, 302, getResourceIdentifier(), e.getMessage());
             }
             //throw new UserError(null, 100);
         } else {

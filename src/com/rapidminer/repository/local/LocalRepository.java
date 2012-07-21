@@ -23,6 +23,7 @@
 package com.rapidminer.repository.local;
 
 import java.io.File;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 
 import javax.swing.event.EventListenerList;
@@ -56,6 +57,25 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	private File root;
 
+	public enum LocalState {
+		ACCESSIBLE(null), NOT_ACCESSIBLE(I18N.getMessage(I18N.getGUIBundle(), "gui.repository.not_accessible.message"));
+		
+		private String state;
+		
+		private LocalState(String state) {
+			this.state = state;
+		}
+		
+		@Override
+		public String toString() {
+			return state;
+		}
+
+		public static String valueOf(LocalState state) {
+			return state.toString();
+		}
+	}
+
 	public LocalRepository(String name, File root) throws RepositoryException {
 		super(name, null, null);		
 		setRepository(this);
@@ -66,9 +86,10 @@ public class LocalRepository extends SimpleFolder implements Repository {
 			//LogService.getRoot().log(Level.WARNING, "Failed to create repository directory: "+e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.repository.local.LocalRepository.creating_repository_directory_error", 
-					e),
-					e);
+							"com.rapidminer.repository.local.LocalRepository.creating_repository_directory_error", 
+							e),
+							e);
+//			throw new RepositoryException(e.getMessage());
 
 		}
 	}
@@ -88,7 +109,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 	public File getFile() {
 		return getRoot();
 	}
-	
+
 	public void setRoot(File root) {
 		this.root = root;
 	}
@@ -149,9 +170,12 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public String getState() {
-		return null;
+		if (getRoot() == null) {
+			return null;
+		}
+		return getRoot().exists() ? LocalState.valueOf(LocalState.ACCESSIBLE) : LocalState.valueOf(LocalState.NOT_ACCESSIBLE);
 	}
-	
+
 	@Override
 	public String getIconName() {
 		return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.local.icon");
@@ -187,7 +211,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 	public boolean shouldSave() {
 		return true;
 	}
-	
+
 	@Override
 	public void postInstall() {
 	}
