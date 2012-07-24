@@ -25,7 +25,9 @@ package com.rapidminer.gui.actions;
 import java.awt.event.ActionEvent;
 
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.gui.tools.dialogs.DecisionRememberingConfirmDialog;
 
 /** An action to close all currently open results.
  * 
@@ -47,7 +49,9 @@ public class CloseAllResultsAction extends ResourceAction {
 	public void actionPerformed(ActionEvent e) {
 		if (mainframe != null) {
 			if (mainframe.getResultDisplay() != null) {
-				mainframe.getResultDisplay().clearAll();
+				if (DecisionRememberingConfirmDialog.confirmAction("close_all_results", RapidMinerGUI.PROPERTY_CLOSE_ALL_RESULTS_NOW)) {
+		    		mainframe.getResultDisplay().clearAll();
+				}
 			}
 		}
 	}

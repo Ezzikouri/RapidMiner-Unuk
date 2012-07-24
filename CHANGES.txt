@@ -17,6 +17,9 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * 'Remote' repositories are now called 'RapidAnalytics' repositories.
 * Plugin loading: when loading manually installed plugins from the webstart or plugins folder with multiple versions, 
   load the one with the highest version number
+* Added database metadata caching to improve performance. If you need to clear the cache, 
+  use the menu item 'Clear Database Metadata Cache' under the 'Tools' menu.
+* Declare Missing Values: allow to declare an empty string as missing, and ignore attributes which are not compatible to the selected mode.
 * BUGFIX: Editing context variables now immediately flags the process as changed
 * BUGFIX: If set to 'ask', the 'close previous results' dialog will no longer appear when resuming from a breakpoint
 * BUGFIX: Breakpoints can no longer be added to the root operator

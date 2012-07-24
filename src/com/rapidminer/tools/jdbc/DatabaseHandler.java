@@ -1268,6 +1268,14 @@ public class DatabaseHandler {
     }
     
     /**
+     * Return the url of the database for this instance.
+     * @return
+     */
+    public String getDatabaseUrl() {
+    	return databaseURL;
+    }
+    
+    /**
      * Updates a given table with the values from the given {@link ExampleSet}. The row(s) to update are specified via dbIdColumn and idAtt parameters.
      * If the id column of the table does not contain an id value of the {@link ExampleSet}, the row is inserted instead.
      * The {@link ExampleSet} attribute names must be a subset of the table column names, otherwise the operation will fail.

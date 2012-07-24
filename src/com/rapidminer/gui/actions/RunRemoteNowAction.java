@@ -32,6 +32,7 @@ import com.rapid_i.repository.wsimport.ProcessContextWrapper;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.DecisionRememberingConfirmDialog;
@@ -81,7 +82,7 @@ public class RunRemoteNowAction extends AbstractAction {
      * @param mainFrame
      * @param location
      */
-    public static synchronized void executeProcessOnRA(RepositoryLocation repoLoc) {
+    public static synchronized void executeProcessOnRA(final RepositoryLocation repoLoc) {
     	// check if user really wants to execute process on RA
     	if (!DecisionRememberingConfirmDialog.confirmAction("execute_process_remotely_now", RapidMinerGUI.PROPERTY_RUN_REMOTE_NOW)) {
     		return;
@@ -100,32 +101,35 @@ public class RunRemoteNowAction extends AbstractAction {
     		}
     	}
 
-    	try {
-    		Repository repo = repoLoc.getRepository();
-    		// check preconditions, e.g. process has a valid processLocation and the repository is a RemoteRepository
-    		if (repoLoc != null && repoLoc.locateEntry() instanceof RemoteProcessEntry && repo instanceof RemoteRepository) {
-    			try {
-    				String processLocString = repoLoc.getPath();
-    				ProcessContextWrapper pcWrapper = new ProcessContextWrapper();
-    				ExecutionResponse response = ((RemoteRepository)repoLoc.getRepository()).getProcessService().executeProcessSimple(processLocString, null, pcWrapper);
-    				if (response.getStatus() != RepositoryConstants.OK) {
-    					SwingTools.showSimpleErrorMessage("run_proc_remote", response.getErrorMessage());
-    				} else {
-    					// success! Show success message?
-    					if (DecisionRememberingConfirmDialog.confirmAction("execute_process_remotely_hide_success", RapidMinerGUI.PROPERTY_RUN_REMOTE_NOW_SHOW_SUCCESS)) {
-    			    		SwingTools.showMessageDialog("process_remote_executed");
-    					}
-    				}
-    			} catch (Exception e1) {
-    				SwingTools.showSimpleErrorMessage("error_connecting_to_server", e1);
-    				return;
-    			}
-    		} else {
-    			SwingTools.showVerySimpleErrorMessage("run_remote_now_general_error");
-    		}
-    	} catch (RepositoryException e1) {
-    		SwingTools.showVerySimpleErrorMessage("run_remote_now_repo_error");
-    	}
+    	new ProgressThread("run_remote_now") {
+			
+			@Override
+			public void run() {
+				try {
+		    		Repository repo = repoLoc.getRepository();
+		    		// check preconditions, e.g. process has a valid processLocation and the repository is a RemoteRepository
+		    		if (repoLoc != null && repoLoc.locateEntry() instanceof RemoteProcessEntry && repo instanceof RemoteRepository) {
+		    			try {
+		    				String processLocString = repoLoc.getPath();
+		    				ProcessContextWrapper pcWrapper = new ProcessContextWrapper();
+		    				ExecutionResponse response = ((RemoteRepository)repoLoc.getRepository()).getProcessService().executeProcessSimple(processLocString, null, pcWrapper);
+		    				// in case of error, show it
+		    				if (response.getStatus() != RepositoryConstants.OK) {
+		    					SwingTools.showSimpleErrorMessage("run_proc_remote", response.getErrorMessage());
+		    				}
+		    			} catch (Exception e1) {
+		    				SwingTools.showSimpleErrorMessage("error_connecting_to_server", e1);
+		    				return;
+		    			}
+		    		} else {
+		    			SwingTools.showVerySimpleErrorMessage("run_remote_now_general_error");
+		    		}
+		    	} catch (RepositoryException e1) {
+		    		SwingTools.showVerySimpleErrorMessage("run_remote_now_repo_error");
+		    	}
+			}
+		}.start();
+    	
     }
     
     @Override

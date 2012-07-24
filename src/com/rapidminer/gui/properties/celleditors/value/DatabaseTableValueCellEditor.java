@@ -54,6 +54,7 @@ import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
+import com.rapidminer.tools.jdbc.TableMetaDataCache;
 import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
@@ -83,7 +84,8 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 		private LinkedList<Object> list = new LinkedList<Object>();
 
 		private Object selected = null;
-
+		
+		
 		public boolean updateModel() {
 			final Object selected = getValue();
 			boolean schemaChanged = false;
@@ -136,7 +138,9 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 								if (handler != null) {
 									Map<TableName, List<ColumnIdentifier>> tableMap;
 									try {
-										tableMap = handler.getAllTableMetaData(getProgressListener(), 20, 90, false);
+//										tableMap = handler.getAllTableMetaData(getProgressListener(), 20, 90, false);
+										// use cached version now to reduce DB queries
+										tableMap = TableMetaDataCache.getInstance().getAllTableMetaData(handler.getDatabaseUrl(), handler, getProgressListener(), 20, 90, false);
 										for (TableName tn : tableMap.keySet()) {
 											switch (DatabaseTableValueCellEditor.this.mode) {
 											case TABLE:

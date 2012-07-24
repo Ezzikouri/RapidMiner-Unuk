@@ -26,12 +26,14 @@ import java.util.List;
 import java.util.Map;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeTypeException;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.AbstractExampleSetProcessing;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
@@ -54,9 +56,9 @@ import com.rapidminer.tools.math.function.ExpressionParser;
 
 /**
  * Allows the declaration of a missing value (nominal or numeric) on a selected subset. The given value 
- * will be converted to Double.NaN, so subsequent operators will treat is as a missing value.
+ * will be converted to Double.NaN, so subsequent operators will treat it as a missing value.
  * 
- * @author Marco Boeck
+ * @author Marco Boeck, Marius Helf
  */
 public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	
@@ -71,6 +73,8 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	
 	/** parameter to set the missing value type (numeric or nominal) */
 	public static final String PARAMETER_MODE = "mode";
+	
+	public static final OperatorVersion VERSION_IGNORE_ATTRIBUTES_OF_WRONG_TYPE = new OperatorVersion(5,2,8);
 	
 	/** Subset Selector for parameter use */
 	private AttributeSubsetSelector subsetSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
@@ -196,15 +200,29 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		}
 		
 		// handle NUMERIC and NOMINAL modes
+		boolean ignoreIncompatibleAttributes = getCompatibilityLevel().isAtMost(VERSION_IGNORE_ATTRIBUTES_OF_WRONG_TYPE);
+		String nominalString = getParameterAsString(PARAMETER_MISSING_VALUE_NOMINAL);
+		if (nominalString == null) {
+			nominalString = "";
+		}
+		
 		for (Example example : subset) {
 			for (Attribute attribute : attributes) {
 				if (mode.equals(NUMERIC)) {
-					if (example.getValue(attribute) == getParameterAsDouble(PARAMETER_MISSING_VALUE_NUMERIC)) {
-						example.setValue(attribute, Double.NaN);
+					if (ignoreIncompatibleAttributes || attribute.isNumerical()) {
+						if (example.getValue(attribute) == getParameterAsDouble(PARAMETER_MISSING_VALUE_NUMERIC)) {
+							example.setValue(attribute, Double.NaN);
+						}
 					}
 				} else if (mode.equals(NOMINAL)) {
-					if (example.getNominalValue(attribute).equals(getParameterAsString(PARAMETER_MISSING_VALUE_NOMINAL))) {
-						example.setValue(attribute, Double.NaN);
+					if (ignoreIncompatibleAttributes || attribute.isNominal() || attribute.getValueType() == Ontology.FILE_PATH || Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+						try {
+							if (example.getNominalValue(attribute).equals(nominalString)) {
+								example.setValue(attribute, Double.NaN);
+							}
+						} catch (AttributeTypeException e) {
+							throw new UserError(this, 119, attribute.getName(), this.getName());
+						}
 					}
 				}
 			}
@@ -229,7 +247,7 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		parameters.add(type);
 		
 		type = new ParameterTypeString(PARAMETER_MISSING_VALUE_NOMINAL, "This parameter defines the missing nominal value", true, false);
-		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_MODE, VALUE_TYPES, true, 1));
+		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_MODE, VALUE_TYPES, false, 1));
 		type.setExpert(false);
 		parameters.add(type);
 		
@@ -249,5 +267,10 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), DeclareMissingValueOperator.class, null);
+	}
+	
+	@Override
+	public OperatorVersion[] getIncompatibleVersionChanges() {
+		return new OperatorVersion[] {VERSION_IGNORE_ATTRIBUTES_OF_WRONG_TYPE};
 	}
 }

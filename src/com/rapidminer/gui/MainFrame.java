@@ -112,6 +112,7 @@ import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.security.PasswordManager;
 import com.rapidminer.gui.templates.SaveAsTemplateDialog;
 import com.rapidminer.gui.tools.LoggingViewer;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceMenu;
 import com.rapidminer.gui.tools.SwingTools;
@@ -149,6 +150,7 @@ import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.config.ConfigurationManager;
 import com.rapidminer.tools.config.gui.ConfigurationDialog;
+import com.rapidminer.tools.jdbc.TableMetaDataCache;
 import com.rapidminer.tools.plugin.Plugin;
 import com.rapidminer.tools.usagestats.UsageStatsTransmissionDialog;
 import com.vlsolutions.swing.docking.DockGroup;
@@ -405,6 +407,21 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         public void actionPerformed(ActionEvent e) {
             ManageDatabaseConnectionsDialog dialog = new ManageDatabaseConnectionsDialog();
             dialog.setVisible(true);
+        }
+    };
+    public final transient Action CLEAR_DB_CACHE_ACTION = new ResourceAction(true, "clear_db_cache") {
+		private static final long serialVersionUID = 8510147303889637712L;
+
+		@Override
+        public void actionPerformed(ActionEvent e) {
+			ProgressThread t = new ProgressThread("db_clear_cache") {
+				
+				@Override
+				public void run() {
+					TableMetaDataCache.getInstance().clearCache();
+				}
+			};
+			t.start();
         }
     };
     // public final transient Action ATTRIBUTE_DESCRIPTION_FILE_WIZARD = new AttributeDescriptionFileWizardAction();
@@ -733,6 +750,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         toolsMenu.addSeparator();
         toolsMenu.add(CHECK_FOR_JDBC_DRIVERS_ACTION);
         toolsMenu.add(MANAGE_DB_CONNECTIONS_ACTION);
+        toolsMenu.add(CLEAR_DB_CACHE_ACTION);
         toolsMenu.add(ManageDatabaseDriversDialog.SHOW_DIALOG_ACTION);
         toolsMenu.addSeparator();
         toolsMenu.add(UsageStatsTransmissionDialog.SHOW_STATISTICS_ACTION);
