@@ -112,7 +112,8 @@ public class Tools {
 	private static final DateFormat DATE_FORMAT = DateFormat.getDateInstance(DateFormat.MEDIUM, Locale.getDefault());
 
 	/** Used for formatting values in the {@link #formatDateTime(Date)} method. */
-	private static final DateFormat DATE_TIME_FORMAT = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG, Locale.getDefault());
+	private static final DateFormat DATE_TIME_FORMAT = DateFormat.getDateTimeInstance(DateFormat.MEDIUM,
+			DateFormat.LONG, Locale.getDefault());
 
 	private static Locale FORMAT_LOCALE = Locale.US;
 
@@ -239,7 +240,8 @@ public class Tools {
 	public static String formatPercent(double value) {
 		if (Double.isNaN(value))
 			return "?";
-		String percentDigitsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_PERCENT);
+		String percentDigitsString = ParameterService
+				.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_PERCENT);
 		int percentDigits = 2;
 		try {
 			if (percentDigitsString != null)
@@ -262,7 +264,8 @@ public class Tools {
 			return "?";
 		int numberDigits = 3;
 		try {
-			String numberDigitsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
+			String numberDigitsString = ParameterService
+					.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
 			numberDigits = Integer.parseInt(numberDigitsString);
 		} catch (NumberFormatException e) {}
 		// TODO: read property for grouping characters
@@ -288,7 +291,8 @@ public class Tools {
 		int numberDigits = numberOfDigits;
 		if (numberDigits < 0) {
 			try {
-				String numberDigitsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
+				String numberDigitsString = ParameterService
+						.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
 				numberDigits = Integer.parseInt(numberDigitsString);
 			} catch (NumberFormatException e) {
 				numberDigits = 3;
@@ -307,7 +311,8 @@ public class Tools {
 	public static String formatIntegerIfPossible(double value) {
 		int numberDigits = 3;
 		try {
-			String numberDigitsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
+			String numberDigitsString = ParameterService
+					.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_FRACTIONDIGITS_NUMBERS);
 			numberDigits = Integer.parseInt(numberDigitsString);
 		} catch (NumberFormatException e) {}
 		// TODO: read property for grouping characters
@@ -383,13 +388,16 @@ public class Tools {
 		return n + "th";
 	}
 
-	/** Returns true if the difference between both numbers is smaller than IS_ZERO. */
+	/** Returns <code>true</code> if the difference between both numbers is smaller than IS_ZERO or both are Double.NaN. 
+	 *  If either d1 or d2 is Double.NaN it will return <code>false</code>. */
 	public static boolean isEqual(double d1, double d2) {
 		// NaN handling
-		if (Double.isNaN(d1) && Double.isNaN(d2))
+		if (Double.isNaN(d1) && Double.isNaN(d2)) {
 			return true;
-		if (Double.isNaN(d1) || Double.isNaN(d2))
+		}
+		if (Double.isNaN(d1) || Double.isNaN(d2)) {
 			return false;
+		}
 		// normal handling
 		return Math.abs(d1 - d2) < IS_ZERO;
 	}
@@ -399,38 +407,55 @@ public class Tools {
 		return isEqual(d, 0.0d);
 	}
 
-	/** Returns no {@link #isEqual(double, double)}. */
+	/** Returns not {@link #isEqual(double, double)}. */
 	public static boolean isNotEqual(double d1, double d2) {
 		return !isEqual(d1, d2);
 	}
 
-	/** Returns true if the d1 is greater than d2 and they are not equal. */
+	/** Returns <code>false</code> if either d1 or d2 is Double.NaN. 
+	 *  Otherwis returns <code>true</code> if the d1 is greater than d2. */
 	public static boolean isGreater(double d1, double d2) {
-		return Double.compare(d1, d2) > 0 && isNotEqual(d1, d2) || Double.isNaN(d1) || Double.isNaN(d2);
-	}
-
-	/** Returns true if the d1 is greater than d1 or both are equal, or if one of the values is NaN */
-	public static boolean isGreaterEqual(double d1, double d2) {
-		return Double.compare(d1, d2) > 0 || isEqual(d1, d2) || Double.isNaN(d1) || Double.isNaN(d2);
-	}
-
-	/** Returns true if the d1 is less than d2 and they are not equal. */
-	public static boolean isLess(double d1, double d2) {
-		return !isGreaterEqual(d1, d2);
-	}
-
-	/** Returns true if the d1 is less than d1 or both are equal. */
-	public static boolean isLessEqual(double d1, double d2) {
-		return !isGreater(d1, d2) || Double.isNaN(d1) || Double.isNaN(d2);
-	}
-
-	/** Returns <code>true</code> if date d1 is equal to date d2. If d1 or d2 are <code>null</code> returns <code>false</code> */
-	public static boolean isEqual(Date d1, Date d2) {
-		if (d1 == null || d2 == null) {
+		if (Double.isNaN(d1) || Double.isNaN(d2)) {
 			return false;
 		}
+		return Double.compare(d1, d2) > 0;
+	}
+
+	/** Returns <code>false</code> if either d1 or d2 is Double.NaN. 
+	 *  Returns <code>true</code> if the d1 is greater than d2 or both are equal. */
+	public static boolean isGreaterEqual(double d1, double d2) {
+		if (Double.isNaN(d1) || Double.isNaN(d2)) {
+			return false;
+		}
+		return Double.compare(d1, d2) > 0 || isEqual(d1, d2);
+	}
+
+	/** Returns <code>false</code> if either d1 or d2 is Double.NaN. 
+	 *  Returns <code>true</code> if the d1 is less than d2. */
+	public static boolean isLess(double d1, double d2) {
+		if (Double.isNaN(d1) || Double.isNaN(d2)) {
+			return false;
+		}
+		return Double.compare(d1, d2) < 0;
+	}
+
+	/** Returns <code>false</code> if either d1 or d2 is Double.NaN. 
+	 *  Returns <code>true</code> if the d1 is less than d2 or both are equal. */
+	public static boolean isLessEqual(double d1, double d2) {
+		if (Double.isNaN(d1) || Double.isNaN(d2)) {
+			return false;
+		}
+		return Double.compare(d1, d2) < 0 || isEqual(d1, d2);
+	}
+
+	/** Returns <code>true</code> if date d1 is equal to date d2. 
+	 *  Returns <code>false</code> if either d1 or d2 is <code>null</code> or dates are not equal. */
+	public static boolean isEqual(Date d1, Date d2) {
 		if (d1 == d2) {
 			return true;
+		}
+		if (d1 == null || d2 == null) {
+			return false;
 		}
 		return d1.compareTo(d2) == 0;
 	}
@@ -440,24 +465,32 @@ public class Tools {
 		return !isEqual(d1, d2);
 	}
 
-	/** Returns true if the date d1 is greater than date d2 and they are not equal. */
+	/** Returns <code>true</code> if the date d1 is greater than date d2.
+	 *  Returns <code>false</code> if either d1 or d2 are <code>null</code>.  */
 	public static boolean isGreater(Date d1, Date d2) {
-		return isNotEqual(d1, d2) && d1.compareTo(d2) > 0;
+		if (d1 == null || d2 == null) {
+			return false;
+		}
+		return d1.compareTo(d2) > 0;
 	}
 
 	/** Returns true if the date d1 is greater than date d1 or both are equal */
 	public static boolean isGreaterEqual(Date d1, Date d2) {
-		return isEqual(d1, d2) || d1.compareTo(d2) > 0;
+		return isEqual(d1, d2) || (d1 != null) && d1.compareTo(d2) > 0;
 	}
 
-	/** Returns true if the date d1 is less than date d2 and they are not equal. */
+	/** Returns <code>true</code> if the date d1 is less than date d2.
+	 *  Returns <code>false</code> if either d1 or d2 are <code>null</code>.  */
 	public static boolean isLess(Date d1, Date d2) {
-		return !isGreaterEqual(d1, d2);
+		if (d1 == null || d2 == null) {
+			return false;
+		}
+		return d1 != null && d1.compareTo(d2) < 0;
 	}
 
 	/** Returns true if the date d1 is less than date d1 or both are equal. */
 	public static boolean isLessEqual(Date d1, Date d2) {
-		return !isGreater(d1, d2);
+		return isEqual(d1, d2) || (d1 != null) && d1.compareTo(d2) < 0;
 	}
 
 	// ====================================
@@ -599,7 +632,8 @@ public class Tools {
 
 		// try property setting
 		if (result == null) {
-			String encoding = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
+			String encoding = ParameterService
+					.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_GENERAL_DEFAULT_ENCODING);
 			if (encoding != null && encoding.trim().length() > 0) {
 				if (RapidMiner.SYSTEM_ENCODING_NAME.equals(encoding)) {
 					result = Charset.defaultCharset();
@@ -655,7 +689,8 @@ public class Tools {
 			int value = process.waitFor();
 			if (value == 0) {
 				//LogService.getGlobal().log("Process '" + name + "' terminated successfully.", LogService.STATUS);
-				LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.Tools.process_terminated_successfully", name);
+				LogService.getRoot()
+						.log(Level.FINE, "com.rapidminer.tools.Tools.process_terminated_successfully", name);
 			} else {
 				throw new UserError(operator, 306, new Object[] { name, value });
 			}
@@ -717,7 +752,7 @@ public class Tools {
 	public static String readTextFile(InputStream in) throws IOException {
 		return readTextFile(new InputStreamReader(in, "UTF-8"));
 	}
-	
+
 	/** Reads a text file into a single string. 
 	 * Process files created with RapidMiner 5.2.008 or earlier will be read with
 	 * the system encoding (for compatibility reasons); all other files will be read
@@ -725,7 +760,7 @@ public class Tools {
 	 * */
 	public static String readTextFile(File file) throws IOException {
 		FileInputStream inStream = new FileInputStream(file);
-		
+
 		// due to a bug in pre-5.2.009, process files were stored in System encoding instead of
 		// UTF-8. So we have to check the process version, and if it's less than 5.2.009 we have
 		// to retrieve the file again with System encoding.
@@ -766,7 +801,7 @@ public class Tools {
 			// utf8 reader
 			reader = new InputStreamReader(inStream, XMLImporter.PROCESS_FILE_CHARSET);
 		}
-		
+
 		return readTextFile(reader);
 	}
 
@@ -853,7 +888,8 @@ public class Tools {
 		findImplementationsInJar(Tools.class.getClassLoader(), jar, superClass, implementations);
 	}
 
-	public static void findImplementationsInJar(ClassLoader loader, JarFile jar, Class<?> superClass, List<String> implementations) {
+	public static void findImplementationsInJar(ClassLoader loader, JarFile jar, Class<?> superClass,
+			List<String> implementations) {
 		Enumeration<JarEntry> e = jar.entries();
 		while (e.hasMoreElements()) {
 			JarEntry entry = e.nextElement();
@@ -1019,7 +1055,8 @@ public class Tools {
 	 *             instead
 	 */
 	@Deprecated
-	public static String[] mergeQuotedSplits(String line, String[] splittedTokens, String quoteString) throws IOException {
+	public static String[] mergeQuotedSplits(String line, String[] splittedTokens, String quoteString)
+			throws IOException {
 		int[] tokenStarts = new int[splittedTokens.length];
 		int currentCounter = 0;
 		int currentIndex = 0;
@@ -1105,7 +1142,8 @@ public class Tools {
 
 	/** Delivers the next token and checks if its the end of line. */
 	public static void getLastToken(StreamTokenizer tokenizer, boolean endOfFileOk) throws IOException {
-		if (tokenizer.nextToken() != StreamTokenizer.TT_EOL && (tokenizer.ttype != StreamTokenizer.TT_EOF || !endOfFileOk)) {
+		if (tokenizer.nextToken() != StreamTokenizer.TT_EOL
+				&& (tokenizer.ttype != StreamTokenizer.TT_EOF || !endOfFileOk)) {
 			throw new IOException("expected the end of the line " + tokenizer.lineno());
 		}
 	}
@@ -1220,7 +1258,8 @@ public class Tools {
 	 * 
 	 * @param closeOutputStream
 	 */
-	public static void copyStreamSynchronously(InputStream in, OutputStream out, boolean closeOutputStream) throws IOException {
+	public static void copyStreamSynchronously(InputStream in, OutputStream out, boolean closeOutputStream)
+			throws IOException {
 		byte[] buffer = new byte[1024 * 20];
 		try {
 			// in = new BufferedInputStream(in);
@@ -1280,8 +1319,8 @@ public class Tools {
 		if (index < 0) {
 			return "error";
 		}
-		final Character[] alphabet = new Character[] { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y',
-				'Z' };
+		final Character[] alphabet = new Character[] { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+				'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
 
 		// index -= 1; // adjust so it matches 0-indexed array rather than
 		// 1-indexed column
@@ -1302,7 +1341,8 @@ public class Tools {
 	 * line = '"Charles says: "Some people never go crazy, What truly horrible lives they must live"", 1968, "US"'
 	 * return = '"Charles says: \"Some people never go crazy, What truly horrible lives they must live\"", "1968", "US"'
 	 */
-	public static String escapeQuoteCharsInQuotes(String line, Pattern separatorPattern, char quotingChar, char escapeChar, boolean showWarning) {
+	public static String escapeQuoteCharsInQuotes(String line, Pattern separatorPattern, char quotingChar,
+			char escapeChar, boolean showWarning) {
 		// first remember quoteChar positions which should be escaped:
 		char lastChar = '0';
 		boolean openedQuote = false;
@@ -1348,8 +1388,9 @@ public class Tools {
 				lineBeginning = line.substring(0, 20);
 			}
 			String warning = "While reading the line starting with \n\n\t" + lineBeginning + "   ...\n\n"
-					+ ",an unescaped quote character was substituted by an escaped quote at the position(s) " + positions.toString() + ". " + "In particular der character '"
-					+ Character.toString(lastChar) + "' was replaced by '" + Character.toString(escapeChar) + Character.toString(lastChar) + ".";
+					+ ",an unescaped quote character was substituted by an escaped quote at the position(s) "
+					+ positions.toString() + ". " + "In particular der character '" + Character.toString(lastChar)
+					+ "' was replaced by '" + Character.toString(escapeChar) + Character.toString(lastChar) + ".";
 
 			LogService.getGlobal().logWarning(warning);
 		}
@@ -1543,7 +1584,8 @@ public class Tools {
 	 * Splits the string at every split character unless escaped. If the split limit is not -1, at most so many tokens
 	 * will be returned. No more escaping is performed in the last token!
 	 */
-	public static List<String> unescape(String source, char escapeChar, char[] specialCharacters, char splitCharacter, int splitLimit) {
+	public static List<String> unescape(String source, char escapeChar, char[] specialCharacters, char splitCharacter,
+			int splitLimit) {
 		List<String> result = new LinkedList<String>();
 		StringBuilder b = new StringBuilder();
 		// was the last character read an escape character?
@@ -1570,7 +1612,8 @@ public class Tools {
 					}
 				}
 				if (!found) {
-					throw new IllegalArgumentException("String '" + source + "' contains illegal escaped character '" + c + "'.");
+					throw new IllegalArgumentException("String '" + source + "' contains illegal escaped character '"
+							+ c + "'.");
 				}
 				// reset to regular mode
 				readEscape = false;

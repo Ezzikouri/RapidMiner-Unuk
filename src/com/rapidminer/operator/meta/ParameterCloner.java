@@ -132,16 +132,18 @@ public class ParameterCloner extends Operator {
 						if (parts.length != 2) {
 							errorNumber++;
 							addError(new SimpleProcessSetupError(Severity.ERROR, this.getPortOwner(), Collections.singletonList(new ParameterSettingQuickFix(this, PARAMETER_NAME_MAP, getParameterAsString(PARAMETER_NAME_MAP))), "parameter_wrong_format", PARAMETER_NAME_MAP));
-						}
-						if (!operatorNames.contains(parts[0])) {
-							errorNumber++;
-							addError(new SimpleProcessSetupError(Severity.ERROR, this.getPortOwner(), Collections.singletonList(new ParameterSettingQuickFix(this, PARAMETER_NAME_MAP,  getParameterAsString(PARAMETER_NAME_MAP))), "parameter_unknown_operator", PARAMETER_NAME_MAP, parts[0]));
+							break;
 						} else {
-							Operator operator = lookupOperator(parts[0]);
-							ParameterType type = operator.getParameterType(parts[1]);
-							if (type == null) {
+							if (!operatorNames.contains(parts[0])) {
 								errorNumber++;
-								addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), Collections.singletonList(new ParameterSettingQuickFix(this, PARAMETER_NAME_MAP,  getParameterAsString(PARAMETER_NAME_MAP))), "parameter_unknown_parameter_for_operator", parts[1], parts[0]));
+								addError(new SimpleProcessSetupError(Severity.ERROR, this.getPortOwner(), Collections.singletonList(new ParameterSettingQuickFix(this, PARAMETER_NAME_MAP,  getParameterAsString(PARAMETER_NAME_MAP))), "parameter_unknown_operator", PARAMETER_NAME_MAP, parts[0]));
+							} else {
+								Operator operator = lookupOperator(parts[0]);
+								ParameterType type = operator.getParameterType(parts[1]);
+								if (type == null) {
+									errorNumber++;
+									addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), Collections.singletonList(new ParameterSettingQuickFix(this, PARAMETER_NAME_MAP,  getParameterAsString(PARAMETER_NAME_MAP))), "parameter_unknown_parameter_for_operator", parts[1], parts[0]));
+								}
 							}
 						}
 					}

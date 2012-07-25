@@ -39,7 +39,7 @@ import com.rapidminer.tools.XMLException;
 
 /**
  * This attribute type supports the user by let him select an attribute name from a combo box
- * of known attribute names. For long lists, auto completition and filtering of the drop down menu
+ * of known attribute names. For long lists, auto completion and filtering of the drop down menu
  * eases the handling.
  * For knowing attribute names before process execution a valid meta data transformation must be performed. Otherwise
  * the user might type in the name, instead of choosing.
@@ -171,7 +171,7 @@ public class ParameterTypeAttribute extends ParameterTypeString {
 
     @Override
     public Object getDefaultValue() {
-        return "";
+        return null;
     }
 
     /** This method might be overridden by subclasses in order to
@@ -188,7 +188,7 @@ public class ParameterTypeAttribute extends ParameterTypeString {
     	return metaDataProvider;
     }
 
-    /** Returns the meta data currently avaiable by the {@link #metaDataProvider}. */
+    /** Returns the meta data currently available by the {@link #metaDataProvider}. */
     public MetaData getMetaData() {
 		MetaData metaData = null;
         if (metaDataProvider != null) {

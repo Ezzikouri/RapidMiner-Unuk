@@ -34,6 +34,8 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * BUGFIX: When moving a repository entry to another location which contains an entry with the same name asks for overwrite instead of showing error
 * BUGFIX: Execute Process operator potential error reporting improved
 * BUGFIX: Creating folders in repository with the same name but different capitalization (e.g. 'test' and 'Test') is now forbidden
+* BUGFIX: filtering numerical and date attributes with Filter Examples is possible again 
+* BUGFIX: Wrong parameter format in Clone Parameters causes exception
 
 
 Changes from RapidMiner 5.2.6 to 5.2.8

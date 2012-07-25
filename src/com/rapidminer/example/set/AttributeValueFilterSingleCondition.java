@@ -118,8 +118,9 @@ public class AttributeValueFilterSingleCondition implements Condition {
 
 	private void setValue(String value) {
 		if (attribute.isNominal()) {
-			if ((comparisonType != EQUALS) && (comparisonType != NEQ1 && comparisonType != NEQ2))
+			if ((comparisonType != EQUALS) && (comparisonType != NEQ1 && comparisonType != NEQ2)) {
 				throw new IllegalArgumentException("For nominal attributes only '=' and '!=' or '<>' is allowed!");
+			}
 			this.nominalValue = value;
 			// Check if this string is equal to missing
 			this.isMissingAllowed = nominalValue.equals(MISSING_ENCODING);
@@ -138,15 +139,21 @@ public class AttributeValueFilterSingleCondition implements Condition {
 				try {
 					this.numericalValue = Double.parseDouble(value);
 				} catch (NumberFormatException e) {
-					throw new IllegalArgumentException("Value for attribute '" + attribute.getName() + "' must be numerical!");
+					throw new IllegalArgumentException("Value for attribute '" + attribute.getName()
+							+ "' must be numerical!");
 				}
 			}
 		} else { // date
 			SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);
 			try {
-				dateValue = dateFormat.parse(value);
+				if (value.equals("?")) {
+					this.dateValue = null;
+				} else {
+					this.dateValue = dateFormat.parse(value);
+				}
 			} catch (ParseException e) {
-				throw new IllegalArgumentException("Could not parse value '" + value + "' with date pattern " + DATE_PATTERN);
+				throw new IllegalArgumentException("Could not parse value '" + value + "' with date pattern "
+						+ DATE_PATTERN);
 			}
 		}
 	}
@@ -163,7 +170,8 @@ public class AttributeValueFilterSingleCondition implements Condition {
 
 	@Override
 	public String toString() {
-		return attribute.getName() + " " + COMPARISON_TYPES[comparisonType] + " " + (attribute.isNominal() ? nominalValue : "" + numericalValue);
+		return attribute.getName() + " " + COMPARISON_TYPES[comparisonType] + " "
+				+ (attribute.isNominal() ? nominalValue : "" + numericalValue);
 	}
 
 	/** Returns true if the condition is fulfilled for the given example. 
@@ -196,29 +204,28 @@ public class AttributeValueFilterSingleCondition implements Condition {
 		} else if (attribute.isNumerical()) {
 			switch (comparisonType) {
 				case LEQ:
-					return e.getNumericalValue(attribute) <= numericalValue;
-					//					return Tools.isLessEqual(e.getNumericalValue(attribute), numericalValue);
+					return Tools.isLessEqual(e.getNumericalValue(attribute), numericalValue);
 				case GEQ:
-					return e.getNumericalValue(attribute) >= numericalValue;
-					//					return Tools.isGreaterEqual(e.getNumericalValue(attribute), numericalValue);
+					return Tools.isGreaterEqual(e.getNumericalValue(attribute), numericalValue);
 				case NEQ1:
 				case NEQ2:
-					return e.getNumericalValue(attribute) != numericalValue;
-					//					return Tools.isNotEqual(e.getNumericalValue(attribute), numericalValue);
+					return Tools.isNotEqual(e.getNumericalValue(attribute), numericalValue);
 				case EQUALS:
-					return e.getNumericalValue(attribute) == numericalValue;
-					//					return Tools.isEqual(e.getNumericalValue(attribute), numericalValue);
+					return Tools.isEqual(e.getNumericalValue(attribute), numericalValue);
 				case LESS:
-					return e.getNumericalValue(attribute) < numericalValue;
-					//					return Tools.isLess(e.getNumericalValue(attribute), numericalValue);
+					return Tools.isLess(e.getNumericalValue(attribute), numericalValue);
 				case GREATER:
-					return e.getNumericalValue(attribute) > numericalValue;
-					//					return Tools.isGreater(e.getNumericalValue(attribute), numericalValue);
+					return Tools.isGreater(e.getNumericalValue(attribute), numericalValue);
 				default:
 					return false;
 			}
 		} else { // date
-			Date currentDateValue = e.getDateValue(attribute);
+			Date currentDateValue;
+			if(Double.isNaN(e.getValue(attribute))) {
+				currentDateValue = null;
+			} else {
+				currentDateValue = e.getDateValue(attribute);
+			}
 			switch (comparisonType) {
 				case LEQ:
 					return Tools.isLessEqual(currentDateValue, dateValue);
