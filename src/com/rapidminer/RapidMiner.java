@@ -149,6 +149,7 @@ public class RapidMiner {
 
 	private static ExecutionMode executionMode = ExecutionMode.UNKNOWN;
 	private static VersionNumber version = new RapidMinerVersion();
+	private static boolean assertersInitialized = false;
 
 	// ---  GENERAL PROPERTIES  ---
 
@@ -547,8 +548,23 @@ public class RapidMiner {
 		// initialize xml serialization
 		RapidMiner.splashMessage("xml_serialization");
 		XMLSerialization.init(Plugin.getMajorClassLoader());
-
-		RapidAssert.ASSERTER_REGISTRY.registerAllAsserters(new AsserterFactoryRapidMiner());
+		
+		if(executionMode == ExecutionMode.TEST) {
+			initAsserters();
+		}
+	}
+	
+	/**
+	 * This method initializes RapidMiner's and all installed Plugin Asserters that will be used by {@link RapidAssert}.
+	 * CAUTION: This function has to be called AFTER {@link #init()}.
+	 */
+	public static void initAsserters() {
+		if(!assertersInitialized) {
+			LogService.getRoot().log(Level.INFO,"Initializing Asserters...");
+			Plugin.initPluginTests();
+			RapidAssert.ASSERTER_REGISTRY.registerAllAsserters(new AsserterFactoryRapidMiner());
+			assertersInitialized = true;
+		}
 	}
 
 	private static void showSplashInfos() {

@@ -35,6 +35,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -494,15 +495,24 @@ public class XMLTools {
      * thrown. If the element is not unique, an exception is thrown in any cases.
      */
     public static Element getUniqueInnerTag(Element element, String tagName, boolean obligatory) throws XMLException {
-        NodeList children = element.getElementsByTagName(tagName);
-        switch (children.getLength()) {
+        NodeList children = element.getChildNodes();
+        Collection<Element> elements = new ArrayList<Element>();
+        for(int i=0; i<children.getLength(); i++) {
+        	if(children.item(i) instanceof Element) {
+        		Element child = (Element) children.item(i);
+        		if(tagName.equals(child.getTagName())) {
+        			elements.add(child);
+        		}
+        	}
+        }
+        switch (elements.size()) {
         case 0:
             if (obligatory)
                 throw new XMLException("Missing inner tag <" + tagName + "> inside <" + element.getTagName() + ">.");
             else
                 return null;
         case 1:
-            return (Element) children.item(0);
+            return elements.iterator().next();
         default:
             throw new XMLException("Inner tag <" + tagName + "> inside <" + element.getTagName() + "> must be unique, but found " + children.getLength() + ".");
         }

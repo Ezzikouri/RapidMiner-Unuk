@@ -171,7 +171,7 @@ public class ParameterTypeAttribute extends ParameterTypeString {
 
     @Override
     public Object getDefaultValue() {
-        return null;
+        return "";
     }
 
     /** This method might be overridden by subclasses in order to

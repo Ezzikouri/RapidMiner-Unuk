@@ -184,6 +184,7 @@ public class TestContext {
 
 	            RapidMiner.setExecutionMode(ExecutionMode.TEST);
 	            RapidMiner.init();
+	            RapidMiner.initAsserters();
 	            
 	            try {
 	            	if (repositoryUrl!=null&&repositoryLocation!=null&&repositoryUser!=null&&repositoryPassword!=null) {
