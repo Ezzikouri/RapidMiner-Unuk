@@ -164,8 +164,8 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 		}
 
 		SimpleFolder folder = new SimpleFolder(name, this, getRepository());
-		folders.add(folder);
 		folder.mkdir();
+		folders.add(folder);
 		getRepository().fireEntryAdded(folder, this);
 		return folder;
 	}

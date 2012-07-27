@@ -52,7 +52,6 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.repository.db.DBRepository;
 import com.rapidminer.repository.gui.NewRepositoryDialog;
 import com.rapidminer.repository.local.LocalRepository;
-import com.rapidminer.repository.local.SimpleFolder;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.repository.resource.ResourceRepository;
 import com.rapidminer.tools.AbstractObservable;
@@ -314,6 +313,11 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			RepositoryLocation parentLocation = location.parent();
 			if (parentLocation != null) {
 				String childName = location.getName();
+				
+				if (!(location.getRepository() instanceof RemoteRepository) && !Tools.canStringBeStoredOnCurrentFilesystem(location.getName())) {
+					throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + location.getName() + "')");
+				}
+				
 				Entry parentEntry = parentLocation.locateEntry();
 				Folder parentFolder;
 				if (parentEntry != null) {
@@ -410,6 +414,12 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		if (newName == null) {
 			newName = entry.getName();
 		}
+		
+		// make sure the filename is valid for the current filesystem
+		// no need to check if you store on a RA repository, it might use a different filesystem
+		if (!(destination.getLocation().getRepository() instanceof RemoteRepository) && !Tools.canStringBeStoredOnCurrentFilesystem(newName)) {
+			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + newName + "')");
+		}
 
 		String originalName = newName;
 		if (destination.containsEntry(newName)) {			
@@ -482,6 +492,14 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		if (entry == null) {
 			throw new RepositoryException("No such entry: " + source);
 		} else {
+			// make sure the filename is valid for the current filesystem
+			// no need to check if you store on a RA repository, it might use a different filesystem
+			String name = newName != null ? newName : entry.getName();
+			if (!(destination.getLocation().getRepository() instanceof RemoteRepository) && !Tools.canStringBeStoredOnCurrentFilesystem(name)) {
+				SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", name);
+				return;
+			}
+			
 			if (destination.getLocation().getRepository() != source.getRepository()) {
 				copy(source, destination, newName, listener);
 				entry.delete();

@@ -22,11 +22,14 @@
  */
 package com.rapidminer.operator.ports.impl;
 
+import com.rapidminer.Process;
+import com.rapidminer.operator.DebugMode;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.Ports;
+import com.rapidminer.operator.ports.metadata.MetaData;
 
 /**  
  *  The default implementation of an {@link InputPort}
@@ -44,6 +47,18 @@ public class InputPortImpl extends AbstractInputPort {
 	@Override
 	public void receive(IOObject object) {		
 		setData(object);
+		
+		Process process = getPorts().getOwner().getOperator().getProcess();
+		if ((process != null) && (process.getDebugMode() == DebugMode.COLLECT_METADATA_AFTER_EXECUTION)) {
+			if (object == null) {
+				setRealMetaData(null);
+			} else {
+				MetaData forIOObject = MetaData.forIOObject(object);
+				setRealMetaData(forIOObject);
+			}
+		} else {
+			setRealMetaData(null);
+		}
 	}
 	
 }

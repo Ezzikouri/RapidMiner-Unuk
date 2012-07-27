@@ -52,6 +52,8 @@ public abstract class AbstractInputPort extends AbstractPort implements InputPor
 	private final Collection<Precondition> preconditions = new LinkedList<Precondition>();
 
 	private MetaData metaData;
+	
+	private MetaData realMetaData;
 
 	/** The port to which this port is connected. */
 	private OutputPort sourceOutputPort;
@@ -63,6 +65,10 @@ public abstract class AbstractInputPort extends AbstractPort implements InputPor
 	@Override
 	public void clear(int clearFlags) {
 		super.clear(clearFlags);
+		if ((clearFlags & CLEAR_REAL_METADATA) > 0) {
+			realMetaData = null;
+			informListenersOfChange(null);
+		}
 		if ((clearFlags & CLEAR_METADATA) > 0) {
 			this.metaData = null;
 			informListenersOfChange(null);
@@ -78,7 +84,11 @@ public abstract class AbstractInputPort extends AbstractPort implements InputPor
 
 	@Override
 	public MetaData getMetaData() {
-		return metaData;
+		if (realMetaData != null) {
+			return realMetaData;
+		} else {
+			return metaData;
+		}
 	}
 
 	public void connect(OutputPort outputPort) {
@@ -170,6 +180,14 @@ public abstract class AbstractInputPort extends AbstractPort implements InputPor
 		for (MetaDataChangeListener listener : metaDataChangeListeners) {
 			listener.informMetaDataChanged(metaData);
 		}
+	}
+
+	public MetaData getRealMetaData() {
+		return realMetaData;
+	}
+
+	public void setRealMetaData(MetaData realMetaData) {
+		this.realMetaData = realMetaData;
 	}
 
 }

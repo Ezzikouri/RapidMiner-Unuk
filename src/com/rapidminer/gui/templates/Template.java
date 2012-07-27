@@ -41,6 +41,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.rapidminer.Process;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.FileSystemService;
@@ -227,6 +228,10 @@ public class Template {
 
     public void saveAsUserTemplate(Process process) throws IOException, XMLException {
         String name = getName();
+        if (!Tools.canStringBeStoredOnCurrentFilesystem(name)) {
+			SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", name);
+			return;
+		}
         File outputFile = FileSystemService.getUserConfigFile(name + ".template");
 
         Document doc = process.getRootOperator().getDOMRepresentation();

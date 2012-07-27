@@ -20,6 +20,12 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * Added database metadata caching to improve performance. If you need to clear the cache, 
   use the menu item 'Clear Database Metadata Cache' under the 'Tools' menu.
 * Declare Missing Values: allow to declare an empty string as missing, and ignore attributes which are not compatible to the selected mode.
+* Extract Macro: added optional list parameter to add unlimited macro name/value pairs when 'macro type' is set to 'data_value'.
+* 'Synchronize Meta Data with Real Data' toggle button added in the top right corner of the process view.
+  This will now propagate the real meta data to all reached input ports after process execution.
+  This means that for example the operator after a breakpoint will have its meta data synched with the real data, therefore 
+  enabling e.g. attribute selection parameters to show the list of paramters available.
+  Known Issue: Currently this information is lost once the operator updates itself, which happens for example if you deselected/select it again.
 * BUGFIX: Editing context variables now immediately flags the process as changed
 * BUGFIX: If set to 'ask', the 'close previous results' dialog will no longer appear when resuming from a breakpoint
 * BUGFIX: Breakpoints can no longer be added to the root operator
@@ -36,7 +42,9 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * BUGFIX: Creating folders in repository with the same name but different capitalization (e.g. 'test' and 'Test') is now forbidden
 * BUGFIX: filtering numerical and date attributes with Filter Examples is possible again 
 * BUGFIX: Wrong parameter format in Clone Parameters causes exception
-
+* BUGFIX: Fixed GUI problem when trying to schedule a process on RapidAnalytics without existing RapidAnalytics repositories
+* BUGFIX: Fixed possible data loss when trying to store data/processes/etc in the repository using invalid characters for the given
+		  filesystem by now showing an error instead of failing silently
 
 Changes from RapidMiner 5.2.6 to 5.2.8
 --------------------------------------

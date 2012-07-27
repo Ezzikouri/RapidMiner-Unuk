@@ -1721,4 +1721,29 @@ public class Tools {
 
 		return unmaskedStringBuilder.toString();
 	}
+	
+	/**
+	 * This method can test a given {@link String} if it could be stored on the current filesystem
+	 * the program is working on. For example, if working on Windows the string <code>foo:bar</code> would return <code>false</code>
+	 * (because <code>:</code> is forbidden). The string <code>foo_bar</code> would return <code>true</code>.
+	 * @param stringToCheck if <code>null</code>, returns <code>false</code>
+	 * @return
+	 */
+	public static boolean canStringBeStoredOnCurrentFilesystem(String stringToCheck) {
+		if (stringToCheck == null) {
+			return false;
+		}
+		try {
+			File testFile = new File(stringToCheck);
+			// this call will throw an IOException if the filename is not valid for the given OS
+			if (!testFile.exists()) {
+				testFile.createNewFile();
+				testFile.delete();
+			}
+		} catch (IOException e) {
+			return false;
+		}
+		
+		return true;
+	}
 }

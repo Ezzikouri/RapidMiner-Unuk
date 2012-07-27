@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
@@ -38,6 +40,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
@@ -88,7 +91,9 @@ public class DataMacroDefinitionOperator extends Operator {
 	public static final String PARAMETER_ATTRIBUTE_VALUE = "attribute_value";
 
 	public static final String PARAMETER_STATISTICS = "statistics";
-
+	
+	public static final String PARAMETER_LIST_MACROS = "additional_macros";
+	
 
 	public static final String[] MACRO_TYPES = new String[] {
 		"number_of_examples",
@@ -156,6 +161,8 @@ public class DataMacroDefinitionOperator extends Operator {
 	public void doWork() throws OperatorException {
 		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 
+		List<String> listOfMacroNames = new LinkedList<String>();
+		List<String> listOfMacroValues = new LinkedList<String>();
 		String macroName  = getParameterAsString(PARAMETER_MACRO);
 		this.macroValue = null;
 
@@ -183,20 +190,52 @@ public class DataMacroDefinitionOperator extends Operator {
 				throw new UserError(this, 110, exampleIndex+1);
 			}
 
-			Attribute attribute = exampleSet.getAttributes().get(getParameter(PARAMETER_ATTRIBUTE_NAME));
-			if (attribute == null) {
-				throw new UserError(this, 111, getParameterAsString(PARAMETER_ATTRIBUTE_NAME));
-			}
+			// iterate over all defined macro pairs and add them to the lists
+			Iterator<String[]> j = getParameterList(PARAMETER_LIST_MACROS).iterator();
+			while (j.hasNext()) {
+				String[] macronameAttributePair = j.next();
+				String nameOfMacro = macronameAttributePair[0];
+				String nameOfAttr = macronameAttributePair[1];
+				
+				Attribute attribute = exampleSet.getAttributes().get(nameOfAttr);
+				if (attribute == null) {
+					throw new UserError(this, 111, nameOfAttr);
+				}
+				
+				Example example = exampleSet.getExample(exampleIndex);
+				if (attribute.isNumerical()) {
+					macroValue = Tools.formatIntegerIfPossible(example.getValue(attribute));
+				} else {
+					macroValue = example.getValueAsString(attribute);
+				}
+				// add name and value to the respective lists
+				listOfMacroNames.add(nameOfMacro);
+				listOfMacroValues.add(macroValue);
 
-			Example example = exampleSet.getExample(exampleIndex);
-			if (attribute.isNumerical()) {
-				macroValue = Tools.formatIntegerIfPossible(example.getValue(attribute));
-			} else {
-				macroValue = example.getValueAsString(attribute);
+				checkForStop();
 			}
+			
+			// to ensure compatibility with the old version with no macro list, we need to add the original single macro parameter value if it exists
+			if (!"".equals(macroName)) {
+				Attribute attribute = exampleSet.getAttributes().get(getParameterAsString(PARAMETER_ATTRIBUTE_NAME));
+				if (attribute == null) {
+					throw new UserError(this, 111, getParameterAsString(PARAMETER_ATTRIBUTE_NAME));
+				}
+				
+				Example example = exampleSet.getExample(exampleIndex);
+				if (attribute.isNumerical()) {
+					macroValue = Tools.formatIntegerIfPossible(example.getValue(attribute));
+				} else {
+					macroValue = example.getValueAsString(attribute);
+				}
+				
+				listOfMacroNames.add(macroName);
+				listOfMacroValues.add(macroValue);
+			}
+			
 			break;
 		case MACRO_TYPE_STATISTICS:
-			attribute = exampleSet.getAttributes().get(getParameter(PARAMETER_ATTRIBUTE_NAME));
+			Attribute attribute = exampleSet.getAttributes().get(getParameter(PARAMETER_ATTRIBUTE_NAME));
 			if (attribute == null) {
 				throw new UserError(this, 111, getParameterAsString(PARAMETER_ATTRIBUTE_NAME));
 			}
@@ -258,8 +297,22 @@ public class DataMacroDefinitionOperator extends Operator {
 			break;
 		}
 
-		// define macro
-		getProcess().getMacroHandler().addMacro(macroName, macroValue);
+		// add the single macro name if we don't have a list of macro names (happens when the macro type is not MACRO_TYPE_DATA)
+		if (listOfMacroNames.size() <= 0) {
+			listOfMacroNames.add(macroName);
+		}
+		// add the single macro value if we don't have a list of macro values (happens when the macro type is not MACRO_TYPE_DATA)
+		if (listOfMacroValues.size() <= 0) {
+			listOfMacroValues.add(macroValue);
+		}
+		// iterate over the lists and add macro name/value pairs to the macro handler
+		// both lists should always be of the same size, so just for the case they are not Math.min(x,y) is used
+		for (int i=0; i<Math.min(listOfMacroNames.size(), listOfMacroValues.size()); i++) {
+			String nameOfMacro = listOfMacroNames.get(i);
+			String valueOfMacro = listOfMacroValues.get(i);
+			// define macro
+			getProcess().getMacroHandler().addMacro(nameOfMacro, valueOfMacro);
+		}
 
 		exampleSetOutput.deliver(exampleSet);
 	}
@@ -289,11 +342,16 @@ public class DataMacroDefinitionOperator extends Operator {
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_STATISTICS, STATISTICS_TYPES, true, STATISTICS_TYPE_COUNT));
 		types.add(type);
 
-		type = new ParameterTypeInt(PARAMETER_EXAMPLE_INDEX, "The index of the example from which the data should be derived. Negative indices are counted from the end of the data set. Positive counting starts with 1, negative counting with -1.", -Integer.MAX_VALUE, Integer.MAX_VALUE, true);
+		type = new ParameterTypeInt(PARAMETER_EXAMPLE_INDEX, "The index of the example from which the data should be derived. This index will also be used for all attributes in the optional list of additional macros. Negative indices are counted from the end of the data set. Positive counting starts with 1, negative counting with -1.", -Integer.MAX_VALUE, Integer.MAX_VALUE, true);
 		type.setExpert(false);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_MACRO_TYPE, MACRO_TYPES, true, MACRO_TYPE_DATA));
 		types.add(type);
-
+		
+		type = new ParameterTypeList(PARAMETER_LIST_MACROS, "A list with optional additional macros.", new ParameterTypeString(PARAMETER_MACRO, "The macro name defined by the user."), new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "The name of the attribute from which the data should be derived.", exampleSetInput));
+		type.setExpert(false);
+		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_MACRO_TYPE, MACRO_TYPES, false, MACRO_TYPE_DATA));
+		types.add(type);
+		
 		return types;
 	}
 }

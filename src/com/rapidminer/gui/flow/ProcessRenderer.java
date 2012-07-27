@@ -2456,7 +2456,7 @@ public class ProcessRenderer extends JPanel {
         return getHeight(executionUnit, true);
     }
 
-    private double getTotalHeight() {
+    public double getTotalHeight() {
         return getTotalHeight(true);
     }
 
@@ -2482,7 +2482,7 @@ public class ProcessRenderer extends JPanel {
         return height;
     }
 
-    private double getTotalWidth() {
+    public double getTotalWidth() {
         return getTotalWidth(true);
     }
 
@@ -3196,11 +3196,13 @@ public class ProcessRenderer extends JPanel {
                     setHoveringOperator(null);
                     updateCursor();
                     repaint();
-                }
+                } 
                 return true;
             }
         }
         return false;
     }
+    
+    
 
 }

@@ -24,9 +24,9 @@
 package com.rapidminer.tools.jdbc;
 
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.rapidminer.tools.ProgressListener;
 
@@ -43,9 +43,10 @@ public class TableMetaDataCache {
 	/** time of the last cache update */
 	private Map<String, Long> lastQueryTimeMap;
 
+	private Map<String, Object> lockMap;
+	
 	private boolean refreshCacheAfterInterval;
 
-	private Object lock;
 
 	/** time before the cache is refreshed again (in ms) */
 	private static final int CACHE_REFRESH_INTERVAL = 60000;
@@ -60,9 +61,9 @@ public class TableMetaDataCache {
 	 * @param refreshCacheAfterInterval
 	 */
 	private TableMetaDataCache(boolean refreshCacheAfterInterval) {
-		this.lastQueryTimeMap = new HashMap<String, Long>();
-		this.tableMap = new HashMap<String, Map<TableName, List<ColumnIdentifier>>>();
-		this.lock = new Object();
+		this.lastQueryTimeMap = new ConcurrentHashMap<String, Long>();
+		this.tableMap = new ConcurrentHashMap<String, Map<TableName, List<ColumnIdentifier>>>();
+		this.lockMap = new ConcurrentHashMap<String, Object>();
 		this.refreshCacheAfterInterval = refreshCacheAfterInterval;
 	}
 
@@ -72,6 +73,7 @@ public class TableMetaDataCache {
 	 */
 	public static synchronized TableMetaDataCache getInstance() {
 		if (instance == null) {
+			// currently, default for this cache is to NOT refresh after a given interval
 			instance = new TableMetaDataCache(false);
 		}
 
@@ -97,11 +99,19 @@ public class TableMetaDataCache {
 	public Map<TableName, List<ColumnIdentifier>> getAllTableMetaData(String connectionName, DatabaseHandler handler,
 			ProgressListener progressListener, int minProgress, int maxProgress, boolean fetchColumns)
 			throws SQLException {
-		synchronized (lock) {
+		// does lock for this connection already exist?
+		if (!lockMap.containsKey(connectionName)) {
+			lockMap.put(connectionName, new Object());
+		}
+		
+		// only lock for the same connectionName aka same connection - different connections don't need to wait
+		synchronized (lockMap.get(connectionName)) {
 			if (this.tableMap.get(connectionName) == null
 					|| (refreshCacheAfterInterval && (System.currentTimeMillis() - this.lastQueryTimeMap
 							.get(connectionName)) > CACHE_REFRESH_INTERVAL)) {
-				updateCache(connectionName, handler, progressListener, minProgress, maxProgress, fetchColumns);
+				// if tableMap does not contain entry for this connectionName or the entry is too old (only if refreshCacheAfterInterval is true)
+				// update cache and return new map, otherwise return cached map
+				return updateCache(connectionName, handler, progressListener, minProgress, maxProgress, fetchColumns);
 			}
 
 			progressListener.setCompleted(maxProgress);
@@ -123,11 +133,18 @@ public class TableMetaDataCache {
 	 */
 	public Map<TableName, List<ColumnIdentifier>> getAllTableMetaData(String connectionName, DatabaseHandler handler)
 			throws SQLException {
-		synchronized (lock) {
+		if (!lockMap.containsKey(connectionName)) {
+			lockMap.put(connectionName, new Object());
+		}
+		
+		// only lock for the same connectionName aka same connection - different connections don't need to wait
+		synchronized (lockMap.get(connectionName)) {
 			if (this.tableMap.get(connectionName) == null
 					|| (refreshCacheAfterInterval && (System.currentTimeMillis() - this.lastQueryTimeMap
 							.get(connectionName)) > CACHE_REFRESH_INTERVAL)) {
-				updateCache(connectionName, handler);
+				// if tableMap does not contain entry for this connectionName or the entry is too old (only if refreshCacheAfterInterval is true)
+				// update cache and return new map, otherwise return cached map
+				return updateCache(connectionName, handler);
 			}
 
 			return this.tableMap.get(connectionName);
@@ -138,29 +155,32 @@ public class TableMetaDataCache {
 	 * Clears the whole cache.
 	 */
 	public void clearCache() {
-		synchronized (lock) {
-			this.tableMap.clear();
-		}
+		this.tableMap.clear();
 	}
 
 	/**
 	 * Updates the cache.
 	 * @throws SQLException
 	 */
-	private void updateCache(String connectionName, DatabaseHandler handler, ProgressListener progressListener,
+	private Map<TableName, List<ColumnIdentifier>> updateCache(String connectionName, DatabaseHandler handler, ProgressListener progressListener,
 			int minProgress, int maxProgress, boolean fetchColumns) throws SQLException {
-		this.tableMap.put(connectionName,
-				handler.getAllTableMetaData(progressListener, minProgress, maxProgress, fetchColumns));
+		Map<TableName, List<ColumnIdentifier>> tableMetaMap = handler.getAllTableMetaData(progressListener, minProgress, maxProgress, fetchColumns);
+		this.tableMap.put(connectionName, tableMetaMap);
 		this.lastQueryTimeMap.put(connectionName, new Long(System.currentTimeMillis()));
+		
+		return tableMetaMap;
 	}
 
 	/**
 	 * Updates the cache without a {@link ProgressListener}.
 	 * @throws SQLException
 	 */
-	private void updateCache(String connectionName, DatabaseHandler handler) throws SQLException {
-		this.tableMap.put(connectionName, handler.getAllTableMetaData());
+	private Map<TableName, List<ColumnIdentifier>> updateCache(String connectionName, DatabaseHandler handler) throws SQLException {
+		Map<TableName, List<ColumnIdentifier>> tableMetaMap = handler.getAllTableMetaData();
+		this.tableMap.put(connectionName, tableMetaMap);
 		this.lastQueryTimeMap.put(connectionName, new Long(System.currentTimeMillis()));
+		
+		return tableMetaMap;
 	}
 
 }

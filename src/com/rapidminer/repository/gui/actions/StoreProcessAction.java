@@ -34,6 +34,8 @@ import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryTree;
+import com.rapidminer.repository.remote.RemoteRepository;
+import com.rapidminer.tools.Tools;
 
 /**
  * This action stores the current process at the selected entry.
@@ -67,6 +69,18 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 		}
 		
 		final String name = SwingTools.showInputDialog("store_process", currentName);
+		
+		// make sure the filename is valid for the current filesystem
+		// no need to check if you store on a RA repository, it might use a different filesystem
+		try {
+			if (!(folder.getLocation().getRepository() instanceof RemoteRepository) && !Tools.canStringBeStoredOnCurrentFilesystem(name)) {
+				SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", name);
+				return;
+			}
+		} catch (RepositoryException e2) {
+			SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e2, name);
+			return;
+		}
 		if (name != null) {
 			if (name.isEmpty()) {
 				SwingTools.showVerySimpleErrorMessage("please_enter_non_empty_name");
@@ -88,12 +102,13 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 					try {
 						getProgressListener().setCompleted(10);
 						Process process = RapidMinerGUI.getMainFrame().getProcess();
-						process.setProcessLocation(new RepositoryProcessLocation(new RepositoryLocation(folder.getLocation(), name)));
 						folder.createProcessEntry(name, process.getRootOperator().getXML(false));
+						process.setProcessLocation(new RepositoryProcessLocation(new RepositoryLocation(folder.getLocation(), name)));
 						tree.expandPath(tree.getSelectionPath());
 						RapidMinerGUI.getMainFrame().processHasBeenSaved();
 					} catch (Exception e) {
 						SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e, name);
+						RapidMinerGUI.getMainFrame().getProcess().setProcessLocation(null);
 					} finally {
 						getProgressListener().setCompleted(10);
 						getProgressListener().complete();

@@ -39,7 +39,6 @@ import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -72,6 +71,7 @@ import com.rapidminer.gui.actions.PageSetupAction;
 import com.rapidminer.gui.actions.PauseAction;
 import com.rapidminer.gui.actions.PrintAction;
 import com.rapidminer.gui.actions.PrintPreviewAction;
+import com.rapidminer.gui.actions.PropagateRealMetaDataAction;
 import com.rapidminer.gui.actions.RedoAction;
 import com.rapidminer.gui.actions.RunAction;
 import com.rapidminer.gui.actions.RunRemoteAction;
@@ -125,7 +125,6 @@ import com.rapidminer.gui.tools.dialogs.ManageDatabaseDriversDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.BlobImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DatabaseImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.access.AccessImportWizard;
-import com.rapidminer.operator.DebugMode;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
@@ -301,6 +300,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public final transient Action PRINT_ACTION = new PrintAction(this, "all");
     public final transient Action PRINT_PREVIEW_ACTION = new PrintPreviewAction(this, "all");
     public final transient Action PAGE_SETUP_ACTION = new PageSetupAction();
+    public final transient Action PROPAGATE_REAL_METADATA_ACTION = new PropagateRealMetaDataAction(this);
 
     public final transient Action IMPORT_CSV_FILE_ACTION = new ResourceAction("import_csv_file") {
         private static final long serialVersionUID = 4632580631996166900L;
@@ -703,19 +703,19 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         // });
         // expMenu.add(onlyDirtyMenu);
 
-        JCheckBoxMenuItem debugmodeMenu = new JCheckBoxMenuItem(new ResourceAction(true, "process_debug_mode") {
-            private static final long serialVersionUID = 2158722678316407076L;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
-                    getProcess().setDebugMode(DebugMode.COLLECT_METADATA_AFTER_EXECUTION);
-                } else {
-                    getProcess().setDebugMode(DebugMode.DEBUG_OFF);
-                }
-            }
-        });
-        processMenu.add(debugmodeMenu);
+//        JCheckBoxMenuItem debugmodeMenu = new JCheckBoxMenuItem(new ResourceAction(true, "process_debug_mode") {
+//            private static final long serialVersionUID = 2158722678316407076L;
+//
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                if (((JCheckBoxMenuItem) e.getSource()).isSelected()) {
+//                    getProcess().setDebugMode(DebugMode.COLLECT_METADATA_AFTER_EXECUTION);
+//                } else {
+//                    getProcess().setDebugMode(DebugMode.DEBUG_OFF);
+//                }
+//            }
+//        });
+//        processMenu.add(debugmodeMenu);
         processMenu.addSeparator();
 
         JMenu wiringMenu = new ResourceMenu("wiring");

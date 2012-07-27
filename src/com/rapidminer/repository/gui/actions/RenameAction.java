@@ -24,7 +24,10 @@ package com.rapidminer.repository.gui.actions;
 
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.gui.RepositoryTree;
+import com.rapidminer.repository.remote.RemoteRepository;
+import com.rapidminer.tools.Tools;
 
 /**
  * This action renames the selected entry.
@@ -43,6 +46,19 @@ public class RenameAction extends AbstractRepositoryAction<Entry> {
 	@Override
 	public void actionPerformed(Entry entry) {
 		String name = SwingTools.showInputDialog("file_chooser.rename", entry.getName(), entry.getName());
+
+		// make sure the filename is valid for the current filesystem
+		// no need to check if you store on a RA repository, it might use a different filesystem
+		try {
+			if (!(entry.getLocation().getRepository() instanceof RemoteRepository) && !Tools.canStringBeStoredOnCurrentFilesystem(name)) {
+				SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", name);
+				return;
+			}
+		} catch (RepositoryException e2) {
+			SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e2, name);
+			return;
+		}
+		
 		if ((name != null) && !name.equals(entry.getName())) {
 			boolean success = false;
 			try {

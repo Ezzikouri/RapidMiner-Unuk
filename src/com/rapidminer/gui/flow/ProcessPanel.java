@@ -30,6 +30,7 @@ import java.util.List;
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JToggleButton;
 
 import com.rapidminer.Process;
 import com.rapidminer.gui.MainFrame;
@@ -80,6 +81,9 @@ public class ProcessPanel extends JPanel implements Dockable, ProcessEditor {
 		toolBar.add(renderer.getFlowVisualizer().SHOW_ORDER_TOGGLEBUTTON, ViewToolBar.RIGHT);
 		toolBar.add(renderer.ARRANGE_OPERATORS_ACTION, ViewToolBar.RIGHT);
 		toolBar.add(renderer.AUTO_FIT_ACTION, ViewToolBar.RIGHT);
+		JToggleButton toggleRealMetadataPropagationButton = new JToggleButton(mainFrame.PROPAGATE_REAL_METADATA_ACTION);
+		toggleRealMetadataPropagationButton.setText("");
+		toolBar.add(toggleRealMetadataPropagationButton, ViewToolBar.RIGHT);
 		
 		String name = "process";
 		if (mainFrame.getActions().getProcess() != null &&
