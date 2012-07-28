@@ -228,7 +228,7 @@ public class Template {
 
     public void saveAsUserTemplate(Process process) throws IOException, XMLException {
         String name = getName();
-        if (!Tools.canStringBeStoredOnCurrentFilesystem(name)) {
+        if (!Tools.canFileBeStoredOnCurrentFilesystem(name)) {
 			SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", name);
 			return;
 		}

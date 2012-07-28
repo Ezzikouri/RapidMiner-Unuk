@@ -73,7 +73,7 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 		// make sure the filename is valid for the current filesystem
 		// no need to check if you store on a RA repository, it might use a different filesystem
 		try {
-			if (!(folder.getLocation().getRepository() instanceof RemoteRepository) && !Tools.canStringBeStoredOnCurrentFilesystem(name)) {
+			if (!(folder.getLocation().getRepository() instanceof RemoteRepository) && !Tools.canFileBeStoredOnCurrentFilesystem(name)) {
 				SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", name);
 				return;
 			}

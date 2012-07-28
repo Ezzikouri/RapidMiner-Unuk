@@ -62,7 +62,7 @@ public class StoreInRepositoryAction extends ResourceAction {
 				
 				// make sure the filename is valid for the current filesystem
 				// no need to check if you store on a RA repository, it might use a different filesystem
-				if (!(location.getRepository() instanceof RemoteRepository) && !Tools.canStringBeStoredOnCurrentFilesystem(location.getName())) {
+				if (!(location.getRepository() instanceof RemoteRepository) && !Tools.canFileBeStoredOnCurrentFilesystem(location.getName())) {
 					SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", location.getName());
 					return;
 				}
