@@ -89,7 +89,8 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 	private JLabel validationLabel = new JLabel();
 	private JLabel validationIcon = new JLabel(ERROR_ICON);
 	
-	private ExpressionParser parser = new ExpressionParser(true);
+	private final ExpressionParser parser;// = new ExpressionParser(true);
+	private final com.rapidminer.Process controlingProcess;
 	
 	private JScrollPane functionButtonScrollPane;
 	private JPanel functionsButtonsPanel = new JPanel();
@@ -98,6 +99,18 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 	
 	public ExpressionPropertyDialog(final ParameterTypeExpression type, String initialValue) {
 		super(type, "expression");
+		// create ExpressionParser with Process to enable Processfunctions
+		if(type.getInputPort() != null) {
+			controlingProcess = type.getInputPort().getPorts().getOwner().getOperator().getProcess();
+			if (controlingProcess != null) {
+				parser = new ExpressionParser(true, controlingProcess);
+			} else {
+				parser = new ExpressionParser(true);
+			}
+		} else {
+			controlingProcess=null;
+			parser= new ExpressionParser(true);
+		}
 		
 		final Vector<String> knownAttributes = new Vector<String>();
 		
@@ -190,10 +203,19 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		allowUndeclaredBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				setAllowUndeclared(allowUndeclaredBox.isSelected());
+				if (controlingProcess!= null) {
+				setAllowUndeclared(allowUndeclaredBox.isSelected(),controlingProcess);
+				} else {
+					setAllowUndeclared(allowUndeclaredBox.isSelected());
+				}
+				
 			}
 		});
-		setAllowUndeclared(false);
+		if (controlingProcess!= null) {
+			setAllowUndeclared(false, controlingProcess);
+		} else {
+			setAllowUndeclared(false);
+		}
 		expressionC.weightx = 0;
 		expressionC.anchor = GridBagConstraints.WEST;
 		expressionC.gridwidth = GridBagConstraints.REMAINDER;
@@ -318,7 +340,15 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 	}
 	
 	private void setAllowUndeclared(boolean allowUndeclared) {
-		parser.initParser(true);
+		setAllowUndeclared(allowUndeclared,null);
+	}
+	
+	private void setAllowUndeclared(boolean allowUndeclared, com.rapidminer.Process process) {
+		if(process != null) {
+			parser.initParser(true,process);
+		} else {
+			parser.initParser(true);
+		}
 		if (allowUndeclared) {
 			parser.getParser().setAllowUndeclared(true);
 		} else {

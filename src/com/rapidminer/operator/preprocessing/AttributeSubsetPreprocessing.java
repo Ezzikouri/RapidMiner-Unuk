@@ -35,6 +35,7 @@ import com.rapidminer.example.set.NonSpecialAttributesExampleSet;
 import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.InputPort;
@@ -45,12 +46,16 @@ import com.rapidminer.operator.ports.metadata.AttributeSubsetPassThroughRule;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetPassThroughRule;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.operator.ports.metadata.MetaDataError;
 import com.rapidminer.operator.ports.metadata.MetaDataInfo;
 import com.rapidminer.operator.ports.metadata.SetRelation;
+import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 import com.rapidminer.operator.tools.AttributeSubsetSelector;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 
 /**
@@ -86,7 +91,20 @@ public class AttributeSubsetPreprocessing extends OperatorChain {
 
 	/** The parameter name for &quot;Indicates if the attributes which did not match the regular expression should be removed by this operator.&quot; */
 	public static final String PARAMETER_KEEP_SUBSET_ONLY = "keep_subset_only";
-
+	
+	/** The parameter name for &quot;Indicates how to handle with doubling of Attributenames*/
+	public static final String PARAMETER_ROLE_CONFLICT_HANDLING = "role_conflict_handling";
+	public static final String[] HANDLE_ROLE_CONFLICT_MODES = {"error","keep new","keep original"};
+	public static final int HANDLE_ROLE_CONFLICT_ERROR = 0;
+	public static final int HANDLE_ROLE_CONFLICT_KEEP_NEW = 1;
+	public static final int HANDLE_ROLE_CONFLICT_KEEP_ORIGINAL = 2;
+	
+	public static final String PARAMETER_NAME_CONFLICT_HANDLING = "name_conflict_handling";
+	public static final String[] HANDLE_NAME_CONFLICT_MODES = {"error","keep new","keep original"};
+	public static final int HANDLE_NAME_CONFLICT_ERROR = 0;
+	public static final int HANDLE_NAME_CONFLICT_KEEP_NEW = 1;
+	public static final int HANDLE_NAME_CONFLICT_KEEP_ORIGINAL = 2;
+	
 	private final InputPort exampleSetInput = getInputPorts().createPort("example set", ExampleSet.class);
 	private final OutputPort innerExampleSetSource = getSubprocess(0).getInnerSources().createPort("exampleSet");
 	private final InputPort innerExampleSetSink = getSubprocess(0).getInnerSinks().createPort("example set", ExampleSet.class);
@@ -124,27 +142,94 @@ public class AttributeSubsetPreprocessing extends OperatorChain {
 						if (innerExampleSetSink.getMetaData() instanceof ExampleSetMetaData) {
 							ExampleSetMetaData resultMetaData = (ExampleSetMetaData) innerExampleSetSink.getMetaData().clone();
 
-							// merge result with unusedAttributes: restore special types
-							Iterator<AttributeMetaData> r = resultMetaData.getAllAttributes().iterator();
-							while (r.hasNext()) {
-								AttributeMetaData newMetaData = r.next();
-								AttributeMetaData oldMetaData = inputMetaData.getAttributeByName(newMetaData.getName());
-								if (oldMetaData != null) {
-									if (oldMetaData.isSpecial()) {
-										String specialName = oldMetaData.getRole();
-										newMetaData.setRole(specialName);
-									}
+							//merge and add unused completely
+							Iterator<AttributeMetaData> iter=unusedAttributes.iterator();
+							int nameConflict=0;
+							int roleConflict=0;
+							try {nameConflict=getParameterAsInt(PARAMETER_NAME_CONFLICT_HANDLING);
+							} catch(UndefinedParameterError e) {}
+							try {roleConflict=getParameterAsInt(PARAMETER_ROLE_CONFLICT_HANDLING);
+							} catch(UndefinedParameterError e) {}
+							while(iter.hasNext()) {
+								AttributeMetaData unusedControl = iter.next();
+									if(unusedControl.getRole()!=null && resultMetaData.getSpecial(unusedControl.getRole())!= null) {
+										//use-cases
+										switch (roleConflict) {
+										case HANDLE_ROLE_CONFLICT_ERROR:
+											innerExampleSetSink.addError(new SimpleMetaDataError(Severity.ERROR, innerExampleSetSink, "work_on_subset.new_special_role_exist", new Object[] {unusedControl.getRole(), resultMetaData.getSpecial(unusedControl.getRole()).getName()}));
+											break;
+										case HANDLE_ROLE_CONFLICT_KEEP_ORIGINAL:
+											// remove special attribute
+											AttributeMetaData toRemove=resultMetaData.getSpecial(unusedControl.getRole());
+											resultMetaData.removeAttribute(toRemove);
+											// throw error if name of original attribute exists at another point in the resultSet
+											if(resultMetaData.getAttributeByName(unusedControl.getName())!=null){
+												innerExampleSetSink.addError(new SimpleMetaDataError(Severity.ERROR, innerExampleSetSink, "work_on_subset.role_and_name_conflict",new Object[] {unusedControl.getName()}));
+											} else {
+											//insert the new one
+											resultMetaData.addAttribute(unusedControl);
+											}
+											break;
+										case HANDLE_ROLE_CONFLICT_KEEP_NEW:
+											//throw error if the name of the special attribute exists already, else we don't do anything
+											String SpecialResultName=resultMetaData.getSpecial(unusedControl.getRole()).getName();
+											if(!(unusedControl.getName().equals(SpecialResultName)) && inputMetaData.getAttributeByName(SpecialResultName) != null) {
+												// throw error because is case isn't defined
+												innerExampleSetSink.addError(new SimpleMetaDataError(Severity.ERROR, innerExampleSetSink, "work_on_subset.role_and_name_conflict",new Object[] {SpecialResultName}));
+											}
+											break;
+										default:
+											// don't do anything, we keep the new one
+											break;
+										}
+								} else {
+									//test for name conflict
+									if(resultMetaData.getAttributeByName(unusedControl.getName())!=null){
+										if(unusedControl.getRole()!=null){
+											innerExampleSetSink.addError(new SimpleMetaDataError(Severity.ERROR, innerExampleSetSink, "work_on_subset.role_and_name_conflict",new Object[] {unusedControl.getName()}));
+										} else{
+											// we have a regular attribute
+											switch (nameConflict) {
+												case HANDLE_NAME_CONFLICT_ERROR:
+													innerExampleSetSink.addError(new SimpleMetaDataError(Severity.ERROR, innerExampleSetSink, "work_on_subset.new_attribute_exist",new Object[] {unusedControl.getName()}));
+													break;
+												case HANDLE_NAME_CONFLICT_KEEP_ORIGINAL:
+													// tests whether a attribute with special role and same name exists
+													AttributeMetaData toRemove=resultMetaData.getAttributeByName(unusedControl.getName());
+													if(toRemove.isSpecial()){
+													innerExampleSetSink.addError(new SimpleMetaDataError(Severity.ERROR, innerExampleSetSink, "work_on_subset.role_and_name_conflict",new Object[] {unusedControl.getName()}));
+													} else {
+														//act as defined
+														resultMetaData.removeAttribute(toRemove);
+														resultMetaData.addAttribute(unusedControl);
+													}
+													break;
+												case HANDLE_NAME_CONFLICT_KEEP_NEW:
+													// throws error if the attribute with this name isn't regular an could be removed later in this loop
+													AttributeMetaData toKeep=resultMetaData.getAttributeByName(unusedControl.getName());
+													if(toKeep.isSpecial()){
+														innerExampleSetSink.addError(new SimpleMetaDataError(Severity.ERROR, innerExampleSetSink, "work_on_subset.role_and_name_conflict",new Object[] {unusedControl.getName()}));
+													}
+												default:
+													// don't do anything, we keep the new one
+													break;
+											}
+										}
+									} else {
+										//there is no conflict for the attribute
+										resultMetaData.addAttribute(unusedControl);
+									}//end if 
 								}
-							}
-
-							// add unused attributes again
-							resultMetaData.addAllAttributes(unusedAttributes);
+							}//end while
 							return resultMetaData;
 						}
+
+							
 					}
-					return inputMetaData;
 				}
+				return inputMetaData;
 			}
+			
 		});
 		getTransformer().addRule(innerResultPorts.makePassThroughRule());
 		innerResultPorts.start();
@@ -176,53 +261,12 @@ public class AttributeSubsetPreprocessing extends OperatorChain {
 		// retrieve transformed example set
 		ExampleSet resultSet = innerExampleSetSink.getData(ExampleSet.class);
 
-		// transform special attributes back
-		Iterator<AttributeRole> r = resultSet.getAttributes().allAttributeRoles();
-		while (r.hasNext()) {
-			AttributeRole newRole = r.next();
-			AttributeRole oldRole = inputSet.getAttributes().getRole(newRole.getAttribute().getName());
-			if (oldRole != null) {
-				if (oldRole.isSpecial()) {
-					String specialName = oldRole.getSpecialName();
-					newRole.setSpecial(specialName);
-				}
-			}
-		}
-
 		// add old attributes if desired
 		if (!getParameterAsBoolean(PARAMETER_KEEP_SUBSET_ONLY)) {
 			if (resultSet.size() != inputSet.size()) {
 				throw new UserError(this, 127, "changing the size of the example set is not allowed if the non-processed attributes should be kept.");
 			}
-
-			if (resultSet.getExampleTable().equals(inputSet.getExampleTable())) {
-				for (Attribute attribute : unusedAttributes) {
-					AttributeRole role = inputSet.getAttributes().getRole(attribute);
-					resultSet.getAttributes().add(role);
-				}
-			} else {
-				logWarning("Underlying example table has changed: data copy into new table is necessary in order to keep non-processed attributes.");
-				for (Attribute oldAttribute : unusedAttributes) {
-					AttributeRole oldRole = inputSet.getAttributes().getRole(oldAttribute);
-
-					// create and add copy of attribute 
-					Attribute newAttribute = (Attribute)oldAttribute.clone();
-					resultSet.getExampleTable().addAttribute(newAttribute);
-					AttributeRole newRole = new AttributeRole(newAttribute);
-					if (oldRole.isSpecial())
-						newRole.setSpecial(oldRole.getSpecialName());
-					resultSet.getAttributes().add(newRole);
-
-					// copy data for the new attribute
-					Iterator<Example> oldIterator = inputSet.iterator();
-					Iterator<Example> newIterator = resultSet.iterator();
-					while (oldIterator.hasNext()) {
-						Example oldExample = oldIterator.next();
-						Example newExample = newIterator.next();
-						newExample.setValue(newAttribute, oldExample.getValue(oldAttribute));
-					}
-				}
-			}
+			mergeSets(resultSet, inputSet, unusedAttributes, resultSet.getExampleTable().equals(inputSet.getExampleTable()), getParameterAsInt(PARAMETER_ROLE_CONFLICT_HANDLING), getParameterAsInt(PARAMETER_NAME_CONFLICT_HANDLING));
 		} 
 
 		// add all other results if desired
@@ -232,11 +276,221 @@ public class AttributeSubsetPreprocessing extends OperatorChain {
 		exampleSetOutput.deliver(resultSet);
 	}
 
+	/**
+	 * 
+	 * @param resultSet = ExampleSet which will be returned
+	 * @param inputSet = original ExampleSet
+	 * @param unusedAttributes = list of unused Attributes of the original ExampleSet
+	 * @param identicalExampleTables = boolean Value which indicates whether the ExampleSets are the same
+	 * @param roleConflictHandling = integer Value for Role Conflict Handling 
+	 * @param nameConflictHandling = integer Value for Name Conflict Handling
+	 * @throws UserError
+	 */
+	private void mergeSets(ExampleSet resultSet, ExampleSet inputSet, List<Attribute> unusedAttributes, boolean identicalExampleTables, int roleConflictHandling,int nameConflictHandling) throws UserError {
+
+		
+		// Check whether the underlying example table has been change
+		if (identicalExampleTables) {
+			//if Attribute names are duplicated it throws an Exception or decide whether the new or old Attribute should be kept
+			for (Attribute attribute : unusedAttributes) {
+				AttributeRole role = inputSet.getAttributes().getRole(attribute);
+				if (resultSet.getAttributes().getSpecial(role.getSpecialName()) != null) {
+					switch (roleConflictHandling) {
+					case HANDLE_ROLE_CONFLICT_ERROR:
+						throw new UserError(this,"attribute_subset_preprocessing.role_conflict",role.getAttribute().getName(),resultSet.getAttributes().getSpecial(role.getSpecialName()).getName());
+					case HANDLE_ROLE_CONFLICT_KEEP_ORIGINAL:
+						// remove special attribute
+						resultSet.getAttributes().remove(attribute);
+						// throw error if name of original attribute exists at another point in the resultSet
+						if(resultSet.getAttributes().get(attribute.getName())!=null){
+							throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict", role.getAttribute().getName());
+						}
+						//insert the new one
+						resultSet.getAttributes().add(role);
+						break;
+					case HANDLE_ROLE_CONFLICT_KEEP_NEW:
+						//throw error if the name of the special attribute exists already, else we don't do anything
+						String SpecialResultName=resultSet.getAttributes().getSpecial(role.getSpecialName()).getName();
+						if(inputSet.getAttributes().get(SpecialResultName) != null && !(attribute.getName().equals(SpecialResultName))) {
+							// throw error because is case isn't defined
+							throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict",attribute.getName());
+						}
+						break;
+					default:
+						// don't do anything, we keep the new one
+						break;
+					}
+				} else {
+					// we have a regular attribute or the special attribute isn't part of the result set until now
+					if(resultSet.getAttributes().get(attribute.getName()) != null) {
+						if(role.isSpecial()){
+							throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict", attribute.getName());
+						}
+						// we have a regular attribute
+						switch (nameConflictHandling) {
+						case HANDLE_NAME_CONFLICT_ERROR:
+							throw new UserError(this,"attribute_subset_preprocessing.name_conflict", role.getAttribute().getName());
+						case HANDLE_NAME_CONFLICT_KEEP_ORIGINAL:
+							// tests whether a attribute with special role and same name exists
+							AttributeRole control=resultSet.getAttributes().getRole(attribute.getName());
+							if(control.isSpecial()){
+								throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict", attribute.getName());
+							}
+								resultSet.getAttributes().remove(attribute);
+								resultSet.getAttributes().add(role);
+							break;
+						case HANDLE_NAME_CONFLICT_KEEP_NEW:
+							AttributeRole Keep=resultSet.getAttributes().getRole(attribute.getName());
+							if(Keep.isSpecial()){
+								throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict", attribute.getName());
+							}
+						default:
+							// don't do anything, we keep the new one
+							break;
+						}
+					} else {
+						//there is no conflict for the attribute
+						resultSet.getAttributes().add(role);
+					}
+				}
+			}
+		} else {
+			//we have two different ExampleSets
+			logWarning("Underlying example table has changed: data copy into new table is necessary in order to keep non-processed attributes.");
+			for (Attribute oldAttribute : unusedAttributes) {
+				AttributeRole oldRole = inputSet.getAttributes().getRole(oldAttribute);
+
+				if (resultSet.getAttributes().getSpecial(oldRole.getSpecialName()) != null) {
+					switch (roleConflictHandling) {
+					case HANDLE_ROLE_CONFLICT_ERROR:
+						String targetRole=oldRole.getSpecialName();
+						throw new UserError(this,"attribute_subset_preprocessing.role_conflict", new Object[] {targetRole,resultSet.getAttributes().getSpecial(targetRole).getName()});
+					case HANDLE_ROLE_CONFLICT_KEEP_ORIGINAL:
+						// remove the special attribute in resultSet and copy the original to the resulSet
+						resultSet.getAttributes().remove(oldAttribute);
+						// throw error if name of original attribute exists at another point in the resultSet
+						if(resultSet.getAttributes().get(oldAttribute.getName())!=null){
+							throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict", oldAttribute.getName());
+						}
+						
+						// create and add copy of unused attributes from input set 
+						Attribute newAttribute = (Attribute)oldAttribute.clone();
+						resultSet.getExampleTable().addAttribute(newAttribute);
+						AttributeRole newRole = new AttributeRole(newAttribute);
+						if (oldRole.isSpecial())
+							newRole.setSpecial(oldRole.getSpecialName());
+						
+						// add to result set
+						resultSet.getAttributes().add(newRole);
+
+						// copy data for the new attribute
+						Iterator<Example> oldIterator = inputSet.iterator();
+						Iterator<Example> newIterator = resultSet.iterator();
+						while (oldIterator.hasNext()) {
+							Example oldExample = oldIterator.next();
+							Example newExample = newIterator.next();
+							newExample.setValue(newAttribute, oldExample.getValue(oldAttribute));
+						}
+						break;
+					case HANDLE_ROLE_CONFLICT_KEEP_NEW:
+						//  if a name-conflict with other attributes exists we throw an error
+						String SpecialResultName=resultSet.getAttributes().getSpecial(oldRole.getSpecialName()).getName();
+						if(inputSet.getAttributes().get(SpecialResultName) != null && !(oldAttribute.getName().equals(SpecialResultName))) {
+							// throw error because this case is not defined
+							throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict", oldAttribute.getName());
+						}
+						break;
+					default:
+						// don't do anything, we keep the new one
+						break;
+					}
+				} 
+				else {
+					if(resultSet.getAttributes().get(oldAttribute.getName()) != null) {
+						// we have a regular attribute or the special attribute isn't part of the result set until now
+						if(oldRole.isSpecial()){
+							throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict", oldAttribute.getName());
+						}
+						// we have a regular attribute
+						switch (nameConflictHandling) {
+						case HANDLE_NAME_CONFLICT_ERROR:
+							throw new UserError(this,"attribute_subset_preprocessing.name_conflict", oldAttribute.getName());
+						case HANDLE_NAME_CONFLICT_KEEP_ORIGINAL:
+							// tests whether a attribute with special role and same name exists
+							AttributeRole control=resultSet.getAttributes().getRole(oldAttribute.getName());
+							if(control.isSpecial()){
+								throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict",oldAttribute.getName());
+							}
+							// remove the attribute in result and copy the original to the resulSet
+							resultSet.getAttributes().remove(oldAttribute);
+							// create and add copy of unused attributes from input set 
+							Attribute newAttribute = (Attribute)oldAttribute.clone();
+							resultSet.getExampleTable().addAttribute(newAttribute);
+							AttributeRole newRole = new AttributeRole(newAttribute);
+							if (oldRole.isSpecial())
+								newRole.setSpecial(oldRole.getSpecialName());
+						
+							// add to result set
+							resultSet.getAttributes().add(newRole);
+
+							// copy data for the new attribute
+							Iterator<Example> oldIterator = inputSet.iterator();
+							Iterator<Example> newIterator = resultSet.iterator();
+							while (oldIterator.hasNext()) {
+								Example oldExample = oldIterator.next();
+								Example newExample = newIterator.next();
+								newExample.setValue(newAttribute, oldExample.getValue(oldAttribute));
+							}
+							break;
+						case HANDLE_NAME_CONFLICT_KEEP_NEW:
+							AttributeRole toKeep=resultSet.getAttributes().getRole(oldAttribute.getName());
+							if(toKeep.isSpecial()){
+								throw new UserError(this,"attribute_subset_preprocessing.role_name_conflict", oldAttribute.getName());
+							}
+						default:
+							// don't do anything, we keep the new one
+							break;
+						}
+					} else {
+						//there is no conflict of name or role
+						// create and add copy of unused attributes from input set 
+						Attribute newAttribute = (Attribute)oldAttribute.clone();
+						resultSet.getExampleTable().addAttribute(newAttribute);
+						AttributeRole newRole = new AttributeRole(newAttribute);
+						if (oldRole.isSpecial())
+							newRole.setSpecial(oldRole.getSpecialName());
+					
+						// add to result set
+						resultSet.getAttributes().add(newRole);
+
+						// copy data for the new attribute
+						Iterator<Example> oldIterator = inputSet.iterator();
+						Iterator<Example> newIterator = resultSet.iterator();
+						while (oldIterator.hasNext()) {
+							Example oldExample = oldIterator.next();
+							Example newExample = newIterator.next();
+							newExample.setValue(newAttribute, oldExample.getValue(oldAttribute));
+						}//end while
+				
+					}//end else
+				}
+			}
+		}
+
+		
+	}
+
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		types.addAll(attributeSelector.getParameterTypes());
 
+		ParameterType type = new ParameterTypeCategory(PARAMETER_NAME_CONFLICT_HANDLING, "Decides how to deal with duplicate attribute names", HANDLE_NAME_CONFLICT_MODES, 0);
+		type.setExpert(false);
+		types.add(type);
+		type = new ParameterTypeCategory(PARAMETER_ROLE_CONFLICT_HANDLING, "Decides how to deal with duplicate attribute roles", HANDLE_ROLE_CONFLICT_MODES, 0);
+		type.setExpert(false);
+		types.add(type);
 		types.add(new ParameterTypeBoolean(PARAMETER_KEEP_SUBSET_ONLY, "Indicates if the attributes which did not match the regular expression should be removed by this operator.", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_DELIVER_INNER_RESULTS, "Indicates if the additional results (other than example set) of the inner operator should also be returned.", false));
 

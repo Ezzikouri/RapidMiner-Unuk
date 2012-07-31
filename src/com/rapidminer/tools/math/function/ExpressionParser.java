@@ -236,6 +236,7 @@ import com.rapidminer.tools.math.function.expressions.text.UpperCase;
  * The following <em>process related functions</em> are supported:
  * <ul>
  * <li>Retrieving a parameter value: param("operator", "parameter")</li>
+ * <li>Retrieving a macro value: macro("macro", "default Value")</li>
  * </ul>
  * </p>
  * 
@@ -469,7 +470,7 @@ public class ExpressionParser {
 		List<FunctionDescription> processFunctions = new LinkedList<FunctionDescription>();
 		processFunctions.add(new FunctionDescription("param()", "Parameter",
 				"Delivers the specified parameter of the specified operator; example: param(\"Read Excel\", \"file\")", 2));
-		processFunctions.add(new FunctionDescription("macro()", "Macro", "Delivers the macro of the given argument; example: macro(\"x\")", 1));
+		processFunctions.add(new FunctionDescription("macro()", "Macro", "Delivers the macro of the given argument; example: macro(\"x\")", -1));
 		FUNCTIONS.put(FUNCTION_GROUPS[6], processFunctions);
 
 		// miscellaneous functions
@@ -499,18 +500,15 @@ public class ExpressionParser {
 	private JEP parser;
 
 	public ExpressionParser(boolean useStandardConstants) {
-		initParser(useStandardConstants);
+		this(useStandardConstants, null);
 	}
 
 	/**
 	 * This constructor allows additional functions if called within a process.
 	 */
-	public ExpressionParser(boolean useStandardConstants, Process process) {
-		this(useStandardConstants);
-		if (process != null) {
-			parser.addFunction("param", new ParameterValue(process));
-			parser.addFunction("macro", new MacroValue(process));
-		}
+	public ExpressionParser(boolean useStandardConstants, Process process) {		
+		initParser(useStandardConstants, process);
+		
 	}
 
 	private void addCustomFunctions(JEP parser) {
@@ -601,6 +599,10 @@ public class ExpressionParser {
 	}
 
 	public void initParser(boolean useStandardConstants) {
+		initParser(useStandardConstants, null);
+	}
+	
+	public void initParser(boolean useStandardConstants, Process process) {
 		parser = new JEP();
 		parser.addStandardFunctions();
 		if (useStandardConstants)
@@ -611,6 +613,11 @@ public class ExpressionParser {
 
 		parser.setAllowUndeclared(false);
 		parser.setImplicitMul(false);
+		
+		if (process != null) {
+			parser.addFunction("param", new ParameterValue(process));
+			parser.addFunction("macro", new MacroValue(process));
+		}
 	}
 
 	/**
