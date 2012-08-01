@@ -37,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 
+import com.rapidminer.Process;
 import com.rapidminer.gui.properties.ExpressionPropertyDialog;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
@@ -68,6 +69,8 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 	private final GridBagLayout gridBagLayout = new GridBagLayout();
 
 	private JButton button;
+
+	private Process controllingProcess;
 
 	public ExpressionValueCellEditor(ParameterTypeExpression type) {
 		this.type = type;
@@ -141,7 +144,7 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 	private void buttonPressed() {
 		Object value = getCellEditorValue();
 		String initial = value == null ? null : value.toString();
-		ExpressionPropertyDialog dialog = new ExpressionPropertyDialog(type, initial);
+		ExpressionPropertyDialog dialog = new ExpressionPropertyDialog(type, controllingProcess, initial);
 		dialog.setVisible(true);
 		if (dialog.isOk()) {
 			setText(dialog.getExpression());
@@ -158,6 +161,7 @@ public class ExpressionValueCellEditor extends AbstractCellEditor implements Pro
 
 	/** Does nothing. */
 	public void setOperator(Operator operator) {
+		this.controllingProcess = operator.getProcess();
 	}
 
 	@Override

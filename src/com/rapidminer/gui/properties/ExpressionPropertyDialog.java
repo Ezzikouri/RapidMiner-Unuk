@@ -53,6 +53,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
+import com.rapidminer.Process;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
@@ -98,19 +99,20 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 	private GridBagConstraints functionButtonsC = new GridBagConstraints();
 	
 	public ExpressionPropertyDialog(final ParameterTypeExpression type, String initialValue) {
+		this(type, null, initialValue);
+	}	
+	
+	public ExpressionPropertyDialog(ParameterTypeExpression type, Process process, String initialValue) {
 		super(type, "expression");
 		// create ExpressionParser with Process to enable Processfunctions
-		if(type.getInputPort() != null) {
+		if (process != null) {
+			this.controlingProcess = process;
+		} else if(type.getInputPort() != null) {
 			controlingProcess = type.getInputPort().getPorts().getOwner().getOperator().getProcess();
-			if (controlingProcess != null) {
-				parser = new ExpressionParser(true, controlingProcess);
-			} else {
-				parser = new ExpressionParser(true);
-			}
 		} else {
-			controlingProcess=null;
-			parser= new ExpressionParser(true);
+			controlingProcess=null;			
 		}
+		parser = new ExpressionParser(true, controlingProcess);
 		
 		final Vector<String> knownAttributes = new Vector<String>();
 		
@@ -339,6 +341,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		setSize(850, 675);
 	}
 	
+
 	private void setAllowUndeclared(boolean allowUndeclared) {
 		setAllowUndeclared(allowUndeclared,null);
 	}
