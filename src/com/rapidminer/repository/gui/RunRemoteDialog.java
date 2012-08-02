@@ -459,7 +459,7 @@ public class RunRemoteDialog extends ButtonDialog {
 
 	public static void showDialog(Process process) {
 		// no RA repositories found, show message instead of dialog
-        if (RepositoryManager.getInstance(null).getRemoteRepositories().size() >= 0) {
+        if (RepositoryManager.getInstance(null).getRemoteRepositories().size() <= 0) {
         	SwingTools.showVerySimpleErrorMessage("schedule_on_ra_no_ra_repo_found");
             return;
         } 

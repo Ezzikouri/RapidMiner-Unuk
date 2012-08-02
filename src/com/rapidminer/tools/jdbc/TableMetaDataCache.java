@@ -106,16 +106,16 @@ public class TableMetaDataCache {
 		
 		// only lock for the same connectionName aka same connection - different connections don't need to wait
 		synchronized (lockMap.get(connectionName)) {
-			if (this.tableMap.get(connectionName) == null
-					|| (refreshCacheAfterInterval && (System.currentTimeMillis() - this.lastQueryTimeMap
+			Map<TableName, List<ColumnIdentifier>> map = this.tableMap.get(connectionName);
+			if (map == null || (refreshCacheAfterInterval && (System.currentTimeMillis() - this.lastQueryTimeMap
 							.get(connectionName)) > CACHE_REFRESH_INTERVAL)) {
 				// if tableMap does not contain entry for this connectionName or the entry is too old (only if refreshCacheAfterInterval is true)
 				// update cache and return new map, otherwise return cached map
-				return updateCache(connectionName, handler, progressListener, minProgress, maxProgress, fetchColumns);
+				map = updateCache(connectionName, handler, progressListener, minProgress, maxProgress, fetchColumns);
 			}
 
 			progressListener.setCompleted(maxProgress);
-			return this.tableMap.get(connectionName);
+			return map;
 		}
 	}
 
@@ -139,15 +139,15 @@ public class TableMetaDataCache {
 		
 		// only lock for the same connectionName aka same connection - different connections don't need to wait
 		synchronized (lockMap.get(connectionName)) {
-			if (this.tableMap.get(connectionName) == null
-					|| (refreshCacheAfterInterval && (System.currentTimeMillis() - this.lastQueryTimeMap
+			Map<TableName, List<ColumnIdentifier>> map = this.tableMap.get(connectionName);
+			if (map == null || (refreshCacheAfterInterval && (System.currentTimeMillis() - this.lastQueryTimeMap
 							.get(connectionName)) > CACHE_REFRESH_INTERVAL)) {
 				// if tableMap does not contain entry for this connectionName or the entry is too old (only if refreshCacheAfterInterval is true)
 				// update cache and return new map, otherwise return cached map
-				return updateCache(connectionName, handler);
+				map = updateCache(connectionName, handler);
 			}
 
-			return this.tableMap.get(connectionName);
+			return map;
 		}
 	}
 
