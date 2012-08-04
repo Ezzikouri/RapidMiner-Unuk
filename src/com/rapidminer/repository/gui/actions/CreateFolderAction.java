@@ -26,8 +26,6 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.gui.RepositoryTree;
-import com.rapidminer.repository.remote.RemoteRepository;
-import com.rapidminer.tools.Tools;
 
 /**
  * This action creates a new folder.
@@ -50,12 +48,6 @@ public class CreateFolderAction extends AbstractRepositoryAction<Folder> {
 				String name = SwingTools.showInputDialog("repository.new_folder", "");
 				if (name != null) {
 					try {
-						// make sure the filename is valid for the current filesystem
-						// no need to check if you store on a RA repository, it might use a different filesystem
-						if (!(folder.getLocation().getRepository() instanceof RemoteRepository) && !Tools.canFileBeStoredOnCurrentFilesystem(name)) {
-							SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", name);
-							return;
-						}
 						folder.createFolder(name);
 					} catch (Exception e) {
 						SwingTools.showSimpleErrorMessage("cannot_create_folder", e, name);

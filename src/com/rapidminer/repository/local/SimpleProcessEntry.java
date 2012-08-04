@@ -90,7 +90,12 @@ public class SimpleProcessEntry extends SimpleDataEntry implements ProcessEntry 
 	}
 	
 	@Override
-	public boolean rename(String newName) {
+	public boolean rename(String newName) throws RepositoryException {
+		// check for possible invalid name
+		if (!Tools.canFileBeStoredOnCurrentFilesystem(newName)) {
+			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + newName + "')");
+		}
+
 		renameFile(getFile(), newName);
 		return super.rename(newName);
 	}

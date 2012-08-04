@@ -45,6 +45,7 @@ import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.ProgressListener;
+import com.rapidminer.tools.Tools;
 
 /** Stores IOObject in a file. Either as IOO serialized files using
  *  {@link ExampleSetToStream} where appropriate.
@@ -222,7 +223,12 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	}
 	
 	@Override
-	public boolean rename(String newName) {
+	public boolean rename(String newName) throws RepositoryException {
+		// check for possible invalid name
+		if (!Tools.canFileBeStoredOnCurrentFilesystem(newName)) {
+			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + newName + "')");
+		}
+
 		renameFile(getDataFile(), newName);
 		renameFile(getMetaDataFile(), newName);
 		return super.rename(newName);

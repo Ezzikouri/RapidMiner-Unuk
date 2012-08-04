@@ -48,7 +48,6 @@ import javax.swing.event.ListSelectionListener;
 
 import org.apache.xmlrpc.client.XmlRpcClient;
 
-import com.rapidminer.NoBugError;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.gui.MainFrame;
@@ -63,7 +62,6 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
-import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.XmlRpcHandler;
 
 /**
@@ -311,7 +309,8 @@ public class ExtendedErrorDialog extends ButtonDialog {
      * @return
      */
     private boolean isBugReportException(Throwable t) {
-        return !(t instanceof NoBugError || t instanceof XMLException);
+    	return (t instanceof RuntimeException) || (t instanceof Error);
+    	//return !(t instanceof NoBugError || t instanceof XMLException || t instanceof RepositoryException);
     }
 
     /**

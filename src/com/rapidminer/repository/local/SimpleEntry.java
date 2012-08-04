@@ -90,7 +90,7 @@ public abstract class SimpleEntry implements Entry {
 	}
 
 	@Override
-	public boolean rename(String newName) {
+	public boolean rename(String newName) throws RepositoryException {
 		renameFile(getPropertiesFile(), newName);
 		this.name = newName;
 		getRepository().fireEntryRenamed(this);

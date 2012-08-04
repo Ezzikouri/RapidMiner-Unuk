@@ -34,8 +34,6 @@ import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryTree;
-import com.rapidminer.repository.remote.RemoteRepository;
-import com.rapidminer.tools.Tools;
 
 /**
  * This action stores the current process at the selected entry.
@@ -69,18 +67,6 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 		}
 		
 		final String name = SwingTools.showInputDialog("store_process", currentName);
-		
-		// make sure the filename is valid for the current filesystem
-		// no need to check if you store on a RA repository, it might use a different filesystem
-		try {
-			if (!(folder.getLocation().getRepository() instanceof RemoteRepository) && !Tools.canFileBeStoredOnCurrentFilesystem(name)) {
-				SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", name);
-				return;
-			}
-		} catch (RepositoryException e2) {
-			SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e2, name);
-			return;
-		}
 		if (name != null) {
 			if (name.isEmpty()) {
 				SwingTools.showVerySimpleErrorMessage("please_enter_non_empty_name");

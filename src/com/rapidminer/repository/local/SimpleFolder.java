@@ -72,7 +72,12 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	}
 
 	@Override
-	public boolean rename(String newName) {
+	public boolean rename(String newName) throws RepositoryException {
+		// check for possible invalid name
+		if (!Tools.canFileBeStoredOnCurrentFilesystem(newName)) {
+			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + newName + "')");
+		}
+		
 		renameFile(getFile(), newName);
 		return super.rename(newName);
 	}
@@ -135,6 +140,11 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 
 	@Override
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
+		// check for possible invalid name
+		if (!Tools.canFileBeStoredOnCurrentFilesystem(name)) {
+			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + name + "')");
+		}
+		
 		ensureLoaded();
 		IOObjectEntry entry = new SimpleIOObjectEntry(name, this, getRepository());
 		data.add(entry);
@@ -147,6 +157,10 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
+		// check for possible invalid name
+		if (!Tools.canFileBeStoredOnCurrentFilesystem(name)) {
+			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + name + "')");
+		}
 		ensureLoaded();
 
 		for (Folder folder : folders) {
@@ -240,6 +254,11 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
+		// check for possible invalid name
+		if (!Tools.canFileBeStoredOnCurrentFilesystem(name)) {
+			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + name + "')");
+		}
+				
 		SimpleProcessEntry entry = null;
 		try {
 			entry = new SimpleProcessEntry(name, this, getRepository());
@@ -257,6 +276,11 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 
 	@Override
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
+		// check for possible invalid name
+		if (!Tools.canFileBeStoredOnCurrentFilesystem(name)) {
+			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + name + "')");
+		}
+		
 		BlobEntry entry = new SimpleBlobEntry(name, this, getRepository());
 		if (data != null) {
 			data.add(entry);

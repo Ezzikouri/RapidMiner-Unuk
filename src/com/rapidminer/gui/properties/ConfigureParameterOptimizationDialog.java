@@ -819,11 +819,11 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 		Collection<ParameterType> parameters = operator.getParameters().getParameterTypes();
 		for (ParameterType parameter : parameters) {
 			// do not show parameters that are not numerical in continuous mode
-			if (mode == ParameterIteratingOperatorChain.VALUE_MODE_CONTINUOUS) {
+			/*if (mode == ParameterIteratingOperatorChain.VALUE_MODE_CONTINUOUS) {
 				if (!(parameter instanceof ParameterTypeNumber)) { 
 					continue;
 				}
-			}
+			}*/
 			if (!parameterValuesMap.containsKey(operator.getName() + "." + parameter.getKey())) {
 				parametersListModel.addElement(parameter.getKey(), parameter.getDescription());
 				if (parameter.isNumerical() ||
@@ -923,7 +923,7 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 				removeValueButton.setEnabled(true);
 				upListButton.setEnabled(true);
 				downListButton.setEnabled(true);
-			} else if (type instanceof ParameterTypeNumber) {
+			} else if (type instanceof ParameterTypeNumber || type instanceof ParameterTypeString) {
 				if (!(parameterValue instanceof ParameterValueRange)) {
 					choseGridRadioButton.setEnabled(true);
 					choseListRadioButton.setEnabled(true);
@@ -953,8 +953,7 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 						choseListRadioButton.setSelected(false);
 					}
 				}
-			} else if (type instanceof ParameterTypeString ||
-					type instanceof ParameterTypeStringCategory ||
+			} else if (type instanceof ParameterTypeStringCategory ||
 					type instanceof ParameterTypeValue ||
 					type instanceof ParameterTypeFile) {
 				categoriesList.setEnabled(true);
@@ -1097,8 +1096,33 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 	}
 
 	private ParameterValues createNumericalParameterValues(Operator operator, ParameterType type) {
-		double min = ((ParameterTypeNumber)type).getMinValue();
-		double max = ((ParameterTypeNumber)type).getMaxValue();
+		double min;
+		double max;
+		if (type instanceof ParameterTypeNumber) {
+			min = ((ParameterTypeNumber)type).getMinValue();			
+			max = ((ParameterTypeNumber)type).getMaxValue();
+			if (min == Integer.MIN_VALUE) {
+				min = 0;
+			}
+			if (max == Integer.MAX_VALUE) {
+				max = 100;
+			}
+		} else {
+			String value = minValueTextField.getText();
+			if (ParameterValues.isValidNumericalParameter(value)) {
+				min = Double.parseDouble(value);
+			} else {
+				min = 0;
+			}
+			
+			value = maxValueTextField.getText();
+			if (ParameterValues.isValidNumericalParameter(value)) {
+				max = Double.parseDouble(value);
+			} else {
+				max = 100;
+			}
+		}
+		
 		if (mode == ParameterIteratingOperatorChain.VALUE_MODE_DISCRETE) {
 			return new ParameterValueGrid(operator, type, Double.toString(min), Double.toString(max));
 		} else {

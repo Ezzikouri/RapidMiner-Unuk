@@ -27,6 +27,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -820,6 +821,14 @@ public class Tools {
 	}
 
 	public static void writeTextFile(File file, String text) throws IOException {
+		// ! THIS IS TO PREVENT A JAVA PROBLEM (BUG?) ON WINDOWS NTFS FILESYSTEM !
+		// If the filename is something like C:\path\x:y.z, new FileOutputStream(file) will throw NO error
+		// but the result will be an EMPTY file C:\path\x and you never know it failed
+		// see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4645046
+		if (file == null || !canFileBeStoredOnCurrentFilesystem(file.getName())) {
+			throw new FileNotFoundException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + file.getName() + "')");
+		}
+		
 		FileOutputStream outStream = new FileOutputStream(file);
 		try {
 			outStream.write(text.getBytes(XMLImporter.PROCESS_FILE_CHARSET));
@@ -1733,12 +1742,25 @@ public class Tools {
 		if (fileName == null) {
 			return false;
 		}
+		// check if file contains a ':', because then on windows machines this would lead to
+		// C:\1:2.rmp becoming  C:\1 without error - but writing operations will fail w/o error!
+		// see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4645046
+		String osName = System.getProperty("os.name");
+		boolean checkColon = osName == null ? true : osName.toLowerCase(Locale.ENGLISH).contains("windows") ? true : false;
+		if (checkColon && fileName.contains(":")) {
+			return false;
+		}
 		try {
 		     File file = new File(System.getProperty("java.io.tmpdir") + File.separator + fileName);
 		     
 		     if (!file.exists()) {
 		          file.createNewFile();
-		          file.delete();
+		          if (file.exists()) {
+		        	  file.delete();
+		        	  return true;
+		          } else {
+		        	  return false;
+		          }
 		     }
 		} catch (IOException e) {
 		     return false;

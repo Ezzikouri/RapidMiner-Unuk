@@ -33,8 +33,6 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
-import com.rapidminer.repository.remote.RemoteRepository;
-import com.rapidminer.tools.Tools;
 
 /** An action to store IOObjects in the repository.
  * 
@@ -59,13 +57,6 @@ public class StoreInRepositoryAction extends ResourceAction {
 			RepositoryLocation location;
 			try {
 				location = new RepositoryLocation(loc);
-				
-				// make sure the filename is valid for the current filesystem
-				// no need to check if you store on a RA repository, it might use a different filesystem
-				if (!(location.getRepository() instanceof RemoteRepository) && !Tools.canFileBeStoredOnCurrentFilesystem(location.getName())) {
-					SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", location.getName());
-					return;
-				}
 			} catch (Exception ex) {
 				SwingTools.showSimpleErrorMessage("malformed_rep_location", ex, loc);
 				return;

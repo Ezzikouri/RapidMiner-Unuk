@@ -288,7 +288,7 @@ public class RepeatUntilOperatorChain extends AbstractIteratingOperatorChain {
 		type = new ParameterTypeInt(PARAMETER_TIMEOUT, "Timeout in minutes", 1, Integer.MAX_VALUE, 1);
 		type.setExpert(true);
 		types.add(type);
-		type = new ParameterTypeBoolean(PARAMETER_CONDITION_BEFORE, "Evaluate condition before inner chain is applied (true) or after?", true);
+		type = new ParameterTypeBoolean(PARAMETER_CONDITION_BEFORE, "Evaluate condition before inner chain is applied (true) or after?", false);
 		type.setExpert(true);
 		types.add(type);
 		return types;

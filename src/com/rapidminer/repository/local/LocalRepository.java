@@ -23,7 +23,6 @@
 package com.rapidminer.repository.local;
 
 import java.io.File;
-import java.util.ResourceBundle;
 import java.util.logging.Level;
 
 import javax.swing.event.EventListenerList;

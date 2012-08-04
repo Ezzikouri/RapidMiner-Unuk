@@ -36,8 +36,6 @@ import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
-import com.rapidminer.repository.remote.RemoteRepository;
-import com.rapidminer.tools.Tools;
 
 
 /**
@@ -69,12 +67,6 @@ public class SaveAsAction extends ResourceAction {
 			try {
 				RepositoryLocation location = new RepositoryLocation(loc);
 				
-				// make sure the filename is valid for the current filesystem
-				// no need to check if you store on a RA repository, it might use a different filesystem
-				if (!(location.getRepository() instanceof RemoteRepository) && !Tools.canFileBeStoredOnCurrentFilesystem(location.getName())) {
-					SwingTools.showVerySimpleErrorMessage("name_contains_illegal_chars", location.getName());
-					return;
-				}
 				Entry entry = location.locateEntry();
 				if (entry instanceof ProcessEntry) {
 					if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, entry.getLocation()) == ConfirmDialog.NO_OPTION) {
