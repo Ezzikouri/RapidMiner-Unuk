@@ -445,9 +445,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     private final LoggingViewer messageViewer = new LoggingViewer();
     private final SystemMonitor systemMonitor = new SystemMonitor();
 
-    private final OperatorDocViewer operatorDocViewer = OperatorDocViewer.instantiate();
+    // replaced by OperatorDocumentationBrowser
+//    private final OperatorDocViewer operatorDocViewer = OperatorDocViewer.instantiate();
     // TODO: Enable as soon as documentation is ready
-    //private final OperatorDocumentationBrowser operatorDocumentationBrowser = OperatorDocumentationBrowser.instantiate();
+    private final OperatorDocumentationBrowser operatorDocumentationBrowser = new OperatorDocumentationBrowser();
     private final OperatorTreePanel operatorTree = new OperatorTreePanel(this);
     private final ErrorTable errorTable = new ErrorTable(this);
     private final OperatorPropertyPanel propertyPanel = new OperatorPropertyPanel(this);
@@ -585,8 +586,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         addProcessEditor(commentEditor);
         addProcessEditor(propertyPanel);
         addProcessEditor(operatorTree);
-        addProcessEditor(operatorDocViewer);
-        //addProcessEditor(operatorDocumentationBrowser);
+        // replaced by operatorDocumentationBrowser
+//        addProcessEditor(operatorDocViewer);
+        addProcessEditor(operatorDocumentationBrowser);
         addProcessEditor(processPanel);
         addProcessEditor(errorTable);
         addProcessEditor(processContextEditor);
@@ -609,8 +611,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         dockingDesktop.registerDockable(resultDisplay);
         dockingDesktop.registerDockable(messageViewer);
         dockingDesktop.registerDockable(systemMonitor);
-        dockingDesktop.registerDockable(operatorDocViewer);
-        //dockingDesktop.registerDockable(operatorDocumentationBrowser);
+        // replaced by operatorDocumentationBrowser
+//        dockingDesktop.registerDockable(operatorDocViewer);
+        dockingDesktop.registerDockable(operatorDocumentationBrowser);
         dockingDesktop.registerDockable(processContextEditor);
         dockingDesktop.registerDockable(remoteProcessViewer);
         dockingDesktop.registerDockable(processPanel.getProcessRenderer().getOverviewPanel());
@@ -1539,8 +1542,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         xmlEditor.setText(xml);
     }
 
-    public OperatorDocViewer getOperatorDocViewer() {
-        return operatorDocViewer;
+    public OperatorDocumentationBrowser getOperatorDocViewer() {
+        return operatorDocumentationBrowser;
     }
 //    public OperatorDocumentationBrowser getOperatorDocumentationBrowser() {
 //        return operatorDocumentationBrowser;
@@ -1612,4 +1615,5 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public JMenu getHelpMenu() {
         return helpMenu;
     }
+    
 }

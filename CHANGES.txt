@@ -26,6 +26,12 @@ Changes from RapidMiner 5.2.8 to 5.2.9
   This means that for example the operator after a breakpoint will have its meta data synched with the real data, therefore 
   enabling e.g. attribute selection parameters to show the list of paramters available.
   Known Issue: Currently this information is lost once the operator updates itself, which happens for example if you deselected/select it again.
+* Loop Until: Added 2 checkboxes in order to choose whether you want a condition check depending on the example set or on the performance.
+  'condition before' is now deselected by default.
+* Select Parameters Dialog: Parameters from type ParameterTypeString are now treated like numerical Parameters (the Grid option is enabled now), in case
+  you want to assign a row of numerical values to a String Parameter.
+* Select Parameters Dialog: All acceptable parameter types are now shown, even if the continuous/discrete mode is enabled.
+* BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases.
 * BUGFIX: Editing context variables now immediately flags the process as changed
 * BUGFIX: If set to 'ask', the 'close previous results' dialog will no longer appear when resuming from a breakpoint
 * BUGFIX: Breakpoints can no longer be added to the root operator

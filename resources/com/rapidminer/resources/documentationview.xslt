@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
- xmlns:rmdoc="com.rapidminer.gui.OperatorDocumentationBrowser">
+ xmlns:rmdoc="com.rapidminer.gui.OperatorDocToHtmlConverter">
 <!-- <xsl:script implements-prefix="pref" language="java" src="java:com.rapid_i.test.OperatorDocToHtmlConverter" / -->
 	<xsl:template match="/">
 		<html>
@@ -148,9 +148,6 @@
 						<b>
 							<xsl:value-of select="rmdoc:insertBlanks(@key)" />
 						</b>
-						<i>
-							<xsl:value-of select="rmdoc:expert(@key)" />
-						</i>
 					</td>
 				</tr>
 				<tr>
@@ -177,7 +174,7 @@
 			<xsl:for-each select="tutorialProcess">
 				<p>
 					<a>
-						<xsl:attribute name="href"><xsl:value-of select="rmdoc:linkIncrement()" /></xsl:attribute>
+						<xsl:attribute name="href"><xsl:value-of select="position()" /></xsl:attribute>
 						<xsl:value-of select="@title" />
 					</a>
 				</p>
