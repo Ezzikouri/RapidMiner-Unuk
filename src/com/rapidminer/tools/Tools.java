@@ -1187,6 +1187,9 @@ public class Tools {
 			File[] files = file.listFiles();
 			for (File child : files) {
 				success &= delete(child);
+				if (!success){
+					return false;
+				}
 			}
 			boolean result = file.delete();
 			if (!result) {

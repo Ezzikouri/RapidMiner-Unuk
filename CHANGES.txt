@@ -3,6 +3,7 @@ History of changes of the RapidMiner versions
 
 Changes from RapidMiner 5.2.8 to 5.2.9
 --------------------------------------
+* New file system operators: Copy File, Move File, Delete File, Rename File, Create Directory
 * Aggregate: new aggregation functions: sum (fractional), count (fractional), count (percentage) and string concatenation
 * Result Perspective: Added button in top right corner of a result tab to close all open results at once
 * Preferences menu buttons reworked: 'OK' button saves settings permanently and closes the dialog; 
@@ -88,6 +89,8 @@ Changes from RapidMiner 5.2.0 to 5.2.1
 * Added operators to manage repository entries: Copy, Move, Delete, Rename
 
 Changes from RapidMiner 5.1 to 5.2
+			throw new UserError (this, "move_file.exists", destinationFile);
+		
 ----------------------------------
 * Added "Advanced Charts" view 
 * Added "File" objects to pass to reader operators. 
@@ -135,6 +138,8 @@ Changes from RapidMiner 5.0 to 5.1
  * Added new boolean GUI property rapidminer.gui.fetch_data_base_table_names which suppresses to fetch data base table names in the SQLQueryBuilder
  * More efficient meta data handling for Excel, CSV, and database readers
  * Meta data propagation uses context macros
+			throw new UserError (this, "move_file.exists", destinationFile);
+		
  * Splash screen shows plugins
  * Aggregate operator can compute product
  * Various smaller fixes
@@ -452,6 +457,8 @@ Changes from RapidMiner 4.3.2 to RapidMiner 4.4 [2009/03/14]
         the maximum number of nominal values
       - The default global random seed in the preferences
         dialog was not allowed to be set to -1
+			throw new UserError (this, "move_file.exists", destinationFile);
+		
       - The property keys of the preferences dialog were
         editable
       - Fixed bug in PolynomialRegression

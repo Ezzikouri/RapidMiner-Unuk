@@ -301,6 +301,7 @@
 			</group>
 		</group>
 		<group key="process_control">
+		
 			<operator>
 				<key>remember</key>
 				<class>com.rapidminer.operator.IOStorageOperator</class>
@@ -628,6 +629,26 @@
 					<key>write_as_text</key>
 					<class>com.rapidminer.operator.io.ResultWriter</class>
 					<replaces>ResultWriter</replaces>
+				</operator>
+				<operator>
+					<key>copy_file</key>
+					<class>com.rapidminer.operator.filesystem.CopyFileOperator</class>
+				</operator>
+				<operator>
+					<key>rename_file</key>
+					<class>com.rapidminer.operator.filesystem.RenameFileOperator</class>
+				</operator>
+				<operator>
+					<key>delete_file</key>
+					<class>com.rapidminer.operator.filesystem.DeleteFileOperator</class>
+				</operator>
+				<operator>
+					<key>move_file</key>
+					<class>com.rapidminer.operator.filesystem.MoveFileOperator</class>
+				</operator>
+				<operator>
+					<key>create_directory</key>
+					<class>com.rapidminer.operator.filesystem.CreateDirectoryOperator</class>
 				</operator>
 			</group>
 			<group key="data_generation">
@@ -1124,6 +1145,10 @@
 					<replaces>Real2Integer</replaces>
 				</operator>
 				<operator>
+			<operator>
+				<key>loop_infinitely</key>
+				<class>com.rapidminer.test.loop.LoopInfinitely</class>
+			</operator>
 					<key>nominal_to_binominal</key>
 					<class>com.rapidminer.operator.preprocessing.filter.NominalToBinominal
 					</class>
@@ -1141,6 +1166,10 @@
 					<class>com.rapidminer.operator.preprocessing.filter.NominalToNumeric
 					</class>
 					<replaces>Nominal2Numeric</replaces>
+			<operator>
+				<key>loop_infinitely</key>
+				<class>com.rapidminer.test.loop.LoopInfinitely</class>
+			</operator>
 					<replaces>Attributes2RealValues</replaces>
 					<replaces>Nominal2Numerical</replaces>
 				</operator>
@@ -1158,6 +1187,10 @@
 				</operator>
 				<operator>
 					<key>date_to_numerical</key>
+			<operator>
+				<key>loop_infinitely</key>
+				<class>com.rapidminer.test.loop.LoopInfinitely</class>
+			</operator>
 					<class>com.rapidminer.operator.preprocessing.filter.Date2Numerical
 					</class>
 					<replaces>Date2Numerical</replaces>

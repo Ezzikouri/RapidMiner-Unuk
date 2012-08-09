@@ -195,7 +195,14 @@
 		<ant antfile="${rm.dir}/build.xml" target="test.compile" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
 	</target>
 
-	<target name="createJar" depends="clean, build, version.get" unless="lock.isJared" description="Generate the jar file">
+	<target name="unzipLibs" unless="build.noRebundleJars">
+		<mkdir dir="${release.targetDir}/libfiles" />
+		<unjar dest="${release.targetDir}/libfiles">
+			<fileset dir="${build.lib}" includes="**/*.jar" />
+		</unjar>
+	</target>
+
+	<target name="createJar" depends="clean, build, version.get, unzipLibs" unless="lock.isJared" description="Generate the jar file">
 		<echo message="Creating jar..." />
 		<delete file="${release.targetDir}/${release.name}" />
 		<pathconvert pathsep=" " property="manifest.classpath" refid="build.libraries" dirsep="/">
@@ -204,9 +211,6 @@
 		<echo message="Manifest Classpath: ${manifest.classpath}" />
 
 		<mkdir dir="${release.targetDir}/libfiles" />
-		<unjar dest="${release.targetDir}/libfiles">
-			<fileset dir="${build.lib}" includes="**/*.jar" />
-		</unjar>
 
 		<jar jarfile="${release.targetDir}/${release.name}" update="false">
 			<fileset dir="${build.build}" includes="**/*">
