@@ -95,7 +95,6 @@ public class MoveFileOperator extends Operator {
 		}else if(!destinationFile.isDirectory()){
 			throw new UserError (this, "move_file.exists", destinationFile);
 		}
-		System.out.print(destinationFile);
 		dummyPorts.passDataThrough();
 	}
 }

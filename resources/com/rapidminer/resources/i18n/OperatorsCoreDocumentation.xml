@@ -7560,6 +7560,13 @@
             (i.e. expected errors). &lt;/p&gt;</help>
     <key>handle_exception</key>
   </operator>
+  <operator>
+  		<name>Throw Exception</name>
+  		<synopsis>This operator makes an exception occur.</synopsis>
+  		<help>This operator will make an exception rise, which will cause the 
+  		process to fail if the exception is not neglected by a Handle Exception operator.</help>
+  	<key>throw_exception</key>
+  </operator>
     <operator>
         <name>Cluster Density Performance</name>
         <synopsis>Delivers a performance based on cluster densities.

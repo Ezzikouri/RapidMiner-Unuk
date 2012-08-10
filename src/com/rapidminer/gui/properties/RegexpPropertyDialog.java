@@ -24,6 +24,7 @@ package com.rapidminer.gui.properties;
 
 import groovy.swing.impl.DefaultAction;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -32,6 +33,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -49,6 +52,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -164,6 +168,12 @@ public class RegexpPropertyDialog extends PropertyDialog {
 	
 	private JButton okButton;
 	
+	JCheckBox cbCaseInsensitive;
+	JCheckBox cbComments;
+	JCheckBox cbMultiline;
+	JCheckBox cbDotall;
+	JCheckBox cbUnicodeCase;
+
 	/** Class representing a single regexp search result. **/
 	private class RegExpResult {
 		private String match;
@@ -218,7 +228,7 @@ public class RegexpPropertyDialog extends PropertyDialog {
 		private static final long serialVersionUID = 1L;
 		
 		
-		Matcher matcher =
+		private Matcher matcher =
 	            Pattern.compile("").matcher("");
 		
 		Style keyStyle;
@@ -275,12 +285,14 @@ public class RegexpPropertyDialog extends PropertyDialog {
 				
 				testExp.setTitleAt(1,  I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.result_list.title") + " ("+count+")");
 				inlineReplaceDocument.setText(sb.toString());
+				updateRegexpOptions();
 			} catch (BadLocationException ex) {
 				LogService.getRoot().log(Level.WARNING, RegexpPropertyDialog.class.getName()+".bad_location", ex);
 			}
 	    }	
 	      
-	    public void updatePattern(String pattern) {
+
+		public void updatePattern(String pattern) {
 	    	this.matcher = Pattern.compile(pattern).matcher("");
 	    	checkDocument();
 	    }
@@ -483,6 +495,49 @@ public class RegexpPropertyDialog extends PropertyDialog {
 		replaceTextPane.setEditable(false);
 		inlineSearchPanel.add(new JScrollPane(replaceTextPane), c);
 		
+		// create regexp options panel
+		ItemListener defaultOptionListener = new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				fireRegexpOptionsChanged();
+			}};
+		
+		cbCaseInsensitive = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.regexp_options.case_insensitive"));
+		cbCaseInsensitive.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.regexp_options.case_insensitive.tip"));
+		cbCaseInsensitive.addItemListener(defaultOptionListener);
+		
+		cbMultiline = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.regexp_options.multiline_mode"));
+		cbMultiline.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.regexp_options.multiline_mode.tip"));
+		cbMultiline.addItemListener(defaultOptionListener);
+		
+		cbDotall = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.regexp_options.dotall_mode"));
+		cbDotall.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.regexp_options.dotall_mode.tip"));
+		cbDotall.addItemListener(defaultOptionListener);
+		
+		cbUnicodeCase = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.regexp_options.unicode_case"));
+		cbUnicodeCase.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.regexp_options.unicode_case.tip"));
+		cbUnicodeCase.addItemListener(defaultOptionListener);
+		
+		JPanel regexpOptionsPanelWrapper = new JPanel(new BorderLayout());
+		JPanel regexpOptionsPanel = new JPanel(new GridBagLayout());
+		regexpOptionsPanelWrapper.add(regexpOptionsPanel, BorderLayout.NORTH);
+		
+		c.insets = new Insets(12, 4, 0, 4);
+		c.gridx = 0;
+		c.gridy = 0;
+		c.weightx = 1;
+		c.weighty = 0;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		regexpOptionsPanel.add(cbMultiline, c);
+		c.insets = new Insets(8, 4, 0, 4);
+		c.gridy = 1;
+		regexpOptionsPanel.add(cbCaseInsensitive, c);
+		c.gridy = 2;
+		regexpOptionsPanel.add(cbUnicodeCase, c);
+		c.gridy = 3;
+		regexpOptionsPanel.add(cbDotall, c);
+		
+		
 		// create tabbed panel
 		c.insets = new Insets(8, 4, 4, 4);
 		c.gridx = 0;
@@ -494,6 +549,7 @@ public class RegexpPropertyDialog extends PropertyDialog {
 		testExp = new JTabbedPane();
 		testExp.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.inline_search.title"), new JScrollPane(inlineSearchPanel));
 		testExp.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.result_list.title"), new JScrollPane(regexpFindingsList));
+		testExp.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.regexp_options.title"), regexpOptionsPanelWrapper);
 		testerPanel.add(testExp, c);
 		
 		JPanel groupPanel = new JPanel(new GridBagLayout());
@@ -582,6 +638,86 @@ public class RegexpPropertyDialog extends PropertyDialog {
 		
 		layoutDefault(panel, supportsItems ? NORMAL : NARROW, okButton, makeCancelButton());
 	}
+	
+	private void updateRegexpOptions() {
+		boolean multiline = cbMultiline.isSelected();
+		boolean caseInsensitive = cbCaseInsensitive.isSelected();
+		boolean dotall = cbDotall.isSelected();
+		boolean unicodeCase = cbUnicodeCase.isSelected();
+		
+		String flags = getFlags(regexpTextField.getText());
+		
+		if (multiline != flags.contains("m")) {
+			cbMultiline.setSelected(flags.contains("m"));
+		}
+		if (caseInsensitive != flags.contains("i")) {
+			cbCaseInsensitive.setSelected(flags.contains("i"));
+		}
+		if (dotall != flags.contains("s")) {
+			cbDotall.setSelected(flags.contains("s"));
+		}
+		if (unicodeCase != flags.contains("u")) {
+			cbUnicodeCase.setSelected(flags.contains("u"));
+		}
+	}
+	
+	private String getFlags(String pattern) {
+		if (!pattern.startsWith("(?")) return "";
+		if (pattern.startsWith("(?-")) return "";
+		if (pattern.indexOf(")") == -1) return "";
+		String flags = pattern.substring(2, pattern.indexOf(")"));
+		return flags.split("-")[0];
+	}
+	
+	private void fireRegexpOptionsChanged() {
+		boolean multiline = cbMultiline.isSelected();
+		boolean caseInsensitive = cbCaseInsensitive.isSelected();
+		boolean dotall = cbDotall.isSelected();
+		boolean unicodeCase = cbUnicodeCase.isSelected();
+		
+		String pattern = regexpTextField.getText();
+		String flags = getFlags(pattern);
+		if (flags.contains("m")) {
+			if (!multiline) flags = flags.replace("m", "");
+		} else {
+			if (multiline) flags += "m";
+		}
+		
+		if (flags.contains("i")) {
+			if (!caseInsensitive) flags = flags.replace("i", "");
+		} else {
+			if (caseInsensitive) flags += "i";
+		}
+		
+		if (flags.contains("u")) {
+			if (!unicodeCase) flags = flags.replace("u", "");
+		} else {
+			if (unicodeCase) flags += "u";
+		}
+		
+		if (flags.contains("s")) {
+			if (!dotall) flags = flags.replace("s", "");
+		} else {
+			if (dotall) flags += "s";
+		}
+		
+		if (!flags.equals("") || (pattern.startsWith("(?") && getFlags(pattern).equals(""))) {
+			flags = "(?" + flags + ")";
+		}
+		
+		if (pattern.startsWith("(?") && !pattern.startsWith("(?-")) {
+			int oldFlagsEnd = pattern.indexOf(")");
+			if (oldFlagsEnd == -1) oldFlagsEnd = 1;
+			oldFlagsEnd++;
+			pattern = flags + pattern.substring(oldFlagsEnd);
+		} else {
+			pattern = flags + pattern;
+		}
+		int caretPosition = regexpTextField.getCaretPosition();
+		regexpTextField.setText(pattern);
+		regexpTextField.setCaretPosition(caretPosition);
+		fireRegularExpressionUpdated();
+	}
 
 	private void fireRegularExpressionUpdated() {
 		boolean regularExpressionValid = false;
@@ -615,6 +751,7 @@ public class RegexpPropertyDialog extends PropertyDialog {
 			inlineSearchDocument.clearResults();
 		}
 	}
+	
 	
 	private class InsertionAction extends AbstractAction {
 		private static final long serialVersionUID = -5185173378762191200L;

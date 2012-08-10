@@ -333,6 +333,11 @@
 				<replaces>ErrorNeglector</replaces>
 				<replaces>ExceptionHandling</replaces>
 			</operator>
+			<operator>
+				<key>throw_exception</key>
+				<class>com.rapidminer.operator.meta.ThrowExceptionOperator</class>
+				<icon>error.png</icon>
+			</operator>
 			<group key="parameter">
 				<icon>form_blue.png</icon>
 				<operator>

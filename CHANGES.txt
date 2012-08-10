@@ -3,6 +3,11 @@ History of changes of the RapidMiner versions
 
 Changes from RapidMiner 5.2.8 to 5.2.9
 --------------------------------------
+* Added first wave of new and improved extensive documentation (often including tutorial processes) for many operators.
+* Added improved RapidAnalytics support. New run button: "Run process on RapidAnalytics".
+  Can only be used if the process is stored on a RapidAnalytics repository.
+  Instantly runs the process on the RapidAnalytics server the process is stored on.
+* New operator: Throw Exception
 * New file system operators: Copy File, Move File, Delete File, Rename File, Create Directory
 * Aggregate: new aggregation functions: sum (fractional), count (fractional), count (percentage) and string concatenation
 * Result Perspective: Added button in top right corner of a result tab to close all open results at once
@@ -13,8 +18,6 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * Trying to create a new process/open another process/exit RM while a process is running now requires user confirmation
 * Local repositories which are inaccessible for any reason now have an annotation which shows that they are inaccessible
 * Improved many error messages
-* Added new run button: "Run process on RapidAnalytics". Can only be used if the process is stored on a RapidAnalytics repository.
-  Instantly runs the process on the RapidAnalytics server the process is stored on.
 * 'Remote' repositories are now called 'RapidAnalytics' repositories.
 * Plugin loading: when loading manually installed plugins from the webstart or plugins folder with multiple versions, 
   load the one with the highest version number
@@ -32,6 +35,8 @@ Changes from RapidMiner 5.2.8 to 5.2.9
 * Select Parameters Dialog: Parameters from type ParameterTypeString are now treated like numerical Parameters (the Grid option is enabled now), in case
   you want to assign a row of numerical values to a String Parameter.
 * Select Parameters Dialog: All acceptable parameter types are now shown, even if the continuous/discrete mode is enabled.
+* Regular Expression Dialog: Dialog has a new tab: Regex Options. In this tab, the user can define options like multiline mode or
+  case-insensitive matching. These options will be added to the pattern though embedded flag expressions.
 * BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases.
 * BUGFIX: Editing context variables now immediately flags the process as changed
 * BUGFIX: If set to 'ask', the 'close previous results' dialog will no longer appear when resuming from a breakpoint

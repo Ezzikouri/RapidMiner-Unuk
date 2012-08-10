@@ -21,6 +21,8 @@
 	<property name="release.includes" location="${release}/filesToInclude" />
 	<property name="jre32" location="jre/jre32" />
 	<property name="jre64" location="jre/jre64" />
+	<property name="manual" location="../RapidMinerReferenceManual_en" />
+	<property name="manualJar" value="rm_doc.jar" />
 
 	<property name="junit.tests.dir" value="" />
 	<property name="rapidminer.tests.dir" value="../RapidMiner_Tests" />
@@ -91,6 +93,11 @@
 		<downloadOperatorDocumentation resourcedir="${resources}" namespace="core" operatorsdocfile="resources/com/rapidminer/resources/i18n/OperatorsCoreDocumentation.xml" operatorsfile="resources/com/rapidminer/resources/OperatorsCore.xml" />
 		<property name="lock.isDocumentationPrepared" value="true" />
 	</target>
+	
+	<target name="create-documentation" depends="init" unless="lock.isNewDocumentationPrepared">
+		<ant antfile="${manual}/build.xml" dir="${manual}" target="install"/>
+		<property name="lock.isNewDocumentationPrepared" value="true" />
+	</target>
 
 	<target name="clean" unless="lock.isCleaned" description="Delete the build directory, java doc, rapidminer.jar">
 		<echo message="Cleaning..." />
@@ -117,7 +124,7 @@
 		<property name="lock.isCopied" value="true" />
 	</target>
 
-	<target name="build" depends="init, copy-resources,version.updateFiles" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
+	<target name="build" depends="init, copy-resources,version.updateFiles, create-documentation" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<echo message="RapidMiner: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner: using Java version: ${java.version}" />
 		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false">

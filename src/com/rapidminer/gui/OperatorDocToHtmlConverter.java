@@ -22,8 +22,8 @@
  */
 package com.rapidminer.gui;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -73,31 +73,24 @@ public class OperatorDocToHtmlConverter {
 	 * If this fails (probably because the given XML file doesn't exist), {@link #createOfflineFallbackDocumentation(Operator)}
 	 * will be used to generate a String from the old local operator description resources.
 	 * 
-	 * @param file
+	 * @param xmlStream
 	 * @param operator
 	 * @return
 	 * @throws MalformedURLException
 	 * @throws IOException
 	 */
-	public static String convert(String xmlFilePath, Operator operator) throws MalformedURLException, IOException {
+	public static String convert(InputStream xmlStream, Operator operator) throws MalformedURLException, IOException {
 		if (operator == null) {
 			throw new IllegalArgumentException("operator must not be null!");
 		}
-		if (xmlFilePath == null) {
-			LogService.getRoot().finer("Failed to load documentation, using online fallback. Reason: xmlFilePath is null.");
+		if (xmlStream == null) {
+			LogService.getRoot().finer("Failed to load documentation, using online fallback. Reason: xmlStream is null.");
 			return createFallbackDocumentation(operator);
 		}
 		
 		StringWriter buffer = new StringWriter();
-		File xmlFile = new File(xmlFilePath);
-		if (!xmlFile.exists()) {
-			LogService.getRoot().finer("Failed to load documentation, using online fallback. Reason: xmlFile does not exist: '" + xmlFile + ("'."));
-			return createFallbackDocumentation(operator);
-		}
-
-		Source xmlSource = new StreamSource(xmlFile);
+		Source xmlSource = new StreamSource(xmlStream);
 		Source xsltSource = new StreamSource(OperatorDocToHtmlConverter.class.getResourceAsStream(STYLESHEET_RESOURCE));
-
 		TransformerFactory transFact = TransformerFactory.newInstance();
 		String html = "";
 		try {

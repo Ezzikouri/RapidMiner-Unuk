@@ -26,16 +26,18 @@ package com.rapidminer.gui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.HyperlinkEvent.EventType;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import javax.xml.transform.Transformer;
@@ -50,10 +52,13 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.rapidminer.Process;
+import com.rapidminer.gui.actions.SaveAction;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceDockKey;
+import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.I18N;
@@ -76,14 +81,11 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	
 	private ExtendedJScrollPane scrollPane = new ExtendedJScrollPane();
 
-	/** Location of the documentation file relative to the users directory.
-	 * 
-	 *  TODO: As soon as documentation is complete, copy files to RapidMiner project and user resources. */
-	public static final String DOCUMENTATION_ROOT = "../RapidMinerReferenceManual_en/documents/core/";
+	public static final String DOCUMENTATION_ROOT = "core/";
 	
 	public Operator displayedOperator = null;
 	
-	public File currentFile = null;
+	public URL currentResourceURL = null;
 	
 	private boolean ignoreSelections = false;
 	
@@ -92,12 +94,11 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	
 	private final DockKey DOCK_KEY = new ResourceDockKey(OPERATOR_HELP_DOCK_KEY);
 	
-	
 	private static final long serialVersionUID = 1L;
 
 
 	/**
-	 * Prepares the dockable and its visible elements to be visible.
+	 * Prepares the dockable and its elements.
 	 */
 	public OperatorDocumentationBrowser() {
 		setLayout(new BorderLayout());
@@ -146,12 +147,15 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	 */
 	private void assignDocumentation() {
 		String groupPath = ((displayedOperator.getOperatorDescription().getGroup()).replace(".", "/"));
-		File userHome = new File(System.getProperty("user.dir"));
-
-		String operatorDescriptionXmlPath = DOCUMENTATION_ROOT + groupPath + "/" + displayedOperator.getOperatorDescription().getKey() + ".xml";
-		File f = new File(userHome, operatorDescriptionXmlPath);
-		changeDocumentation(operatorDescriptionXmlPath);
-		currentFile = f;
+		String opDescXMLResourcePath = DOCUMENTATION_ROOT + groupPath + "/" + displayedOperator.getOperatorDescription().getKey() + ".xml";
+		URL resourceURL = this.getClass().getClassLoader().getResource(opDescXMLResourcePath);
+		try {
+			changeDocumentation(resourceURL.openStream());
+		} catch (Exception e) {
+			// null stream will result in fallback to wiki/old offline doc
+			changeDocumentation(null);
+		}
+		currentResourceURL = resourceURL;
 	}
 
 	@Override
@@ -172,11 +176,11 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	/**
 	 * This is the method that actually gets the Content of this Dockable.
 	 * The conversion takes place in the class OperatorDocToHtmlConverter.
+	 * @param xmlStream
 	 */
-	private String parseXmlAndReturnHtml(String xmlFile) {
-
+	private String parseXmlAndReturnHtml(InputStream xmlStream) {
 		try {
-			return OperatorDocToHtmlConverter.convert(xmlFile, displayedOperator);
+			return OperatorDocToHtmlConverter.convert(xmlStream, displayedOperator);
 		} catch (MalformedURLException e) {
 			LogService.getRoot().warning("Failed to load documentation. Reason: " + e.getLocalizedMessage());
 			return I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.operator_documentation_error.message", e.getLocalizedMessage());
@@ -194,9 +198,24 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	private class ExampleProcessLinkListener implements HyperlinkListener {
 
 		public void hyperlinkUpdate(HyperlinkEvent e) {
-			if (e.getEventType().toString() == "ACTIVATED")
-			{
-				// TODO: implement function for tutorial process here
+			if (e.getEventType().equals(EventType.ACTIVATED)) {
+				
+				// ask user if he wants to save his current proces because the example process will replace his current process
+				if (RapidMinerGUI.getMainFrame().isChanged()) {
+					// current process is flagged as unsaved
+					int returnVal = SwingTools.showConfirmDialog("save_before_show_tutorial_process", ConfirmDialog.YES_NO_CANCEL_OPTION);
+					if (returnVal == ConfirmDialog.CANCEL_OPTION) {
+						return;
+					} else if (returnVal == ConfirmDialog.YES_OPTION) {
+						SaveAction.save(RapidMinerGUI.getMainFrame().getProcess());
+					}
+				} else {
+					// current process is not flagged as unsaved
+					if (SwingTools.showConfirmDialog("show_tutorial_process", ConfirmDialog.OK_CANCEL_OPTION) == ConfirmDialog.CANCEL_OPTION) {
+						return;
+					}
+				}
+
 				if (e.getDescription().contains("l")) {
 					int index = Integer.parseInt(e.getDescription().substring(1));
 					Operator recent = displayedOperator;
@@ -211,7 +230,11 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 					}
 				} else {
 					try {
-						Document document = XMLTools.parse(currentFile);
+						if (currentResourceURL == null) {
+							// should not happen, because then there would be no link in the first place
+							return;
+						}
+						Document document = XMLTools.parse(currentResourceURL.openStream());
 
 						NodeList nodeList = document.getElementsByTagName("tutorialProcess");
 						Node processNode = nodeList.item(Integer.parseInt(e.getDescription()) - 1);
@@ -256,10 +279,10 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	/**
 	 * Refreshes the documentation text.
 	 * 
-	 * @param xmlFilename just passes the ressource of the destination XML file a little further.
+	 * @param xmlStream stream to the xml resource
 	 */
-	private void changeDocumentation(String xmlFilename) {
-		String html = parseXmlAndReturnHtml(xmlFilename);
+	private void changeDocumentation(InputStream xmlStream) {
+		String html = parseXmlAndReturnHtml(xmlStream);
 		html = html.replace(" xmlns:rmdoc=\"com.rapidminer.gui.OperatorDocumentationBrowser\"", " ");
 		editor.setContentType("text/html");
 		editor.setText("<html>" + html + "</html>");
