@@ -25,6 +25,7 @@ package com.rapidminer;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Observable;
 
 /**
  * This class can be used to store macros for an process which can be defined
@@ -33,7 +34,7 @@ import java.util.Map;
  * 
  * @author Ingo Mierswa
  */
-public class MacroHandler {
+public class MacroHandler extends Observable {
 
     // TODO: remove experiment macros later
     private static final String[] PREDEFINED_MACROS = { "experiment_name", "experiment_file", "experiment_path", "process_name", "process_file", "process_path" };
@@ -55,13 +56,15 @@ public class MacroHandler {
     }
 
     public void clear() {
-        this.macroMap.clear();
+    	setChanged();
+        this.macroMap.clear();        
+        notifyObservers(this);
     }
 
     public Iterator<String> getDefinedMacroNames() {
         return macroMap.keySet().iterator();
     }
-
+    
     /**
      * Adds a macro to this MacroHandler. If a macro with this
      * name is already present, it will be overwritten.
@@ -69,11 +72,17 @@ public class MacroHandler {
      * @param value The new value of the macro.
      */
     public void addMacro(String macro, String value) {
-        this.macroMap.put(macro, value);
+    	if (macro != null && !macro.isEmpty()){
+	    	setChanged();
+	        this.macroMap.put(macro, value);
+	        notifyObservers(this);
+    	}
     }
 
     public void removeMacro(String macro) {
+    	setChanged();
         this.macroMap.remove(macro);
+        notifyObservers(this);
     }
 
     public String getMacro(String macro) {

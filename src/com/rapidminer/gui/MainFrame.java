@@ -100,6 +100,7 @@ import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
 import com.rapidminer.gui.operatortree.actions.ToggleBreakpointItem;
 import com.rapidminer.gui.plotter.PlotterPanel;
 import com.rapidminer.gui.processeditor.CommentEditor;
+import com.rapidminer.gui.processeditor.MacroViewer;
 import com.rapidminer.gui.processeditor.NewOperatorEditor;
 import com.rapidminer.gui.processeditor.ProcessContextProcessEditor;
 import com.rapidminer.gui.processeditor.ProcessEditor;
@@ -459,6 +460,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     private final ProcessPanel processPanel = new ProcessPanel(this);
     private final RepositoryBrowser repositoryBrowser = new RepositoryBrowser();
     private final RemoteProcessViewer remoteProcessViewer = new RemoteProcessViewer();
+    private final MacroViewer macroViewer = new MacroViewer();
 
     private final Perspectives perspectives = new Perspectives(dockingContext);
 
@@ -594,7 +596,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         addProcessEditor(processContextEditor);
         addProcessEditor(getStatusBar());
         addProcessEditor(resultDisplay);
-
+        addProcessEditor(macroViewer);
+        
         SwingTools.setFrameIcon(this);
 
 
@@ -617,6 +620,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         dockingDesktop.registerDockable(processContextEditor);
         dockingDesktop.registerDockable(remoteProcessViewer);
         dockingDesktop.registerDockable(processPanel.getProcessRenderer().getOverviewPanel());
+        dockingDesktop.registerDockable(macroViewer);
         //Test
         
         ToolBarContainer toolBarContainer = ToolBarContainer.createDefaultContainer(true, true, true, true);

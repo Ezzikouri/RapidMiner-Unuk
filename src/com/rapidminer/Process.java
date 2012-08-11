@@ -358,7 +358,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
     /** Clears all macros. */
     public void clearMacros() {
-        this.macroHandler.clear();
+        this.getMacroHandler().clear();
     }
 
     // -------------------------
@@ -968,7 +968,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
         }
 
         // clean up
-        clearMacros();
+        //clearMacros();
         clearReportStreams();
         clearStorage();
         clearUnknownParameters();
