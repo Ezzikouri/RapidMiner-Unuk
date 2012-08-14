@@ -3,6 +3,7 @@ History of changes of the RapidMiner versions
 
 Changes from RapidMiner 5.2.8 to 5.2.9
 --------------------------------------
+* Added "Resize" button to text parameter editor dialog 
 * Added runtime macro viewer
 * Added first wave of new and improved extensive documentation (often including tutorial processes) for many operators.
 * Added improved RapidAnalytics support. New run button: "Run process on RapidAnalytics".
