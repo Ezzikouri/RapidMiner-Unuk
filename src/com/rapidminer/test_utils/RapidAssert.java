@@ -170,8 +170,7 @@ public class RapidAssert extends Assert {
 			return;
 		}
 		Assert.assertTrue((expected == null && actual == null) || (expected != null && actual != null));
-		if (expected == null) {
-			// also actual == null
+		if (expected == null || actual == null) {
 			return;
 		}
 

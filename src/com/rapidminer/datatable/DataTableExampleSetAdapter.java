@@ -235,6 +235,9 @@ public class DataTableExampleSetAdapter extends AbstractDataTable {
             } catch (UserError e) {
                 // this exception is only thrown for Stratified Sampling
             }
+            if(exampleSet == null) {
+            	return null; // cannot happen
+            }
             ((SplittedExampleSet)exampleSet).selectSingleSubset(0);
         } else {
             exampleSet = Tools.getLinearSubsetCopy(this.exampleSet, newSize, 0);
