@@ -20,16 +20,18 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.tools.config;
 
 import org.w3c.dom.Element;
 
+import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeSingle;
 import com.rapidminer.tools.XMLException;
 
-
 /**
  * A {@link ParameterType} which offers a selection field for {@link Configurable}s.
+ * 
  * @author Dominik Halfkann
  *
  */
@@ -37,19 +39,19 @@ public class ParameterTypeConfigurable extends ParameterTypeSingle {
 
 	private static final long serialVersionUID = 1047207381362696112L;
 	private String typeId;
-	
+
 	public ParameterTypeConfigurable(Element element) throws XMLException {
-        super(element);
-    }
-	
+		super(element);
+	}
+
 	public ParameterTypeConfigurable(String key, String description, String typeId) {
-        super(key, description);
-        if (!ConfigurationManager.getInstance().hasTypeId(typeId)) {
-			throw new IllegalArgumentException("Unknown configurable type: "+typeId);
+		super(key, description);
+		if (!ConfigurationManager.getInstance().hasTypeId(typeId)) {
+			throw new IllegalArgumentException("Unknown configurable type: " + typeId);
 		}
-        this.typeId = typeId;
-    }
-	
+		this.typeId = typeId;
+	}
+
 	public String getTypeId() {
 		return typeId;
 	}
@@ -70,11 +72,9 @@ public class ParameterTypeConfigurable extends ParameterTypeSingle {
 	}
 
 	@Override
-	public void setDefaultValue(Object defaultValue) {
-	}
-	
+	public void setDefaultValue(Object defaultValue) {}
+
 	@Override
-    protected void writeDefinitionToXML(Element typeElement) {
-    }
+	protected void writeDefinitionToXML(Element typeElement) {}
 
 }

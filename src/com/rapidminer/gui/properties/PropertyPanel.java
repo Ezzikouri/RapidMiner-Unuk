@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties;
 
 import java.awt.BorderLayout;
@@ -119,7 +120,7 @@ public abstract class PropertyPanel extends JPanel {
 	private final GridBagLayout layout = new GridBagLayout();
 
 	/** Maps parameter type keys to currently displayed editors. */
-	private final Map<String,PropertyValueCellEditor> currentEditors = new LinkedHashMap<String,PropertyValueCellEditor>();
+	private final Map<String, PropertyValueCellEditor> currentEditors = new LinkedHashMap<String, PropertyValueCellEditor>();
 
 	/** Types currently displayed by editors. */
 	private Collection<ParameterType> currentTypes;
@@ -128,8 +129,8 @@ public abstract class PropertyPanel extends JPanel {
 
 	public static final int VALUE_CELL_EDITOR_HEIGHT = 28;
 
-	private static Map<Class<? extends ParameterType>, Class<? extends PropertyValueCellEditor>> knownValueEditors = 
-		new HashMap<Class<? extends ParameterType>, Class<? extends PropertyValueCellEditor>>();
+	private static Map<Class<? extends ParameterType>, Class<? extends PropertyValueCellEditor>> knownValueEditors =
+			new HashMap<Class<? extends ParameterType>, Class<? extends PropertyValueCellEditor>>();
 
 	static {
 		registerPropertyValueCellEditor(ParameterTypePassword.class, DefaultPropertyValueCellEditor.class);
@@ -165,7 +166,6 @@ public abstract class PropertyPanel extends JPanel {
 		registerPropertyValueCellEditor(ParameterTypeAttributeOrderingRules.class, AttributeOrderingCellEditor.class);
 	}
 
-	
 	/**
 	 * This method allows extensions to register own ParameterTypes and their editors. Please keep in mind, 
 	 * that this method has to be called before any operator creation! That means, it has to be performed
@@ -185,7 +185,7 @@ public abstract class PropertyPanel extends JPanel {
 	}
 
 	public PropertyPanel() {
-		setLayout(layout);		
+		setLayout(layout);
 	}
 
 	public void setupComponents() {
@@ -193,18 +193,19 @@ public abstract class PropertyPanel extends JPanel {
 			setupComponentsNow();
 		} else {
 			SwingUtilities.invokeLater(new Runnable() {
+
 				@Override
 				public void run() {
 					setupComponentsNow();
-				}				
+				}
 			});
 		}
 	}
-	
+
 	public void fireEditingStoppedEvent() {
-		Map<String,PropertyValueCellEditor> currentEditors = new LinkedHashMap<String, PropertyValueCellEditor>();
+		Map<String, PropertyValueCellEditor> currentEditors = new LinkedHashMap<String, PropertyValueCellEditor>();
 		currentEditors.putAll(this.currentEditors);
-		if (currentEditors != null && currentEditors.size() > 0) {
+		if (currentEditors.size() > 0) {
 			for (String key : currentEditors.keySet()) {
 				currentEditors.get(key).stopCellEditing();
 			}
@@ -216,18 +217,18 @@ public abstract class PropertyPanel extends JPanel {
 		currentEditors.clear();
 
 		currentTypes = getProperties();
-		if (currentTypes == null) {	
+		if (currentTypes == null) {
 			revalidate();
 			repaint();
 			return;
-		}		
-		GridBagConstraints c = new GridBagConstraints();		
+		}
+		GridBagConstraints c = new GridBagConstraints();
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.insets = new Insets(4, 4, 4, 4);
 
-		int row = 0;		
-		for (final ParameterType type : currentTypes) {			
+		int row = 0;
+		for (final ParameterType type : currentTypes) {
 			StringBuilder toolTip = new StringBuilder(type.getDescription());
 			if ((!(type instanceof ParameterTypeCategory)) && (!(type instanceof ParameterTypeStringCategory))) {
 				String range = type.getRange();
@@ -240,7 +241,7 @@ public abstract class PropertyPanel extends JPanel {
 			final PropertyValueCellEditor editor = instantiateValueCellEditor(type);
 			currentEditors.put(type.getKey(), editor);
 			Object value;
-			value = getValue(type);		
+			value = getValue(type);
 			if (value == null) {
 				value = type.getDefaultValue();
 			}
@@ -250,24 +251,26 @@ public abstract class PropertyPanel extends JPanel {
 				SwingTools.setEnabledRecursive(editorComponent, false);
 			}
 			if (editorComponent instanceof JComponent) {
-				((JComponent)editorComponent).setToolTipText(toolTip.toString());
-			}			
+				((JComponent) editorComponent).setToolTipText(toolTip.toString());
+			}
 			final Operator typesOperator = getOperator();
-			editor.addCellEditorListener(new CellEditorListener() {				
+			editor.addCellEditorListener(new CellEditorListener() {
+
 				@Override
-				public void editingCanceled(ChangeEvent e) { }
+				public void editingCanceled(ChangeEvent e) {}
+
 				@Override
 				public void editingStopped(ChangeEvent e) {
 					Object valueObj = editor.getCellEditorValue();
 					String value = type.toString(valueObj);
 					String last;
-					last = getValue(type);					
-					if (((value != null) && (last  == null)) ||
-							((last  == null) && (value != null)) ||
-							((value != null) && (last  != null) && !value.equals(last))) {						
-						setValue(typesOperator, type, value, false);	
-					}										
-				}				
+					last = getValue(type);
+					if (((value != null) && (last == null)) ||
+							((last == null) && (value != null)) ||
+							((value != null) && (last != null) && !value.equals(last))) {
+						setValue(typesOperator, type, value, false);
+					}
+				}
 			});
 
 			c.gridx = 0;
@@ -277,11 +280,11 @@ public abstract class PropertyPanel extends JPanel {
 
 			JPanel parameterPanel = null;
 			if (!editor.rendersLabel()) {
-				parameterPanel = new JPanel(new GridLayout(1,2));
+				parameterPanel = new JPanel(new GridLayout(1, 2));
 				parameterPanel.setOpaque(isOpaque());
 				parameterPanel.setBackground(getBackground());
 				parameterPanel.setPreferredSize(new Dimension((int) parameterPanel.getPreferredSize().getWidth(), VALUE_CELL_EDITOR_HEIGHT));
-				JLabel label = new JLabel(type.getKey().replace('_', ' ') + " ");			
+				JLabel label = new JLabel(type.getKey().replace('_', ' ') + " ");
 				label.setOpaque(isOpaque());
 				label.setFont(getFont());
 				label.setForeground(fontColor);
@@ -319,7 +322,7 @@ public abstract class PropertyPanel extends JPanel {
 //		message.setOpaque(isOpaque());
 //		add(message, c);
 
-		JPanel dummyPanel = new JPanel(new GridLayout(1,2));
+		JPanel dummyPanel = new JPanel(new GridLayout(1, 2));
 		//dummyPanel.setBackground(getBackground());
 		dummyPanel.setOpaque(false);
 		c.weightx = 1;
@@ -351,10 +354,13 @@ public abstract class PropertyPanel extends JPanel {
 	}
 
 	protected abstract String getValue(ParameterType type);
+
 	protected abstract void setValue(Operator operator, ParameterType type, String value);
+
 	protected abstract Collection<ParameterType> getProperties();
+
 	protected abstract Operator getOperator();
-	
+
 	/** Subclasses of PropertyPanel (e.g. GenericParameterPanel) can overwrite this method in order to specify if GUI elements should be updated after setting the Value. **/
 	protected void setValue(Operator operator, ParameterType type, String value, boolean updateComponents) {
 		setValue(operator, type, value);
@@ -362,24 +368,24 @@ public abstract class PropertyPanel extends JPanel {
 
 	public static PropertyValueCellEditor instantiateValueCellEditor(final ParameterType type, Operator operator) {
 		PropertyValueCellEditor editor;
-		Class<?> typeClass = type.getClass();		
+		Class<?> typeClass = type.getClass();
 		do {
 			Class<? extends PropertyValueCellEditor> editorClass = knownValueEditors.get(typeClass);
-			if (editorClass != null) {				
+			if (editorClass != null) {
 				try {
 					Constructor<? extends PropertyValueCellEditor> constructor = editorClass.getConstructor(new Class[] { typeClass });
-					editor = constructor.newInstance(new Object[] { type });	                
+					editor = constructor.newInstance(new Object[] { type });
 				} catch (Exception e) {
 					//LogService.getRoot().log(Level.WARNING, "Cannot construct property editor: " + e, e);
 					LogService.getRoot().log(Level.WARNING,
-							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-							"com.rapidminer.gui.properties.PropertyPanel.construct_property_editor_error", 
-							e),
+							I18N.getMessage(LogService.getRoot().getResourceBundle(),
+									"com.rapidminer.gui.properties.PropertyPanel.construct_property_editor_error",
+									e),
 							e);
 
-					editor = new DefaultPropertyValueCellEditor(type);					
+					editor = new DefaultPropertyValueCellEditor(type);
 				}
-				break;				
+				break;
 			} else {
 				typeClass = typeClass.getSuperclass();
 				editor = new DefaultPropertyValueCellEditor(type);
@@ -388,7 +394,7 @@ public abstract class PropertyPanel extends JPanel {
 		editor.setOperator(operator);
 		return editor;
 	}
-	
+
 	/**
 	 * This sets the color of the labels of properties. Not used if lable is replaced by editor
 	 */

@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -56,23 +57,24 @@ import com.rapidminer.tools.config.gui.ConfigurationDialog;
  *
  */
 public class ConfigurableValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
-	
+
 	private static final long serialVersionUID = -771727412083431607L;
-	
+
 	private String typeId = "";
 
 	class ConfigurableComboBoxModel extends DefaultComboBoxModel {
+
 		private static final long serialVersionUID = -2984664300141879731L;
 
 		public void updateModel() {
 			Object selected = getSelectedItem();
 			removeAllElements();
-			
+
 			List<String> entryNames = ConfigurationManager.getInstance().getAllConfigurableNames(typeId);
 			for (String entryName : entryNames) {
 				addElement(entryName);
 			}
-			
+
 			if (model.getSize() == 0) {
 				setSelectedItem(null);
 			} else {
@@ -84,33 +86,40 @@ public class ConfigurableValueCellEditor extends AbstractCellEditor implements P
 					}
 				}
 			}
-		}		
+		}
 	}
 
 	private ConfigurableComboBoxModel model = new ConfigurableComboBoxModel();
 
 	private JPanel panel = new JPanel();
-	
+
 	private JComboBox comboBox = new JComboBox(model);
-	
+
 	public ConfigurableValueCellEditor(final ParameterTypeConfigurable type) {
 		this.typeId = type.getTypeId();
 		if (!ConfigurationManager.getInstance().hasTypeId(typeId)) {
-			throw new IllegalArgumentException("Unknown configurable type: "+typeId);
+			throw new IllegalArgumentException("Unknown configurable type: " + typeId);
 		}
 		panel.setLayout(new GridBagLayout());
 		panel.setToolTipText(type.getDescription());
 		comboBox.setToolTipText(type.getDescription());
 		comboBox.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent e) {
 				fireEditingStopped();
-			}			
+			}
 		});
 		comboBox.addFocusListener(new FocusListener() {
+
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
-			}			
+				// The event is only fired if the focus loss is permanently,
+				// i.e. it is not fired if the user just switched to another window.
+				if (!e.isTemporary()) {
+					fireEditingStopped();
+				}
+			}
+
 			@Override
 			public void focusGained(FocusEvent e) {
 				model.updateModel();
@@ -124,6 +133,7 @@ public class ConfigurableValueCellEditor extends AbstractCellEditor implements P
 		panel.add(comboBox, c);
 
 		final JButton button = new JButton(new ResourceAction(true, "configuration." + ConfigurationManager.getInstance().getConfigurator(typeId).getI18NBaseKey()) {
+
 			private static final long serialVersionUID = 3989811306286704326L;
 			{
 				putValue(Action.NAME, "");
@@ -131,6 +141,7 @@ public class ConfigurableValueCellEditor extends AbstractCellEditor implements P
 
 			public void actionPerformed(ActionEvent e) {
 				class SetConfigurableDialog extends ConfigurationDialog {
+
 					private static final long serialVersionUID = 2306881477330192804L;
 
 					@SuppressWarnings("unchecked")
@@ -157,7 +168,8 @@ public class ConfigurableValueCellEditor extends AbstractCellEditor implements P
 							super.close();
 						}
 					}
-				};
+				}
+				;
 				SetConfigurableDialog dialog = new SetConfigurableDialog();
 				dialog.setVisible(true);
 				model.updateModel();
@@ -198,6 +210,5 @@ public class ConfigurableValueCellEditor extends AbstractCellEditor implements P
 	}
 
 	@Override
-	public void setOperator(Operator operator) {
-	}
+	public void setOperator(Operator operator) {}
 }
