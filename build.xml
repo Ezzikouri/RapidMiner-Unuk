@@ -94,9 +94,14 @@
 		<property name="lock.isDocumentationPrepared" value="true" />
 	</target>
 	
-	<target name="create-documentation" depends="init" unless="lock.isNewDocumentationPrepared">
+	<target name="check.newDocumentationPresent">
+		<condition property="lock.newDocumentationPresent">
+			<available file="${manual}" type="dir" />
+		</condition>
+	</target>
+	
+	<target name="create-documentation" depends="init, check.newDocumentationPresent" if="lock.newDocumentationPresent">
 		<ant antfile="${manual}/build.xml" dir="${manual}" target="install"/>
-		<property name="lock.isNewDocumentationPrepared" value="true" />
 	</target>
 
 	<target name="clean" unless="lock.isCleaned" description="Delete the build directory, java doc, rapidminer.jar">

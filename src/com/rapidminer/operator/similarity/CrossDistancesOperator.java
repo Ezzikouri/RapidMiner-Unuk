@@ -121,7 +121,7 @@ public class CrossDistancesOperator extends Operator {
         Tools.checkAndCreateIds(documentSet);
 
         DistanceMeasure measure = DistanceMeasures.createMeasure(this);
-        measure.init(documentSet);
+        measure.init(requestSet.getAttributes(), documentSet.getAttributes());
 
         Attribute oldRequestId = requestSet.getAttributes().getId();
         Attribute oldDocumentId = documentSet.getAttributes().getId();

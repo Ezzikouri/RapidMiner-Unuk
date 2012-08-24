@@ -22,11 +22,9 @@
  */
 package com.rapidminer.gui.properties;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 
@@ -59,45 +57,44 @@ public class TextPropertyDialog extends PropertyDialog {
 
     private RSyntaxTextArea textArea = new RSyntaxTextArea();
     
-    private JButton resize = new JButton();
+    private JButton resizeButton = new JButton();
     
     public TextPropertyDialog(final ParameterTypeText type, String text, Operator operator) {
         super(type, "text");
         this.text = text;
-        ResourceAction resourceAction = new ResourceAction(true, "text_dialog.enlarge") {
+        ResourceAction resizeAction = new ResourceAction(true, "text_dialog.enlarge") {
 			
 			private static final long serialVersionUID = 8857840715142145951L;
 
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
+			public void actionPerformed(ActionEvent e) {
 				Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
-				Dimension dim = new Dimension( (int)(screenDim.width * 0.9),(int)(screenDim.height* 0.9));
-				Dimension normal = getDefaultSize(NORMAL);
+				Dimension dim = new Dimension((int)(screenDim.width * 0.9), (int)(screenDim.height* 0.9));
 				Dimension currentSize = getSize();
-				if (currentSize.getHeight() != dim.getHeight() && currentSize.getWidth() != dim.getWidth()){
+				if (currentSize.getHeight() != dim.getHeight() && currentSize.getWidth() != dim.getWidth()) {
 					setSize(dim);
 					setLocationRelativeTo(null);
-					resize.setText(I18N.getGUIBundle().getString("gui.action.text_dialog.shrink.label"));
-					resize.setToolTipText(I18N.getGUIBundle().getString("gui.action.text_dialog.shrink.tip"));
-					resize.setMnemonic(I18N.getGUIBundle().getString("gui.action.text_dialog.shrink.mne").charAt(0));
-				}else{
-					setSize(normal);
+					resizeButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.shrink.label"));
+					resizeButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.shrink.tip"));
+					resizeButton.setMnemonic(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.shrink.mne").charAt(0));
+				} else {
+					setSize(getDefaultSize(NORMAL));
 					setDefaultLocation();
-					resize.setText(I18N.getGUIBundle().getString("gui.action.text_dialog.enlarge.label"));
-					resize.setToolTipText(I18N.getGUIBundle().getString("gui.action.text_dialog.enlarge.tip"));
-					resize.setMnemonic(I18N.getGUIBundle().getString("gui.action.text_dialog.enlarge.mne").charAt(0));
+					resizeButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.enlarge.label"));
+					resizeButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.enlarge.tip"));
+					resizeButton.setMnemonic(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.enlarge.mne").charAt(0));
 				}
 			}
 		};
 		
-        resize = new JButton(resourceAction);
+        resizeButton = new JButton(resizeAction);
         
         textArea.setDocument(new RSyntaxDocument(type.getTextType().getSyntaxIdentifier()));
         textArea.setText(text);
         textArea.setAnimateBracketMatching(type.getTextType().isBracketMatching());
         textArea.setAutoIndentEnabled(type.getTextType().isAutoIntending());
         textArea.setAutoscrolls(true);
-        layoutDefault(new RTextScrollPane(textArea), NORMAL, resize, makeOkButton(), makeCancelButton());
+        layoutDefault(new RTextScrollPane(textArea), NORMAL, resizeButton, makeOkButton(), makeCancelButton());
         
         textArea.requestFocusInWindow();
     }

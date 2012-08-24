@@ -297,6 +297,9 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
 	@Override
 	public DataResultSet makeDataResultSet(Operator operator) throws OperatorException {
+		if (getFile() == null) {
+			throw new UserError(operator, 205, ExcelExampleSource.PARAMETER_EXCEL_FILE, "");
+		}
 		if (getFile().getAbsolutePath().endsWith(".xlsx")) {
 			// excel 2007 file
 			return new Excel2007ResultSet(operator, this);
