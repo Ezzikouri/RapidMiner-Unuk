@@ -30,7 +30,7 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 
 	private static final long serialVersionUID = 1L;
 
-	private boolean allowFolders, allowEntries;
+	private boolean allowFolders, allowEntries, allowAbsoluteEntries;
 	
 	/** Creates a new parameter type for files with the given extension. If the extension is null
 	 *  no file filters will be used. */
@@ -47,6 +47,17 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 		setAllowEntries(allowEntries);
 		setAllowFolders(allowDirectories);
 	}
+	
+	/** Creates a new parameter type for files with the given extension. If the extension is null
+	 *  no file filters will be used. */
+	public ParameterTypeRepositoryLocation(String key, String description, boolean allowEntries, boolean allowDirectories, boolean allowAbsoluteEntries, boolean optional) {
+		super(key, description, null);
+		
+		setOptional(optional);	
+		setAllowEntries(allowEntries);
+		setAllowFolders(allowDirectories);
+		setAllowAbsoluteEntries(allowAbsoluteEntries);
+	}
 
 	public boolean isAllowFolders() {
 		return allowFolders;
@@ -62,5 +73,13 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 
 	public void setAllowEntries(boolean allowEntries) {
 		this.allowEntries = allowEntries;
-	}	
+	}
+	
+	public void setAllowAbsoluteEntries(boolean allowAbsoluteEntries) {
+		this.allowAbsoluteEntries = allowAbsoluteEntries;
+	}
+	
+	public boolean isAllowAbsoluteEntries() {
+		return this.allowAbsoluteEntries;
+	}
 }

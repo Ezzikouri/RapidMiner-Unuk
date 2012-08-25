@@ -427,6 +427,10 @@ public class RapidMiner {
 	private static SplashScreen splashScreen;
 
 	private static final List<Runnable> shutdownHooks = new LinkedList<Runnable>();
+	
+	private static final List<Runnable> startupHooks = new LinkedList<Runnable>();
+	
+	private static boolean isInitiated = false;
 
 	private static boolean performedInitialSettings = false;
 
@@ -552,6 +556,8 @@ public class RapidMiner {
 		if(executionMode == ExecutionMode.TEST) {
 			initAsserters();
 		}
+		
+		started();
 	}
 	
 	/**
@@ -722,6 +728,34 @@ public class RapidMiner {
 	public synchronized static void addShutdownHook(Runnable runnable) {
 		shutdownHooks.add(runnable);
 	}
+	
+	/**
+	 * Adds the given {@link Runnable} to the list of hooks which will be executed
+	 * after initiation of RapidMiner. If RapidMiner is already initiated the given
+	 * {@link Runnable} will be executed immediately.
+	 */
+	public synchronized static void addStartupHook(Runnable runnable) {
+		if(isInitiated) {
+			runStartupHook(runnable);
+		}
+		startupHooks.add(runnable);
+	}
+	
+	private synchronized static void started() {
+		for(Runnable runnable : startupHooks) {
+			runStartupHook(runnable);
+		}
+		isInitiated = true;
+	}
+	
+	private static void runStartupHook(Runnable runnable) {
+		try {
+			runnable.run();
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.executing_startup_hook_error", e.getMessage()), e);
+		}
+	}
 
 	public synchronized static void quit(ExitMode exitMode) {
 		for (Runnable hook : shutdownHooks) {
@@ -740,6 +774,7 @@ public class RapidMiner {
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.error_during_finalization", e.getMessage()), e);
 		}
+		isInitiated = false;
 		switch (exitMode) {
 			case NORMAL:
 				System.exit(0);

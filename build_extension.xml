@@ -25,8 +25,17 @@
 	<!-- Update and release server properties -->
 	<property file="${rm.dir}/server.properties" />
 
+	<condition property="build.compiletime" value="">
+	   <not>  
+	      <isset property="build.compiletime"/>
+	   </not>
+	</condition>
+	
 	<!-- Class Paths -->
 	<path id="build.libraries">
+		<fileset dir="${build.compiletime}">
+			<include name="*.jar" />
+		</fileset>
 		<fileset dir="${build.lib}/">
 			<include name="*.jar" />
 		</fileset>

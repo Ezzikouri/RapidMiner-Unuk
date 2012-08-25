@@ -725,7 +725,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
                 }
                 if (type instanceof ParameterTypeRepositoryLocation) {
                     String value = getParameters().getParameterOrNull(type.getKey());
-                    if (value != null) {
+                    if (value != null && !((ParameterTypeRepositoryLocation) type).isAllowAbsoluteEntries()) {
                         if (value.startsWith(RepositoryLocation.REPOSITORY_PREFIX)) {
                             if (!value.startsWith(RepositoryLocation.REPOSITORY_PREFIX+RepositoryManager.SAMPLE_REPOSITORY_NAME)) {
                                 addError(new SimpleProcessSetupError(Severity.WARNING, portOwner,
