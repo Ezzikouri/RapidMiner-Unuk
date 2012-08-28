@@ -236,11 +236,19 @@ public class MathFunctions {
 				counter++;
 			}
 		}
-		double r = (counter * sumProd - sumFirst * sumSecond) / (Math.sqrt((counter * sumFirstSquared - sumFirst * sumFirst) * (counter * sumSecondSquared - sumSecond * sumSecond)));
-		if (squared)
+		double divisor = Math.sqrt((counter * sumFirstSquared - sumFirst * sumFirst) * (counter * sumSecondSquared - sumSecond * sumSecond));
+		double r;
+		if (divisor == 0) {
+			// one or both of the standard deviations are 0 -> correlation is undefined
+			r = Double.NaN;
+		} else {
+			r = (counter * sumProd - sumFirst * sumSecond) / divisor;
+		}
+		if (squared) {
 			return r * r;
-		else
+		} else {
 			return r;
+		}
 	}
 
 	public static double correlation(double[] x1, double[] x2) {
