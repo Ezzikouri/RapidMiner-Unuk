@@ -1233,6 +1233,9 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
     @Override
     public double getParameterAsDouble(String key) throws UndefinedParameterError {
         String value = getParameter(key);
+        if (value == null) {
+        	throw new UndefinedParameterError(key, this);
+        }
         try {
             return Double.valueOf(value);
         } catch (NumberFormatException e) {

@@ -151,9 +151,9 @@ public class GSPOperator extends Operator {
 		String timeAttributeName = getParameterAsString(PARAMETER_TIME_ATTRIBUTE);
 		String customerAttributeName = getParameterAsString(PARAMETER_CUSTOMER_ATTRIBUTE);
 		if (timeAttributeName.equals(""))
-			throw new UserError(this, 205, PARAMETER_TIME_ATTRIBUTE);
+			throw new UserError(this, 205, PARAMETER_TIME_ATTRIBUTE, "");
 		if (customerAttributeName.equals(""))
-			throw new UserError(this, 205, PARAMETER_CUSTOMER_ATTRIBUTE);
+			throw new UserError(this, 205, PARAMETER_CUSTOMER_ATTRIBUTE, "");
 
 		double minSupport = getParameterAsDouble(PARAMETER_MIN_SUPPORT);
 		double maxGap = getParameterAsDouble(PARAMETER_MAX_GAP);
