@@ -6005,6 +6005,13 @@
     <shortName>Performance</shortName>
   </operator>
     <operator>
+        <name>Performance to Data</name>
+        <synopsis>This operator is used to convert a performance vector as produced by a Performance operator into an example set.</synopsis>
+        <help>The operator creates an example set which contains one row for each performance criterion in the input data and a set of columns: the Criterion column contains the name of the criterion, Example Count is the number of examples that were used to calculate the criterion, whereas Value, Standard Deviation and Variance list the value and the statistical properties of the value.</help>
+    <key>performance_to_data</key>
+    <shortName>Performance to Data</shortName>
+  </operator>
+    <operator>
         <name>Optimize by Generation (AGA)</name>
         <synopsis>Another (improved) genetic algorithm for feature selection
             and feature generation (AGA).</synopsis>

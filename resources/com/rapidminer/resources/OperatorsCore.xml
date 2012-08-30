@@ -2617,6 +2617,10 @@
 					<class>com.rapidminer.operator.performance.MinMaxWrapper</class>
 					<replaces>MinMaxWrapper</replaces>
 				</operator>
+				<operator>
+					<key>performance_to_data</key>
+					<class>com.rapidminer.operator.performance.PerformanceVectorToExampleSet</class>
+				</operator>
 				<group key="classification_and_regression">
 					<operator>
 						<key>performance_classification</key>

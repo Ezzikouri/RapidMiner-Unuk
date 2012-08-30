@@ -3,6 +3,7 @@ History of changes of the RapidMiner versions
 
 Changes from RapidMiner 5.2.8 to 5.2.9
 --------------------------------------
+* New operator: Performance to Data
 * Added first wave of new and improved extensive documentation (often including tutorial processes) for many operators.
 * Added improved RapidAnalytics support. New run button: "Run process on RapidAnalytics".
   Can only be used if the process is stored on a RapidAnalytics repository.
