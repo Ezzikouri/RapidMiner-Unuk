@@ -37,6 +37,7 @@ import javax.swing.event.MenuListener;
 import com.rapidminer.gui.processeditor.ProcessLogTab;
 import com.rapidminer.gui.processeditor.results.ResultTab;
 import com.rapidminer.gui.tools.ResourceMenu;
+import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.DockableState;
 import com.vlsolutions.swing.docking.DockingContext;
 /**
@@ -46,6 +47,24 @@ import com.vlsolutions.swing.docking.DockingContext;
 public class DockableMenu extends ResourceMenu {
 	
 	private static final long serialVersionUID = -5602297374075268751L;
+	
+	private static final List<String> HIDE_IN_DOCKABLE_MENU_PREFIX_REGISTRY = new LinkedList<String>();
+	
+	/**
+	 * Here you can register prefixes that will be used to test if
+	 * a {@link DockableState} start with the provided prefix and thus won't be shown 
+	 * in the created {@link DockableMenu}.
+	 * 
+	 * @param prefix the prefix of {@link DockableState} {@link DockKey}s to hide
+	 */
+	public static void registerHideInDockableMenuPrefix(String prefix) {
+		HIDE_IN_DOCKABLE_MENU_PREFIX_REGISTRY.add(prefix);
+	}
+	
+	static {
+		registerHideInDockableMenuPrefix(ResultTab.DOCKKEY_PREFIX);
+		registerHideInDockableMenuPrefix(ProcessLogTab.DOCKKEY_PREFIX);
+	}
 
 	//private DockingDesktop dockingDesktop;
 	private final DockingContext dockingContext;
@@ -78,7 +97,14 @@ public class DockableMenu extends ResourceMenu {
 		});
 		for (final DockableState state : sorted) {
 			String key = state.getDockable().getDockKey().getKey();
-			if (key.startsWith(ResultTab.DOCKKEY_PREFIX) || key.startsWith(ProcessLogTab.DOCKKEY_PREFIX)) {
+			boolean cont = false;
+			for(String prefix : HIDE_IN_DOCKABLE_MENU_PREFIX_REGISTRY) {
+				if(key.startsWith(prefix)) {
+					cont = true;
+					break;
+				}
+			}
+			if(cont) {
 				continue;
 			}
 			JCheckBoxMenuItem item = new JCheckBoxMenuItem(

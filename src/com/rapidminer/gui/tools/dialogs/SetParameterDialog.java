@@ -27,8 +27,6 @@ import java.awt.event.KeyListener;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.event.CellEditorListener;
-import javax.swing.event.ChangeEvent;
 
 import com.rapidminer.gui.properties.PropertyPanel;
 import com.rapidminer.gui.properties.celleditors.value.PropertyValueCellEditor;
@@ -57,22 +55,22 @@ public class SetParameterDialog extends ButtonDialog {
 		this.operator = operator;
 		this.type = type;
 		editor = PropertyPanel.instantiateValueCellEditor(type, operator);
-		editor.addCellEditorListener(new CellEditorListener() {				
-			@Override
-			public void editingCanceled(ChangeEvent e) {
-				cancel();
-			}
-			@Override
-			public void editingStopped(ChangeEvent e) {
-				// necessary since cell editors define focus listener
-				// which fires editing stopped on focus lost
-				if (!canceled) {
-					ok();
-				} else {
-					cancel();
-				}
-			}
-		});
+//		editor.addCellEditorListener(new CellEditorListener() {				
+//			@Override
+//			public void editingCanceled(ChangeEvent e) {
+//				cancel();
+//			}
+//			@Override
+//			public void editingStopped(ChangeEvent e) {
+//				// necessary since cell editors define focus listener
+//				// which fires editing stopped on focus lost
+//				if (!canceled) {
+//					ok();
+//				} else {
+//					cancel();
+//				}
+//			}
+//		});
 		JComponent editorComponent = (JComponent) editor.getTableCellEditorComponent(null, type.getDefaultValue(), false, 0, 1);
 		editorComponent.addKeyListener(new KeyListener() {
 
