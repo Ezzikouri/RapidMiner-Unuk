@@ -38,6 +38,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.operator.AbstractExampleSetProcessing;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.metadata.ExampleSetPrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeString;
@@ -71,7 +72,21 @@ public class GeneratePredictionOperator extends AbstractExampleSetProcessing {
 		
 		if (confidenceAttributes.size() > 0) {
 			String predictionName = getParameterAsString(PARAMETER_PREDICTION_NAME);
-			Attribute predictionAttribute = AttributeFactory.createAttribute("prediction(" + predictionName + ")", Ontology.NOMINAL);
+			String attributeName = "prediction(" + predictionName + ")";
+			Attribute predictionAttribute = AttributeFactory.createAttribute(attributeName, Ontology.NOMINAL);
+			
+			// check if an attribute with the resulting name already exists
+			Attribute oldAttribute = exampleSet.getAttributes().get(attributeName);
+			if (oldAttribute != null) {
+				if (exampleSet.getAttributes().getSpecial(Attributes.PREDICTION_NAME) == oldAttribute) {
+					// remove it iff it is the prediction attribute (since it would be removed later anyway, but causes an error if not removed here)
+					exampleSet.getAttributes().remove(oldAttribute);
+				} else {
+					// otherwise throw an error
+					throw new UserError(this, 152, attributeName);
+				}
+			}
+			
 			for (String value : confidenceAttributes.values()) {
 				predictionAttribute.getMapping().mapString(value);
 			}

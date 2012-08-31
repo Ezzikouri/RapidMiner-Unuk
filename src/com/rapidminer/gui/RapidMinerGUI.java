@@ -315,16 +315,21 @@ public class RapidMinerGUI extends RapidMiner {
 
     public static void useProcessFile(Process process) {
         ProcessLocation location = process.getProcessLocation();
-        if (location != null) {
+        addToRecentFiles(location);
+    }
+
+	public static void addToRecentFiles(ProcessLocation location) {
+		if (location != null) {
             while (recentFiles.contains(location)) {
                 recentFiles.remove(location);
             }
             recentFiles.addFirst(location);
-            while (recentFiles.size() > NUMBER_OF_RECENT_FILES)
+            while (recentFiles.size() > NUMBER_OF_RECENT_FILES) {
                 recentFiles.removeLast();
+            }
+            saveRecentFileList();
         }
-        saveRecentFileList();
-    }
+	}
 
     public static ResultHistory getResultHistory() {
         return resultHistory;

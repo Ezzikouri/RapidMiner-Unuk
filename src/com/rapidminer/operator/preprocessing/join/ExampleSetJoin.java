@@ -616,8 +616,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		} else {
 			Attribute[] keyAttributes = getKeyAttributes(leftExampleSet, rightExampleSet).getSecond();
 			Set<Pair<Integer, Attribute>> excludedAttributes = new HashSet<Pair<Integer, Attribute>>();
-			for (int i = 0; i < keyAttributes.length; ++i) {
-				excludedAttributes.add(new Pair<Integer, Attribute>(AttributeSource.SECOND_SOURCE, keyAttributes[i]));
+			for (Attribute attribute : keyAttributes) {
+				excludedAttributes.add(new Pair<Integer, Attribute>(AttributeSource.SECOND_SOURCE, attribute));
 			}
 			return excludedAttributes;
 		}

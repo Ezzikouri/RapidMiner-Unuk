@@ -162,7 +162,7 @@ public class MacroConstructionOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {		
-		ExpressionParser parser = new ExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS));
+		ExpressionParser parser = new ExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
 
 		Iterator<String[]> j = getParameterList(PARAMETER_FUNCTIONS).iterator();
 		while (j.hasNext()) {

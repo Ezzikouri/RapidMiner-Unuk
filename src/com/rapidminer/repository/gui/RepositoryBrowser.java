@@ -47,6 +47,7 @@ import com.rapidminer.gui.tools.dialogs.wizards.dataimport.BlobImportWizard;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.ProcessEntry;
+import com.rapidminer.repository.RepositoryLocation;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
 
@@ -104,6 +105,18 @@ public class RepositoryBrowser extends JPanel implements Dockable {
 		toolBar.add(tree.OPEN_ACTION);
 		toolBar.add(tree.REFRESH_ACTION);
 		toolBar.add(tree.CREATE_FOLDER_ACTION);
+		ResourceAction linkAction = new ResourceActionAdapter(true, "link") {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				RepositoryLocation repoLoc = RapidMinerGUI.getMainFrame().getProcess().getRepositoryLocation();
+				RepositoryBrowser.this.tree.expandIfExists(repoLoc.parent(), "");
+				RepositoryBrowser.this.tree.scrollPathToVisible(RepositoryBrowser.this.tree.getSelectionPath());
+			}
+
+		};
+		toolBar.add(linkAction);
 		add(toolBar, BorderLayout.NORTH);
 		JScrollPane scrollPane = new ExtendedJScrollPane(tree);
 		scrollPane.setBorder(null);

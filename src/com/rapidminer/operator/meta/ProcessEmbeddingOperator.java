@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.meta;
 
 import java.io.IOException;
@@ -63,7 +64,6 @@ import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
 import com.rapidminer.tools.XMLException;
 
-
 /** This operator can be used to embed a complete process definition into the current 
  *  process definition. 
  *  The process must have been written into a file before and will be loaded and 
@@ -85,7 +85,7 @@ public class ProcessEmbeddingOperator extends Operator {
 
 	/** The parameter name for &quot;Indicates if the operator input should be used as input of the process&quot; */
 	public static final String PARAMETER_USE_INPUT = "use_input";
-	
+
 	/** The parameter name for &quot;Indicates if the operator output should be stored to a repository if the 
 	 * context of the embedded process defines output locations&quot; */
 	public static final String PARAMETER_STORE_OUTPUT = "store_output";
@@ -95,16 +95,15 @@ public class ProcessEmbeddingOperator extends Operator {
 
 	/** If true, {@link #cachedProcess} will be used in {@link #loadIncludedProcess()}. */
 	public static final String PARAMETER_CACHE_PROCESS = "cache_process";
-	
+
 	public static final String PARAMETER_MACROS = "macros";
-	
+
 	public static final String PARAMETER_MACRO_NAME = "macro_name";
-	
+
 	public static final String PARAMETER_MACRO_VALUE = "macro_value";
-	
-	
+
 	private Process cachedProcess;
-		
+
 	private ProcessSetupError cachedError = null;
 
 	public ProcessEmbeddingOperator(OperatorDescription description) {
@@ -112,6 +111,7 @@ public class ProcessEmbeddingOperator extends Operator {
 		inputExtender.start();
 		outputExtender.start();
 		getParameters().addObserver(new Observer<String>() {
+
 			@Override
 			public void update(Observable<String> observable, String arg) {
 				cachedProcess = null;
@@ -120,9 +120,18 @@ public class ProcessEmbeddingOperator extends Operator {
 		}, false);
 
 		getTransformer().addRule(new MDTransformationRule() {
+
 			@Override
 			public void transformMD() {
 				if (getParameterAsBoolean(PARAMETER_PROPAGATE_METADATA_RECURSIVELY)) {
+					if (cachedProcess == null) {
+						try {
+							cachedProcess = loadIncludedProcess();
+						} catch (Exception e) {
+							cachedError = new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "cannot_load_included_process", e.getMessage());
+							addError(cachedError);
+						}
+					}
 					if (cachedProcess != null) {
 						ProcessRootOperator root = cachedProcess.getRootOperator();
 
@@ -131,13 +140,13 @@ public class ProcessEmbeddingOperator extends Operator {
 						if (requires != gets) {
 							getInputPorts().getPortByIndex(0).addError(new SimpleMetaDataError(Severity.ERROR, getInputPorts().getPortByIndex(0), "included_process_input_mismatch", requires, gets));
 						}
-						
+
 						int delivers = root.getSubprocess(0).getInnerSinks().getNumberOfConnectedPorts();
 						int consumes = getOutputPorts().getNumberOfConnectedPorts();
 						if (delivers != consumes) {
 							getOutputPorts().getPortByIndex(0).addError(new SimpleMetaDataError(Severity.WARNING, getOutputPorts().getPortByIndex(0), "included_process_output_mismatch", delivers, consumes));
-						}						
-						
+						}
+
 						if (getParameterAsBoolean(PARAMETER_USE_INPUT)) {
 							root.deliverInputMD(inputExtender.getMetaData(false));
 						}
@@ -167,7 +176,7 @@ public class ProcessEmbeddingOperator extends Operator {
 				} catch (Exception e) {
 					cachedError = new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), "cannot_load_included_process", e.getMessage());
 					addError(cachedError);
-				}					
+				}
 			} else {
 				if (cachedError != null) {
 					addError(cachedError);
@@ -190,21 +199,21 @@ public class ProcessEmbeddingOperator extends Operator {
 		List<String[]> macros = getParameterList(PARAMETER_MACROS);
 		if (macros != null) {
 			for (String[] macroPair : macros) {
-				String macroName  = macroPair[0];
+				String macroName = macroPair[0];
 				String macroValue = macroPair[1];
-				
+
 				macroMap.put(macroName, macroValue);
 			}
 		}
-		
+
 		// run process
 		IOContainer result = null;
-		if (getParameterAsBoolean(PARAMETER_USE_INPUT)) {			
-			result = process.run(new IOContainer(inputExtender.getData(IOObject.class, false)),LogService.UNKNOWN_LEVEL, macroMap, getParameterAsBoolean(PARAMETER_STORE_OUTPUT));
+		if (getParameterAsBoolean(PARAMETER_USE_INPUT)) {
+			result = process.run(new IOContainer(inputExtender.getData(IOObject.class, false)), LogService.UNKNOWN_LEVEL, macroMap, getParameterAsBoolean(PARAMETER_STORE_OUTPUT));
 		} else {
-			result = process.run(new IOContainer(),LogService.UNKNOWN_LEVEL, macroMap, getParameterAsBoolean(PARAMETER_STORE_OUTPUT));
+			result = process.run(new IOContainer(), LogService.UNKNOWN_LEVEL, macroMap, getParameterAsBoolean(PARAMETER_STORE_OUTPUT));
 		}
-		
+
 		outputExtender.deliver(Arrays.asList(result.getIOObjects()));
 	}
 
@@ -216,13 +225,13 @@ public class ProcessEmbeddingOperator extends Operator {
 		RepositoryLocation location = getParameterAsRepositoryLocation(PARAMETER_PROCESS_FILE);
 		Entry entry = location.locateEntry();
 		if (entry == null) {
-			throw new RepositoryException("Entry '"+location+"' does not exist.");
+			throw new RepositoryException("Entry '" + location + "' does not exist.");
 		} else if (entry instanceof ProcessEntry) {
 			Process process;
 			try {
 				process = new RepositoryProcessLocation(location).load(null);
 				process.setRepositoryAccessor(getProcess().getRepositoryAccessor());
-				
+
 				for (Operator op : process.getRootOperator().getAllInnerOperators()) {
 					op.setBreakpoint(BreakpointListener.BREAKPOINT_AFTER, false);
 					op.setBreakpoint(BreakpointListener.BREAKPOINT_BEFORE, false);
@@ -232,13 +241,13 @@ public class ProcessEmbeddingOperator extends Operator {
 				throw new UserError(this, 302, location, e.getMessage());
 			} catch (XMLException e) {
 				throw new UserError(this, 401, e.getMessage());
-			}			
+			}
 			if (useCache) {
 				cachedProcess = process;
 			}
 			return process;
 		} else {
-			throw new RepositoryException("Entry '"+location+"' is not a data entry, but "+entry.getType());
+			throw new RepositoryException("Entry '" + location + "' is not a data entry, but " + entry.getType());
 		}
 //
 //		String relativeProcessLocation  = getParameterAsString(PARAMETER_PROCESS_FILE);
@@ -262,15 +271,15 @@ public class ProcessEmbeddingOperator extends Operator {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		
+
 		types.add(new ParameterTypeRepositoryLocation(PARAMETER_PROCESS_FILE, "The process location which should be encapsulated by this operator", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_USE_INPUT, "Indicates if the operator input should be used as input of the process", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_STORE_OUTPUT, "Indicates if the operator output should be stored (if the context of the embedded process defines output locations).", true));
 		types.add(new ParameterTypeBoolean(PARAMETER_PROPAGATE_METADATA_RECURSIVELY, "Determines whether meta data is propagated through the included process.", false));
 		types.add(new ParameterTypeBoolean(PARAMETER_CACHE_PROCESS, "If checked, the process will not be loaded during execution.", false));
-		
+
 		types.add(new ParameterTypeList(PARAMETER_MACROS, "Defines macros for this sub-process.", new ParameterTypeString(PARAMETER_MACRO_NAME, "The name of the macro.", false), new ParameterTypeString(PARAMETER_MACRO_VALUE, "The value of the macro.", false), true));
-		
+
 		return types;
 	}
 }

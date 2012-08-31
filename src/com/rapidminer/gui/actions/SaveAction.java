@@ -58,6 +58,7 @@ public class SaveAction extends ResourceAction {
 				synchronized (process) {
 					if (confirmOverwriteWithNewVersion(process)) {
 						process.save();
+						RapidMinerGUI.addToRecentFiles(process.getProcessLocation());
 					} else {
 						return;
 					}

@@ -243,7 +243,7 @@ public abstract class AbstractExampleSetJoin extends Operator {
             AttributeRole role = s.next();
             String specialName = role.getSpecialName();
             Attribute specialAttribute = role.getAttribute();
-            if (!usedSpecialAttributes.contains(specialName)) { // not there
+            if (!usedSpecialAttributes.contains(specialName) && (!excludedAttributes.contains(new Pair(AttributeSource.SECOND_SOURCE, specialAttribute)))) { // not there
                 Attribute specialAttributeClone = (Attribute) specialAttribute.clone();
                 boolean addToUnionList = true;
                 for (Attribute unionAttribute : unionAttributeList) {

@@ -105,9 +105,12 @@ public class UseRowAsAttributeNames extends AbstractDataProcessing {
 
 		// remove example
 		int[] elements = new int[exampleSet.size()];
-		elements[0] = 0;
-		for (int i = 1; i < elements.length; i++)
-			elements[i] = 1;
+		elements[rowNumber] = 0;
+		for (int i = 0; i < elements.length; i++) {
+			if (i != rowNumber) {
+				elements[i] = 1;
+			}
+		}
 		SplittedExampleSet result = new SplittedExampleSet(exampleSet, new Partition(elements, 2));
 		result.selectSingleSubset(1);
 

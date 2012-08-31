@@ -111,7 +111,8 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 		}
 		if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(idAttribute.getValueType(), Ontology.DATE_TIME) &&
 				!Ontology.ATTRIBUTE_VALUE_TYPE.isA(idAttribute.getValueType(), Ontology.INTEGER)) {
-			throw new UserError(this, 120, idAttribute.getName(), new Object[] {
+			throw new UserError(this, 120, new Object[] {
+				idAttribute.getName(),
 				Ontology.VALUE_TYPE_NAMES[idAttribute.getValueType()], 
 				Ontology.VALUE_TYPE_NAMES[Ontology.DATE_TIME] + " or " +
 				Ontology.VALUE_TYPE_NAMES[Ontology.INTEGER]
