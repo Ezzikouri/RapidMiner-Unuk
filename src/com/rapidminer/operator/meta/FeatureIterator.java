@@ -32,6 +32,7 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ValueDouble;
 import com.rapidminer.operator.ValueString;
+import com.rapidminer.operator.ports.CollectingPortPairExtender;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
@@ -74,13 +75,17 @@ public class FeatureIterator extends OperatorChain {
 
 	private final AttributeSubsetSelector attributeSelector = new AttributeSubsetSelector(this, exampleSetInput);
 	
+	private final CollectingPortPairExtender innerSinkExtender;
+	
 	public FeatureIterator(OperatorDescription description) {
 		super(description, "Subprocess");
 
 		exampleSetInnerSink.addPrecondition(new SimplePrecondition(exampleSetInnerSink, new ExampleSetMetaData(), false));
+		innerSinkExtender = new CollectingPortPairExtender("result", getSubprocess(0).getInnerSinks(), getOutputPorts());
 
 		getTransformer().addRule(new PassThroughRule(exampleSetInput, exampleSetInnerSource, false));
 		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
+		getTransformer().addRule(innerSinkExtender.makePassThroughRule());
 		getTransformer().addRule(new PassThroughRule(exampleSetInput, exampleSetOutput, false) {
 			@Override
 			public MetaData modifyMetaData(MetaData unmodifiedMetaData) {
@@ -110,6 +115,7 @@ public class FeatureIterator extends OperatorChain {
 
 	@Override
 	public void doWork() throws OperatorException {
+		innerSinkExtender.reset();
 		ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
 		String iterationMacroName = getParameterAsString(PARAMETER_ITERATION_MACRO);
 
@@ -120,6 +126,7 @@ public class FeatureIterator extends OperatorChain {
 			getProcess().getMacroHandler().addMacro(iterationMacroName, name);
 			currentName = name;
 			applyInnerOperators(exampleSet);
+			innerSinkExtender.collect();
 			checkForStop();
 			iteration++;
 		}

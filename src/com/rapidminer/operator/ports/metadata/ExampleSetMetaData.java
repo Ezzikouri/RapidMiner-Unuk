@@ -61,6 +61,7 @@ public class ExampleSetMetaData extends MetaData {
     public ExampleSetMetaData() {
         super(ExampleSet.class);
     }
+   
 
     public ExampleSetMetaData(Map<String, Object> keyValueMap) {
         super(ExampleSet.class, keyValueMap);
@@ -72,6 +73,15 @@ public class ExampleSetMetaData extends MetaData {
 
     public ExampleSetMetaData(List<AttributeMetaData> attributeMetaData) {
         super(ExampleSet.class);
+        addAllAttributes(attributeMetaData);
+    }
+    
+    public ExampleSetMetaData(Class<? extends ExampleSet> clazz) {
+        super(clazz);
+    }
+    
+    public ExampleSetMetaData(Class<? extends ExampleSet> clazz, List<AttributeMetaData> attributeMetaData) {
+        super(clazz);
         addAllAttributes(attributeMetaData);
     }
 
