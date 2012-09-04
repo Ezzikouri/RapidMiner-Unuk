@@ -607,8 +607,14 @@
 		</javac>
 	</target>
 
-	<target name="test.clean">
+	<target name="test.clean" depends="test.clean.dir.check" if="test.clean.dir.exists">
 		<ant antfile="${rapidminer.tests.dir}/build.xml" target="test.clean" dir="${rapidminer.tests.dir}" inheritall="true" />
+	</target>
+	
+	<target name="test.clean.dir.check">
+		<condition property="test.clean.dir.exists">
+			<available file="${rapidminer.tests.dir}" type="dir"/>
+		</condition>
 	</target>
 	
 	<target name="test.createJar" depends="createJar,test.build" description="Generate the lib/rapidminer.jar file">
