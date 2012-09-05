@@ -42,6 +42,7 @@ public enum RemoteProcessState {
 	
 	private RemoteProcessState(boolean terminated, boolean successful, String iconName) {
 		this.terminated = terminated;
+		this.successful = successful;
 		this.iconName = iconName;
 	}
 	public boolean isTerminated() {
