@@ -410,6 +410,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	/** Opens a new entry, updates the configuration panel with the new entry's values **/
 	private void openEntry(T entry) {
 		configurationPanel.updateComponents(entry);
+		SAVE_ENTRY_ACTION.setEnabled(entry.getSource() == null);
 		// Update currently edited entry
 		currentlyEditedEntry = entry;
 		//isNewEntry = false;
@@ -439,7 +440,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 						break;
 					}
 				}
-				if (sameNameEntry == null || (sameNameEntry != null && sameNameEntry.equals(currentlyEditedEntry))) {
+				if (sameNameEntry == null || sameNameEntry.equals(currentlyEditedEntry)) {
 					// unique or unchanged name, overwrite currently edited entry if applicable
 					if (currentlyEditedEntry != null) {
 						model.removeElement(currentlyEditedEntry);

@@ -86,6 +86,7 @@ import com.rapidminer.gui.actions.ConnectPortToRepositoryAction;
 import com.rapidminer.gui.actions.StoreInRepositoryAction;
 import com.rapidminer.gui.dnd.OperatorTransferHandler;
 import com.rapidminer.gui.dnd.ReceivingOperatorTransferHandler;
+import com.rapidminer.gui.metadata.MetaDataRendererFactoryRegistry;
 import com.rapidminer.gui.tools.PrintingTools;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceMenu;
@@ -271,7 +272,8 @@ public class ProcessRenderer extends JPanel {
             Port hoveringPort = (Port) o;
             MetaData metaData = hoveringPort.getMetaData();
             if (metaData != null && metaData instanceof ExampleSetMetaData) {
-                return ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
+            	//ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
+                return MetaDataRendererFactoryRegistry.getInstance().createRenderer(metaData);
             } else {
                 return null;
             }
