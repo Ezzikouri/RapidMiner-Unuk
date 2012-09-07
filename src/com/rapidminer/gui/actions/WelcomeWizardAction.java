@@ -27,7 +27,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.dialog.TemplateWizardDialog;
 import com.rapidminer.gui.tools.SwingTools;
 
@@ -48,9 +48,9 @@ public class WelcomeWizardAction extends AbstractAction {
 		icon = SwingTools.createIcon("48/" + ICON_NAME);
 	}
 		
-	private MainFrame mainFrame;
+	private MainUIState mainFrame;
 	
-	public WelcomeWizardAction(MainFrame mainFrame) {
+	public WelcomeWizardAction(MainUIState mainFrame) {
 		super("Open Template", icon);
 		putValue(SHORT_DESCRIPTION, "Open a process form a template.");
 		this.mainFrame = mainFrame;

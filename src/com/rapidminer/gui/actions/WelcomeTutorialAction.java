@@ -28,6 +28,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.dialog.Tutorial;
 import com.rapidminer.gui.tools.SwingTools;
 
@@ -48,9 +49,9 @@ public class WelcomeTutorialAction extends AbstractAction {
 		icon = SwingTools.createIcon("48/" + ICON_NAME);
 	}
 		
-	private MainFrame mainFrame;
+	private MainUIState mainFrame;
 	
-	public WelcomeTutorialAction(MainFrame mainFrame) {
+	public WelcomeTutorialAction(MainUIState mainFrame) {
 		super("Online Tutorial", icon);
 		putValue(SHORT_DESCRIPTION, "Start the RapidMiner online tutorial");
 		this.mainFrame = mainFrame;

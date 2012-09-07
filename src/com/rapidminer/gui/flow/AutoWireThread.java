@@ -64,7 +64,7 @@ public class AutoWireThread extends EditBlockingProgressThread {
 			newOperators = new LinkedList<Operator>(newOperators);
 			newOperators.remove(0);
 		}
-		if (RapidMinerGUI.getMainFrame().VALIDATE_AUTOMATICALLY_ACTION.isSelected()) {
+		if (RapidMinerGUI.getMainFrame().getValidateAutomaticallyAction().isSelected()) {
 			new AutoWireThread(newOperators).start();
 		}
 	}

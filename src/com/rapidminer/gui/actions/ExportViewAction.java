@@ -51,6 +51,6 @@ public class ExportViewAction extends ResourceAction {
 
 	public void actionPerformed(ActionEvent e) {
 		ExportDialog exportDialog = new ExportDialog("RapidMiner");	
-		exportDialog.showExportDialog(RapidMinerGUI.getMainFrame(), "Export", component, componentName);
+		exportDialog.showExportDialog(RapidMinerGUI.getMainFrame().getWindow(), "Export", component, componentName);
 	}
 }

@@ -50,7 +50,7 @@ import org.apache.xmlrpc.client.XmlRpcClient;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RapidMiner.ExecutionMode;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.dialog.BugZillaAssistant;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -127,7 +127,7 @@ public class ExtendedErrorDialog extends ButtonDialog {
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+                    MainUIState mainFrame = RapidMinerGUI.getMainFrame();
                     mainFrame.selectOperator(mainFrame.getProcess().getOperator(opName));
                 }
             }), BorderLayout.NORTH);

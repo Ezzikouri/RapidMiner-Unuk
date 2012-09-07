@@ -53,6 +53,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.actions.WelcomeNewAction;
@@ -119,9 +120,9 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 
 	private final JList recentFileList;
 
-	private final MainFrame mainFrame;
+	private final MainUIState mainFrame;
 
-	public WelcomeScreen(MainFrame mainFrame) {
+	public WelcomeScreen(MainUIState mainFrame) {
 		this.mainFrame = mainFrame;
 		GridBagLayout layout = new GridBagLayout();
 		setLayout(layout);

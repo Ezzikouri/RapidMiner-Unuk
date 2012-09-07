@@ -81,6 +81,7 @@ import org.w3c.dom.NodeList;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.ConnectPortToRepositoryAction;
 import com.rapidminer.gui.actions.StoreInRepositoryAction;
@@ -502,7 +503,7 @@ public class ProcessRenderer extends JPanel {
     private OutputPort selectedConnectionSource;
 
     private final ProcessPanel processPanel;
-    private final MainFrame mainFrame;
+    private final MainUIState mainFrame;
 
     private Point mousePositionRelativeToProcess = null;
 
@@ -514,7 +515,7 @@ public class ProcessRenderer extends JPanel {
 
     private final FlowVisualizer flowVisualizer = new FlowVisualizer(this);
 
-    public ProcessRenderer(ProcessPanel processPanel, MainFrame mainFrame) {
+    public ProcessRenderer(ProcessPanel processPanel, MainUIState mainFrame) {
         new PanningManager(this);
         ProcessXMLFilterRegistry.registerFilter(new GUIProcessXMLFilter());
         this.mainFrame = mainFrame;
@@ -2878,7 +2879,7 @@ public class ProcessRenderer extends JPanel {
             if (bestInputPort != null) {
                 hoveringConnectionSource.disconnect();
                 connect(hoveringConnectionSource, bestInputPort);
-                if (mainFrame.VALIDATE_AUTOMATICALLY_ACTION.isSelected()) {
+                if (mainFrame.getValidateAutomaticallyAction().isSelected()) {
                     hoveringConnectionSource.getPorts().getOwner().getOperator().transformMetaData();
                     operator.transformMetaData();
                 }

@@ -1,0 +1,8 @@
+/javadoc
+/release
+/build_test
+/build
+/installation/version.nsi
+/lib/plugins
+/lib/launcher.jar
+/lib/rapidminer.jar
