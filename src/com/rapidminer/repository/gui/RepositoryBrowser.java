@@ -110,9 +110,13 @@ public class RepositoryBrowser extends JPanel implements Dockable {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				RepositoryLocation repoLoc = RapidMinerGUI.getMainFrame().getProcess().getRepositoryLocation();
-				RepositoryBrowser.this.tree.expandIfExists(repoLoc.parent(), "");
-				RepositoryBrowser.this.tree.scrollPathToVisible(RepositoryBrowser.this.tree.getSelectionPath());
+				if (RapidMinerGUI.getMainFrame().getProcess() != null) {
+					RepositoryLocation repoLoc = RapidMinerGUI.getMainFrame().getProcess().getRepositoryLocation();
+					if (repoLoc != null) {
+						RepositoryBrowser.this.tree.expandIfExists(repoLoc.parent(), "");
+						RepositoryBrowser.this.tree.scrollPathToVisible(RepositoryBrowser.this.tree.getSelectionPath());
+					}
+				}
 			}
 
 		};

@@ -82,11 +82,13 @@ import com.rapidminer.repository.gui.actions.CopyLocationAction;
 import com.rapidminer.repository.gui.actions.CreateFolderAction;
 import com.rapidminer.repository.gui.actions.DeleteAction;
 import com.rapidminer.repository.gui.actions.OpenEntryAction;
+import com.rapidminer.repository.gui.actions.OpenInFileBrowserAction;
 import com.rapidminer.repository.gui.actions.PasteEntryRepositoryAction;
 import com.rapidminer.repository.gui.actions.RefreshAction;
 import com.rapidminer.repository.gui.actions.RenameAction;
 import com.rapidminer.repository.gui.actions.RunRemoteNowProcessAction;
 import com.rapidminer.repository.gui.actions.StoreProcessAction;
+import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.repository.remote.RemoteProcessEntry;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
@@ -172,6 +174,7 @@ public class RepositoryTree extends JTree {
         addRepositoryAction(CopyLocationAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{}, new Class<?>[]{}), false, false);
         addRepositoryAction(DeleteAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
         addRepositoryAction(RefreshAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Folder.class }, new Class<?>[]{}), true, false);
+        addRepositoryAction(OpenInFileBrowserAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{ LocalRepository.class }), false, false);
     }
 
 
