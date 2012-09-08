@@ -28,7 +28,7 @@ package com.rapidminer.operator.ports.metadata;
  *  @author Simon Fischer
  *  */
 public enum SetRelation {
-	UNKNOWN("unkown"),
+	UNKNOWN("unknown"),
 	SUPERSET("\u2287"),
 	SUBSET("\u2286"),
 	EQUAL("=");

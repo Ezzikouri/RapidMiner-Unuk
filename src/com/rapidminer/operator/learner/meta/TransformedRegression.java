@@ -95,7 +95,7 @@ public class TransformedRegression extends AbstractMetaLearner {
 			unmodifiedMetaData.removeAttribute(labelMD);
 			AttributeMetaData transformedMD = labelMD.copy();
 			transformedMD.setName("transformation(" + labelMD.getName() + ")");
-			// TODO: Transform values instead of setting unkown
+			// TODO: Transform values instead of setting unknown
 			transformedMD.setValueSetRelation(SetRelation.UNKNOWN);
 			transformedMD.setMean(new MDReal());
 

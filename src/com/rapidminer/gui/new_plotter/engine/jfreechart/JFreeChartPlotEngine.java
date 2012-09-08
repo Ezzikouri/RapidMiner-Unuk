@@ -1441,7 +1441,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				break;
 			default:
 				//DONT FORGET TO RETURN TRUE OR FALSE
-				throw new RuntimeException("Unkown event type " + type + ". This should not happen.");
+				throw new RuntimeException("Unknown event type " + type + ". This should not happen.");
 		}
 		return processed;
 	}
@@ -1588,7 +1588,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 				updateChartPanel(getCurrentChart());
 				break;
 			default:
-				throw new RuntimeException("Unkown event type " + type + " This should not happen.");
+				throw new RuntimeException("Unknown event type " + type + " This should not happen.");
 		}
 		return processed;
 	}
@@ -1613,7 +1613,7 @@ public class JFreeChartPlotEngine implements PlotEngine, PlotConfigurationListen
 			case AUTO_NAMING:
 				break;
 			default:
-				throw new RuntimeException("Unkown event type " + type + " This should not happen.");
+				throw new RuntimeException("Unknown event type " + type + " This should not happen.");
 		}
 		return processed;
 	}

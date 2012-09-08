@@ -7773,7 +7773,7 @@
         <synopsis>Clustering based on one nominal attribute.</synopsis>
         <help>This operator creates a flat cluster model using a nominal
             attribute and dividing the exampleset by this attribute over the
-            clusters. Every value is mapped onto a cluster, including the unkown
+            clusters. Every value is mapped onto a cluster, including the unknown
             value. This operator will create a cluster attribute if not present
             yet.</help>
     <key>exampleset2clustermodel</key>

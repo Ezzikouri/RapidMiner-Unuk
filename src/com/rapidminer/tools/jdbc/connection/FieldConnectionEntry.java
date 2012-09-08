@@ -142,7 +142,7 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		if (properties != null) {
 			urlBuffer.append(properties.getUrlPrefix());
 		} else {
-			urlBuffer.append("unkown:prefix://");
+			urlBuffer.append("unknown:prefix://");
 		}
 		if (host != null && !"".equals(host)) {
 			urlBuffer.append(host);
