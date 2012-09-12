@@ -114,10 +114,10 @@ public class TransactionClustersExampleSetGenerator extends AbstractExampleSourc
 		
 		double clusterSize = Math.ceil(numberOfCustomers / (double)numberOfClusters);
 		for (int n = 0; n < numberOfCustomers; n++) {
-			double[] values = new double[3];
+			double[] values = new double[3];	// values for the data row in the table: [Id, Item, Amount]
 			values[0] = id.getMapping().mapString("Id " + (n + 1));
 			int clusterIndex = Math.max(0, Math.min(numberOfClusters - 1, (int)Math.floor((double)(n + 1) / clusterSize)));
-			double p = random.nextDouble();
+			double p = random.nextDouble(); // random number in [0.0, 1.0[
 			double sum = 0.0d;
 			int itemIndex = 0;
 			double itemProb = 0.0d;

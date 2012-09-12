@@ -113,7 +113,7 @@
 		<delete dir="${javadoc.targetDir}" />
 		<mkdir dir="${build.build}" />
 		<mkdir dir="${javadoc.targetDir}" />
-		<delete>
+		<delete failonerror="false">
 			<fileset dir="${release.targetDir}" includes="rapidminer-${extension.name}-${extension.version}*.*" />
 		</delete>
 
@@ -213,13 +213,12 @@
 
 	<target name="createJar" depends="clean, build, version.get, unzipLibs" unless="lock.isJared" description="Generate the jar file">
 		<echo message="Creating jar..." />
+		<mkdir dir="${release.targetDir}/libfiles" />
 		<delete file="${release.targetDir}/${release.name}" />
 		<pathconvert pathsep=" " property="manifest.classpath" refid="build.libraries" dirsep="/">
 			<map from="${build.lib}/" to="" />
 		</pathconvert>
 		<echo message="Manifest Classpath: ${manifest.classpath}" />
-
-		<mkdir dir="${release.targetDir}/libfiles" />
 
 		<jar jarfile="${release.targetDir}/${release.name}" update="false">
 			<fileset dir="${build.build}" includes="**/*">

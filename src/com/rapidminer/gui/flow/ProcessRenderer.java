@@ -271,12 +271,13 @@ public class ProcessRenderer extends JPanel {
         public Component getCustomComponent(Object o) {
             Port hoveringPort = (Port) o;
             MetaData metaData = hoveringPort.getMetaData();
-            if (metaData != null && metaData instanceof ExampleSetMetaData) {
-            	//ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
-                return MetaDataRendererFactoryRegistry.getInstance().createRenderer(metaData);
-            } else {
-                return null;
-            }
+            return MetaDataRendererFactoryRegistry.getInstance().createRenderer(metaData);
+//            if (metaData != null && metaData instanceof ExampleSetMetaData) {
+//            	//ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
+//                return MetaDataRendererFactoryRegistry.getInstance().createRenderer(metaData);
+//            } else {
+//                return null;
+//            }
         }
     };
 

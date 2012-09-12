@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -174,6 +175,10 @@ public class TransfersExampleSetGenerator extends AbstractExampleSource {
 		emd.addAttribute(new AttributeMetaData("Reason", null, Ontology.INTEGER, new Range(10000, 99999)));
 		emd.addAttribute(new AttributeMetaData("Person", null, POSSIBLE_VALUES[1]));
 		emd.addAttribute(new AttributeMetaData("Amount", null, Ontology.INTEGER, new Range(50000, Double.POSITIVE_INFINITY)));
+		
+		if (getParameterAsBoolean(PARAMETER_CREATE_FRAUD_LABEL)) {
+			emd.addAttribute(new AttributeMetaData("fraud", Attributes.LABEL_NAME, Ontology.NOMINAL, new String[]{"yes", "no"}));
+		}
 
 		emd.setNumberOfExamples(getParameterAsInt(PARAMETER_NUMBER_EXAMPLES));
 		return emd;
