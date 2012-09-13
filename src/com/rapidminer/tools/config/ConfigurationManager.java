@@ -49,6 +49,7 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.container.Pair;
 
 /** Singleton to access configurable items and to provide means to configure them by the user.
@@ -226,6 +227,7 @@ public abstract class ConfigurationManager {
 			Configurator<?> configurator = getConfigurator(typeId);
 			try {
 				HttpURLConnection connection = ra.getHTTPConnection("/RAWS/"+RAPIDANALYTICS_CONFIGURATION_URL_PREFIX+typeId, true);
+				WebServiceTools.setURLConnectionDefaults(connection);
 				Map<Pair<Integer, String>, Map<String, String>> configurationParameters = fromXML(XMLTools.parse(connection.getInputStream()), configurator);
 				int counter = configurationParameters.size();
 				createAndRegisterConfigurables(configurator, configurationParameters, ra);

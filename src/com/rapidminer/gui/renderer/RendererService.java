@@ -50,6 +50,7 @@ import com.rapidminer.operator.IOObject;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * The renderer service is the basic provider for all registered renderers. All {@link IOObject}s which want to provide
@@ -120,7 +121,7 @@ public class RendererService {
 		InputStream in = null;
 		try {
 			if (ioObjectsURL != null) {
-				in = ioObjectsURL.openStream();
+				in = WebServiceTools.openStreamFromURL(ioObjectsURL);
 				init(name, in, classLoader);
 			}
 		} catch (IOException e) {

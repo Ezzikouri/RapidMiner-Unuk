@@ -89,6 +89,7 @@ import com.rapidminer.parameter.conditions.ParameterCondition;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.documentation.ExampleProcess;
 import com.rapidminer.tools.xml.XHTMLEntityResolver;
 
@@ -240,7 +241,7 @@ public class OperatorDocLoader {
 		URL url = new URL(WIKI_PREFIX_FOR_OPERATORS + operatorWikiName);
 		if (url != null) {
 			try {
-				document = documentBuilder.parse(url.openStream());
+				document = documentBuilder.parse(WebServiceTools.openStreamFromURL(url));
 			} catch (IOException e) {
 				logger.warning("Could not open " + url.toExternalForm() + ": " + e.getMessage());
 			} catch (SAXException e) {

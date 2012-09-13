@@ -33,6 +33,7 @@ import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.remote.RemoteRepository.EntryStreamType;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * Reference on BLOB entries in the repository, if using a remote repository.
@@ -60,6 +61,7 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 	public InputStream openInputStream() throws RepositoryException {
 		try {
 			HttpURLConnection conn = getRepository().getResourceHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB, false);
+			WebServiceTools.setURLConnectionDefaults(conn);
 			conn.setDoOutput(false);
 			conn.setDoInput(true);
 			try {
@@ -78,6 +80,7 @@ public class RemoteBlobEntry extends RemoteDataEntry implements BlobEntry {
 		this.mimeType = mimeType;
 		try {
 			final HttpURLConnection conn = getRepository().getResourceHTTPConnection(getLocation().getPath(), EntryStreamType.BLOB, false);
+			WebServiceTools.setURLConnectionDefaults(conn);
 			conn.setDoOutput(true);
 			conn.setDoInput(true);
 			conn.setRequestProperty("Content-Type", mimeType);

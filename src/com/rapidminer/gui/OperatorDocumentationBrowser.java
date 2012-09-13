@@ -63,6 +63,7 @@ import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.XMLException;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
@@ -150,7 +151,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 		String opDescXMLResourcePath = DOCUMENTATION_ROOT + groupPath + "/" + displayedOperator.getOperatorDescription().getKey() + ".xml";
 		URL resourceURL = this.getClass().getClassLoader().getResource(opDescXMLResourcePath);
 		try {
-			changeDocumentation(resourceURL.openStream());
+			changeDocumentation(WebServiceTools.openStreamFromURL(resourceURL));
 		} catch (Exception e) {
 			// null stream will result in fallback to wiki/old offline doc
 			changeDocumentation(null);
@@ -234,7 +235,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 							// should not happen, because then there would be no link in the first place
 							return;
 						}
-						Document document = XMLTools.parse(currentResourceURL.openStream());
+						Document document = XMLTools.parse(WebServiceTools.openStreamFromURL(currentResourceURL));
 
 						NodeList nodeList = document.getElementsByTagName("tutorialProcess");
 						Node processNode = nodeList.item(Integer.parseInt(e.getDescription()) - 1);

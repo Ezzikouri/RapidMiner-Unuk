@@ -3,6 +3,7 @@ package com.rapidminer.deployment.client.wsimport;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -32,6 +33,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 })
 public class AnyUpdatesSince {
 
+    @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar since;
 
     /**

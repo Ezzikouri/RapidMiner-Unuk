@@ -65,7 +65,7 @@ public class OperatorResourceConsumptionHandler {
             if (url == null) {
                 LOGGER.warning(I18N.getMessage(I18N.getErrorBundle(), "profiler.error.no_csv_file", OPERATORS_RESOURCE_CONSUMPTION));
             } else {
-                reader = new BufferedReader(new InputStreamReader(url.openStream()));
+                reader = new BufferedReader(new InputStreamReader(WebServiceTools.openStreamFromURL(url)));
                 String[] splitString;
                 String row;
                 int i = 0;

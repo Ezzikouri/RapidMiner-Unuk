@@ -22,18 +22,25 @@
  */
 package com.rapidminer.tools;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Map;
 
 import javax.xml.ws.BindingProvider;
 
 /**
+ * Some utility methods for web services and url connections.
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Marco Boeck
  *
  */
 public class WebServiceTools {
 
 	private static final int TIMEOUT = 4000;
+	
+	private static final int TIMEOUT_URL_CONNECTION = 20000;
 
 	public static void setTimeout(BindingProvider port) {
 		setTimeout(port, TIMEOUT);
@@ -42,7 +49,11 @@ public class WebServiceTools {
 	/** Sets the timeout for this web service client. Every port created
 	 *  by a JAX-WS can be cast to BindingProvider. */
 	public static void setTimeout(BindingProvider port, int timeout) {
-		Map<String, Object> ctxt = (port).getRequestContext();
+		if (port == null) {
+			throw new IllegalArgumentException("port must not be null!");
+		}
+		
+		Map<String, Object> ctxt = port.getRequestContext();
 		ctxt.put("com.sun.xml.ws.developer.JAXWSProperties.CONNECT_TIMEOUT", timeout);
 		ctxt.put("com.sun.xml.ws.connect.timeout", timeout);
 		ctxt.put("com.sun.xml.ws.internal.connect.timeout", timeout);
@@ -51,5 +62,35 @@ public class WebServiceTools {
 		// We don't want to use proprietary Sun code
 //		ctxt.put(BindingProviderProperties.REQUEST_TIMEOUT, timeout);
 //		ctxt.put(BindingProviderProperties.CONNECT_TIMEOUT, timeout);
+	}
+	
+	/**
+	 * Sets some default settings for {@link URLConnection}s, e.g. timeouts.
+	 * @param connection
+	 */
+	public static void setURLConnectionDefaults(URLConnection connection) {
+		if (connection == null) {
+			throw new IllegalArgumentException("url must not be null!");
+		}
+		
+		connection.setConnectTimeout(TIMEOUT_URL_CONNECTION);
+		connection.setReadTimeout(TIMEOUT_URL_CONNECTION);
+	}
+	
+	/**
+	 * Opens an {@link InputStream} from the given {@link URL} and calls
+	 * {@link #setURLConnectionDefaults(URLConnection)} on the {@link URLConnection}.
+	 * @param url
+	 * @return
+	 * @throws IOException
+	 */
+	public static InputStream openStreamFromURL(URL url) throws IOException {
+		if (url == null) {
+			throw new IllegalArgumentException("url must not be null!");
+		}
+		
+		URLConnection connection = url.openConnection();
+        setURLConnectionDefaults(connection);
+        return connection.getInputStream();
 	}
 }

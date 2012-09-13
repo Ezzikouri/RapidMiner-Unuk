@@ -101,6 +101,7 @@ import com.rapidminer.tools.Observer;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.WrapperLoggingHandler;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.io.Encoding;
@@ -1301,8 +1302,8 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
             return null;
 
         try {
-            URL url = new URL(urlString);
-            InputStream stream = url.openStream();
+        	URL url = new URL(urlString);
+            InputStream stream = WebServiceTools.openStreamFromURL(url);
             return stream;
         } catch (MalformedURLException e) {
             // URL did not work? Try as file...

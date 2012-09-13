@@ -3,6 +3,7 @@ package com.rapidminer.deployment.client.wsimport;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -23,6 +24,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *         &lt;element name="icon" type="{http://www.w3.org/2001/XMLSchema}base64Binary" minOccurs="0"/>
  *         &lt;element name="licenseName" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="owner" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="packageId" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="packageTypeName" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="platformName" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
@@ -44,6 +46,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "icon",
     "licenseName",
     "name",
+    "owner",
     "packageId",
     "packageTypeName",
     "platformName",
@@ -52,12 +55,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 })
 public class PackageDescriptor {
 
+    @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar creationTime;
     protected String dependencies;
     protected String description;
     protected byte[] icon;
     protected String licenseName;
     protected String name;
+    protected String owner;
     protected String packageId;
     protected String packageTypeName;
     protected String platformName;
@@ -204,6 +209,30 @@ public class PackageDescriptor {
      */
     public void setName(String value) {
         this.name = value;
+    }
+
+    /**
+     * Gets the value of the owner property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getOwner() {
+        return owner;
+    }
+
+    /**
+     * Sets the value of the owner property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setOwner(String value) {
+        this.owner = value;
     }
 
     /**

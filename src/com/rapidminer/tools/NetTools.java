@@ -31,8 +31,8 @@ import java.net.URLStreamHandlerFactory;
 import com.rapidminer.gui.tools.SwingTools;
 
 /**
- * Class providing new protocolls special for RapidMiner.
- * Currently it supports the icon:// protocoll, that will use the given
+ * Class providing new protocols special for RapidMiner.
+ * Currently it supports the icon:// protocol, that will use the given
  * path to load the icon using new URL on {@link SwingTools#getIconPath(String)}.
  * 
  * @author Sebastian Land
@@ -54,8 +54,11 @@ public class NetTools {
 							@Override
 							protected URLConnection openConnection(URL u) throws IOException {
 								URL resource = Tools.getResource("icons" + u.getPath());
-								if (resource != null)
-									return resource.openConnection();
+								if (resource != null) {
+									URLConnection conn = resource.openConnection();
+									WebServiceTools.setURLConnectionDefaults(conn);
+									return conn;
+								}
 								throw new IOException("Icon not found.");
 							}
 						};
@@ -64,8 +67,11 @@ public class NetTools {
 							@Override
 							protected URLConnection openConnection(URL u) throws IOException {
 								URL resource = Tools.getResource(u.getPath().substring(1, u.getPath().length()));
-								if (resource != null)
-									return resource.openConnection();
+								if (resource != null) {
+									URLConnection conn = resource.openConnection();
+									WebServiceTools.setURLConnectionDefaults(conn);
+									return conn;
+								}
 								throw new IOException("Resource not found.");
 							}
 						};

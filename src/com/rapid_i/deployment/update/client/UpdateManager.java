@@ -76,6 +76,7 @@ import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * This class manages the updates of the core and installation and updates of extensions.
@@ -156,6 +157,7 @@ public class UpdateManager {
      * @throws IOException  */
     private InputStream openStream(URL url, ProgressListener listener, int minProgress, int maxProgress) throws IOException {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        WebServiceTools.setURLConnectionDefaults(con);
         con.setDoInput(true);
         con.setDoOutput(false);
         String lengthStr = con.getHeaderField("Content-Length");

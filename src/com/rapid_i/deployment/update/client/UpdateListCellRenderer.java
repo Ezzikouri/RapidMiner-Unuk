@@ -25,6 +25,9 @@ package com.rapid_i.deployment.update.client;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
@@ -44,33 +48,29 @@ import com.rapidminer.gui.tools.SwingTools;
  * 
  * @author Simon Fischer
  */
-final class UpdateListCellRenderer extends JPanel implements ListCellRenderer {
+final class UpdateListCellRenderer implements ListCellRenderer {
 
+    private static RenderingHints HI_QUALITY_HINTS = new RenderingHints(null);
+    
+    static {
+        HI_QUALITY_HINTS.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        HI_QUALITY_HINTS.put(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        HI_QUALITY_HINTS.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+    }
+    	
 	private static final Icon SELECTED_ICON = SwingTools.createIcon("16/checkbox.png");
 	private static final Icon NON_SELECTED_ICON = SwingTools.createIcon("16/checkbox_unchecked.png");
 	
-//	private static final Icon COMMERCIAL_ICON = SwingTools.createIcon("16/shopping_cart_empty.png");
-//	private static final Icon FREE_ICON = SwingTools.createIcon("16/nonprofit.png");
-
-	/**
-	 * 
-	 */
 	private final UpdateListPanel packageDescriptorListPanel;
 
-	private static final long serialVersionUID = 1L;
-	
 //	private final JLabel freeCommercial = new JLabel();
-	private final JLabel selectedLabel = new JLabel();
-	private final JLabel label = new JLabel();
 	
 	UpdateListCellRenderer(UpdateListPanel updateListPanel) {
 		packageDescriptorListPanel = updateListPanel;
-		setLayout(new FlowLayout(FlowLayout.LEFT));
-		add(selectedLabel);
-//		add(freeCommercial);
-		add(label);
-		setOpaque(true);
+		
+
 	}
+	
 	
 	private Map<String,Icon> icons = new HashMap<String,Icon>();
 	private Icon getIcon(PackageDescriptor pd) {
@@ -86,70 +86,126 @@ final class UpdateListCellRenderer extends JPanel implements ListCellRenderer {
 		}
 	}
 	
+	
+	private Icon getResizedIcon(Icon originalIcon) {
+		if (originalIcon == null) return null;
+		int width = originalIcon.getIconWidth();
+		int height = originalIcon.getIconHeight();
+		if (width != 48) {
+			double scale = (48.0/width);
+			BufferedImage bi = new BufferedImage(
+					(int)(scale*width),
+					(int)(scale*height),
+		            BufferedImage.TYPE_INT_ARGB);
+		        Graphics2D g = bi.createGraphics();
+		        g.setRenderingHints(HI_QUALITY_HINTS);
+		        g.scale(scale, scale);
+		        originalIcon.paintIcon(null,g,0,0);
+		        g.dispose();
+		        return new ImageIcon(bi);
+		} else {
+			return originalIcon;
+		}
+	}
+	
+	private String getFirstSentence(String text) {
+		if (text != null && text.contains(".")) {
+			String[] sentences = text.split("\\.");
+			return sentences[0].trim() + ".";
+		} else {
+			return text;
+		}
+	}
+	
 	@Override
-	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {			
+	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+		
+		JPanel panel = new JPanel();
+		JLabel selectedLabel = new JLabel();
+		JLabel label = new JLabel();
+		
+		panel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		panel.add(selectedLabel);
+		//add(freeCommercial);		
+		
+		panel.add(label);		
+		panel.setOpaque(true);
+
+		
 		if (isSelected) {
-			setBackground(SwingTools.LIGHT_BLUE);
+			panel.setBackground(SwingTools.LIGHT_BLUE);
 		} else {
 			if (index % 2 == 0) {
-				setBackground(Color.WHITE);
+				panel.setBackground(Color.WHITE);
 			} else {
-				setBackground(SwingTools.LIGHTEST_BLUE);
+				panel.setBackground(SwingTools.LIGHTEST_BLUE);
 			}
 		}
-		
-		PackageDescriptor desc = (PackageDescriptor) value;
-		String text = "<html><strong>"+desc.getName()+"</strong> "+desc.getVersion()+"<br/>";
-		ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
-		boolean upToDate = false;
-		if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
-			if (ext == null) {
-				text += "Not installed";
-			} else {
-				String installed = ext.getLatestInstalledVersion();
-				String selected = ext.getSelectedVersion();
-				if (installed != null) {
-					upToDate = installed.compareTo(desc.getVersion()) >= 0;
-					if (upToDate) {
-						text += "This package is up to date.";
-					} else {
-						if (installed.equals(selected)) {
-							text += "Installed version: " + ext.getSelectedVersion();
-						} else {
-							text += "Installed version: " + ext.getSelectedVersion() + " (selected version: "+selected+")";
-						}
-					}
+		String text = "";
+		if (value instanceof PackageDescriptor) {
+			PackageDescriptor desc = (PackageDescriptor) value;
+			Icon packageIcon = getResizedIcon(getIcon(desc));
+			
+			text = "<html><body style='width: " + (packageIcon != null ? (310 - packageIcon.getIconWidth()) : 314) + ";" + 
+					(packageIcon == null ? "margin-left:40px;" : "") + "'><strong>"+desc.getName()+"</strong> "+desc.getVersion()+"<br />";
+			text += getFirstSentence(desc.getDescription()) +"<br />";
+			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
+			boolean upToDate = false;
+			if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
+				if (ext == null) {
+					text += "<span style='color:#666666'>Not installed.</span>";
 				} else {
-					text += "No version installed.";
+					String installed = ext.getLatestInstalledVersion();
+					String selected = ext.getSelectedVersion();
+					if (installed != null) {
+						upToDate = installed.compareTo(desc.getVersion()) >= 0;
+						if (upToDate) {
+							text += "<span style='color:#009900'>This package is up to date.</span>";
+						} else {
+							if (installed.equals(selected)) {
+								text += "<span style='color:#990000'>Installed version: " + ext.getSelectedVersion() + "</span>";
+							} else {
+								text += "<span style='color:#990000'>Installed version: " + ext.getSelectedVersion() + " (selected version: "+selected+")</span>";
+							}
+						}
+					} else {
+						text += "<span style='color:#666666'>No version installed.</span>";
+					}
+				}	
+			} else if (desc.getPackageTypeName().equals("STAND_ALONE")) {
+				String myVersion = RapidMiner.getLongVersion();
+				upToDate = ManagedExtension.normalizeVersion(myVersion).compareTo(ManagedExtension.normalizeVersion(desc.getVersion())) >= 0;
+				if (upToDate) {
+					text += "This package is up to date.";
+				} else {
+					text += "Installed version: " + myVersion;
 				}
-			}	
-		} else if (desc.getPackageTypeName().equals("STAND_ALONE")) {
-			String myVersion = RapidMiner.getLongVersion();
-			upToDate = ManagedExtension.normalizeVersion(myVersion).compareTo(ManagedExtension.normalizeVersion(desc.getVersion())) >= 0;
-			if (upToDate) {
-				text += "This package is up to date.";
-			} else {
-				text += "Installed version: " + myVersion;
 			}
-		}
-		text += "</html>";
-		label.setText(text);
-		label.setIcon(getIcon(desc));
-		boolean selected = packageDescriptorListPanel.isSelected(desc);
-		selectedLabel.setIcon(selected ? SELECTED_ICON : NON_SELECTED_ICON);
-		//freeCommercial.setIcon(UpdateManager.COMMERCIAL_LICENSE_NAME.equals(desc.getLicenseName()) ? COMMERCIAL_ICON : FREE_ICON);
-		
-		SwingTools.setEnabledRecursive(this, !upToDate);
-		
-		if ("COMMERCIAL".equals(desc.getLicenseName())) {
-			if (packageDescriptorListPanel.isPurchased(desc)) {
-				selectedLabel.setEnabled(true);
-			} else {
-				selectedLabel.setEnabled(false);
+			text += "</body></html>";
+			
+			label.setIcon(packageIcon);
+			label.setVerticalTextPosition(SwingConstants.TOP);
+			boolean selected = packageDescriptorListPanel.isSelected(desc);
+			selectedLabel.setIcon(selected ? SELECTED_ICON : NON_SELECTED_ICON);
+			//freeCommercial.setIcon(UpdateManager.COMMERCIAL_LICENSE_NAME.equals(desc.getLicenseName()) ? COMMERCIAL_ICON : FREE_ICON);
+
+			selectedLabel.setEnabled(!upToDate);
+			
+			if ("COMMERCIAL".equals(desc.getLicenseName())) {
+				if (packageDescriptorListPanel.isPurchased(desc)) {
+					selectedLabel.setEnabled(true);
+				} else {
+					selectedLabel.setEnabled(false);
+				}
 			}
+			label.setForeground(Color.BLACK);
+		} else if (value instanceof String){
+			text = (String) value;
+		} else {
+			text = value.toString();
 		}
-		label.setForeground(upToDate ? Color.GRAY : Color.BLACK);
-		return this;
+		label.setText(text);	
+		return panel;
 	}
 
 }

@@ -41,6 +41,7 @@ import org.xml.sax.SAXException;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.XMLException;
 
 /** A resource bundle that maps operator names to {@link OperatorDocumentation} instances.
@@ -124,7 +125,7 @@ public class XMLOperatorDocBundle extends OperatorDocBundle {
     public XMLOperatorDocBundle(URL url, String resourceName) throws IOException {
         Document document;
         try {
-            document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(url.openStream());
+            document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(WebServiceTools.openStreamFromURL(url));
         } catch (SAXException e) {
             throw new IOException("Malformed XML operator help bundle: "+e, e);
         } catch (ParserConfigurationException e) {

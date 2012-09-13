@@ -43,6 +43,7 @@ import com.rapidminer.tools.CSVParseException;
 import com.rapidminer.tools.LineParser;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.ProgressListener;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * 
@@ -121,7 +122,7 @@ public class CSVResultSet implements DataResultSet {
         try {
             URL url = new URL(configuration.getCsvFile());
             try {
-                return url.openStream();
+                return WebServiceTools.openStreamFromURL(url);
             } catch (IOException e) {
                 throw new UserError(operator, 301, e, configuration.getCsvFile());
             }

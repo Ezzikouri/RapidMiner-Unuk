@@ -22,15 +22,21 @@
  */
 package com.rapid_i.deployment.update.client;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,28 +47,44 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Level;
 
-import javax.swing.AbstractButton;
-import javax.swing.AbstractListModel;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.rapid_i.deployment.update.client.listmodels.AbstractPackageListModel;
+import com.rapid_i.deployment.update.client.listmodels.BookmarksPackageListModel;
+import com.rapid_i.deployment.update.client.listmodels.LicencedPackageListModel;
+import com.rapid_i.deployment.update.client.listmodels.SearchPackageListModel;
+import com.rapid_i.deployment.update.client.listmodels.TopDownloadsPackageListModel;
+import com.rapid_i.deployment.update.client.listmodels.TopRatedPackageListModel;
+import com.rapid_i.deployment.update.client.listmodels.UpdatesPackageListModel;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.AccountService;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.tools.ExtendedJToolBar;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.plugin.Dependency;
@@ -73,30 +95,8 @@ import com.rapidminer.tools.plugin.Dependency;
  * 
  */
 public class UpdateListPanel extends JPanel {
-
-	private final class PackageListModel extends AbstractListModel {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public Object getElementAt(int index) {
-			return descriptors.get(index);
-		}
-
-		@Override
-		public int getSize() {
-			return descriptors.size();
-		}
-
-		private void update(PackageDescriptor descr) {
-			int index = descriptors.indexOf(descr);
-			fireContentsChanged(this, index, index);
-		}
-		
-		private void add(PackageDescriptor desc) {
-			descriptors.add(desc);
-			fireIntervalAdded(this, descriptors.size()-1, descriptors.size()-1);
-		}
-	}
+	
+	private final PackageDescriptorCache packageDescriptorCache = new PackageDescriptorCache();
 
 	private final Map<PackageDescriptor, Boolean> selectionMap = new HashMap<PackageDescriptor, Boolean>();
 	private final Map<PackageDescriptor, List<Dependency>> dependencyMap = new HashMap<PackageDescriptor, List<Dependency>>();
@@ -104,29 +104,17 @@ public class UpdateListPanel extends JPanel {
 	private final Set<String> purchasedPackages = new HashSet<String>();
 
 	private final UpdateDialog updateDialog;
+	
+	private List<JList> packageLists = new ArrayList<JList>();
 
 	private static final long serialVersionUID = 1L;
-
-	private final ExtendedHTMLJEditorPane displayPane = new ExtendedHTMLJEditorPane("text/html", "<html></html>");
-	private final JList updateList;
-	private final JToggleButton installButton = new JToggleButton(new ResourceAction("update.select") {
-		private static final long serialVersionUID = 1L;
-
-		@Override
-		public void actionPerformed(ActionEvent arg0) {
-			toggleSelection();
-		}
-	});
 	
-	private final JButton fetchFromAccountButton = new JButton(new ResourceAction("update.fetch_bookmarks") {
-		private static final long serialVersionUID = 1L;
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			fetchBookmarks();
-		}		
-	});
-
-	private final PackageListModel listModel = new PackageListModel();
+	
+	final JTextField searchField = new JTextField(12);
+	final SearchPackageListModel searchModel = new SearchPackageListModel(packageDescriptorCache);
+	JList resultList;
+	
+	private JTabbedPane updatesTabbedPane = new JTabbedPane();
 
 	private final List<PackageDescriptor> descriptors;
 
@@ -149,31 +137,68 @@ public class UpdateListPanel extends JPanel {
 			}
 		}
 		this.updateDialog = dialog;
+		this.descriptors = descriptors;
+
+		updateSize();
+
+		setLayout(new BorderLayout());
+		setPreferredSize(new Dimension(800, 320));
+		setMinimumSize(new Dimension(800, 320));
+		
+		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.updates"), createUpdateListPanel(new UpdatesPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.top_downloads"), createUpdateListPanel(new TopDownloadsPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.top_rated"), createUpdateListPanel(new TopRatedPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.purchased"), createUpdateListPanel(new LicencedPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.bookmarks"), createUpdateListPanel(new BookmarksPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.search"), createSerchListPanel());
+		
+		updatesTabbedPane.addChangeListener(new ChangeListener(){
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				getPackageListModel(getCurrentUpdateList()).update();
+			}
+		});
+	
+		add(updatesTabbedPane, BorderLayout.CENTER);
+		
+		getPackageListModel(packageLists.get(0)).update();
+	}
+	
+	private JList getCurrentUpdateList() {
+		return packageLists.get(updatesTabbedPane.getSelectedIndex());
+	}
+	
+	private AbstractPackageListModel getPackageListModel(JList list) {
+		return (AbstractPackageListModel)list.getModel();
+	}
+	
+	private JPanel createUpdateListPanel(AbstractPackageListModel model) {
+		
+		JPanel updateListPanel = new JPanel(new GridBagLayout());
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.gridheight = GridBagConstraints.REMAINDER;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.weightx = 0;
+		c.weighty = 1;
+		c.insets = new Insets(0, 0, 0, ButtonDialog.GAP);
+		
+		JToggleButton installButton = new JToggleButton(new ResourceAction(true, "update.select") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				toggleSelection();
+			}
+		});
+		installButton.setEnabled(false);
+		
+		ExtendedHTMLJEditorPane displayPane = new ExtendedHTMLJEditorPane("text/html", "<html></html>");
 		displayPane.installDefaultStylesheet();
 		displayPane.setEditable(false);
-		this.descriptors = descriptors;
-		updateList = new JList(listModel);
-		updateList.setCellRenderer(new UpdateListCellRenderer(this));
-		updateList.addListSelectionListener(new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				if (!e.getValueIsAdjusting()) {
-					PackageDescriptor desc = (PackageDescriptor) updateList.getSelectedValue();
-					if (desc != null) {
-						displayPane.setText(UpdateListPanel.this.toString(desc));
-						installButton.setSelected(isSelected(desc));
-					}
-				}
-			}
-		});
-		updateList.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					toggleSelection();
-				}
-			}
-		});
+
 		displayPane.addHyperlinkListener(new HyperlinkListener() {
 			@Override
 			public void hyperlinkUpdate(HyperlinkEvent e) {
@@ -186,50 +211,209 @@ public class UpdateListPanel extends JPanel {
 				}
 			}
 		});
-
-		updateSize();
-
-		setLayout(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		c.fill = GridBagConstraints.BOTH;
-		c.gridwidth = GridBagConstraints.REMAINDER;
+		
+		JList packageList = createUpdateList(model, displayPane, installButton);
+		packageLists.add(packageList);
+		JScrollPane updateListScrollPane = new ExtendedJScrollPane(packageList);
+		updateListScrollPane.setMinimumSize(new Dimension(370,100));
+		updateListScrollPane.setPreferredSize(new Dimension(370,100));
+		updateListScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		updateListPanel.add(updateListScrollPane, c);
+		
+		c.gridx = 1;
+		c.gridy = 0;
 		c.weightx = 1;
-		c.weighty = 0.3;
-		c.insets = new Insets(0, 0, ButtonDialog.GAP, 0);
-		JScrollPane updateListPane = new ExtendedJScrollPane(updateList);
-		updateListPane.setPreferredSize(new Dimension(400, 300));
-		updateListPane.setBorder(ButtonDialog.createTitledBorder("Available Updates"));
-		add(updateListPane, c);
-
-		c.weighty = 0.7;
+		c.weighty = 1;
+		c.insets = new Insets(0, 0, 0, 0);
+		
+		
+		
 		JScrollPane jScrollPane = new ExtendedJScrollPane(displayPane);
-		jScrollPane.setPreferredSize(new Dimension(400, 300));
-		jScrollPane.setBorder(ButtonDialog.createTitledBorder("Description"));
-		add(jScrollPane, c);
+		jScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		JPanel descriptionPanel = new JPanel(new BorderLayout());
+		descriptionPanel.add(jScrollPane, BorderLayout.CENTER);
+		
+		JPanel extensionButtonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		extensionButtonPane.setBackground(Color.white);
 
-		c.weighty = 0;
-		add(sizeLabel, c);
+		extensionButtonPane.add(installButton);
+		descriptionPanel.add(extensionButtonPane, BorderLayout.SOUTH);
+		
+		updateListPanel.add(descriptionPanel, c);
+		
+		return updateListPanel;
 	}
+	
+	private JList createUpdateList(AbstractPackageListModel model, final ExtendedHTMLJEditorPane displayPane, final JToggleButton installButton) {
+		final JList updateList = new JList(model);
+		updateList.addListSelectionListener(new ListSelectionListener() {
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				if (!e.getValueIsAdjusting()) {
+					Object selectedValue = updateList.getSelectedValue();
+					if (selectedValue instanceof PackageDescriptor) {
+						
+						installButton.setEnabled(true);
+						
+						PackageDescriptor desc = (PackageDescriptor) selectedValue;
+						displayPane.setText(UpdateListPanel.this.toString(desc));
+						displayPane.setCaretPosition(0);
+						
+						installButton.setSelected(isSelected(desc));
+						
+						ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
+						if (ext != null) {
+							String installed = ext.getLatestInstalledVersion();
+							if (installed != null) {
+								boolean upToDate = installed.compareTo(desc.getVersion()) >= 0;
+								if (upToDate) {
+									installButton.setEnabled(false);
+								} 
+							}
+							}
+					}
+					
+				}
+			}
+		});
+		updateList.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					toggleSelection();
+				}
+			}
+		});
+		updateList.setCellRenderer(new UpdateListCellRenderer(this));
+		return updateList;
+	}
+	
+	private JPanel createSerchListPanel() {
+		
+		JPanel panel = new JPanel(new BorderLayout());
+		
+		
+		JToolBar toolBar = new ExtendedJToolBar();
+        toolBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+        toolBar.setFloatable(false);
+        
+        searchField.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.field.update.search.tip"));
+        
+        searchField.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+              int key = e.getKeyCode();
+              if (key == KeyEvent.VK_ENTER) {
+            	  searchAction.actionPerformed(null);
+            	  e.consume();
+                 }
+              }
+            }
+         );
+        
+        JButton searchButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.search.search_button"));
+        searchButton.addActionListener(searchAction);
+        
+        toolBar.add(searchField);
+        toolBar.add(searchButton);
+        
+        panel.add(toolBar, BorderLayout.NORTH);
+        
+		JPanel updateListPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
 
-	public AbstractButton getInstallButton() {
-		return installButton;
-	}
+		c.fill = GridBagConstraints.BOTH;
+		c.gridheight = GridBagConstraints.REMAINDER;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.weightx = 0;
+		c.weighty = 1;
+		c.insets = new Insets(0, 0, 0, ButtonDialog.GAP);
+		
+		JToggleButton installButton = new JToggleButton(new ResourceAction(true, "update.select") {
+			private static final long serialVersionUID = 1L;
 
-	public AbstractButton getFetchFromAccountButton() {
-		return fetchFromAccountButton;
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				toggleSelection();
+			}
+		});
+		installButton.setEnabled(false);
+		
+		ExtendedHTMLJEditorPane displayPane = new ExtendedHTMLJEditorPane("text/html", "<html></html>");
+		displayPane.installDefaultStylesheet();
+		displayPane.setEditable(false);
+
+		displayPane.addHyperlinkListener(new HyperlinkListener() {
+			@Override
+			public void hyperlinkUpdate(HyperlinkEvent e) {
+				if (HyperlinkEvent.EventType.ACTIVATED.equals(e.getEventType())) {
+					try {
+						Desktop.getDesktop().browse(e.getURL().toURI());
+					} catch (Exception e1) {
+						SwingTools.showVerySimpleErrorMessage("cannot_open_browser");
+					}
+				}
+			}
+		});
+		
+		resultList = createUpdateList(searchModel, displayPane, installButton);
+		packageLists.add(resultList);
+		JScrollPane updateListScrollPane = new ExtendedJScrollPane(resultList);
+		updateListScrollPane.setMinimumSize(new Dimension(370,100));
+		updateListScrollPane.setPreferredSize(new Dimension(370,100));
+		updateListScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		panel.add(updateListScrollPane, BorderLayout.CENTER);
+		updateListPanel.add(panel, c);
+		
+		c.gridx = 1;
+		c.gridy = 0;
+		c.weightx = 1;
+		c.weighty = 1;
+		c.insets = new Insets(0, 0, 0, 0);
+		
+		JScrollPane jScrollPane = new ExtendedJScrollPane(displayPane);
+		jScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		JPanel descriptionPanel = new JPanel(new BorderLayout());
+		descriptionPanel.add(jScrollPane, BorderLayout.CENTER);
+		
+		JPanel extensionButtonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		extensionButtonPane.setBackground(Color.white);
+
+		
+		extensionButtonPane.add(installButton);
+		descriptionPanel.add(extensionButtonPane, BorderLayout.SOUTH);
+		
+		updateListPanel.add(descriptionPanel, c);
+		
+		return updateListPanel;
 	}
+	
+	public final Action searchAction = new AbstractAction(){
+		private static final long serialVersionUID = 1L;
+		private String oldSearch ="";
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String value = searchField.getText();
+			if (value != null && !value.equals(oldSearch)) {
+				searchModel.search(value);
+				oldSearch = value;
+				resultList.clearSelection();
+			}
+		}
+		
+	};
 
 	private String toString(PackageDescriptor descriptor) {
 		StringBuilder b = new StringBuilder("<html>");
-		b.append("<h2>").append(descriptor.getName() + "</h2>");
+		b.append("<span style=\"font-size:14px;\">").append(descriptor.getName() + "</span>");
 		Date date = new Date(descriptor.getCreationTime().toGregorianCalendar().getTimeInMillis());
-		b.append("<hr noshade=\"true\"/><strong>").append(descriptor.getVersion()).append(", released ").append(Tools.formatDate(date));
-		b.append(", ").append(Tools.formatBytes(descriptor.getSize())).append("</strong>");
+		b.append("<hr noshade=\"true\" style=\"margin-bottom:8px;\"/><p style=\"margin-bottom:8px;\"><strong>Version ").append(descriptor.getVersion()).append(", released ").append(Tools.formatDate(date));
+		b.append(", ").append(Tools.formatBytes(descriptor.getSize())).append("</strong></p>");
 		if ((descriptor.getDependencies() != null) && !descriptor.getDependencies().isEmpty()) {
-			b.append("<br/>Depends on: " + descriptor.getDependencies());
+			b.append("<p style=\"margin-bottom:8px;\">Depends on: " + descriptor.getDependencies() + "</p>");
 		}
-		b.append("<p>").append(descriptor.getDescription()).append("</p>");
+		b.append("<p style=\"margin-bottom:8px;\">").append(descriptor.getDescription()).append("</p>");
 		// Before you are shocked, read the comment of isPurchased() :-)
 		if (UpdateManager.COMMERCIAL_LICENSE_NAME.equals(descriptor.getLicenseName())) {
 			if (isPurchased(descriptor)) {
@@ -241,7 +425,7 @@ public class UpdateListPanel extends JPanel {
 				}
 			}
 		}
-		b.append("<br/><p><a href=\""+UpdateManager.getBaseUrl()+"/faces/product_details.xhtml?productId="+descriptor.getPackageId()+"\">Extension homepage</a></p>");
+		b.append("<p><a href=\""+UpdateManager.getBaseUrl()+"/faces/product_details.xhtml?productId="+descriptor.getPackageId()+"\">Extension homepage</a></p>");
 		b.append("</html>");
 		return b.toString();
 	}
@@ -296,7 +480,7 @@ public class UpdateListPanel extends JPanel {
 	}
 
 	private void toggleSelection() {
-		PackageDescriptor desc = (PackageDescriptor) updateList.getSelectedValue();
+		PackageDescriptor desc = (PackageDescriptor) getCurrentUpdateList().getSelectedValue();
 		if (desc != null) {
 			boolean select = !isSelected(desc);
 			if (isUpToDate(desc)) {
@@ -319,7 +503,7 @@ public class UpdateListPanel extends JPanel {
 				SwingTools.showMessageDialog("purchase_package", desc.getName());
 			}
 			selectionMap.put(desc, select);
-			listModel.update(desc);
+			getPackageListModel(getCurrentUpdateList()).update(desc);
 		}
 		updateSize();
 	}
@@ -382,12 +566,12 @@ public class UpdateListPanel extends JPanel {
 				LogService.getRoot().log(Level.INFO, "com.rapid_i.de.deployement.update.client.UpdateListPanel.fetching_bookmarked_package", bookmarkedId);
 				String rmPlatform = "ANY"; //Launcher.getPlatform();
 				try {
-					UpdateService updateService = UpdateManager.getService();
+					UpdateService updateService = UpdateManager.getService();					
 					String latestRMVersion = updateService.getLatestVersion(bookmarkedId, rmPlatform);
 					desc = updateService.getPackageInfo(bookmarkedId, latestRMVersion, rmPlatform);
 					if (desc != null) {
 						packDescById.put(desc.getPackageId(), desc);
-						listModel.add(desc);
+						getPackageListModel(getCurrentUpdateList()).add(desc);
 					}
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_during_update", e);
@@ -414,7 +598,7 @@ public class UpdateListPanel extends JPanel {
 				continue;
 			}
 		}
-		updateList.repaint();
+		getCurrentUpdateList().repaint();
 	}
 
 //	public static AccountService getAccountService() {

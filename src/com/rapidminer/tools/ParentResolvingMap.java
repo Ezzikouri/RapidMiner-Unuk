@@ -47,7 +47,7 @@ public abstract class ParentResolvingMap<K,V> extends AbstractMap<K,V> implement
 			//LogService.getRoot().warning("Group properties resource '"+resourceName + "' not found.");
 			LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.ParentResolvingMap.group_properties_resource_not_found", resourceName);
 		} else {			
-			groupProps.load(resource.openStream());			
+			groupProps.load(WebServiceTools.openStreamFromURL(resource));			
 			for (String propKey : groupProps.stringPropertyNames()) {				
 				if (propKey.startsWith(prefix) && (propKey.endsWith(suffix))) {
 					String keyString = propKey.substring(prefix.length());

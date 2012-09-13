@@ -83,6 +83,9 @@ public class RunRemoteNowAction extends AbstractAction {
      * @param location
      */
     public static synchronized void executeProcessOnRA(final RepositoryLocation repoLoc) {
+    	if (repoLoc == null) {
+    		return;
+    	}
     	// check if user really wants to execute process on RA
     	if (!DecisionRememberingConfirmDialog.confirmAction("execute_process_remotely_now", RapidMinerGUI.PROPERTY_RUN_REMOTE_NOW)) {
     		return;
@@ -108,7 +111,7 @@ public class RunRemoteNowAction extends AbstractAction {
 				try {
 		    		Repository repo = repoLoc.getRepository();
 		    		// check preconditions, e.g. process has a valid processLocation and the repository is a RemoteRepository
-		    		if (repoLoc != null && repoLoc.locateEntry() instanceof RemoteProcessEntry && repo instanceof RemoteRepository) {
+		    		if (repoLoc.locateEntry() instanceof RemoteProcessEntry && repo instanceof RemoteRepository) {
 		    			try {
 		    				String processLocString = repoLoc.getPath();
 		    				ProcessContextWrapper pcWrapper = new ProcessContextWrapper();

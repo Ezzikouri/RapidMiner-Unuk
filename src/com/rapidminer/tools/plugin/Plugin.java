@@ -83,6 +83,7 @@ import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ResourceSource;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * <p>
@@ -450,7 +451,7 @@ public class Plugin {
             } else {
                 // register operators
                 try {
-                    in = operatorsURL.openStream();
+                    in = WebServiceTools.openStreamFromURL(operatorsURL);
                 } catch (IOException e) {
                     //LogService.getRoot().log(Level.WARNING, "Cannot read operator descriptor '" + operatorsURL + "' from '" + archive.getName() + "'!", e);
                     LogService.getRoot().log(Level.WARNING,
@@ -556,14 +557,14 @@ public class Plugin {
             if (bbDefinition != null) {
                 BufferedReader in = null;
                 try {
-                    in = new BufferedReader(new InputStreamReader(bbDefinition.openStream()));
+                    in = new BufferedReader(new InputStreamReader(WebServiceTools.openStreamFromURL(bbDefinition)));
 
                     String line = null;
                     while ((line = in.readLine()) != null) {
                         URL bbURL = this.classLoader.getResource(Tools.RESOURCE_PREFIX + line);
                         BufferedReader bbIn = null;
                         try {
-                            bbIn = new BufferedReader(new InputStreamReader(bbURL.openStream()));
+                            bbIn = new BufferedReader(new InputStreamReader(WebServiceTools.openStreamFromURL(bbURL)));
                             result.add(new BuildingBlock(bbIn, BuildingBlock.PLUGIN_DEFINED));
                         } catch (IOException e) {
                             //LogService.getRoot().log(Level.WARNING, "Cannot load plugin building blocks. Skipping...", e);
@@ -608,7 +609,7 @@ public class Plugin {
         try {
             URL url = simpleClassLoader.getResource("META-INF/ABOUT.NFO");
             if (url != null)
-                about = Tools.readTextFile(new InputStreamReader(url.openStream()));
+                about = Tools.readTextFile(new InputStreamReader(WebServiceTools.openStreamFromURL(url)));
         } catch (Exception e) {
             //LogService.getRoot().log(Level.WARNING, "Error reading ABOUT.NFO for plugin " + getName(), e);
             I18N.getMessage(ResourceBundle.getBundle("com.rapidminer.resources.i18n.LogMessages"), "com.rapidminer.tools.I18N.plugin_warning1", Level.WARNING, getName(), e);
@@ -1016,7 +1017,7 @@ public class Plugin {
         Document pluginsDoc;
         try {
             URL pluginsListUrl = new URL(homeUrl + "/RAWS/dependencies/resources.xml");
-            pluginsDoc = XMLTools.parse(pluginsListUrl.openStream());
+            pluginsDoc = XMLTools.parse(WebServiceTools.openStreamFromURL(pluginsListUrl));
         } catch (Exception e) {
             //LogService.getRoot().log(Level.WARNING, "Failed to load extensions list from server: " + e, e);
 			LogService.getRoot().log(
@@ -1043,7 +1044,7 @@ public class Plugin {
                 LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.plugin.Plugin.extension_found_downloading", pluginName);
                 try {
                     URL pluginUrl = new URL(homeUrl + "/RAWS/dependencies/plugins/" + pluginName);
-                    Tools.copyStreamSynchronously(pluginUrl.openStream(), new FileOutputStream(pluginFile), true);
+                    Tools.copyStreamSynchronously(WebServiceTools.openStreamFromURL(pluginUrl), new FileOutputStream(pluginFile), true);
                 } catch (Exception e) {
                     //LogService.getRoot().log(Level.WARNING, "Failed to download extension from server: " + e, e);
         			LogService.getRoot().log(

@@ -1528,7 +1528,7 @@ public class Tools {
 				byte[] partData;
 				int len;
 			}
-			in = new BufferedInputStream(url.openStream());
+			in = new BufferedInputStream(WebServiceTools.openStreamFromURL(url));
 			LinkedList<Part> parts = new LinkedList<Part>();
 			int len = 1;
 			while (len > 0) {

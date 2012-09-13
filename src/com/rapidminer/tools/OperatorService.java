@@ -190,7 +190,7 @@ public class OperatorService {
     public static void registerOperators(URL operatorsXML, ClassLoader classLoader, Plugin plugin) {
         InputStream inputStream;
         try {
-            inputStream = operatorsXML.openStream();
+            inputStream = WebServiceTools.openStreamFromURL(operatorsXML);
         } catch (IOException e) {
             //LogService.getRoot().log(Level.WARNING, "Cannot open stream to operator description file " + operatorsXML + ": " + e, e);
         	LogService.getRoot().log(Level.WARNING,

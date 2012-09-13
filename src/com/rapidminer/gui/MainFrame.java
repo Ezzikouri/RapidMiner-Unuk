@@ -1566,6 +1566,17 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         changed = false;
         setTitle();
         updateRecentFileList();
+        
+        // update RUN_REMOTE_NOW action enabled state
+		try {
+        	if (process.getRepositoryLocation() != null && process.getRepositoryLocation().getRepository() instanceof RemoteRepository) {
+        		RUN_REMOTE_NOW_ACTION.setEnabled(true);
+        	} else {
+        		RUN_REMOTE_NOW_ACTION.setEnabled(false);
+        	}
+        } catch (RepositoryException e) {
+        	RUN_REMOTE_NOW_ACTION.setEnabled(false);
+        }
     }
 
     public ProcessContextProcessEditor getProcessContextEditor() {

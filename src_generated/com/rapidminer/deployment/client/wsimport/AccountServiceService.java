@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "AccountServiceService", targetNamespace = "http://ws.update.deployment.rapid_i.com/", wsdlLocation = "http://localhost:8080/UpdateServer/AccountService?wsdl")
+@WebServiceClient(name = "AccountServiceService", targetNamespace = "http://ws.update.deployment.rapid_i.com/", wsdlLocation = "http://anni:8080/UpdateServer/AccountService?wsdl")
 public class AccountServiceService
     extends Service
 {
@@ -30,9 +30,9 @@ public class AccountServiceService
         try {
             URL baseUrl;
             baseUrl = com.rapidminer.deployment.client.wsimport.AccountServiceService.class.getResource(".");
-            url = new URL(baseUrl, "http://localhost:8080/UpdateServer/AccountService?wsdl");
+            url = new URL(baseUrl, "http://anni:8080/UpdateServer/AccountService?wsdl");
         } catch (MalformedURLException e) {
-            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/UpdateServer/AccountService?wsdl', retrying as a local file");
+            logger.warning("Failed to create URL for the wsdl Location: 'http://anni:8080/UpdateServer/AccountService?wsdl', retrying as a local file");
             logger.warning(e.getMessage());
         }
         ACCOUNTSERVICESERVICE_WSDL_LOCATION = url;

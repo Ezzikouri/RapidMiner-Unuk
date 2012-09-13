@@ -41,6 +41,7 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.math.StringToMatrixConverter;
 
 /**
@@ -103,7 +104,7 @@ public abstract class AbstractRenderer implements Renderer {
 
 		try {
 			URL url = new URL(urlString);
-			InputStream stream = url.openStream();
+			InputStream stream = WebServiceTools.openStreamFromURL(url);
 			return stream;
 		} catch (MalformedURLException e) {
 			// URL did not work? Try as file...

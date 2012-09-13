@@ -69,6 +69,7 @@ import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
 import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.cipher.CipherException;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
@@ -436,6 +437,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	public HttpURLConnection getHTTPConnection(String pathInfo, boolean preAuthHeader) throws IOException {
 		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), pathInfo).openConnection();
+		WebServiceTools.setURLConnectionDefaults(conn);
 		conn.setRequestProperty("Accept-Charset", "UTF-8"); 
 		if (preAuthHeader && (username != null) && (password != null)) {
 			String userpass = username + ":" + new String(password);
@@ -601,7 +603,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private Collection<FieldConnectionEntry> fetchJDBCEntries() throws XMLException, CipherException, SAXException, IOException {
 		URL xmlURL = new URL(getBaseUrl(), "RAWS/jdbc_connections.xml");
-		Document doc = XMLTools.parse(xmlURL.openStream());
+		Document doc = XMLTools.parse(WebServiceTools.openStreamFromURL(xmlURL));
 		final Collection<FieldConnectionEntry> result = DatabaseConnectionService.parseEntries(doc.getDocumentElement());
 		for (FieldConnectionEntry entry : result) {
 			entry.setRepository(getAlias());

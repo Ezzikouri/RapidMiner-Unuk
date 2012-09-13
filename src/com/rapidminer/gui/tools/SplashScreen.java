@@ -50,6 +50,7 @@ import javax.swing.Timer;
 
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.container.Pair;
 import com.rapidminer.tools.plugin.Plugin;
 
@@ -143,7 +144,7 @@ public class SplashScreen extends JPanel implements ActionListener {
 		Properties properties = new Properties();
 		if (propertyFile != null) {
 			try {
-				InputStream in = propertyFile.openStream();
+				InputStream in = WebServiceTools.openStreamFromURL(propertyFile);
 				properties.load(in);
 				in.close();
 			} catch (Exception e) {

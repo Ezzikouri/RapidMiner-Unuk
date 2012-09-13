@@ -57,6 +57,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.plugin.Plugin;
 
 /**
@@ -292,7 +293,7 @@ public class AboutBox extends JDialog {
 	private static Properties createProperties(String productVersion) {
 		Properties properties = new Properties();
 		try {
-			InputStream in = Tools.getResource(PROPERTY_FILE).openStream();
+			InputStream in = WebServiceTools.openStreamFromURL(Tools.getResource(PROPERTY_FILE));
 			properties.load(in);
 			in.close();
 		} catch (Exception e) {

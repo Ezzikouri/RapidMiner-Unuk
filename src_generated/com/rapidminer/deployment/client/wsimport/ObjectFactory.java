@@ -24,8 +24,10 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
+    private final static QName _GetLicensedProducts_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLicensedProducts");
     private final static QName _GetBookmarkedProducts_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getBookmarkedProducts");
     private final static QName _GetBookmarkedProductsResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getBookmarkedProductsResponse");
+    private final static QName _GetLicensedProductsResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLicensedProductsResponse");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.rapidminer.deployment.client.wsimport
@@ -43,11 +45,36 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link GetLicensedProductsResponse }
+     * 
+     */
+    public GetLicensedProductsResponse createGetLicensedProductsResponse() {
+        return new GetLicensedProductsResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetLicensedProducts }
+     * 
+     */
+    public GetLicensedProducts createGetLicensedProducts() {
+        return new GetLicensedProducts();
+    }
+
+    /**
      * Create an instance of {@link GetBookmarkedProductsResponse }
      * 
      */
     public GetBookmarkedProductsResponse createGetBookmarkedProductsResponse() {
         return new GetBookmarkedProductsResponse();
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetLicensedProducts }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getLicensedProducts")
+    public JAXBElement<GetLicensedProducts> createGetLicensedProducts(GetLicensedProducts value) {
+        return new JAXBElement<GetLicensedProducts>(_GetLicensedProducts_QNAME, GetLicensedProducts.class, null, value);
     }
 
     /**
@@ -66,6 +93,15 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getBookmarkedProductsResponse")
     public JAXBElement<GetBookmarkedProductsResponse> createGetBookmarkedProductsResponse(GetBookmarkedProductsResponse value) {
         return new JAXBElement<GetBookmarkedProductsResponse>(_GetBookmarkedProductsResponse_QNAME, GetBookmarkedProductsResponse.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetLicensedProductsResponse }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getLicensedProductsResponse")
+    public JAXBElement<GetLicensedProductsResponse> createGetLicensedProductsResponse(GetLicensedProductsResponse value) {
+        return new JAXBElement<GetLicensedProductsResponse>(_GetLicensedProductsResponse_QNAME, GetLicensedProductsResponse.class, null, value);
     }
 
 }

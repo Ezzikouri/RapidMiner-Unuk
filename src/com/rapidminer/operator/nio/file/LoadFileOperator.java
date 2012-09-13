@@ -46,6 +46,7 @@ import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * @author Nils Woehler
@@ -91,6 +92,7 @@ public class LoadFileOperator extends Operator {
 				url = new URL(getParameterAsString(PARAMETER_URL));
 				source = url.toString();
 				URLConnection connection = url.openConnection();
+				WebServiceTools.setURLConnectionDefaults(connection);
 				ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 				Tools.copyStreamSynchronously(connection.getInputStream(),
 						buffer, true);

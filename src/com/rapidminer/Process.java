@@ -93,6 +93,7 @@ import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.RandomGenerator;
 import com.rapidminer.tools.ResultService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.WrapperLoggingHandler;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.container.Pair;
@@ -270,7 +271,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
     /** Reads an process configuration from the given URL. */
     public Process(URL url) throws IOException, XMLException {
         initContext();
-        Reader in = new InputStreamReader(url.openStream(), getEncoding(null));
+        Reader in = new InputStreamReader(WebServiceTools.openStreamFromURL(url), getEncoding(null));
         readProcess(in);
         in.close();
     }

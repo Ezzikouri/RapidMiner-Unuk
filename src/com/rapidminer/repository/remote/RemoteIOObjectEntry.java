@@ -41,6 +41,7 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.remote.RemoteRepository.EntryStreamType;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * @author Simon Fischer
@@ -63,6 +64,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 		}
 		try {
 			HttpURLConnection connection = getRepository().getResourceHTTPConnection(getLocation().getPath(), EntryStreamType.IOOBJECT, false);
+			WebServiceTools.setURLConnectionDefaults(connection);
 			connection.setDoInput(true);
 			connection.setDoOutput(false);
 			connection.setRequestMethod("GET");
@@ -99,6 +101,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 			// otherwise metaData == null OR get() == null
 			try {
 				HttpURLConnection connection = getRepository().getResourceHTTPConnection(getLocation().getPath(), EntryStreamType.METADATA, false);
+				WebServiceTools.setURLConnectionDefaults(connection);
 				connection.setRequestMethod("GET");
 				InputStream in;
 				try {
@@ -138,6 +141,7 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 		}
 		OutputStream out = null;
 		try {
+			WebServiceTools.setURLConnectionDefaults(conn);
 			conn.setRequestProperty("Content-Type", RMContentType.IOOBJECT.getContentTypeString());
 			conn.setRequestMethod("POST");
 			conn.setDoOutput(true);

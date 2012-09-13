@@ -54,6 +54,7 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.XMLException;
 
 
@@ -75,7 +76,7 @@ public class DatabaseService {
         if (propertyURL != null) {
             InputStream in = null;
             try {
-                in = propertyURL.openStream();
+                in = WebServiceTools.openStreamFromURL(propertyURL);
                 loadJDBCProperties(in, "resource jdbc_properties.xml", false);
             } catch (IOException e) {
                 //LogService.getRoot().log(Level.WARNING, "Cannot load JDBC properties from program resources.", e);
