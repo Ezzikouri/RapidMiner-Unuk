@@ -85,4 +85,4 @@ $JAVA \
 	-Drapidminer.home=${RAPIDMINER_HOME} \
 	-Drapidminer.operators.additional=${RAPIDMINER_OPERATORS_ADDITIONAL} \
 	${RAPIDMINER_JDBC_DRIVER_PARAMETER} \
-	com.rapidminer.RapidMinerCommandLine $@
+	com.rapidminer.RapidMinerCommandLine "$@"

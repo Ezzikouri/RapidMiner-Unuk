@@ -24,6 +24,8 @@ package com.rapidminer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 import com.rapidminer.operator.IOContainer;
@@ -34,6 +36,7 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.container.Pair;
 import com.rapidminer.tools.usagestats.OperatorStatisticsValue;
 import com.rapidminer.tools.usagestats.UsageStatistics;
 
@@ -49,6 +52,8 @@ public class RapidMinerCommandLine extends RapidMiner implements BreakpointListe
 
     private String repositoryLocation = null;
     private boolean readFromFile = false;
+    
+    private List<Pair<String, String>> macros = new ArrayList<Pair<String,String>>();
 
     /**
      * This tread waits for pressing an arbitrary key. Used for resuming an
@@ -96,9 +101,14 @@ public class RapidMinerCommandLine extends RapidMiner implements BreakpointListe
         repositoryLocation = null;
 
         for (String element : argv) {
+        	if (element==null) continue;
             if ("-f".equals(element)) {
                 readFromFile = true;
-            } else {
+            } else if (element.startsWith("-M")) {
+                element = element.substring(2);
+            	String[] split = element.split("=");
+                macros.add(new Pair<String, String>(split[0], split[1]));
+            } else if (repositoryLocation==null){
                 repositoryLocation = element;
             }
         }
@@ -109,9 +119,10 @@ public class RapidMinerCommandLine extends RapidMiner implements BreakpointListe
     }
 
     private static void printUsage() {
-        System.err.println("Usage: " + RapidMinerCommandLine.class.getName() + " [-f] PROCESS\n"+
-                "  PROCESS   a repository location containing a process\n"+
-        "  -f        interpret PROCESS as a file rather than a repository location (deprecated)");
+        System.err.println("Usage: " + RapidMinerCommandLine.class.getName() + " [-f] PROCESS [-Mname=value]\n"+
+                "  PROCESS       a repository location containing a process\n"+
+        "  -f            interpret PROCESS as a file rather than a repository location (deprecated)\n"+
+        "  -Mname=value  sets the macro 'name' with the value 'value'");
         System.exit(1);
     }
 
@@ -141,6 +152,9 @@ public class RapidMinerCommandLine extends RapidMiner implements BreakpointListe
 
         if (process != null) {
             try {
+            	for(Pair<String, String> macro : macros) {
+                    process.getContext().addMacro(macro);
+                }
                 process.addBreakpointListener(this);
                 IOContainer results = process.run();
                 process.getRootOperator().sendEmail(results, null);
