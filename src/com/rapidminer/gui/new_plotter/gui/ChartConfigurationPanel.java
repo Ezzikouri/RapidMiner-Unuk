@@ -861,6 +861,7 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 								removeAttributeFromDimensionAction();
 							}
 						}
+						e.consume();
 					}
 				}
 			});

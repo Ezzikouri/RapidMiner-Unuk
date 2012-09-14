@@ -532,6 +532,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         }
         fireProcessUpdated();
     }
+    
+    public boolean isProcessRendererFocused() {
+    	return processPanel.getProcessRenderer().hasFocus();
+    }
 
     private transient final Observer<Process> processObserver = new Observer<Process>() {
         @Override

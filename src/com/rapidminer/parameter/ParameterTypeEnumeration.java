@@ -73,7 +73,7 @@ public class ParameterTypeEnumeration extends CombinedParameterType {
 
     public ParameterTypeEnumeration(String key, String description, ParameterType parameterType, boolean expert) {
         this(key, description, parameterType);
-        setExpert(false);
+        setExpert(expert);
     }
 
     @Override

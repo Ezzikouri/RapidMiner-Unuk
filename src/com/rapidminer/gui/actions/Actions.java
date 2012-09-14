@@ -343,6 +343,9 @@ public class Actions implements ProcessEditor {
 	/** The currently selected operator will be deleted. */
 	public void delete() {
 		Operator parent = null;
+		if(!mainFrame.isProcessRendererFocused()) {
+			return;
+		}
 		for (Operator selectedOperator : new LinkedList<Operator>(getSelectedOperators())) {				
 			if (parent == null) {
 				parent = selectedOperator.getParent();
