@@ -38,7 +38,7 @@ public class TopDownloadsPackageListModel extends AbstractPackageListModel {
 	private static final long serialVersionUID = 1L;
 
 	public TopDownloadsPackageListModel(PackageDescriptorCache cache) {
-		super(cache);
+		super(cache, "gui.dialog.update.tab.no_packages");
 	}
 	
 	@Override

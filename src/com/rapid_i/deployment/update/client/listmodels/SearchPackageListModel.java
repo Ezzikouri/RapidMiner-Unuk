@@ -43,11 +43,11 @@ public class SearchPackageListModel extends AbstractPackageListModel {
 	private boolean shouldUpdate = false;
 
 	public SearchPackageListModel(PackageDescriptorCache cache) {
-		super(cache);
+		super(cache, "gui.dialog.update.tab.no_search_results");
 	}
 
 	public void search(String searchString) {
-		if (searchString != null && searchString.length() >= 3) {
+		if (searchString != null) {
 			searched = true;
 			this.searchString = searchString;
 			shouldUpdate = true;
@@ -71,7 +71,7 @@ public class SearchPackageListModel extends AbstractPackageListModel {
 	public Object getElementAt(int index) {
 		if (fetching) return I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.loading", completed);
 		if (packageNames.size() == 0) {
-			return searched ? I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.search.no_results") : "";
+			return searched ? I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.no_search_results") : "";
 		}
 		return cache.getPackageInfo(packageNames.get(index), "ANY");
 	}

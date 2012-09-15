@@ -3,6 +3,7 @@ History of changes of the RapidMiner versions
 
 Changes from RapidMiner 5.2.8 to 5.3.0
 --------------------------------------
+* Execute Program operator has File Object ports for stdin, stdout, stderr 
 * Macros can be passed through the command line. Example: 'rapidminer //repository/home/test/process -Mkey1=value "-Mkey2=value with spaces"' will provide two macros named key1 and key2
 * Added first wave of new and improved extensive documentation (often including tutorial processes) for many operators
 * Added improved RapidAnalytics support. New run button: "Run process on RapidAnalytics".
@@ -68,8 +69,10 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: fixed an initialization problem in the Cross Distances operator, which caused wrong calculation of distances in some rare cases
 * BUGFIX: Quickfix Dialogs shouldn't vanish right after showing (RCOMM2012)
 * BUGFIX: RapidMiner should no longer block for a varying amount of time if a connection to an online server fails
-* BUGFIX: Focus issue with delete action
-* BUGFIX: Import Binary File should no longer freeze the GUI
+* BUGFIX: Focus issue with delete action 
+* BUGFIX: Import Binary File no longer freezes the GUI
+* BUGFIX: New Plotters showed a "This should not happen" message once in a while and where unusable until restart of RapidMiner (Bug #1274)
+* BUGFIX: Real to Integer operator: don't convert missings to 0, but keep them as missing
  
 
 Changes from RapidMiner 5.2.6 to 5.2.8

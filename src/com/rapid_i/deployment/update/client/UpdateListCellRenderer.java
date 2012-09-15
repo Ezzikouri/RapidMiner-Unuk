@@ -42,6 +42,7 @@ import javax.swing.SwingConstants;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.tools.I18N;
 
 /**
  * Renders a cell of the update list. This contains icons for the type of extension or update.
@@ -58,8 +59,8 @@ final class UpdateListCellRenderer implements ListCellRenderer {
         HI_QUALITY_HINTS.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
     }
     	
-	private static final Icon SELECTED_ICON = SwingTools.createIcon("16/checkbox.png");
-	private static final Icon NON_SELECTED_ICON = SwingTools.createIcon("16/checkbox_unchecked.png");
+//	private static final Icon SELECTED_ICON = SwingTools.createIcon("16/checkbox.png");
+//	private static final Icon NON_SELECTED_ICON = SwingTools.createIcon("16/checkbox_unchecked.png");
 	
 	private final UpdateListPanel packageDescriptorListPanel;
 
@@ -85,7 +86,6 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 			return result;
 		}
 	}
-	
 	
 	private Icon getResizedIcon(Icon originalIcon) {
 		if (originalIcon == null) return null;
@@ -119,7 +119,6 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 	
 	@Override
 	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-		
 		JPanel panel = new JPanel();
 		JLabel selectedLabel = new JLabel();
 		JLabel label = new JLabel();
@@ -144,6 +143,7 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 		String text = "";
 		if (value instanceof PackageDescriptor) {
 			PackageDescriptor desc = (PackageDescriptor) value;
+			boolean selectedForInstallation = packageDescriptorListPanel.isSelected(desc);
 			Icon packageIcon = getResizedIcon(getIcon(desc));
 			
 			text = "<html><body style='width: " + (packageIcon != null ? (310 - packageIcon.getIconWidth()) : 314) + ";" + 
@@ -153,29 +153,40 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 			boolean upToDate = false;
 			if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
 				if (ext == null) {
-					text += "<span style='color:#666666'>Not installed.</span>";
+					if (selectedForInstallation) {
+						text += "<span style='color:#008800'>Marked for installation.</span>";
+					} else {
+						text += "<span style='color:#666666'>Not installed.</span>";
+					}
+					//text += "<span style='color:#666666'>Not installed.</span>";
 				} else {
 					String installed = ext.getLatestInstalledVersion();
-					String selected = ext.getSelectedVersion();
+					//String selectedVersion = desc.getVersion();
 					if (installed != null) {
 						upToDate = installed.compareTo(desc.getVersion()) >= 0;
 						if (upToDate) {
 							text += "<span style='color:#009900'>This package is up to date.</span>";
 						} else {
-							if (installed.equals(selected)) {
-								text += "<span style='color:#990000'>Installed version: " + ext.getSelectedVersion() + "</span>";
+							if (selectedForInstallation) {
+								text += "<span style='color:#008800'>Installed version: " + ext.getSelectedVersion() + " (marked for update)</span>";
 							} else {
-								text += "<span style='color:#990000'>Installed version: " + ext.getSelectedVersion() + " (selected version: "+selected+")</span>";
+								text += "<span style='color:#990000'>Installed version: " + ext.getLatestInstalledVersion() + "</span>";
 							}
 						}
 					} else {
-						text += "<span style='color:#666666'>No version installed.</span>";
+						if (selectedForInstallation) {
+							text += "<span style='color:#008800'>Marked for installation.</span>";							
+						} else {
+							text += "<span style='color:#666666'>Not installed.</span>";
+						}
 					}
 				}	
 			} else if (desc.getPackageTypeName().equals("STAND_ALONE")) {
 				String myVersion = RapidMiner.getLongVersion();
 				upToDate = ManagedExtension.normalizeVersion(myVersion).compareTo(ManagedExtension.normalizeVersion(desc.getVersion())) >= 0;
-				if (upToDate) {
+				if (selectedForInstallation) {
+					text += "Marked for updated.";
+				} else if (upToDate) {
 					text += "This package is up to date.";
 				} else {
 					text += "Installed version: " + myVersion;
@@ -185,8 +196,8 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 			
 			label.setIcon(packageIcon);
 			label.setVerticalTextPosition(SwingConstants.TOP);
-			boolean selected = packageDescriptorListPanel.isSelected(desc);
-			selectedLabel.setIcon(selected ? SELECTED_ICON : NON_SELECTED_ICON);
+			
+			//selectedLabel.setIcon(selectedForInstallation ? SELECTED_ICON : NON_SELECTED_ICON);
 			//freeCommercial.setIcon(UpdateManager.COMMERCIAL_LICENSE_NAME.equals(desc.getLicenseName()) ? COMMERCIAL_ICON : FREE_ICON);
 
 			selectedLabel.setEnabled(!upToDate);

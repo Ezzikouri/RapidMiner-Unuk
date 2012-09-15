@@ -254,7 +254,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 				int currentIndex = selectedIndices[0];
 				String oldRule = selectedRules.get(currentIndex);
 
-				InputDialog inputDialog = new InputDialog("", oldRule); //TODO
+				InputDialog inputDialog = new InputDialog("attribute_ordering", oldRule);
 				inputDialog.setVisible(true);
 
 				if (inputDialog.wasConfirmed()) {

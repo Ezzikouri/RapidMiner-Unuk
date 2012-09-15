@@ -40,7 +40,7 @@ public class BookmarksPackageListModel extends AbstractPackageListModel {
 	private static final long serialVersionUID = 1L;
 
 	public BookmarksPackageListModel(PackageDescriptorCache cache) {
-		super(cache);
+		super(cache, "gui.dialog.update.tab.no_bookmarks");
 	}
 	
 	@Override

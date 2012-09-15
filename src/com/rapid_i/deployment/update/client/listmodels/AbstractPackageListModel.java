@@ -53,8 +53,11 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 
 	protected List<String> packageNames = new ArrayList<String>();
 	
-	public AbstractPackageListModel(PackageDescriptorCache cache) {
+	private String noPackagesMessageKey = "gui.dialog.update.tab.no_packages";
+	
+	public AbstractPackageListModel(PackageDescriptorCache cache, String noPackagesMessageKey) {
 		this.cache = cache;
+		this.noPackagesMessageKey = noPackagesMessageKey;
 	}
 	
 	public synchronized void update() {
@@ -130,7 +133,9 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 	@Override
 	public Object getElementAt(int index) {
 		if (fetching) return I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.loading", completed);
-		if (packageNames.size() == 0) return I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.no_packages"); 
+		if (packageNames.size() == 0) {			
+			return I18N.getMessage(I18N.getGUIBundle(), noPackagesMessageKey);
+		} 
 		return cache.getPackageInfo(packageNames.get(index), "ANY");
 	}
 

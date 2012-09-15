@@ -90,8 +90,12 @@ public class Real2Integer extends AbstractFilteredDataProcessing {
 				exampleSet.getExampleTable().addAttribute(newAttribute);
 				for (Example example : exampleSet) {
 					double originalValue = example.getValue(attribute);
-					long newValue = round ? Math.round(originalValue) : (long) originalValue;
-					example.setValue(newAttribute, newValue);
+					if (Double.isNaN(originalValue)) {
+						example.setValue(newAttribute, Double.NaN);
+					} else {
+						long newValue = round ? Math.round(originalValue) : (long) originalValue;
+						example.setValue(newAttribute, newValue);
+					}
 				}
 				a.remove();
 			}

@@ -41,7 +41,7 @@ public class LicencedPackageListModel extends AbstractPackageListModel {
 	private static final long serialVersionUID = 1L;
 
 	public LicencedPackageListModel(PackageDescriptorCache cache) {
-		super(cache);
+		super(cache, "gui.dialog.update.tab.no_licenses");
 	}
 	
 	@Override

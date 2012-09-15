@@ -139,18 +139,7 @@ public interface UpdateService {
     public List<String> searchFor(
         @WebParam(name = "searchString", targetNamespace = "")
         String searchString);
-    
-    /**
-     * 
-     * @return
-     *     returns java.util.List<java.lang.String>
-     */
-    @WebMethod
-    @WebResult(targetNamespace = "")
-    @RequestWrapper(localName = "getTopDownloads", targetNamespace = "http://ws.update.deployment.rapid_i.com/", className = "com.rapidminer.deployment.client.wsimport.GetTopDownloads")
-    @ResponseWrapper(localName = "getTopDownloadsResponse", targetNamespace = "http://ws.update.deployment.rapid_i.com/", className = "com.rapidminer.deployment.client.wsimport.GetTopDownloadsResponse")
-    public List<String> getTopDownloads();
-    
+
     /**
      * 
      * @return
@@ -181,6 +170,17 @@ public interface UpdateService {
         String targetPlatform)
         throws UpdateServiceException_Exception
     ;
+
+    /**
+     * 
+     * @return
+     *     returns java.util.List<java.lang.String>
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getTopDownloads", targetNamespace = "http://ws.update.deployment.rapid_i.com/", className = "com.rapidminer.deployment.client.wsimport.GetTopDownloads")
+    @ResponseWrapper(localName = "getTopDownloadsResponse", targetNamespace = "http://ws.update.deployment.rapid_i.com/", className = "com.rapidminer.deployment.client.wsimport.GetTopDownloadsResponse")
+    public List<String> getTopDownloads();
 
     /**
      * 

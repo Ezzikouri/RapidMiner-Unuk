@@ -200,20 +200,23 @@ public class UpdateManager {
         }
     }
 
-    private void updateRapidMiner(InputStream openStream, String version) throws IOException {
-        File updateDir = new File(FileSystemService.getRapidMinerHome(), "update");
-        if (!updateDir.exists()) {
-            if (!updateDir.mkdir()) {
+    @SuppressWarnings("resource")
+	private void updateRapidMiner(InputStream openStream, String version) throws IOException {
+        //File updateDir = new File(FileSystemService.getRapidMinerHome(), "update");
+    	File updateRootDir = new File(FileSystemService.getUserRapidMinerDir(), "update");
+        if (!updateRootDir.exists()) {
+            if (!updateRootDir.mkdir()) {
                 throw new IOException("Cannot create update directory. Please ensure you have administrator permissions.");
             }
         }
-        if (!updateDir.canWrite()) {
+        if (!updateRootDir.canWrite()) {
             throw new IOException("Cannot write to update directory. Please ensure you have administrator permissions.");
         }
-        File updateFile = new File(updateDir, "rmupdate-"+version+".jar");
+        File updateFile = new File(updateRootDir, "rmupdate-"+version+".jar");
+        // output stream is closed in utility method
         Tools.copyStreamSynchronously(openStream, new FileOutputStream(updateFile), true);
 
-        File ruInstall = new File(FileSystemService.getRapidMinerHome(), "RUinstall");
+        File ruInstall = new File(updateRootDir, "RUinstall");
         ZipFile zip = new ZipFile(updateFile);
         Enumeration<? extends ZipEntry> en = zip.entries();
         while (en.hasMoreElements()) {
@@ -224,7 +227,8 @@ public class UpdateManager {
             String name = entry.getName();
             if ("META-INF/UPDATE".equals(name)) {
                 // extract directly to update directory and leave extraction to Launcher.
-                Tools.copyStreamSynchronously(zip.getInputStream(entry), new FileOutputStream(new File(updateDir, "UPDATE")), true);
+                Tools.copyStreamSynchronously(zip.getInputStream(entry), 
+                		new FileOutputStream(new File(updateRootDir, "UPDATE")), true);
                 continue;
             }
             if (name.startsWith("rapidminer/")) {
@@ -265,11 +269,13 @@ public class UpdateManager {
         while ((line = updateReader.readLine()) != null) {
             String[] split = line.split(" ", 2);
             if (split.length != 2) {
+            	diffJarBuffer.close();
                 throw new IOException("Illegal entry in update script: "+line);
             }
             if ("DELETE".equals(split[0])) {
                 toDelete.add(split[1].trim());
             } else {
+            	diffJarBuffer.close();
                 throw new IOException("Illegal entry in update script: "+line);
             }
         }
@@ -364,7 +370,7 @@ public class UpdateManager {
             out = new PrintWriter(new FileWriter(file));
             out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
         } catch (IOException e) {
-            e.printStackTrace();
+        	LogService.getRoot().log(Level.WARNING, "Failed to save update timestamp: "+e, e);
         } finally {
             if (out != null) {
                 out.close();

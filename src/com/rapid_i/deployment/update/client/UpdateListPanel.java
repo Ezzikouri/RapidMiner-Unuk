@@ -31,6 +31,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -145,12 +146,12 @@ public class UpdateListPanel extends JPanel {
 		setPreferredSize(new Dimension(800, 320));
 		setMinimumSize(new Dimension(800, 320));
 		
+		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.search"), createSerchListPanel());
 		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.updates"), createUpdateListPanel(new UpdatesPackageListModel(packageDescriptorCache)));
 		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.top_downloads"), createUpdateListPanel(new TopDownloadsPackageListModel(packageDescriptorCache)));
 		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.top_rated"), createUpdateListPanel(new TopRatedPackageListModel(packageDescriptorCache)));
 		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.purchased"), createUpdateListPanel(new LicencedPackageListModel(packageDescriptorCache)));
 		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.bookmarks"), createUpdateListPanel(new BookmarksPackageListModel(packageDescriptorCache)));
-		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.search"), createSerchListPanel());
 		
 		updatesTabbedPane.addChangeListener(new ChangeListener(){
 			@Override
@@ -185,12 +186,21 @@ public class UpdateListPanel extends JPanel {
 		c.weighty = 1;
 		c.insets = new Insets(0, 0, 0, ButtonDialog.GAP);
 		
-		JToggleButton installButton = new JToggleButton(new ResourceAction(true, "update.select") {
+		final JToggleButton installButton = new JToggleButton(new ResourceAction(true, "update.select") {
 			private static final long serialVersionUID = 1L;
-
 			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				toggleSelection();
+			public void actionPerformed(ActionEvent e) {
+				toggleSelection();	
+			}
+		});
+		installButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (installButton.isSelected()) {
+					installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));	
+				} else {
+					installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+				}
 			}
 		});
 		installButton.setEnabled(false);
@@ -260,7 +270,12 @@ public class UpdateListPanel extends JPanel {
 						displayPane.setCaretPosition(0);
 						
 						installButton.setSelected(isSelected(desc));
-						
+						if (isSelected((PackageDescriptor)getCurrentUpdateList().getSelectedValue())) {
+							installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+						} else {
+							installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+						}
+
 						ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 						if (ext != null) {
 							String installed = ext.getLatestInstalledVersion();
@@ -329,12 +344,21 @@ public class UpdateListPanel extends JPanel {
 		c.weighty = 1;
 		c.insets = new Insets(0, 0, 0, ButtonDialog.GAP);
 		
-		JToggleButton installButton = new JToggleButton(new ResourceAction(true, "update.select") {
+		final JToggleButton installButton = new JToggleButton(new ResourceAction(true, "update.select") {
 			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				toggleSelection();
+			}			
+		});
+		installButton.addActionListener(new ActionListener() {			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (installButton.isSelected()) {
+					installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));	
+				} else {
+					installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+				}
 			}
 		});
 		installButton.setEnabled(false);
@@ -411,9 +435,9 @@ public class UpdateListPanel extends JPanel {
 		b.append("<hr noshade=\"true\" style=\"margin-bottom:8px;\"/><p style=\"margin-bottom:8px;\"><strong>Version ").append(descriptor.getVersion()).append(", released ").append(Tools.formatDate(date));
 		b.append(", ").append(Tools.formatBytes(descriptor.getSize())).append("</strong></p>");
 		if ((descriptor.getDependencies() != null) && !descriptor.getDependencies().isEmpty()) {
-			b.append("<p style=\"margin-bottom:8px;\">Depends on: " + descriptor.getDependencies() + "</p>");
+			b.append("<div style=\"margin-bottom:8px;\">Depends on: " + descriptor.getDependencies() + "</div>");
 		}
-		b.append("<p style=\"margin-bottom:8px;\">").append(descriptor.getDescription()).append("</p>");
+		b.append("<div style=\"margin-bottom:8px;\">").append(descriptor.getLongDescription()).append("</div>");
 		// Before you are shocked, read the comment of isPurchased() :-)
 		if (UpdateManager.COMMERCIAL_LICENSE_NAME.equals(descriptor.getLicenseName())) {
 			if (isPurchased(descriptor)) {

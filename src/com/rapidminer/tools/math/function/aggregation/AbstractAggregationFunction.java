@@ -158,7 +158,7 @@ public abstract class AbstractAggregationFunction implements AggregationFunction
      * solely based on the given values.
      */
     @Override
-    public double calculate(double[] values) {
+    public synchronized double calculate(double[] values) {
         reset();
         for (int i = 0; i < values.length; i++) {
             update(values[i]);
@@ -171,7 +171,7 @@ public abstract class AbstractAggregationFunction implements AggregationFunction
      * solely based on the given values and the given weights.
      */
     @Override
-    public double calculate(double[] values, double[] weights) {
+    public synchronized double calculate(double[] values, double[] weights) {
         reset();
         if (values.length != weights.length) {
             return Double.NaN;

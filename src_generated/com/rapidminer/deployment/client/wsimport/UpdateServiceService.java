@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "UpdateServiceService", targetNamespace = "http://ws.update.deployment.rapid_i.com/", wsdlLocation = "http://anni:8080/UpdateServer/UpdateServiceService?wsdl")
+@WebServiceClient(name = "UpdateServiceService", targetNamespace = "http://ws.update.deployment.rapid_i.com/", wsdlLocation = "http://localhost:8080/UpdateServer/UpdateServiceService?wsdl")
 public class UpdateServiceService
     extends Service
 {
@@ -30,9 +30,9 @@ public class UpdateServiceService
         try {
             URL baseUrl;
             baseUrl = com.rapidminer.deployment.client.wsimport.UpdateServiceService.class.getResource(".");
-            url = new URL(baseUrl, "http://anni:8080/UpdateServer/UpdateServiceService?wsdl");
+            url = new URL(baseUrl, "http://localhost:8080/UpdateServer/UpdateServiceService?wsdl");
         } catch (MalformedURLException e) {
-            logger.warning("Failed to create URL for the wsdl Location: 'http://anni:8080/UpdateServer/UpdateServiceService?wsdl', retrying as a local file");
+            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/UpdateServer/UpdateServiceService?wsdl', retrying as a local file");
             logger.warning(e.getMessage());
         }
         UPDATESERVICESERVICE_WSDL_LOCATION = url;
