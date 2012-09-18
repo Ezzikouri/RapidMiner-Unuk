@@ -82,6 +82,7 @@ public class FeatureIterator extends OperatorChain {
 
 		exampleSetInnerSink.addPrecondition(new SimplePrecondition(exampleSetInnerSink, new ExampleSetMetaData(), false));
 		innerSinkExtender = new CollectingPortPairExtender("result", getSubprocess(0).getInnerSinks(), getOutputPorts());
+		innerSinkExtender.start();
 
 		getTransformer().addRule(new PassThroughRule(exampleSetInput, exampleSetInnerSource, false));
 		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));
