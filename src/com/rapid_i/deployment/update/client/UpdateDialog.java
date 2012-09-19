@@ -43,6 +43,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.GlobalAuthenticator;
+import com.rapidminer.tools.NetTools;
 
 /**
  * 
@@ -52,7 +53,9 @@ import com.rapidminer.tools.GlobalAuthenticator;
 public class UpdateDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = 1L;
-
+	static {
+		NetTools.init();
+	}
 	public static final Action UPDATE_ACTION = new ResourceAction("update_manager") {
 		private static final long serialVersionUID = 1L;
 		{
@@ -100,7 +103,7 @@ public class UpdateDialog extends ButtonDialog {
 		super("update");
 		this.service = service;
 		ulp = new UpdateListPanel(this, descriptors, preselectedExtensions);
-		layoutDefault(ulp, makeOkButton("update.install"), makeCloseButton());
+		layoutDefault(ulp, LARGE, makeOkButton("update.install"), makeCloseButton());
 	}
 
 	public static void showUpdateDialog(final String... preselectedExtensions) {

@@ -48,7 +48,7 @@ public class AllPluginsClassLoader extends ClassLoader {
 			}
 		}		
 		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-		if (contextClassLoader != null) {
+		if ((contextClassLoader != null) && (contextClassLoader != this)) { // avoid stack overflow
 			return contextClassLoader.loadClass(name);
 		} else {
 			throw new ClassNotFoundException(name);

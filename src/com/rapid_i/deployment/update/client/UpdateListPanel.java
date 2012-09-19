@@ -63,10 +63,15 @@ import javax.swing.JToolBar;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
+import javax.swing.text.html.HTMLDocument;
 
 import com.rapid_i.deployment.update.client.listmodels.AbstractPackageListModel;
 import com.rapid_i.deployment.update.client.listmodels.BookmarksPackageListModel;
@@ -97,6 +102,8 @@ import com.rapidminer.tools.plugin.Dependency;
  */
 public class UpdateListPanel extends JPanel {
 	
+	private static final int LIST_WIDTH = 330;
+
 	private final PackageDescriptorCache packageDescriptorCache = new PackageDescriptorCache();
 
 	private final Map<PackageDescriptor, Boolean> selectionMap = new HashMap<PackageDescriptor, Boolean>();
@@ -120,8 +127,40 @@ public class UpdateListPanel extends JPanel {
 	private final List<PackageDescriptor> descriptors;
 
 	private final JLabel sizeLabel = new JLabel();
+	
+	private Document defaultDescriptionDocument = null;
+	
+	private String defaultDocumentContent = "";
+	
+	private List<ExtendedHTMLJEditorPane> displayPanes = new ArrayList<ExtendedHTMLJEditorPane>();
 
 	public UpdateListPanel(UpdateDialog dialog, List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
+		
+		final ExtendedHTMLJEditorPane displayPane = new ExtendedHTMLJEditorPane("text/html", "");
+		displayPane.installDefaultStylesheet();
+		displayPane.setEditable(false);
+		new Thread("Load Default Description") {
+			@Override
+			public void run() {
+				setDefaultDescription(displayPane);
+				//System.out.println("-------------------------------------------");
+				//System.out.println("Text: " + displayPane.getText());
+				//System.out.println("-------------------------------------------");
+				defaultDescriptionDocument = displayPane.getDocument();
+
+					//defaultDocumentContent = defaultDescriptionDocument.getText(0, defaultDescriptionDocument.getLength()-1);
+					//System.out.println("-------------------------------------------");
+					//System.out.println("Content: " + defaultDocumentContent);
+					//System.out.println("-------------------------------------------");
+					updateDefaultDescription();
+
+				
+			}
+				
+		}.start();
+		defaultDescriptionDocument = displayPane.getDocument();
+		
+		
 		for (String pE : preselectedExtensions) {
 			for (PackageDescriptor desc : descriptors) {
 				if (desc.getPackageId().equals(pE)) {
@@ -173,7 +212,15 @@ public class UpdateListPanel extends JPanel {
 		return (AbstractPackageListModel)list.getModel();
 	}
 	
+	private void updateDefaultDescription() {
+		for (ExtendedHTMLJEditorPane displayPane : displayPanes) {
+			displayPane.setDocument(defaultDescriptionDocument);
+		}
+	}
+	
 	private JPanel createUpdateListPanel(AbstractPackageListModel model) {
+		
+		
 		
 		JPanel updateListPanel = new JPanel(new GridBagLayout());
 
@@ -205,7 +252,33 @@ public class UpdateListPanel extends JPanel {
 		});
 		installButton.setEnabled(false);
 		
-		ExtendedHTMLJEditorPane displayPane = new ExtendedHTMLJEditorPane("text/html", "<html></html>");
+		final ExtendedHTMLJEditorPane displayPane = new ExtendedHTMLJEditorPane("text/html", "");
+		displayPanes.add(displayPane);
+		displayPane.setDocument(defaultDescriptionDocument);
+		displayPane.getDocument().addDocumentListener(new DocumentListener(){
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("inserted");
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("removed");
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("changed");
+			}
+			
+		});
+		
+		//setDefaultDescription(displayPane);
+		
 		displayPane.installDefaultStylesheet();
 		displayPane.setEditable(false);
 
@@ -225,8 +298,8 @@ public class UpdateListPanel extends JPanel {
 		JList packageList = createUpdateList(model, displayPane, installButton);
 		packageLists.add(packageList);
 		JScrollPane updateListScrollPane = new ExtendedJScrollPane(packageList);
-		updateListScrollPane.setMinimumSize(new Dimension(370,100));
-		updateListScrollPane.setPreferredSize(new Dimension(370,100));
+		updateListScrollPane.setMinimumSize(new Dimension(LIST_WIDTH,100));
+		updateListScrollPane.setPreferredSize(new Dimension(LIST_WIDTH,100));
 		updateListScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		updateListPanel.add(updateListScrollPane, c);
 		
@@ -266,6 +339,7 @@ public class UpdateListPanel extends JPanel {
 						installButton.setEnabled(true);
 						
 						PackageDescriptor desc = (PackageDescriptor) selectedValue;
+						displayPane.setDocument(new HTMLDocument());
 						displayPane.setText(UpdateListPanel.this.toString(desc));
 						displayPane.setCaretPosition(0);
 						
@@ -363,7 +437,10 @@ public class UpdateListPanel extends JPanel {
 		});
 		installButton.setEnabled(false);
 		
-		ExtendedHTMLJEditorPane displayPane = new ExtendedHTMLJEditorPane("text/html", "<html></html>");
+		// TODO: Marker - Welcome Message set
+		final ExtendedHTMLJEditorPane displayPane = new ExtendedHTMLJEditorPane("text/html", "");
+		displayPanes.add(displayPane);
+		
 		displayPane.installDefaultStylesheet();
 		displayPane.setEditable(false);
 
@@ -381,10 +458,30 @@ public class UpdateListPanel extends JPanel {
 		});
 		
 		resultList = createUpdateList(searchModel, displayPane, installButton);
+		resultList.addListSelectionListener(new ListSelectionListener(){
+			@Override
+			public void valueChanged(ListSelectionEvent e) {
+				// TODO Auto-generated method stub
+				System.out.println("selection changed.");
+				if (resultList.isSelectionEmpty()) {
+					System.out.println("And Selection is empty");
+					new Thread("Load Default Description") {
+						@Override
+						public void run() {
+							if (displayPane.getDocument() == defaultDescriptionDocument) System.out.println("same document already!");
+							displayPane.setDocument(defaultDescriptionDocument);
+							//setDefaultDescription(displayPane);
+							System.out.println("changing text done!");
+						}
+							
+					}.start();
+				}
+			}
+		});
 		packageLists.add(resultList);
 		JScrollPane updateListScrollPane = new ExtendedJScrollPane(resultList);
-		updateListScrollPane.setMinimumSize(new Dimension(370,100));
-		updateListScrollPane.setPreferredSize(new Dimension(370,100));
+		updateListScrollPane.setMinimumSize(new Dimension(LIST_WIDTH,100));
+		updateListScrollPane.setPreferredSize(new Dimension(LIST_WIDTH,100));
 		updateListScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		panel.add(updateListScrollPane, BorderLayout.CENTER);
 		updateListPanel.add(panel, c);
@@ -410,6 +507,25 @@ public class UpdateListPanel extends JPanel {
 		updateListPanel.add(descriptionPanel, c);
 		
 		return updateListPanel;
+	}
+	
+	private void setDefaultDescription(ExtendedHTMLJEditorPane editor) {
+		
+		
+		
+		try {
+			//editor.setPage("http://rapid-i.com/rapidminer_news/bla");
+			editor.setPage("http://rapid-i.com/rapidminer_news/");
+			/*defaultDescription = buf.toString();
+			System.out.println("------------------------------------------");
+			System.out.println(defaultDescription);
+			System.out.println("------------------------------------------");*/
+			
+			//return "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\"><html><head></head><body>test</body></html>";
+			//return defaultDescription;
+		} catch (Exception e) {
+			editor.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update_welcome_message.text", UpdateManager.getBaseUrl()));
+		}
 	}
 	
 	public final Action searchAction = new AbstractAction(){

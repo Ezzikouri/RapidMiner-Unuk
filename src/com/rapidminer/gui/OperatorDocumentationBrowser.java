@@ -36,8 +36,8 @@ import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.event.HyperlinkEvent.EventType;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import javax.xml.transform.Transformer;
@@ -150,10 +150,14 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 		String groupPath = ((displayedOperator.getOperatorDescription().getGroup()).replace(".", "/"));
 		String opDescXMLResourcePath = DOCUMENTATION_ROOT + groupPath + "/" + displayedOperator.getOperatorDescription().getKey() + ".xml";
 		URL resourceURL = this.getClass().getClassLoader().getResource(opDescXMLResourcePath);
-		try {
-			changeDocumentation(WebServiceTools.openStreamFromURL(resourceURL));
-		} catch (Exception e) {
-			// null stream will result in fallback to wiki/old offline doc
+		if(resourceURL != null) {
+			try {
+				changeDocumentation(WebServiceTools.openStreamFromURL(resourceURL));
+			} catch (Exception e) {
+				// null stream will result in fallback to wiki/old offline doc
+				changeDocumentation(null);
+			}
+		} else {
 			changeDocumentation(null);
 		}
 		currentResourceURL = resourceURL;
@@ -176,7 +180,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 
 	/**
 	 * This is the method that actually gets the Content of this Dockable.
-	 * The conversion takes place in the class OperatorDocToHtmlConverter.
+	 * The conversion takes place in the class {@link OperatorDocToHtmlConverter}.
 	 * @param xmlStream
 	 */
 	private String parseXmlAndReturnHtml(InputStream xmlStream) {
@@ -298,15 +302,17 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	private StyleSheet createStyleSheet() {
 		StyleSheet css = new HTMLEditorKit().getStyleSheet();
 		css.addRule("* {font-family: Arial}");
-		css.addRule("h4 {margin-bottom:2px; margin-top:2ex; padding-left:4px; padding:0; color:#446699; font-size:16pt}");
+		
 		css.addRule("p {padding: 0px 20px 1px 20px; font-family: Arial;}");
 		css.addRule("ul li {padding-bottom:1ex}");
 		css.addRule("hr {color:red; background-color:red}");
 		css.addRule("h3 {color: #3399FF}");
+		css.addRule("h4 {color: #3399FF; font-size:13pt}");
+		css.addRule("h4 img {margin-right:8px;}");
 		css.addRule(".typeIcon {height: 10px; width: 10px;}");
 		css.addRule("td {vertical-align: top}");
 		css.addRule(".lilIcon {padding: 2px 4px 2px 0px}");
-		css.addRule(".HeadIcon {height: 40px; width: 40px}");
+		//css.addRule(".HeadIcon {height: 40px; width: 40px}");
 		css.addRule("td {font-style: normal}");
 
 		return css;

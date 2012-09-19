@@ -46,6 +46,8 @@ import javax.swing.SpinnerNumberModel;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.parameter.ParameterTypeCronExpression;
 import com.rapidminer.tools.I18N;
 
 /**
@@ -124,6 +126,11 @@ public class CronEditorDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = 837836954191730785L;
 
+	
+	public CronEditorDialog(Operator operator, ParameterTypeCronExpression type) {
+		this();
+		//TODO parse cron expression and adapt GUI
+	}
 
 	/**
 	 * Creates a new cron editor dialog.

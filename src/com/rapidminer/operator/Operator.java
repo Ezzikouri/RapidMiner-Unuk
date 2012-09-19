@@ -82,6 +82,7 @@ import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
+import com.rapidminer.parameter.ParameterTypeDate;
 import com.rapidminer.parameter.ParameterTypeInnerOperator;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
@@ -734,12 +735,18 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
                                         "accessing_repository_by_name", new Object[] { type.getKey().replace('_', ' '), value }));
                             }
                         } else if (value.startsWith(String.valueOf(RepositoryLocation.SEPARATOR))) {
-                            addError(new SimpleProcessSetupError(Severity.WARNING, portOwner,
+                            addError(new SimpleProcessSetupError(Severity.ERROR, portOwner,
                                     Collections.singletonList(new RelativizeRepositoryLocationQuickfix(this, type.getKey(), value)),
                                     "absolute_repository_location", new Object[] { type.getKey().replace('_', ' '), value }));
 
                         }
                     }
+                } else if(!type.isOptional() && type instanceof ParameterTypeDate) {
+                	String value = getParameters().getParameterOrNull(type.getKey());
+                	if(!ParameterTypeDate.isValidDate(value)) {
+                		addError(new SimpleProcessSetupError(Severity.WARNING, portOwner,
+                                "invalid_date_format", new Object[] { type.getKey().replace('_', ' '), value }));
+                	}
                 }
             }
         }

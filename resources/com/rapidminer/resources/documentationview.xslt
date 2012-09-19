@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+ xmlns:fn="http://www.w3.org/2005/02/xpath-functions"
  xmlns:rmdoc="com.rapidminer.gui.OperatorDocToHtmlConverter">
 <!-- <xsl:script implements-prefix="pref" language="java" src="java:com.rapid_i.test.OperatorDocToHtmlConverter" / -->
 	<xsl:template match="/">
@@ -38,7 +39,7 @@
 					<td>
 						<img>
 							<xsl:attribute name="src"><xsl:value-of select="rmdoc:getIconNameForOperator($operatorKey)" /></xsl:attribute>
-							<xsl:attribute name="Class">HeadIcon</xsl:attribute>
+							<xsl:attribute name="class">HeadIcon</xsl:attribute>
 						</img>
 					
 					</td>
@@ -58,16 +59,53 @@
 	</xsl:template>
 	<xsl:template match="text">
 		<h3>Description</h3>
-	 	<xsl:for-each select="paragraph">
-			<p>
-				<xsl:value-of select="." />
-				<xsl:apply-templates select="ul" />
-				<xsl:apply-templates select="p" />
-			</p>
-		</xsl:for-each>
+		<xsl:apply-templates />	
+	</xsl:template>
+	<xsl:template match="paragraph">
+		<p>
+			<xsl:apply-templates />
+		</p>
 	</xsl:template>
 	<xsl:template match="em">
 		<em><xsl:value-of select="." /></em>
+	</xsl:template>
+	
+	<xsl:template match="differentiation">
+		
+			<h3>Differentiation</h3>
+			<xsl:apply-templates />
+		
+	</xsl:template>
+
+	<xsl:template match="relatedDocuments">
+		<xsl:if test="count(/relatedDocument)>0">
+			<h3>Related Documents</h3>
+			<xsl:apply-templates />
+		</xsl:if>
+	</xsl:template>
+
+	<xsl:template match="relatedDocument">
+		<xsl:variable name="relatedOpKey">
+			<xsl:value-of select="@key" />
+		</xsl:variable>
+
+		<h4 style="vertical-align:middle;">
+			<span style="vertical-align:middle;">			
+			<img>
+				<xsl:attribute name="src"><xsl:value-of select="rmdoc:getIconNameForOperatorSmall($relatedOpKey)" /></xsl:attribute>
+				<xsl:attribute name="class">HeadIcon</xsl:attribute>
+				<xsl:attribute name="style">vertical-align:middle;margin-right:8px;</xsl:attribute>											
+			</img>					
+			<!-- a style="vertical-align:middle;" href="opdoc:{$relatedOpKey}.html" -->
+			<span style="vertical-align:middle;padding-bottom:5px;">
+			<xsl:value-of select="rmdoc:getOperatorNameForKey($relatedOpKey)" />
+			</span>			
+			<!-- /a -->
+			</span>
+		</h4>
+		<div style="margin-bottom:10px">
+			<xsl:apply-templates />
+		</div>
 	</xsl:template>
 	
 	<xsl:template match="inputPorts">

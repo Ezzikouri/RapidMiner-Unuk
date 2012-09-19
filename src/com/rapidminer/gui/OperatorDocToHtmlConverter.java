@@ -328,11 +328,36 @@ public class OperatorDocToHtmlConverter {
 		// operator keys in the documentation begin with "operator.", so remove that
 		int index = operatorKey.indexOf(".");
 		if (index == -1) {
-			LogService.getRoot().finer("Tried to retrieve icon name for invalid operatorKey: '" + operatorKey + "'!");
-			return null;
+			return SwingTools.getIconPath("24/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
+//			LogService.getRoot().finer("Tried to retrieve icon name for invalid operatorKey: '" + operatorKey + "'!");
+//			return null;
 		} else {
 			operatorKey = operatorKey.substring(index + 1);
 			return SwingTools.getIconPath("24/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
+		}
+	}
+
+	public static String getIconNameForOperatorSmall(String operatorKey) {
+		if (operatorKey == null) {
+			LogService.getRoot().finer("Tried to retrieve icon name for null operatorKey!");
+			return null;
+		}
+		// operator keys in the documentation begin with "operator.", so remove that
+		int index = operatorKey.indexOf(".");
+		if (index == -1) {
+			return SwingTools.getIconPath("16/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
+		} else {
+			operatorKey = operatorKey.substring(index + 1);
+			return SwingTools.getIconPath("16/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
+		}
+	}
+
+	public static String getOperatorNameForKey(String operatorKey) {
+		OperatorDescription operatorDescription = OperatorService.getOperatorDescription(operatorKey);
+		if (operatorDescription != null) {
+			return operatorDescription.getName();
+		} else {
+			return null;
 		}
 	}
 
