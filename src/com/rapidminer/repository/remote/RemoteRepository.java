@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.remote;
 
 import java.awt.Desktop;
@@ -49,8 +50,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import com.rapid_i.repository.wsimport.ProcessService;
-import com.rapid_i.repository.wsimport.ProcessService_Service;
+import com.rapid_i.repository.wsimport.RAInfoService;
+import com.rapid_i.repository.wsimport.RAInfoService_Service;
 import com.rapid_i.repository.wsimport.RepositoryService;
 import com.rapid_i.repository.wsimport.RepositoryService_Service;
 import com.rapidminer.gui.actions.BrowseAction;
@@ -92,7 +93,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private String username;
 	private char[] password;
 	private RepositoryService repositoryService;
-	private ProcessService processService;
+	private ProcessServiceFacade processServiceFacade;
+	private RAInfoService raInfoService;
 	private final EventListenerList listeners = new EventListenerList();
 
 	private static final Map<URI, WeakReference<RemoteRepository>> ALL_REPOSITORIES = new HashMap<URI, WeakReference<RemoteRepository>>();
@@ -103,6 +105,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	static {
 		GlobalAuthenticator.registerServerAuthenticator(new GlobalAuthenticator.URLAuthenticator() {
+
 			@Override
 			public PasswordAuthentication getAuthentication(URL url) {
 				WeakReference<RemoteRepository> reposRef = null;// = ALL_REPOSITORIES.get(url);
@@ -128,7 +131,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			public String getName() {
 				return "Repository authenticator";
 			}
-			
+
 			@Override
 			public String toString() {
 				return getName();
@@ -158,9 +161,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			} catch (URISyntaxException e) {
 				//LogService.getRoot().log(Level.SEVERE, "Could not add repository URI: " + remoteRepository.getBaseUrl().toExternalForm(), e);
 				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.repository.remote.RemoteRepository.adding_repository_uri_error", 
-						remoteRepository.getBaseUrl().toExternalForm()),
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.repository.remote.RemoteRepository.adding_repository_uri_error",
+								remoteRepository.getBaseUrl().toExternalForm()),
 						e);
 			}
 		}
@@ -173,39 +176,40 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			// cannot happen
 			//LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
 			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error", 
-					e),
-					e);
-			return null;
-		}
-	}
-	
-	private URL getRepositoryServiceWSDLUrl() {
-		try {
-			return new URL(getBaseUrl(), "RAWS/RepositoryService?wsdl");
-		} catch (MalformedURLException e) {
-			// cannot happen
-			//LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
-			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error", 
-					e),
+					I18N.getMessage(LogService.getRoot().getResourceBundle(),
+							"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error",
+							e),
 					e);
 			return null;
 		}
 	}
 
-	private URL getProcessServiceWSDLUrl() {
+	private URL getRepositoryServiceWSDLUrl() {
+		String url = "RAWS/RepositoryService?wsdl";
 		try {
-			return new URL(getBaseUrl(), "RAWS/ProcessService?wsdl");
+			return new URL(getBaseUrl(), url);
 		} catch (MalformedURLException e) {
 			// cannot happen
 			//LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
 			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error", 
-					e),
+					I18N.getMessage(LogService.getRoot().getResourceBundle(),
+							"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error",
+							url),
+					e);
+			return null;
+		}
+	}
+
+	private URL getRAInfoServiceWSDLUrl() {
+		String url = "RA/RAInfoService?wsdl";
+		try {
+			return new URL(getBaseUrl(), url);
+		} catch (MalformedURLException e) {
+			// cannot happen
+			LogService.getRoot().log(Level.WARNING,
+					I18N.getMessage(LogService.getRoot().getResourceBundle(),
+							"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error",
+							url),
 					e);
 			return null;
 		}
@@ -258,6 +262,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private Collection<FieldConnectionEntry> connectionEntries;
 	private boolean cachedPasswordUsed = false;
 
+	/** Process queue names fetched from server */
+	private List<String> processExecutionQueueNames;
+
 	protected void register(RemoteEntry entry) {
 		cachedEntries.put(entry.getPath(), entry);
 	}
@@ -307,7 +314,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public String getState() {
 		return (isOffline() ? "offline" : (repositoryService != null ? "connected" : "disconnected"));
 	}
-	
+
 	@Override
 	public String getIconName() {
 		return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.remote.icon");
@@ -317,13 +324,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public String toHtmlString() {
 		return getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small>";
 	}
-	
+
 //	@Override
 //	public String toString() {
 //		return "<html>" + getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small></html>"; //super.toString();
 //	}
 
-	private PasswordAuthentication getAuthentiaction() {		
+	private PasswordAuthentication getAuthentiaction() {
 		if (password == null) {
 			//LogService.getRoot().info("Authentication requested for URL: " + getBaseUrl());
 			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.repository.remote.RemoteRepository.authentication_requested", getBaseUrl());
@@ -337,7 +344,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			} else {
 				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(), false, true);
 				this.cachedPasswordUsed = true;
-			}			
+			}
 			if (passwordAuthentication != null) {
 				this.setPassword(passwordAuthentication.getPassword());
 				this.setUsername(passwordAuthentication.getUserName());
@@ -358,9 +365,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			try {
 				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "RepositoryService"));
 				repositoryService = serviceService.getRepositoryServicePort();
-				
-				setCredentials((BindingProvider)repositoryService);
-				 
+
+				setCredentials((BindingProvider) repositoryService);
+
 				setOffline(false);
 			} catch (Exception e) {
 				setOffline(true);
@@ -379,26 +386,39 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 	}
 
-	public ProcessService getProcessService() throws RepositoryException {
-		// if (offline) {
-		// throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
-		// }
-		if (processService == null) {
+	public ProcessServiceFacade getProcessService() throws RepositoryException {
+		if (processServiceFacade == null) {
 			try {
-				ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "ProcessService"));
-				processService = serviceService.getProcessServicePort();
-				
-				setCredentials((BindingProvider)processService);
+				processServiceFacade = new ProcessServiceFacade(getRAInfoService(), getBaseUrl(), getUsername(), password);
 
 				setOffline(false);
 			} catch (Exception e) {
 				setOffline(true);
 				setPassword(null);
-				processService = null;
+				processServiceFacade = null;
 				throw new RepositoryException("Cannot connect to " + getBaseUrl() + ": " + e, e);
 			}
 		}
-		return processService;
+		return processServiceFacade;
+	}
+
+	/**
+	 * @return the {@link RAInfoService} if it can be accessed. If the queried RA cannot be reached or has no RAInfoService <code>null</code> is returned.
+	 */
+	public RAInfoService getRAInfoService() {
+		if (raInfoService == null) {
+			try {
+				RAInfoService_Service serviceService = new RAInfoService_Service(getRAInfoServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "RAInfoService"));  //TODO how to set the namespace uri? 
+				raInfoService = serviceService.getRAInfoServicePort();
+
+				setCredentials((BindingProvider) raInfoService);
+
+				setOffline(false);
+			} catch (Exception e) {
+				raInfoService = null;
+			}
+		}
+		return raInfoService;
 	}
 
 	@Override
@@ -413,6 +433,39 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		super.refresh();
 		removeJDBCConnectionEntries();
 		installJDBCConnectionEntries();
+		refreshProcessExecutionQueueNames();
+	}
+
+	private void refreshProcessExecutionQueueNames() {
+		try {
+			refreshProcessQueueNames(getProcessService());
+		} catch (RepositoryException e) {
+			processExecutionQueueNames = null;
+		}
+	}
+
+	private void refreshProcessQueueNames(ProcessServiceFacade processService) {
+		if (processService.getProcessServiceVersion().isAtLeast(ProcessServiceFacade.VERSION_1_3)) {
+			processExecutionQueueNames = processService.getQueueNames();
+		} else {
+			processExecutionQueueNames = null;
+		}
+	}
+
+	/**
+	 * @return a copy of all process execution queue names. If it is <code>null</code> process queue names are not supported.
+	 */
+	public List<String> getProcessQueueNames() {
+		if (processExecutionQueueNames == null) {
+			try {
+				ProcessServiceFacade processService = getProcessService();
+				if (processService.getProcessServiceVersion().isAtLeast(ProcessServiceFacade.VERSION_1_3)) {
+					refreshProcessQueueNames(processService);
+				}
+
+			} catch (RepositoryException e) {}
+		}
+		return new LinkedList<String>(processExecutionQueueNames);
 	}
 
 	/** Returns a connection to a given location in the repository. 
@@ -423,7 +476,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		String split[] = location.split("/");
 		StringBuilder encoded = new StringBuilder();
 		encoded.append("RAWS/resources");
-		for (String fraction : split) {		
+		for (String fraction : split) {
 			if (!fraction.isEmpty()) { // only for non empty to prevent double //
 				encoded.append('/');
 				encoded.append(URLEncoder.encode(fraction, "UTF-8"));
@@ -438,12 +491,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public HttpURLConnection getHTTPConnection(String pathInfo, boolean preAuthHeader) throws IOException {
 		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), pathInfo).openConnection();
 		WebServiceTools.setURLConnectionDefaults(conn);
-		conn.setRequestProperty("Accept-Charset", "UTF-8"); 
+		conn.setRequestProperty("Accept-Charset", "UTF-8");
 		if (preAuthHeader && (username != null) && (password != null)) {
 			String userpass = username + ":" + new String(password);
 			String basicAuth = "Basic " + new String(Base64.encodeBytes(userpass.getBytes()));
-			conn.setRequestProperty ("Authorization", basicAuth);
-		}		
+			conn.setRequestProperty("Authorization", basicAuth);
+		}
 		return conn;
 	}
 
@@ -483,8 +536,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public static List<RemoteRepository> getAll() {
 		List<RemoteRepository> result = new LinkedList<RemoteRepository>();
 		for (WeakReference<RemoteRepository> ref : ALL_REPOSITORIES.values()) {
-			RemoteRepository rep = ref.get();
 			if (ref != null) {
+				RemoteRepository rep = ref.get();
 				result.add(rep);
 			}
 		}
@@ -503,8 +556,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		int uriModificator = 0;
 		try {
 			uriModificator = (getBaseUrl() == null) ? 0 : getBaseUrl().toURI().hashCode();
-		} catch (URISyntaxException e) {
-		}
+		} catch (URISyntaxException e) {}
 		result = prime * result + uriModificator;
 		result = prime * result + ((getUsername() == null) ? 0 : getUsername().hashCode());
 		return result;
@@ -612,8 +664,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	@Override
-	public void postInstall() {
-	}
+	public void postInstall() {}
 
 	private void installJDBCConnectionEntries() {
 		if (this.connectionEntries != null) {
@@ -625,16 +676,16 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				DatabaseConnectionService.addConnectionEntry(entry);
 			}
 			//LogService.getRoot().config("Added " + connectionEntries.size() + " jdbc connections exported by " + getName() + ".");
-			LogService.getRoot().log(Level.CONFIG, "com.rapidminer.repository.remote.RemoteRepository.added_jdbc_connections_exported_by", 
-					new Object[] {connectionEntries.size(), getName()});
+			LogService.getRoot().log(Level.CONFIG, "com.rapidminer.repository.remote.RemoteRepository.added_jdbc_connections_exported_by",
+					new Object[] { connectionEntries.size(), getName() });
 
 		} catch (Exception e) {
 			//LogService.getRoot().log(Level.WARNING, "Failed to fetch JDBC connection entries from server " + getName() + ".", e);
 			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.repository.remote.RemoteRepository.fetching_jdbc_connections_entries_error", 
-					getName()),
-					e);		
+					I18N.getMessage(LogService.getRoot().getResourceBundle(),
+							"com.rapidminer.repository.remote.RemoteRepository.fetching_jdbc_connections_entries_error",
+							getName()),
+					e);
 		}
 	}
 
@@ -648,8 +699,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	@Override
-	public void preRemove() {
-	}
+	public void preRemove() {}
 
 	public URL getBaseUrl() {
 		return baseUrl;
@@ -670,8 +720,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public void setPassword(char[] password) {
 		this.password = password;
 	}
-	
-	
+
 	@Override
 	public boolean isConfigurable() {
 		return true;
@@ -693,7 +742,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private boolean isOffline() {
 		return offline;
 	}
-	
+
 	/** If value changes, notifies {@link #connectionListeners}. */
 	private void setOffline(boolean offline) {
 		if (offline == this.offline) {
@@ -708,11 +757,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			}
 		}
 	}
-	
+
 	private List<ConnectionListener> connectionListeners = new LinkedList<ConnectionListener>();
+
 	public void addConnectionListener(ConnectionListener l) {
 		connectionListeners.add(l);
 	}
+
 	public void removeConnectionListener(ConnectionListener l) {
 		connectionListeners.remove(l);
 	}

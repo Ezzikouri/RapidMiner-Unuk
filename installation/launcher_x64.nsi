@@ -82,26 +82,29 @@ Function PerformUpdate
 ;
 ;  Check for Directory RUinstall
 ;  If found, copy everything from this directory and remove it 
- 
+
+  ;RapidMiner directory in UserProfile --------- important change for new version
+  StrCpy $R9 "$PROFILE\.RapidMiner5"
+
   Push $R0
  
   ClearErrors
-  StrCpy $R0 "$EXEDIR\RUinstall\*"
-  IfFileExists $R0 UpdateFound
-  StrCpy $R0 ""
+  StrCpy $R0 "$R9\RUinstall\*"
+  IfFileExists $R0 UpdateFound NoUpdate
         
   UpdateFound:
-    ; Check if update contains new RapidMiner.exe
-    StrCpy $R0 "$EXEDIR\RUinstall\RapidMiner.exe"
-    IfFileExists UpdateItself UpdateOther
-    UpdateItself:
-       Rename "$EXEDIR\RUinstall\RapidMiner.exe" "$EXEDIR\RapidMiner.exex"
-       Rename /REBOOTOK "$EXEDIR\RapidMiner.exex" "$EXEDIR\RapidMiner.exe"
-    
-    UpdateOther:  
-       CopyFiles /SILENT $EXEDIR\RUinstall\* $EXEDIR
-       RmDir /r $EXEDIR\RUinstall
-     
+     MessageBox MB_OKCANCEL "An Update was found. Press press OK to perform the update now or press Cancel to delay the update until the next start. You need to enter the Administrator-Password to start the update" IDOK OK IDCANCEL CANCEL
+	 ;start RapidMinerUpdate.exe which will elevate administrator privileges
+	 OK:
+	 	ExecShell "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' "$R9"
+	 	Abort		
+		Quit
+		 
+	CANCEL:
+		; User delayed update
+		
+  NoUpdate:
+ 
 FunctionEnd
 
 Function GetJRE

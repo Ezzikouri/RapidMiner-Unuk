@@ -26,7 +26,7 @@
 
 	<property name="junit.tests.dir" value="" />
 	<property name="rapidminer.tests.dir" value="../RapidMiner_Tests" />
-	
+
 	<!-- compiler options -->
 	<property name="compiler.version" value="modern" />
 	<property name="compiler.debug" value="true" />
@@ -36,8 +36,9 @@
 	<!-- Update and release server properties -->
 	<property file="server.properties" />
 
-	<property name="makensis" value="makensis"/> <!-- Assume this is on the PATH -->
-	
+	<property name="makensis" value="makensis" />
+	<!-- Assume this is on the PATH -->
+
 	<!-- Class Paths -->
 	<path id="rm.classpath">
 		<fileset dir="${lib}/">
@@ -93,15 +94,15 @@
 		<downloadOperatorDocumentation resourcedir="${resources}" namespace="core" operatorsdocfile="resources/com/rapidminer/resources/i18n/OperatorsCoreDocumentation.xml" operatorsfile="resources/com/rapidminer/resources/OperatorsCore.xml" />
 		<property name="lock.isDocumentationPrepared" value="true" />
 	</target>
-	
+
 	<target name="check.newDocumentationPresent">
 		<condition property="lock.newDocumentationPresent">
 			<available file="${manual}" type="dir" />
 		</condition>
 	</target>
-	
+
 	<target name="create-documentation" depends="init, check.newDocumentationPresent" if="lock.newDocumentationPresent">
-		<ant antfile="${manual}/build.xml" dir="${manual}" target="install"/>
+		<ant antfile="${manual}/build.xml" dir="${manual}" target="install" />
 	</target>
 
 	<target name="clean" unless="lock.isCleaned" description="Delete the build directory, java doc, rapidminer.jar">
@@ -286,6 +287,18 @@
 		</exec>
 	</target>
 
+	<target name="release.makeWin64Launcher">
+		<exec executable="${makensis}">
+			<arg line="installation/launcher_x64.nsi" />
+		</exec>
+	</target>
+
+	<target name="release.makeUpdater">
+			<exec executable="${makensis}">
+				<arg line="installation/update.nsi" />
+			</exec>
+		</target>
+
 	<target name="release.makeWin32" depends="release.prepare" description="This creates the installer for the Windows32 platform">
 		<echo message="Releasing Windows32 Installer..." />
 		<!-- Now creating rapidminer.jar and copy from lib to release path -->
@@ -300,6 +313,12 @@
 		<exec executable="${makensis}">
 			<arg line="installation/launcher.nsi" />
 		</exec>
+		
+		<!-- Now build Updater: Will generate release/files/scripts/RapidMinerUpdate.exe -->
+		<echo message="Building Updatefunction..." />
+				<exec executable="${makensis}">
+					<arg line="installation/update.nsi" />
+				</exec>
 
 		<!-- Copy JRE -->
 		<echo message="Copying JRE..." />
@@ -339,7 +358,13 @@
 		<exec executable="${makensis}">
 			<arg line="installation/launcher_x64.nsi" />
 		</exec>
-
+		
+		<!-- Now build Updater: Will generate release/files/scripts/RapidMinerUpdate.exe -->
+		<echo message="Building Updatefunction..." />
+						<exec executable="${makensis}">
+							<arg line="installation/update.nsi" />
+						</exec>
+		
 		<!-- Copy JRE -->
 		<copy todir="${release.files}/jre">
 			<fileset dir="${jre64}" />
@@ -371,16 +396,16 @@
 		<!-- Deleting all release files without test-->
 		<ant target="release.deleteFiles" />
 	</target>
-	
+
 	<target name="release.makeAllNoSources" depends="release.prepare" description="This target releases all available platform versions without the source files">
 		<echo message="Releasing all versions (no sources)..." />
 		<property name="release.isMultiple" value="true" />
-		
+
 		<delete dir="${release.files}/src" />
 		<delete dir="${release.files}/src_generated" />
 		<delete dir="${release.files}/src_launcher" />
 		<delete dir="${release.files}/src_test" />
-		
+
 		<ant target="release.makePlatformIndependent" />
 		<ant target="release.makeWin32" />
 		<ant target="release.makeWin64" />
@@ -428,18 +453,18 @@
 		</move>
 		<delete dir="${release}/scp" />
 	</target>
-	
+
 	<target name="release.publishToRapidShare" depends="release.makeAll" description="Copies the created jar file into Rapid-I's internal file share.">
-        <echo message="Publishing release ${rapidminer.longversion} to Rapid Share..." />
+		<echo message="Publishing release ${rapidminer.longversion} to Rapid Share..." />
 		<property name="server.rapidshare.path.release" value="${server.rapidshare.path}/RapidMiner/Community/${rapidminer.longversion}" />
-        <mkdir dir="${server.rapidshare.path.release}" />
-        <copy todir="${server.rapidshare.path.release}">
+		<mkdir dir="${server.rapidshare.path.release}" />
+		<copy todir="${server.rapidshare.path.release}">
 			<fileset dir="${release}">
 				<include name="*.zip" />
 				<include name="*.exe" />
 				<exclude name="update*.*" />
 			</fileset>
-        </copy>
+		</copy>
 	</target>
 
 
@@ -610,13 +635,13 @@
 	<target name="test.clean" depends="test.clean.dir.check" if="test.clean.dir.exists">
 		<ant antfile="${rapidminer.tests.dir}/build.xml" target="test.clean" dir="${rapidminer.tests.dir}" inheritall="true" />
 	</target>
-	
+
 	<target name="test.clean.dir.check">
 		<condition property="test.clean.dir.exists">
-			<available file="${rapidminer.tests.dir}" type="dir"/>
+			<available file="${rapidminer.tests.dir}" type="dir" />
 		</condition>
 	</target>
-	
+
 	<target name="test.createJar" depends="createJar,test.build" description="Generate the lib/rapidminer.jar file">
 		<echo message="Creating jar..." />
 		<!--<pathconvert pathsep=" " property="manifest.classpath" refid="rm.classpath" dirsep="/">
@@ -638,7 +663,7 @@
 		</jar>
 	</target>
 
-	
+
 	<target name="test">
 		<ant antfile="${rapidminer.tests.dir}/build.xml" target="test" dir="${rapidminer.tests.dir}" inheritall="false" />
 	</target>
@@ -679,9 +704,7 @@
         </echo>
 
 		<!-- Version.java -->
-		<replaceregexp file="${src}/com/rapidminer/RapidMinerVersion.java" 
-			match="VERSION_STRING = &quot;(.*)&quot;;" 
-			replace="VERSION_STRING = &quot;${rapidminer.longversion}&quot;;" />
+		<replaceregexp file="${src}/com/rapidminer/RapidMinerVersion.java" match="VERSION_STRING = &quot;(.*)&quot;;" replace="VERSION_STRING = &quot;${rapidminer.longversion}&quot;;" />
 		<echo message="Updating to version ${rapidminer.longversion}" />
 		<!--
 		<delete file="${src}/com/rapidminer/RapidMinerVersion.java" />
@@ -895,17 +918,41 @@
 <arg value="http://localhost:8080/RAWS/ProcessService?wsdl" />
 </exec>
 
-	<exec executable="wsimport" dir="${basedir}">
-	<arg value="-Xdebug" />
-	<arg value="-keep" />
-	<arg value="-p" />
-	<arg value="com.rapid_i.repository.wsimport.mgt" />
-	<arg value="-s" />
-	<arg file="${src_generated}" />
-	<arg value="-Xnocompile" />
-	<arg value="-extension" />
-	<arg value="http://localhost:8080/RAWS/ManagementService?wsdl" />
-	</exec>
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapid_i.repository.wsimport.mgt" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/RAWS/ManagementService?wsdl" />
+</exec>
+
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapid_i.repository.wsimport" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/RAWS/ProcessService_1_3?wsdl" />
+</exec>
+
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapid_i.repository.wsimport" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/RAWS/RAInfoService?wsdl" />
+</exec>
 </target>
 
 <target name="signJars" depends="createJar" description="Don't forget to add jarsign.alias and jarsign.storepass to the file server.properties">

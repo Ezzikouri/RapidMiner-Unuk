@@ -39,6 +39,30 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link GetGlobalProperty }
+     * 
+     */
+    public GetGlobalProperty createGetGlobalProperty() {
+        return new GetGlobalProperty();
+    }
+
+    /**
+     * Create an instance of {@link CheckSetup }
+     * 
+     */
+    public CheckSetup createCheckSetup() {
+        return new CheckSetup();
+    }
+
+    /**
+     * Create an instance of {@link GetGlobalPropertyResponse }
+     * 
+     */
+    public GetGlobalPropertyResponse createGetGlobalPropertyResponse() {
+        return new GetGlobalPropertyResponse();
+    }
+
+    /**
      * Create an instance of {@link CheckSetupResponse }
      * 
      */
@@ -52,30 +76,6 @@ public class ObjectFactory {
      */
     public SetGlobalProperty createSetGlobalProperty() {
         return new SetGlobalProperty();
-    }
-
-    /**
-     * Create an instance of {@link GetGlobalProperty }
-     * 
-     */
-    public GetGlobalProperty createGetGlobalProperty() {
-        return new GetGlobalProperty();
-    }
-
-    /**
-     * Create an instance of {@link GetGlobalPropertyResponse }
-     * 
-     */
-    public GetGlobalPropertyResponse createGetGlobalPropertyResponse() {
-        return new GetGlobalPropertyResponse();
-    }
-
-    /**
-     * Create an instance of {@link CheckSetup }
-     * 
-     */
-    public CheckSetup createCheckSetup() {
-        return new CheckSetup();
     }
 
     /**

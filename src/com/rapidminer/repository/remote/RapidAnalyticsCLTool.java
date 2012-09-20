@@ -34,7 +34,6 @@ import javax.xml.ws.BindingProvider;
 
 import com.rapid_i.repository.wsimport.ExecutionResponse;
 import com.rapid_i.repository.wsimport.ProcessResponse;
-import com.rapid_i.repository.wsimport.ProcessService;
 import com.rapid_i.repository.wsimport.ProcessStackTrace;
 import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
 import com.rapid_i.repository.wsimport.RepositoryService;
@@ -336,7 +335,7 @@ public class RapidAnalyticsCLTool {
 		return managementServicePort;
 	}
 	
-	private int getJobId(int jobId, ProcessService processService) {
+	private int getJobId(int jobId, ProcessServiceFacade processService) {
 		while (true) {
 			System.err.println("Waiting for server to assign process id to scheduled job id "+jobId+"...");
 			List<Integer> result = processService.getProcessIdsForJobId(jobId);
