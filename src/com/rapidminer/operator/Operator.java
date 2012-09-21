@@ -743,7 +743,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
                     }
                 } else if(!type.isOptional() && type instanceof ParameterTypeDate) {
                 	String value = getParameters().getParameterOrNull(type.getKey());
-                	if(!ParameterTypeDate.isValidDate(value)) {
+                	if(value != null && !ParameterTypeDate.isValidDate(value)) {
                 		addError(new SimpleProcessSetupError(Severity.WARNING, portOwner,
                                 "invalid_date_format", new Object[] { type.getKey().replace('_', ' '), value }));
                 	}

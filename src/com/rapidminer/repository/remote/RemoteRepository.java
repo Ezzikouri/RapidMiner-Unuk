@@ -201,7 +201,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	private URL getRAInfoServiceWSDLUrl() {
-		String url = "RA/RAInfoService?wsdl";
+		String url = "RAWS/RAInfoService?wsdl";
 		try {
 			return new URL(getBaseUrl(), url);
 		} catch (MalformedURLException e) {
@@ -459,13 +459,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		if (processExecutionQueueNames == null) {
 			try {
 				ProcessServiceFacade processService = getProcessService();
-				if (processService.getProcessServiceVersion().isAtLeast(ProcessServiceFacade.VERSION_1_3)) {
-					refreshProcessQueueNames(processService);
-				}
-
+				refreshProcessQueueNames(processService);
 			} catch (RepositoryException e) {}
 		}
-		return new LinkedList<String>(processExecutionQueueNames);
+
+		return processExecutionQueueNames == null ? null : new LinkedList<String>(processExecutionQueueNames);
 	}
 
 	/** Returns a connection to a given location in the repository. 

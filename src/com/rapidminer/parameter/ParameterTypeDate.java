@@ -150,7 +150,7 @@ public class ParameterTypeDate extends ParameterTypeSingle {
 	 */
 	public static boolean isValidDate(String dateString) {
 		try {
-			return DATE_FORMAT.parse(dateString) != null;
+			return dateString != null && DATE_FORMAT.parse(dateString) != null;
 		} catch (ParseException e) {
 			return false;
 		}
