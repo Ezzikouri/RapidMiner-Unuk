@@ -20,32 +20,26 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.gui.actions;
 
-import java.awt.event.ActionEvent;
+package com.rapidminer.repository.remote;
 
-import com.rapidminer.gui.MainFrame;
-import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.tools.ResourceAction;
-import com.rapidminer.repository.gui.RunRemoteDialog;
+import java.util.Date;
+
 /**
+ * A {@link ProcessScheduler} can be used to schedule processes on RapidAnalytics. It can be created via a {@link ProcessSchedulerFactory}.
  * 
- * @author Simon Fischer
+ * @author Nils Woehler
+ *
  */
-public class RunRemoteAction extends ResourceAction {
+public interface ProcessScheduler {
 
-	private static final long serialVersionUID = 1L;
-
-	public MainFrame mainFrame;
-	
-	public RunRemoteAction() {
-		super(true, "run_remote");
-		setCondition(EDIT_IN_PROGRESS, DISALLOWED);
-	}
-	
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		RunRemoteDialog.showDialog(RapidMinerGUI.getMainFrame().getProcess(), true);
-	}
+	/**
+	 * Schedules a process on RapidAnalytics.
+	 * 
+	 * @param config the config that determines when the process should be executed
+	 * @throws SchedulingException if the config has errors or the scheduling did fail a {@link SchedulingException} is thrown.
+	 * @return the date the process will run first
+	 */
+	public Date scheduleProcess(ProcessSchedulerConfig config) throws SchedulingException;
 
 }

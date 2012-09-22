@@ -20,32 +20,38 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.gui.actions;
 
-import java.awt.event.ActionEvent;
+package com.rapidminer.repository.remote;
 
-import com.rapidminer.gui.MainFrame;
-import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.tools.ResourceAction;
-import com.rapidminer.repository.gui.RunRemoteDialog;
 /**
+ * A Singleton factory for creating {@link ProcessScheduler}s.
  * 
- * @author Simon Fischer
+ * @author Nils Woehler
  */
-public class RunRemoteAction extends ResourceAction {
+public class ProcessSchedulerFactory {
 
-	private static final long serialVersionUID = 1L;
+	private static ProcessSchedulerFactory instance;
 
-	public MainFrame mainFrame;
-	
-	public RunRemoteAction() {
-		super(true, "run_remote");
-		setCondition(EDIT_IN_PROGRESS, DISALLOWED);
+	private ProcessSchedulerFactory() {}
+
+	public synchronized static ProcessSchedulerFactory getInstance() {
+		if (instance == null) {
+			instance = new ProcessSchedulerFactory();
+		}
+		return instance;
 	}
-	
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		RunRemoteDialog.showDialog(RapidMinerGUI.getMainFrame().getProcess(), true);
+
+	private ProcessScheduler scheduler = new RemoteProcessScheduler();
+
+	/**
+	 * @return the {@link ProcessScheduler} to schedule the process with.
+	 */
+	public ProcessScheduler getProcessScheduler() {
+		return scheduler;
+	}
+
+	public void setProcessScheduler(ProcessScheduler scheduler) {
+		this.scheduler = scheduler;
 	}
 
 }
