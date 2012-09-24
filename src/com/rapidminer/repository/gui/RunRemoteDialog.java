@@ -629,7 +629,7 @@ public class RunRemoteDialog extends ButtonDialog {
 			}
 
 			try {
-				Date firstExec = ProcessSchedulerFactory.getInstance().getProcessScheduler().scheduleProcess(createProcessScheduleConfig());
+				Date firstExec = ProcessSchedulerFactory.getInstance().getProcessScheduler().scheduleProcess(createProcessScheduleConfig(), null);
 				SwingTools.showMessageDialog("process_will_first_run", firstExec);
 			} catch (Exception e) {
 				SwingTools.showSimpleErrorMessage("run_proc_remote", e.getLocalizedMessage());

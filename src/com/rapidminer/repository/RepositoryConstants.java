@@ -76,4 +76,6 @@ public interface RepositoryConstants {
 	
 	public static final int PROCESS_FAILED = -22;
 
+	public static final int NO_SUCH_QUEUE = -23;
+
 }

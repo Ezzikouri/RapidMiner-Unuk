@@ -25,6 +25,8 @@ package com.rapidminer.repository.remote;
 
 import java.util.Date;
 
+import com.rapidminer.repository.RepositoryAccessor;
+
 /**
  * A {@link ProcessScheduler} can be used to schedule processes on RapidAnalytics. It can be created via a {@link ProcessSchedulerFactory}.
  * 
@@ -37,9 +39,10 @@ public interface ProcessScheduler {
 	 * Schedules a process on RapidAnalytics.
 	 * 
 	 * @param config the config that determines when the process should be executed
+	 * @param repositoryAccessor 
 	 * @throws SchedulingException if the config has errors or the scheduling did fail a {@link SchedulingException} is thrown.
 	 * @return the date the process will run first
 	 */
-	public Date scheduleProcess(ProcessSchedulerConfig config) throws SchedulingException;
+	public Date scheduleProcess(ProcessSchedulerConfig config, RepositoryAccessor repositoryAccessor) throws SchedulingException;
 
 }

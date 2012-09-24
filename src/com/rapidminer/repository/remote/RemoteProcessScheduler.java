@@ -33,6 +33,7 @@ import com.rapid_i.repository.wsimport.ProcessContextWrapper;
 import com.rapidminer.ProcessContext;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryAccessor;
 import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.container.Pair;
@@ -46,14 +47,14 @@ import com.rapidminer.tools.container.Pair;
 public class RemoteProcessScheduler implements ProcessScheduler {
 
 	@Override
-	public Date scheduleProcess(ProcessSchedulerConfig config) throws SchedulingException {
+	public Date scheduleProcess(ProcessSchedulerConfig config, RepositoryAccessor ignored) throws SchedulingException {
 
 		ExecutionResponse response;
 		ProcessServiceFacade processService;
 		try {
 			Repository repository = config.getLocation().getRepository();
 			if (!(repository instanceof RemoteRepository)) {
-				throw new SchedulingException("not_on_ra_repository", null, repository.getName()); 
+				throw new SchedulingException("not_on_ra_repository", null, repository.getName());
 			}
 			processService = ((RemoteRepository) repository).getProcessService();
 		} catch (RepositoryException e) {
@@ -68,26 +69,14 @@ public class RemoteProcessScheduler implements ProcessScheduler {
 				Date endDate = config.getEnd();
 				XMLGregorianCalendar start = startDate != null ? XMLTools.getXMLGregorianCalendar(startDate) : null;
 				XMLGregorianCalendar end = endDate != null ? XMLTools.getXMLGregorianCalendar(endDate) : null;
-				if (processService.getProcessServiceVersion().isAtLeast(ProcessServiceFacade.VERSION_1_3)) {
-					response = processService.executeProcessCron(path, config.getCronExpression(), start, end, createProcessContextWrapper(pc), queueName);
-				} else {
-					response = processService.executeProcessCron(path, config.getCronExpression(), start, end, createProcessContextWrapper(pc));
-				}
+				response = processService.executeProcessCron(path, config.getCronExpression(), start, end, createProcessContextWrapper(pc), queueName);
 				break;
 			case ONCE:
 				Date date = config.getOnceDate();
-				if (processService.getProcessServiceVersion().isAtLeast(ProcessServiceFacade.VERSION_1_3)) {
-					response = processService.executeProcessSimple(path, XMLTools.getXMLGregorianCalendar(date), createProcessContextWrapper(pc), queueName);
-				} else {
-					response = processService.executeProcessSimple(path, XMLTools.getXMLGregorianCalendar(date), createProcessContextWrapper(pc));
-				}
+				response = processService.executeProcessSimple(path, XMLTools.getXMLGregorianCalendar(date), createProcessContextWrapper(pc), queueName);
 				break;
 			default:
-				if (processService.getProcessServiceVersion().isAtLeast(ProcessServiceFacade.VERSION_1_3)) {
-					response = processService.executeProcessSimple(path, null, createProcessContextWrapper(pc), queueName);
-				} else {
-					response = processService.executeProcessSimple(path, null, createProcessContextWrapper(pc));
-				}
+				response = processService.executeProcessSimple(path, null, createProcessContextWrapper(pc), queueName);
 				break;
 		}
 

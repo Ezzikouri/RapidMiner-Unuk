@@ -47,6 +47,7 @@ import com.rapid_i.repository.wsimport.Response;
 import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * This is a wrapper for all available Process Service Versions. It hides the current 
@@ -76,7 +77,7 @@ public class ProcessServiceFacade {
 		VersionNumber highestProcessServiceVersion = VERSION_1_0;
 		ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(VERSION_1_0_URL), new QName("http://service.web.rapidanalytics.de/", "ProcessService"));
 		processService_1_0 = serviceService.getProcessServicePort();
-		setCredentials((BindingProvider) processService_1_0, username, password);
+		setupBindingProvider((BindingProvider) processService_1_0, username, password);
 
 		// if raInfoService is not null, check which further versions are available
 		if (raInfoService != null) {
@@ -86,7 +87,7 @@ public class ProcessServiceFacade {
 				highestProcessServiceVersion = VERSION_1_3;
 				ProcessService13_Service service13Service = new ProcessService13_Service(getProcessServiceWSDLUrl(VERSION_1_3_URL), new QName("http://service.web.rapidanalytics.de/", "ProcessService_1_3"));
 				processService_1_3 = service13Service.getProcessService13Port();
-				setCredentials((BindingProvider) processService_1_3, username, password);
+				setupBindingProvider((BindingProvider) processService_1_3, username, password);
 			}
 
 		}
@@ -95,11 +96,12 @@ public class ProcessServiceFacade {
 
 	}
 
-	private void setCredentials(BindingProvider bp, String username, char[] password) {
+	private void setupBindingProvider(BindingProvider bp, String username, char[] password) {
 		if (password != null) {
 			bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, username);
 			bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, new String(password));
 		}
+		WebServiceTools.setTimeout(bp);
 	}
 
 	private URL getProcessServiceWSDLUrl(String url) {
@@ -147,19 +149,14 @@ public class ProcessServiceFacade {
 	}
 
 	/**
-	 * If queueName is not <code>null</code> it needs at least Process Service version 1.3. 
-	 * 
-	 * @throws UnsupportedOperationException is thrown if queueName is not <code>null</code> and process service version is prior to version 1.3
+	 * If Process Service version is not at least 1.3 queueName will not be considered. 
 	 */
 	public ExecutionResponse executeProcessSimple(String processName, XMLGregorianCalendar date, ProcessContextWrapper context,
 													String queueName) {
-
-		if (queueName == null) {
-			return processService_1_0.executeProcessSimple(processName, date, context);
-		} else if (getProcessServiceVersion().isAtLeast(VERSION_1_3)) {
+		if (getProcessServiceVersion().isAtLeast(VERSION_1_3)) {
 			return processService_1_3.executeProcessSimple13(processName, date, context, queueName);
 		} else {
-			throw new UnsupportedOperationException("Needs at least process service of version 1.3");
+			return processService_1_0.executeProcessSimple(processName, date, context);
 		}
 
 	}
@@ -173,18 +170,14 @@ public class ProcessServiceFacade {
 	}
 
 	/**
-	 * If queueName is not <code>null</code> it needs at least Process Service version 1.3. 
-	 * 
-	 * @throws UnsupportedOperationException is thrown if if queueName is not <code>null</code> and process service version is prior to version 1.3
+	 * If Process Service version is not at least 1.3 queueName will not be considered.
 	 */
 	public ExecutionResponse executeProcessCron(String processName, String cronExpression, XMLGregorianCalendar start, XMLGregorianCalendar end,
 												ProcessContextWrapper context, String queueName) {
-		if (queueName == null) {
-			return processService_1_0.executeProcessCron(processName, cronExpression, start, end, context);
-		} else if (getProcessServiceVersion().isAtLeast(VERSION_1_3)) {
+		if (getProcessServiceVersion().isAtLeast(VERSION_1_3)) {
 			return processService_1_3.executeProcessCron13(processName, cronExpression, start, end, context, queueName);
 		} else {
-			throw new UnsupportedOperationException("Needs at least process service of version 1.3");
+			return processService_1_0.executeProcessCron(processName, cronExpression, start, end, context);
 		}
 	}
 

@@ -38,7 +38,7 @@ import javax.xml.ws.BindingProvider;
  */
 public class WebServiceTools {
 
-	private static final int TIMEOUT = 4000;
+	private static final int TIMEOUT = 20000;
 	
 	private static final int TIMEOUT_URL_CONNECTION = 20000;
 

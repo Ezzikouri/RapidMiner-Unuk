@@ -152,6 +152,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			this.setPassword(null);
 		}
 		register(this);
+		// Will cause stack overflow
+		//refreshProcessExecutionQueueNames();
 	}
 
 	private static void register(RemoteRepository remoteRepository) {
@@ -366,7 +368,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "RepositoryService"));
 				repositoryService = serviceService.getRepositoryServicePort();
 
-				setCredentials((BindingProvider) repositoryService);
+				setupBindingProvider((BindingProvider) repositoryService);
 
 				setOffline(false);
 			} catch (Exception e) {
@@ -379,11 +381,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		return repositoryService;
 	}
 
-	private void setCredentials(BindingProvider bp) {
+	private void setupBindingProvider(BindingProvider bp) {
 		if (password != null) {
 			bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, getUsername());
 			bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, new String(password));
 		}
+		WebServiceTools.setTimeout(bp);
+		
 	}
 
 	public ProcessServiceFacade getProcessService() throws RepositoryException {
@@ -411,7 +415,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				RAInfoService_Service serviceService = new RAInfoService_Service(getRAInfoServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "RAInfoService"));  //TODO how to set the namespace uri? 
 				raInfoService = serviceService.getRAInfoServicePort();
 
-				setCredentials((BindingProvider) raInfoService);
+				setupBindingProvider((BindingProvider) raInfoService);
 
 				setOffline(false);
 			} catch (Exception e) {
