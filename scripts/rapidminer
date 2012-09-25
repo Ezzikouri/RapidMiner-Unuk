@@ -66,14 +66,58 @@ done
 
 CLASSPATH=${RAPIDMINER_CLASSPATH}:${CLASSPATH}
 
-
-update_dir=${RAPIDMINER_HOME}/RUinstall
+################# Update
+update_root=~/.RapidMiner5/update
+update_dir=${update_root}/RUinstall
+update_script=${update_root}/UPDATE
+    # Performing possible update
     if [ -d "${update_dir}" ]; then
-      echo "Performing update..."
-	  cp -rf "${update_dir}"/* "${RAPIDMINER_HOME}"
-      rm -rf "${update_dir}"
-    fi
-
+    	if [ -w "${RAPIDMINER_HOME}" ] ; then
+    		echo "======================================================================="
+    		echo "Performing update. Copying files from '${update_dir}' to '${RAPIDMINER_HOME}'."
+    		cp -rf "${update_dir}"/* "${RAPIDMINER_HOME}"
+    		rm -rf "${update_dir}"
+    		echo "Copy complete."
+    		if [ -f "${update_script}" ] ; then
+    			echo "Deleting obsolete files listed in ${update_script}."
+    			{
+    				while read COMMAND FILE
+    				do
+    					if [ "DELETE" = "${COMMAND}" ] ; then
+    						# Strip rapidminer/ prefix
+    						FILE=`echo ${FILE} | sed -e 's/^rapidminer\///'`
+    						TO_DELETE=${RAPIDMINER_HOME}/${FILE}
+    						if [ -f "${TO_DELETE}" ] ; then
+    							echo "Deleting regular file ${TO_DELETE}"
+    							rm ${TO_DELETE}
+    						elif [ -d "${TO_DELETE}" ] ; then
+    							echo "Deleting directory ${TO_DELETE}"
+    							rmdir ${TO_DELETE}
+    						else
+    							echo "Cannot delete file ${TO_DELETE} (does not exist)"
+    						fi    						
+    					else
+    						echo "Unknown update command: ${COMMAND}"
+    					fi
+    				done
+				} < ${update_script}
+				rm ${update_script}
+				echo "Completed deletion of obsolete files."
+			else
+				echo "No update script found in ${update_script}."
+			fi
+			rm -rf ${update_root}
+			echo "Update complete"
+			echo "======================================================================="
+    	else
+    		echo "======================================================================="
+    		echo "ATTENTION: An update was downloaded, but we cannot write to"
+    		echo "           ${RAPIDMINER_HOME}. "
+    		echo "           Ignoring update. Please restart as super user."
+    		echo "======================================================================="
+    	fi
+    fi    
+#####################################################
 
 
 echo "Starting RapidMiner from '${RAPIDMINER_HOME}', using classes from '${RAPIDMINER_CLASSPATH}'..."

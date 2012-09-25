@@ -158,7 +158,20 @@ public class ProcessServiceFacade {
 		} else {
 			return processService_1_0.executeProcessSimple(processName, date, context);
 		}
+	}
 
+	/**
+	 * Executes a process with an provided offset.
+	 * 
+	 * @return <code>null</code> if function is not supported.
+	 */
+	public ExecutionResponse executeProcessWithOffset(String processName, Long offset, ProcessContextWrapper context,
+														String queueName) {
+		if (getProcessServiceVersion().isAtLeast(VERSION_1_3)) {
+			return processService_1_3.executeProcessWithOffset(processName, offset, context, queueName);
+		} else {
+			return null;
+		}
 	}
 
 	/**

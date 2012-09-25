@@ -56,7 +56,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
@@ -69,7 +68,6 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLDocument;
 
@@ -88,10 +86,12 @@ import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJToolBar;
 import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.gui.tools.ResourceTabbedPane;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.NetTools;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.plugin.Dependency;
 
@@ -116,13 +116,16 @@ public class UpdateListPanel extends JPanel {
 	private List<JList> packageLists = new ArrayList<JList>();
 
 	private static final long serialVersionUID = 1L;
-	
+
+	static {
+		NetTools.init();
+	}
 	
 	final JTextField searchField = new JTextField(12);
 	final SearchPackageListModel searchModel = new SearchPackageListModel(packageDescriptorCache);
 	JList resultList;
 	
-	private JTabbedPane updatesTabbedPane = new JTabbedPane();
+	private ResourceTabbedPane updatesTabbedPane = new ResourceTabbedPane("update");
 
 	private final List<PackageDescriptor> descriptors;
 
@@ -185,12 +188,12 @@ public class UpdateListPanel extends JPanel {
 		setPreferredSize(new Dimension(800, 320));
 		setMinimumSize(new Dimension(800, 320));
 		
-		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.search"), createSerchListPanel());
-		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.updates"), createUpdateListPanel(new UpdatesPackageListModel(packageDescriptorCache)));
-		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.top_downloads"), createUpdateListPanel(new TopDownloadsPackageListModel(packageDescriptorCache)));
-		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.top_rated"), createUpdateListPanel(new TopRatedPackageListModel(packageDescriptorCache)));
-		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.purchased"), createUpdateListPanel(new LicencedPackageListModel(packageDescriptorCache)));
-		updatesTabbedPane.add(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.bookmarks"), createUpdateListPanel(new BookmarksPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.addTabI18N("search", createSerchListPanel());
+		updatesTabbedPane.addTabI18N("updates", createUpdateListPanel(new UpdatesPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.addTabI18N("top_downloads", createUpdateListPanel(new TopDownloadsPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.addTabI18N("top_rated", createUpdateListPanel(new TopRatedPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.addTabI18N("purchased", createUpdateListPanel(new LicencedPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.addTabI18N("bookmarks", createUpdateListPanel(new BookmarksPackageListModel(packageDescriptorCache)));
 		
 		updatesTabbedPane.addChangeListener(new ChangeListener(){
 			@Override
@@ -337,14 +340,19 @@ public class UpdateListPanel extends JPanel {
 					if (selectedValue instanceof PackageDescriptor) {
 						
 						installButton.setEnabled(true);
-						
+				        
 						PackageDescriptor desc = (PackageDescriptor) selectedValue;
-						displayPane.setDocument(new HTMLDocument());
+						HTMLDocument doc = new HTMLDocument(ExtendedHTMLJEditorPane.makeDefaultStylesheet());						
+						displayPane.setDocument(doc);						
 						displayPane.setText(UpdateListPanel.this.toString(desc));
+						displayPane.installDefaultStylesheet();
 						displayPane.setCaretPosition(0);
 						
 						installButton.setSelected(isSelected(desc));
-						if (isSelected((PackageDescriptor)getCurrentUpdateList().getSelectedValue())) {
+						
+						if (desc.isRestricted()) {
+							installButton.setIcon(SwingTools.createIcon("16/currency_euro.png")); 
+						} else if (isSelected(desc)) { //(PackageDescriptor)getCurrentUpdateList().getSelectedValue())) {
 							installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
 						} else {
 							installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
@@ -470,6 +478,7 @@ public class UpdateListPanel extends JPanel {
 						public void run() {
 							if (displayPane.getDocument() == defaultDescriptionDocument) System.out.println("same document already!");
 							displayPane.setDocument(defaultDescriptionDocument);
+							//displayPane.installDefaultStylesheet();
 							//setDefaultDescription(displayPane);
 							System.out.println("changing text done!");
 						}
@@ -546,7 +555,11 @@ public class UpdateListPanel extends JPanel {
 
 	private String toString(PackageDescriptor descriptor) {
 		StringBuilder b = new StringBuilder("<html>");
-		b.append("<span style=\"font-size:14px;\">").append(descriptor.getName() + "</span>");
+		b.append("<span style=\"font-size:14px;\">");
+		if (descriptor.isRestricted()) {
+			b.append("<img src=\"icon:///").append("16/currency_euro.png").append("\"/>&nbsp;");
+		}
+		b.append(descriptor.getName()).append("</span>");
 		Date date = new Date(descriptor.getCreationTime().toGregorianCalendar().getTimeInMillis());
 		b.append("<hr noshade=\"true\" style=\"margin-bottom:8px;\"/><p style=\"margin-bottom:8px;\"><strong>Version ").append(descriptor.getVersion()).append(", released ").append(Tools.formatDate(date));
 		b.append(", ").append(Tools.formatBytes(descriptor.getSize())).append("</strong></p>");

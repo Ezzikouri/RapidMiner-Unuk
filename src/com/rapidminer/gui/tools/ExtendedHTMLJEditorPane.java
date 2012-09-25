@@ -59,7 +59,16 @@ public class ExtendedHTMLJEditorPane extends JEditorPane {
 	}
 	
 	public void installDefaultStylesheet() {
-    	StyleSheet css = ((HTMLEditorKit)getEditorKit()).getStyleSheet();
+		installDefaultStylesheet(((HTMLEditorKit)getEditorKit()).getStyleSheet());
+	}
+
+	public static StyleSheet makeDefaultStylesheet() {
+		StyleSheet css = new StyleSheet();
+		installDefaultStylesheet(css);
+		return css;
+	}
+
+    public static void installDefaultStylesheet(StyleSheet css ) {
 		css.addRule("body {font-family:Sans;font-size:12pt}");
 		css.addRule("h3 {margin:0; padding:0; }");
 		//String hcolor = Integer.toHexString(SwingTools.DARKEST_BLUE.darker().darker().darker().getRGB());
@@ -79,6 +88,7 @@ public class ExtendedHTMLJEditorPane extends JEditorPane {
 		//css.addRule("a  {text-decoration:none}");
 		//css.addRule("a:hover  {text-decoration:underline}");
 		css.addRule("dt  {font-weight:bold;}");
+		//css.addRule("a  {text-decoration:underline; font-weight:bold;}");
 		css.addRule("hr  {color:red; background-color:red}");
     }
 }

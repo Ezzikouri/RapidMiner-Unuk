@@ -334,9 +334,8 @@ public class ExtendedErrorDialog extends ButtonDialog {
 
 			// if already arguments are given, we can expect already a detailed error message
 			if (arguments.length == 0 && error.getMessage() != null && error.getMessage().length() > 0) {
-				infoText.append("<p>");
+				infoText.append("<br/>");
 				infoText.append(Tools.escapeHTML(error.getMessage()));
-				infoText.append("</p>");
 			}
 
 			Throwable cause = error.getCause();

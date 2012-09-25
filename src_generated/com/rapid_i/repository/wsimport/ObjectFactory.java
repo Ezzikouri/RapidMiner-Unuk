@@ -47,35 +47,19 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link GetMaxMemoryResponse }
+     * 
+     */
+    public GetMaxMemoryResponse createGetMaxMemoryResponse() {
+        return new GetMaxMemoryResponse();
+    }
+
+    /**
      * Create an instance of {@link GetFreeMemory }
      * 
      */
     public GetFreeMemory createGetFreeMemory() {
         return new GetFreeMemory();
-    }
-
-    /**
-     * Create an instance of {@link GetVersionNumber }
-     * 
-     */
-    public GetVersionNumber createGetVersionNumber() {
-        return new GetVersionNumber();
-    }
-
-    /**
-     * Create an instance of {@link GetFreeMemoryResponse }
-     * 
-     */
-    public GetFreeMemoryResponse createGetFreeMemoryResponse() {
-        return new GetFreeMemoryResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetInstalledPlugins }
-     * 
-     */
-    public GetInstalledPlugins createGetInstalledPlugins() {
-        return new GetInstalledPlugins();
     }
 
     /**
@@ -87,35 +71,35 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetMaxMemoryResponse }
-     * 
-     */
-    public GetMaxMemoryResponse createGetMaxMemoryResponse() {
-        return new GetMaxMemoryResponse();
-    }
-
-    /**
-     * Create an instance of {@link PluginInfo }
-     * 
-     */
-    public PluginInfo createPluginInfo() {
-        return new PluginInfo();
-    }
-
-    /**
-     * Create an instance of {@link GetVersionNumberResponse }
-     * 
-     */
-    public GetVersionNumberResponse createGetVersionNumberResponse() {
-        return new GetVersionNumberResponse();
-    }
-
-    /**
      * Create an instance of {@link GetUpSince }
      * 
      */
     public GetUpSince createGetUpSince() {
         return new GetUpSince();
+    }
+
+    /**
+     * Create an instance of {@link GetInstalledPlugins }
+     * 
+     */
+    public GetInstalledPlugins createGetInstalledPlugins() {
+        return new GetInstalledPlugins();
+    }
+
+    /**
+     * Create an instance of {@link GetVersionNumber }
+     * 
+     */
+    public GetVersionNumber createGetVersionNumber() {
+        return new GetVersionNumber();
+    }
+
+    /**
+     * Create an instance of {@link GetSystemLoadAverageResponse }
+     * 
+     */
+    public GetSystemLoadAverageResponse createGetSystemLoadAverageResponse() {
+        return new GetSystemLoadAverageResponse();
     }
 
     /**
@@ -127,11 +111,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetTotalMemoryResponse }
+     * Create an instance of {@link GetUpSinceResponse }
      * 
      */
-    public GetTotalMemoryResponse createGetTotalMemoryResponse() {
-        return new GetTotalMemoryResponse();
+    public GetUpSinceResponse createGetUpSinceResponse() {
+        return new GetUpSinceResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetVersionNumberResponse }
+     * 
+     */
+    public GetVersionNumberResponse createGetVersionNumberResponse() {
+        return new GetVersionNumberResponse();
     }
 
     /**
@@ -143,11 +135,27 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetUpSinceResponse }
+     * Create an instance of {@link GetTotalMemoryResponse }
      * 
      */
-    public GetUpSinceResponse createGetUpSinceResponse() {
-        return new GetUpSinceResponse();
+    public GetTotalMemoryResponse createGetTotalMemoryResponse() {
+        return new GetTotalMemoryResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetFreeMemoryResponse }
+     * 
+     */
+    public GetFreeMemoryResponse createGetFreeMemoryResponse() {
+        return new GetFreeMemoryResponse();
+    }
+
+    /**
+     * Create an instance of {@link PluginInfo }
+     * 
+     */
+    public PluginInfo createPluginInfo() {
+        return new PluginInfo();
     }
 
     /**
@@ -156,14 +164,6 @@ public class ObjectFactory {
      */
     public GetInstalledPluginsResponse createGetInstalledPluginsResponse() {
         return new GetInstalledPluginsResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetSystemLoadAverageResponse }
-     * 
-     */
-    public GetSystemLoadAverageResponse createGetSystemLoadAverageResponse() {
-        return new GetSystemLoadAverageResponse();
     }
 
     /**

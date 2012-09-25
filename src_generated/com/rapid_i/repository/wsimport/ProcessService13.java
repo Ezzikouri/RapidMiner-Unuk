@@ -186,4 +186,27 @@ public interface ProcessService13 {
         @WebParam(name = "triggerName", targetNamespace = "")
         String triggerName);
 
+    /**
+     * 
+     * @param processLocation
+     * @param executionTime
+     * @param processContext
+     * @param queueName
+     * @return
+     *     returns com.rapid_i.repository.wsimport.ExecutionResponse
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "executeProcessWithOffset", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.ExecuteProcessWithOffset")
+    @ResponseWrapper(localName = "executeProcessWithOffsetResponse", targetNamespace = "http://service.web.rapidanalytics.de/", className = "com.rapid_i.repository.wsimport.ExecuteProcessWithOffsetResponse")
+    public ExecutionResponse executeProcessWithOffset(
+        @WebParam(name = "processLocation", targetNamespace = "")
+        String processLocation,
+        @WebParam(name = "executionTime", targetNamespace = "")
+        Long executionTime,
+        @WebParam(name = "processContext", targetNamespace = "")
+        ProcessContextWrapper processContext,
+        @WebParam(name = "queueName", targetNamespace = "")
+        String queueName);
+
 }

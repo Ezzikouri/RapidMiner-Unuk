@@ -44,10 +44,12 @@ public class ProcessSchedulerConfig {
 	private String cronExpression;
 	private Date start;
 	private Date end;
+	private Long offset;
 
 	public static enum ScheduleMode {
 		NOW,
 		ONCE,
+		OFFSET,
 		CRON
 	}
 
@@ -56,7 +58,7 @@ public class ProcessSchedulerConfig {
 	 * @param queueName if <code>null</code> DEFAULT queue will be used.
 	 */
 	public ProcessSchedulerConfig(RepositoryLocation location, ProcessContext context, String queueName) {
-		this(ScheduleMode.NOW, location, null, null, null, null, context, queueName);
+		this(ScheduleMode.NOW, location, null, null, null, null, null, context, queueName);
 	}
 
 	/**
@@ -64,7 +66,15 @@ public class ProcessSchedulerConfig {
 	 * @param queueName if <code>null</code> DEFAULT queue will be used.
 	 */
 	public ProcessSchedulerConfig(RepositoryLocation location, Date onceDate, ProcessContext context, String queueName) {
-		this(ScheduleMode.ONCE, location, null, onceDate, null, null, context, queueName);
+		this(ScheduleMode.ONCE, location, null, onceDate, null, null, null, context, queueName);
+	}
+
+	/**
+	 * Constructor that creates a schedule config that is executed after a specified amount of time.
+	 * @param queueName if <code>null</code> DEFAULT queue will be used.
+	 */
+	public ProcessSchedulerConfig(RepositoryLocation location, Long offset, ProcessContext context, String queueName) {
+		this(ScheduleMode.OFFSET, location, null, null, null, null, offset, context, queueName);
 	}
 
 	/**
@@ -73,10 +83,10 @@ public class ProcessSchedulerConfig {
 	 * @param queueName if <code>null</code> DEFAULT queue will be used
 	 */
 	public ProcessSchedulerConfig(RepositoryLocation location, String cronExpression, Date start, Date end, ProcessContext context, String queueName) {
-		this(ScheduleMode.CRON, location, cronExpression, null, start, end, context, queueName);
+		this(ScheduleMode.CRON, location, cronExpression, null, start, end, null, context, queueName);
 	}
 
-	private ProcessSchedulerConfig(ScheduleMode mode, RepositoryLocation location, String cronExpression, Date onceDate, Date start, Date end, ProcessContext context, String queueName) {
+	private ProcessSchedulerConfig(ScheduleMode mode, RepositoryLocation location, String cronExpression, Date onceDate, Date start, Date end, Long offset, ProcessContext context, String queueName) {
 		if (location == null) {
 			throw new IllegalArgumentException("Null location is not allowed!");
 		}
@@ -89,6 +99,9 @@ public class ProcessSchedulerConfig {
 		if (mode.equals(ScheduleMode.CRON) && cronExpression == null) {
 			throw new IllegalArgumentException("Null cronExpression is not allowed with ScheduleMode CRON!");
 		}
+		if (mode.equals(ScheduleMode.OFFSET) && (offset == null)) {
+			throw new IllegalArgumentException("Null offset is with ScheduleMode TIMER!");
+		}
 		this.onceDate = onceDate;
 		this.location = location;
 		this.cronExpression = cronExpression;
@@ -97,6 +110,7 @@ public class ProcessSchedulerConfig {
 		this.context = context;
 		this.queueName = queueName;
 		this.mode = mode;
+		this.offset = offset;
 	}
 
 	/**
@@ -181,6 +195,20 @@ public class ProcessSchedulerConfig {
 	 */
 	public String getQueueName() {
 		return this.queueName;
+	}
+
+	/**
+	 * @return the offset
+	 */
+	public Long getOffset() {
+		return this.offset;
+	}
+
+	/**
+	 * @param offset the offset to set
+	 */
+	public void setOffset(Long offset) {
+		this.offset = offset;
 	}
 
 }

@@ -63,24 +63,32 @@ public class RemoteProcessScheduler implements ProcessScheduler {
 		String queueName = config.getQueueName();
 		String path = config.getLocation().getPath();
 		ProcessContext pc = config.getContext();
+		ProcessContextWrapper processContextWrapper = createProcessContextWrapper(pc);
 		switch (config.getMode()) {
+			case NOW:
+				response = processService.executeProcessSimple(path, null, processContextWrapper, queueName);
+				break;
+			case ONCE:
+				Date date = config.getOnceDate();
+				response = processService.executeProcessSimple(path, XMLTools.getXMLGregorianCalendar(date), processContextWrapper, queueName);
+				break;
+			case OFFSET:
+				response = processService.executeProcessWithOffset(path, config.getOffset(), processContextWrapper, queueName);
+				break;
 			case CRON:
 				Date startDate = config.getStart();
 				Date endDate = config.getEnd();
 				XMLGregorianCalendar start = startDate != null ? XMLTools.getXMLGregorianCalendar(startDate) : null;
 				XMLGregorianCalendar end = endDate != null ? XMLTools.getXMLGregorianCalendar(endDate) : null;
-				response = processService.executeProcessCron(path, config.getCronExpression(), start, end, createProcessContextWrapper(pc), queueName);
-				break;
-			case ONCE:
-				Date date = config.getOnceDate();
-				response = processService.executeProcessSimple(path, XMLTools.getXMLGregorianCalendar(date), createProcessContextWrapper(pc), queueName);
+				response = processService.executeProcessCron(path, config.getCronExpression(), start, end, processContextWrapper, queueName);
 				break;
 			default:
-				response = processService.executeProcessSimple(path, null, createProcessContextWrapper(pc), queueName);
-				break;
+				throw new SchedulingException("scheduling_failed", null, "Unknown ScheduleMode " + config.getMode());
 		}
 
-		if (response.getStatus() != RepositoryConstants.OK) {
+		if (response == null) {
+			throw new SchedulingException("scheduling_failed", null, "Unsupported operation. Check if RapidAnalytics has at least version 1.3.");
+		} else if (response.getStatus() != RepositoryConstants.OK) {
 			throw new SchedulingException("scheduling_failed", null, response.getErrorMessage());
 		} else {
 			return response.getFirstExecution().toGregorianCalendar().getTime();
