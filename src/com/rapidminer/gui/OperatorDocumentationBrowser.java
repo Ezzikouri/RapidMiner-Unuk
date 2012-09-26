@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkEvent.EventType;
 import javax.swing.event.HyperlinkListener;
@@ -56,8 +57,10 @@ import com.rapidminer.gui.actions.SaveAction;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.UpdateQueue;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.Operator;
@@ -79,24 +82,24 @@ import com.vlsolutions.swing.docking.Dockable;
 public class OperatorDocumentationBrowser extends JPanel implements Dockable, ProcessEditor {
 
 	final ExtendedHTMLJEditorPane editor = new ExtendedHTMLJEditorPane("text/html", "<html>-</html>");
-	
+
 	private ExtendedJScrollPane scrollPane = new ExtendedJScrollPane();
 
 	public static final String DOCUMENTATION_ROOT = "core/";
-	
+
 	public Operator displayedOperator = null;
-	
+
 	public URL currentResourceURL = null;
-	
+
 	private boolean ignoreSelections = false;
-	
-	
+
 	public static final String OPERATOR_HELP_DOCK_KEY = "operator_help";
-	
+
 	private final DockKey DOCK_KEY = new ResourceDockKey(OPERATOR_HELP_DOCK_KEY);
-	
+
 	private static final long serialVersionUID = 1L;
 
+	private UpdateQueue documentationUpdateQueue = new UpdateQueue("documentation_update_queue");
 
 	/**
 	 * Prepares the dockable and its elements.
@@ -124,6 +127,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 		this.setVisible(true);
 		this.validate();
 
+		documentationUpdateQueue.start();
 	}
 
 	@Override
@@ -150,16 +154,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 		String groupPath = ((displayedOperator.getOperatorDescription().getGroup()).replace(".", "/"));
 		String opDescXMLResourcePath = DOCUMENTATION_ROOT + groupPath + "/" + displayedOperator.getOperatorDescription().getKey() + ".xml";
 		URL resourceURL = this.getClass().getClassLoader().getResource(opDescXMLResourcePath);
-		if(resourceURL != null) {
-			try {
-				changeDocumentation(WebServiceTools.openStreamFromURL(resourceURL));
-			} catch (Exception e) {
-				// null stream will result in fallback to wiki/old offline doc
-				changeDocumentation(null);
-			}
-		} else {
-			changeDocumentation(null);
-		}
+		changeDocumentation(resourceURL);
 		currentResourceURL = resourceURL;
 	}
 
@@ -195,8 +190,6 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 		}
 	}
 
-	
-
 	/**
 	 * Event handler that handles clicking on a link to a tutorial process.
 	 */
@@ -204,7 +197,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 
 		public void hyperlinkUpdate(HyperlinkEvent e) {
 			if (e.getEventType().equals(EventType.ACTIVATED)) {
-				
+
 				// ask user if he wants to save his current proces because the example process will replace his current process
 				if (RapidMinerGUI.getMainFrame().isChanged()) {
 					// current process is flagged as unsaved
@@ -284,14 +277,49 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	/**
 	 * Refreshes the documentation text.
 	 * 
-	 * @param xmlStream stream to the xml resource
+	 * @param resourceURL url to the xml resource
 	 */
-	private void changeDocumentation(InputStream xmlStream) {
-		String html = parseXmlAndReturnHtml(xmlStream);
-		html = html.replace(" xmlns:rmdoc=\"com.rapidminer.gui.OperatorDocumentationBrowser\"", " ");
+	private void changeDocumentation(final URL resourceURL) {
 		editor.setContentType("text/html");
-		editor.setText("<html>" + html + "</html>");
+		editor.setText("<html>" + I18N.getMessage(I18N.getGUIBundle(), "gui.progress.loading_documentation.label") + "...</html>"); 
 		editor.setCaretPosition(0);
+		documentationUpdateQueue.executeBackgroundJob(new ProgressThread("loading_documentation") {
+
+			@Override
+			public void run() {
+				InputStream xmlStream = null;
+				String html;
+				try {
+					if (resourceURL != null) {
+						xmlStream = WebServiceTools.openStreamFromURL(resourceURL);
+					}
+				} catch (IOException e) {
+					// do nothing
+				} finally {
+					html = parseXmlAndReturnHtml(xmlStream);
+					if (xmlStream != null) {
+						try {
+							xmlStream.close();
+						} catch (IOException e) {
+							//do nothing
+						}
+					}
+				}
+				html = html.replace(" xmlns:rmdoc=\"com.rapidminer.gui.OperatorDocumentationBrowser\"", " ");
+				final String finalHtml = html;
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						editor.setContentType("text/html");
+						editor.setText("<html>" + finalHtml + "</html>");
+						editor.setCaretPosition(0);
+					}
+				});
+
+			}
+
+		});
 	}
 
 	/**
@@ -302,7 +330,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	private StyleSheet createStyleSheet() {
 		StyleSheet css = new HTMLEditorKit().getStyleSheet();
 		css.addRule("* {font-family: Arial}");
-		
+
 		css.addRule("p {padding: 0px 20px 1px 20px; font-family: Arial;}");
 		css.addRule("ul li {padding-bottom:1ex}");
 		css.addRule("hr {color:red; background-color:red}");
@@ -317,14 +345,14 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 
 		return css;
 	}
-	
+
 	/**
 	 * Sets the operator for which the operator documentation is shown.
 	 * @param operator
 	 */
 	public void setDisplayedOperator(Operator operator) {
-		if (operator != null && !operator.getOperatorDescription().isDeprecated() && 
-				(this.displayedOperator == null || 
+		if (operator != null && !operator.getOperatorDescription().isDeprecated() &&
+				(this.displayedOperator == null ||
 				(this.displayedOperator != null && !operator.getOperatorDescription().getName().equals(this.displayedOperator.getOperatorDescription().getName())))) {
 			this.displayedOperator = operator;
 			assignDocumentation();

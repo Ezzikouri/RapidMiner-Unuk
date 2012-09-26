@@ -297,7 +297,7 @@ public class AttributeMetaData implements Serializable {
                 if (isMode) {
                     buf.append("<span style=\"text-decoration:underline\">");
                 }
-                buf.append(value);
+                buf.append(Tools.escapeHTML(value));
                 if (isMode) {
                     buf.append("</span>");
                 }
@@ -353,7 +353,7 @@ public class AttributeMetaData implements Serializable {
             role2 = "-";
         }
         b.append(role2).append("</td><td>");
-        b.append(getName());
+        b.append(Tools.escapeHTML(getName()));
         String unit = getAnnotations().getAnnotation(Annotations.KEY_UNIT);
         if (unit != null) {
             b.append(" <em>[").append(unit).append("]</em>");

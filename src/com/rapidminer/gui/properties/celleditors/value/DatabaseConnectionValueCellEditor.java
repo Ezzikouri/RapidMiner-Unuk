@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -30,6 +31,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.Collection;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.Action;
@@ -54,52 +58,64 @@ import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
  * @author Simon Fischer, Tobias Malbrecht
  */
 public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
-	
+
 	private static final long serialVersionUID = -771727412083431607L;
 
 	class DatabaseConnectionComboBoxModel extends DefaultComboBoxModel {
+
 		private static final long serialVersionUID = -2984664300141879731L;
 
 		public void updateModel() {
 			Object selected = getSelectedItem();
 			removeAllElements();
-			for (ConnectionEntry entry : DatabaseConnectionService.getConnectionEntries()) {
-				addElement(entry.getName());
+			Collection<FieldConnectionEntry> connectionEntries = DatabaseConnectionService.getConnectionEntries();
+			int index = 0;
+			for (ConnectionEntry entry : connectionEntries) {
+				insertElementAt(entry, index);
+				++index;
 			}
 			if (model.getSize() == 0) {
 				setSelectedItem(null);
-			} else {
-				if (selected != null) {
-					setSelectedItem(selected);
-				} else {
-					if (model.getSize() > 0) {
-						setSelectedItem(model.getElementAt(0));
-					}
-				}
+			} else if (selected != null) {
+				setSelectedItem(selected);
 			}
-		}		
+		}
 	}
 
 	private DatabaseConnectionComboBoxModel model = new DatabaseConnectionComboBoxModel();
 
 	private JPanel panel = new JPanel();
-	
+
 	private JComboBox comboBox = new JComboBox(model);
-	
+
 	public DatabaseConnectionValueCellEditor(final ParameterTypeDatabaseConnection type) {
+		comboBox.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				System.out.println("Item has changed to: " + e.getItem());
+				new Throwable().printStackTrace();
+			}
+		});
+
 		panel.setLayout(new GridBagLayout());
 		panel.setToolTipText(type.getDescription());
 		comboBox.setToolTipText(type.getDescription());
 		comboBox.addActionListener(new ActionListener() {
+
 			public void actionPerformed(ActionEvent e) {
 				fireEditingStopped();
-			}			
+			}
 		});
 		comboBox.addFocusListener(new FocusListener() {
+
 			@Override
 			public void focusLost(FocusEvent e) {
-				fireEditingStopped();
-			}			
+				if (!e.isTemporary()) {
+					fireEditingStopped();
+				}
+			}
+
 			@Override
 			public void focusGained(FocusEvent e) {
 				model.updateModel();
@@ -113,6 +129,7 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 		panel.add(comboBox, c);
 
 		final JButton button = new JButton(new ResourceAction(true, "manage_db_connections") {
+
 			private static final long serialVersionUID = 3989811306286704326L;
 			{
 				putValue(Action.NAME, "");
@@ -120,6 +137,7 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 
 			public void actionPerformed(ActionEvent e) {
 				class SetDatabaseConnectionDialog extends ManageDatabaseConnectionsDialog {
+
 					private static final long serialVersionUID = 2306881477330192804L;
 
 					public SetDatabaseConnectionDialog() {
@@ -130,7 +148,7 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 
 					@Override
 					protected void ok() {
-						FieldConnectionEntry entry = checkFields(true); 
+						FieldConnectionEntry entry = checkFields(true);
 						if (entry != null) {
 							boolean existent = false;
 							for (ConnectionEntry listEntry : DatabaseConnectionService.getConnectionEntries()) {
@@ -153,7 +171,8 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 							super.ok();
 						}
 					}
-				};
+				}
+				;
 				SetDatabaseConnectionDialog dialog = new SetDatabaseConnectionDialog();
 				dialog.setVisible(true);
 				model.updateModel();
@@ -176,7 +195,6 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-		model.updateModel();
 		comboBox.setSelectedItem(value);
 		return panel;
 	}
@@ -188,12 +206,10 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		model.updateModel();
 		comboBox.setSelectedItem(value);
 		return panel;
 	}
 
 	@Override
-	public void setOperator(Operator operator) {
-	}
+	public void setOperator(Operator operator) {}
 }

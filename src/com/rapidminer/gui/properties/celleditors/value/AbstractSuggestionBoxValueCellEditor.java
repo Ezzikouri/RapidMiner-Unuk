@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -27,13 +28,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.AbstractCellEditor;
-import javax.swing.AbstractListModel;
-import javax.swing.ComboBoxModel;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.event.PopupMenuEvent;
@@ -50,17 +48,18 @@ import com.rapidminer.tools.ProgressListener;
  * @author Marcin Skirzynski
  */
 public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
+
 	private static final long serialVersionUID = -771727412083431607L;
-	
+
 	/**
 	 * The model of the combo box which consist of the suggestions
 	 */
-	private final SuggestionComboBoxModel model; 
+	private final SuggestionComboBoxModel model;
 
 	/**
 	 * The GUI element
 	 */
-	private final JComboBox comboBox; 
+	private final JComboBox comboBox;
 
 	private Operator operator;
 
@@ -70,11 +69,11 @@ public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellE
 		this.type = type;
 		this.model = new SuggestionComboBoxModel();
 		this.comboBox = new SuggestionComboBox(model);
-		comboBox.setToolTipText(type.getDescription());		
+		comboBox.setToolTipText(type.getDescription());
 	}
-	
+
 	public abstract List<Object> getSuggestions(Operator operator, ProgressListener progressListener);
-	
+
 	private String getValue() {
 		String value = null;
 		value = operator.getParameters().getParameterOrNull(type.getKey());
@@ -93,7 +92,6 @@ public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellE
 
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-//		model.updateModel();
 		comboBox.setSelectedItem(value);
 		return comboBox;
 	}
@@ -105,7 +103,6 @@ public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellE
 
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-//		model.updateModel();
 		comboBox.setSelectedItem(value);
 		return comboBox;
 	}
@@ -115,43 +112,42 @@ public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellE
 		this.operator = operator;
 	}
 
-	class SuggestionComboBoxModel extends AbstractListModel implements ComboBoxModel, Serializable {
+	class SuggestionComboBoxModel extends DefaultComboBoxModel {
+
 		private static final long serialVersionUID = -2984664300141879731L;
 
-		private LinkedList<Object> list = new LinkedList<Object>();
+		private Object lock = new Object();
 
-		private Object selected = null;
-		
-		
 		public boolean updateModel() {
 			final Object selected = getValue();
 
 			ProgressThread t = new ProgressThread("fetching_suggestions") {
+
 				@Override
 				public void run() {
 					try {
 						getProgressListener().setTotal(100);
 						getProgressListener().setCompleted(0);
-						list.clear();
-						
-						// fill list with stuff
-						list.addAll(getSuggestions(operator, getProgressListener()));
-						
+
+						synchronized (lock) {
+							removeAllElements();
+							// fill list with stuff
+							List<Object> suggestions = getSuggestions(operator, getProgressListener());
+							int index = 0;
+							for (Object suggestion : suggestions) {
+								insertElementAt(suggestion, index);
+								++index;
+							}
+						}
+
 						getProgressListener().setCompleted(100);
 						if (getSelectedItem() == null) {
 							if (model.getSize() == 0) {
 								setSelectedItem(null);
-							} else {
-								if (selected != null) {
-									setSelectedItem(selected);
-								} else {
-									if (model.getSize() > 0) {
-										setSelectedItem(model.getElementAt(0));
-									}
-								}
+							} else if (selected != null) {
+								setSelectedItem(selected);
 							}
 						}
-						fireContentsChanged(this, 0, list.size() - 1);
 					} finally {
 						getProgressListener().complete();
 					}
@@ -160,49 +156,26 @@ public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellE
 			t.start();
 			return true;
 		}
-
-		@Override
-		public Object getSelectedItem() {
-			return selected;
-		}
-
-		@Override
-		public void setSelectedItem(Object object) {
-			if ((selected != null && !selected.equals(object)) || selected == null && object != null) {
-				selected = object;
-				fireContentsChanged(this, -1, -1);
-			}
-		}
-
-		@Override
-		public Object getElementAt(int index) {
-			if (index >= 0 && index < list.size()) {
-				return list.get(index);
-			}
-			return null;
-		}
-
-		@Override
-		public int getSize() {
-			return list.size();
-		}
 	}
 
 	class SuggestionComboBox extends JComboBox {
+
 		private static final long serialVersionUID = 4000279412600950101L;
 
 		private SuggestionComboBox(final SuggestionComboBoxModel model) {
 			super(model);
 			setEditable(true);
 			addActionListener(new ActionListener() {
+
 				public void actionPerformed(ActionEvent e) {
 					fireEditingStopped();
-				}			
+				}
 			});
 			getEditor().getEditorComponent().addFocusListener(new FocusListener() {
+
 				@Override
 				public void focusLost(FocusEvent e) {
-					if(!e.isTemporary()) {
+					if (!e.isTemporary()) {
 						fireEditingStopped();
 					}
 				}
@@ -213,6 +186,7 @@ public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellE
 				}
 			});
 			addPopupMenuListener(new PopupMenuListener() {
+
 				@Override
 				public void popupMenuCanceled(PopupMenuEvent e) {}
 
@@ -229,6 +203,5 @@ public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellE
 			});
 		}
 	}
-
 
 }
