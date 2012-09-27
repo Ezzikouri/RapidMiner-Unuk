@@ -200,7 +200,7 @@ public abstract class AggregationFunction {
     /**
      * This method can be called in order to get the target attribute meta data after the
      * aggregation functions have been applied.
-     * This method can register errors on the given InputPort, if there's an illegal state. If
+     * This method can register errors on the given InputPort (if not null), if there's an illegal state. If
      * the state makes applying an {@link AggregationFunction} impossible, this method will return null!
      */
     public static final AttributeMetaData getAttributeMetaData(String aggregationFunctionName, AttributeMetaData sourceAttributeMetaData, InputPort inputPort) {
@@ -209,7 +209,9 @@ public abstract class AggregationFunction {
             return metaDataProvider.getTargetAttributeMetaData(sourceAttributeMetaData, inputPort);
         } else {
             // register error about unknown aggregation function
-            inputPort.addError(new SimpleMetaDataError(Severity.ERROR, inputPort, "aggregation.unknown_aggregation_function", aggregationFunctionName));
+        	if (inputPort!=null) {
+        		inputPort.addError(new SimpleMetaDataError(Severity.ERROR, inputPort, "aggregation.unknown_aggregation_function", aggregationFunctionName));
+        	}
             return null;
         }
     }
