@@ -1,4 +1,5 @@
-<project name="RapidMiner_Unuk">
+<project name="RapidMiner_Unuk" xmlns:ac="antlib:net.sf.antcontrib">
+	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="ant/ant-contrib-1.0b3.jar"/>
 	<description> Build file for RapidMiner 5.2</description>
 	<property file="build.properties" />
 	<property name="src" location="src" />
@@ -14,6 +15,7 @@
 	<property name="javadoc" location="javadoc" />
 	<property name="scripts" location="scripts" />
 	<property name="resources" location="resources" />
+	<property name="resources_generated" location="resources_generated" />
 	<property name="sample" location="sample" />
 	<property name="license" location="licenses/short_license.txt" />
 	<property name="release" location="release" />
@@ -35,6 +37,9 @@
 
 	<!-- Update and release server properties -->
 	<property file="server.properties" />
+	
+	<!-- Language variables for getting .properties files -->
+	<property name="language" value="de,fr,ja,hu" />
 
 	<property name="makensis" value="makensis" />
 	<!-- Assume this is on the PATH -->
@@ -125,6 +130,7 @@
 		<echo message="Copying resources..." />
 		<copy todir="${build}">
 			<fileset dir="${resources}" includes="**/*" />
+			<fileset dir="${resources_generated}" includes="**/*" />
 		</copy>
 
 		<property name="lock.isCopied" value="true" />
@@ -799,6 +805,37 @@
 		</java>
 	</target>
 
+	<!-- 
+	Update .properties files from Rapid-I Pootle. 
+	You can change the language variables in the property name "language" attribute.
+	-->
+	<target name="update.properties" description="Updating .properties files">
+	<echo message="Getting the following .properties files for languages: ${language}."/>  
+	<ac:for list="${language}" param="language">  
+	  <sequential>  
+	    <get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/Errors.properties/download/" 
+	      dest="${resources_generated}/com/rapidminer/resources/i18n/Errors_@{language}.properties" 
+	      verbose="true"
+	      usetimestamp="true"/>
+	    <get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/GUI.properties/download/" 
+	      dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/GUI_@{language}.properties" 
+	      verbose="true"
+	      usetimestamp="true"/>
+	    <get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/LogMessages.properties/download/" 
+	      dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/LogMessages_@{language}.properties" 
+	      verbose="true"
+	      usetimestamp="true"/>
+		<get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/PlotterMessages.properties/download/" 
+		  dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/PlotterMessages_@{language}.properties" 
+		  verbose="true"
+		  usetimestamp="true"/>
+		<get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/UserErrorMessages.properties/download/" 
+		  dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/UserErrorMessages_@{language}.properties" 
+		  verbose="true"
+		  usetimestamp="true"/>
+	  </sequential> 
+	</ac:for>  
+	</target>
 
 
 	<!-- JavaDoc -->

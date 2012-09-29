@@ -5,6 +5,7 @@
 	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="src" path="src_launcher"/>
 	<classpathentry kind="src" path="src_test"/>
+	<classpathentry kind="src" path="resources_generated"/>
 	<classpathentry kind="lib" path="lib/kdb.jar"/>
 	<classpathentry kind="lib" path="lib/jmathplot.jar"/>
 	<classpathentry kind="lib" path="lib/xpp3.jar"/>
