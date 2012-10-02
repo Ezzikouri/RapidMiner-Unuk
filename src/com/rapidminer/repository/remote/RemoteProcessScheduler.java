@@ -47,7 +47,7 @@ import com.rapidminer.tools.container.Pair;
 public class RemoteProcessScheduler implements ProcessScheduler {
 
 	@Override
-	public Date scheduleProcess(ProcessSchedulerConfig config, RepositoryAccessor ignored) throws SchedulingException {
+	public SchedulerResponse scheduleProcess(ProcessSchedulerConfig config, RepositoryAccessor ignored) throws SchedulingException {
 
 		ExecutionResponse response;
 		ProcessServiceFacade processService;
@@ -91,7 +91,7 @@ public class RemoteProcessScheduler implements ProcessScheduler {
 		} else if (response.getStatus() != RepositoryConstants.OK) {
 			throw new SchedulingException("scheduling_failed", null, response.getErrorMessage());
 		} else {
-			return response.getFirstExecution().toGregorianCalendar().getTime();
+			return new SchedulerResponse(response.getFirstExecution().toGregorianCalendar().getTime(), response.getJobId());
 		}
 
 	}

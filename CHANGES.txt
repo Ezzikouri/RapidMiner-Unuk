@@ -1,8 +1,9 @@
 History of changes of the RapidMiner versions
-====================================================
+=============================================
 
 Changes from RapidMiner 5.2.8 to 5.3.0
 --------------------------------------
+* Run on RapidAnalytics-Dialog can choose execution queue
 * Execute Program operator has File Object ports for stdin, stdout, stderr 
 * Macros can be passed through the command line. Example: 'rapidminer //repository/home/test/process -Mkey1=value "-Mkey2=value with spaces"' will provide two macros named key1 and key2
 * Added first wave of new and improved extensive documentation (often including tutorial processes) for many operators

@@ -23,8 +23,6 @@
 
 package com.rapidminer.repository.remote;
 
-import java.util.Date;
-
 import com.rapidminer.repository.RepositoryAccessor;
 
 /**
@@ -43,6 +41,6 @@ public interface ProcessScheduler {
 	 * @throws SchedulingException if the config has errors or the scheduling did fail a {@link SchedulingException} is thrown.
 	 * @return the date the process will run first
 	 */
-	public Date scheduleProcess(ProcessSchedulerConfig config, RepositoryAccessor repositoryAccessor) throws SchedulingException;
-
+	public SchedulerResponse scheduleProcess(ProcessSchedulerConfig config, RepositoryAccessor repositoryAccessor) throws SchedulingException;
+	
 }

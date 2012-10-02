@@ -72,6 +72,7 @@ import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.remote.SchedulerResponse;
 import com.rapidminer.repository.remote.ProcessSchedulerConfig;
 import com.rapidminer.repository.remote.ProcessSchedulerFactory;
 import com.rapidminer.repository.remote.RemoteRepository;
@@ -629,7 +630,8 @@ public class RunRemoteDialog extends ButtonDialog {
 			}
 
 			try {
-				Date firstExec = ProcessSchedulerFactory.getInstance().getProcessScheduler().scheduleProcess(createProcessScheduleConfig(), null);
+				SchedulerResponse response = ProcessSchedulerFactory.getInstance().getProcessScheduler().scheduleProcess(createProcessScheduleConfig(), null);
+				Date firstExec = response.getFirstExecution();
 				SwingTools.showMessageDialog("process_will_first_run", firstExec);
 			} catch (Exception e) {
 				SwingTools.showSimpleErrorMessage("run_proc_remote", e.getLocalizedMessage());

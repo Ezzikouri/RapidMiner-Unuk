@@ -15,6 +15,7 @@
 	<property name="release.targetDir" location="${rm.dir}/release" />
 	<property name="release.files" location="${release.targetDir}/files" />
 	<property name="check.build" location="${rm.dir}/build" />
+	<property name="extension.install.directory" location="${rm.plugins}" />
 
 	<!-- compiler options -->
 	<property name="compiler.version" value="modern" />
@@ -262,10 +263,8 @@
 	</target>
 
 	<target name="install" depends="createJar">
-		<move file="${release.targetDir}/${release.name}" todir="${rm.plugins}" overwrite="true" />
+		<move file="${release.targetDir}/${release.name}" todir="${extension.install.directory}" overwrite="true" />
 	</target>
-
-
 
 	<!-- Building release versions -->
 

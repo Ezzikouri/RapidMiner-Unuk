@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -56,6 +57,7 @@ import com.rapidminer.tools.WebServiceTools;
  *
  */
 public class ProcessServiceFacade {
+	private static final Logger LOGGER = Logger.getLogger(ProcessServiceFacade.class.getName());
 
 	public static final String VERSION_1_0_URL = "RAWS/ProcessService?wsdl";
 	public static final String VERSION_1_3_URL = "RAWS/ProcessService_1_3?wsdl";
@@ -74,22 +76,27 @@ public class ProcessServiceFacade {
 		this.baseURL = baseURL;
 
 		// is available in any case
+		LOGGER.info("Setting up ProcessService v1.0");
 		VersionNumber highestProcessServiceVersion = VERSION_1_0;
 		ProcessService_Service serviceService = new ProcessService_Service(getProcessServiceWSDLUrl(VERSION_1_0_URL), new QName("http://service.web.rapidanalytics.de/", "ProcessService"));
 		processService_1_0 = serviceService.getProcessServicePort();
 		setupBindingProvider((BindingProvider) processService_1_0, username, password);
 
 		// if raInfoService is not null, check which further versions are available
+		
 		if (raInfoService != null) {
 			VersionNumber versionNumber = new VersionNumber(raInfoService.getVersionNumber());
-
 			if (versionNumber.isAtLeast(VERSION_1_3)) {
+				LOGGER.info("Setting up ProcessService v1.3");
 				highestProcessServiceVersion = VERSION_1_3;
 				ProcessService13_Service service13Service = new ProcessService13_Service(getProcessServiceWSDLUrl(VERSION_1_3_URL), new QName("http://service.web.rapidanalytics.de/", "ProcessService_1_3"));
 				processService_1_3 = service13Service.getProcessService13Port();
 				setupBindingProvider((BindingProvider) processService_1_3, username, password);
+			} else {
+				LOGGER.info("RapidAnalytics version is " + versionNumber.getLongVersion() + " - ProcessService v1.3 will be not initialized");
 			}
-
+		} else {
+			LOGGER.warning("RapidAnalytics info service to set - can not setup ProcessService v1.3");
 		}
 
 		this.processServiceVersion = highestProcessServiceVersion;
