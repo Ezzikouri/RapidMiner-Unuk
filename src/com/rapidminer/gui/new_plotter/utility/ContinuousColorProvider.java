@@ -37,8 +37,8 @@ import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
  *
  */
 public class ContinuousColorProvider implements ColorProvider {
-	double minValue;
-	double maxValue; 
+	private double minValue;
+	private double maxValue; 
 	
 	Color minColor;
 	Color maxColor;
@@ -137,6 +137,18 @@ public class ContinuousColorProvider implements ColorProvider {
 		// map value to [0,1]
 		if (minValue == maxValue) {
 			value = 0.5;
+		} else if (value <= minValue) {
+			Color minColor = this.minColor;
+			if (alpha < 255) {
+				minColor = DataStructureUtils.setColorAlpha(minColor, alpha);
+			}
+			return minColor;
+		} else if (value >= maxValue) {
+			Color maxColor = this.maxColor;
+			if (alpha < 255) {
+				maxColor = DataStructureUtils.setColorAlpha(maxColor, alpha);
+			}
+			return maxColor;
 		} else if (logarithmic) {
 			value = (Math.log(value)-Math.log(minValue))/(Math.log(maxValue)-Math.log(minValue));
 		} else {
@@ -170,7 +182,8 @@ public class ContinuousColorProvider implements ColorProvider {
 	}
 
 	public ColorProvider clone() {
-		return new ContinuousColorProvider(minValue,maxValue,new Color(minColor.getRed(),minColor.getGreen(),minColor.getBlue()),new Color(maxColor.getRed(),maxColor.getGreen(),maxColor.getBlue()),alpha, logarithmic);
+		return new ContinuousColorProvider(minValue, maxValue, new Color(minColor.getRed(), minColor.getGreen(), minColor.getBlue()), 
+				new Color(maxColor.getRed(), maxColor.getGreen(), maxColor.getBlue()), alpha, logarithmic);
 	}
 	
 	@Override
@@ -182,5 +195,21 @@ public class ContinuousColorProvider implements ColorProvider {
 
 	public void setLogarithmic(boolean logarithmic) {
 		this.logarithmic = logarithmic;
+	}
+
+	public double getMaxValue() {
+		return maxValue;
+	}
+
+	public void setMaxValue(double maxValue) {
+		this.maxValue = maxValue;
+	}
+
+	public double getMinValue() {
+		return minValue;
+	}
+
+	public void setMinValue(double minValue) {
+		this.minValue = minValue;
 	}
 }

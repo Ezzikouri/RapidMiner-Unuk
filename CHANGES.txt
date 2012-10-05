@@ -3,18 +3,18 @@ History of changes of the RapidMiner versions
 
 Changes from RapidMiner 5.2.8 to 5.3.0
 --------------------------------------
-* Run on RapidAnalytics-Dialog can choose execution queue
-* Execute Program operator has File Object ports for stdin, stdout, stderr 
-* Macros can be passed through the command line. Example: 'rapidminer //repository/home/test/process -Mkey1=value "-Mkey2=value with spaces"' will provide two macros named key1 and key2
 * Added first wave of new and improved extensive documentation (often including tutorial processes) for many operators
 * Added improved RapidAnalytics support. New run button: "Run process on RapidAnalytics".
   Can only be used if the process is stored on a RapidAnalytics repository.
   Instantly runs the process on the RapidAnalytics server the process is stored on.
+* Run on RapidAnalytics-Dialog can choose execution queue
 * New operator: Performance to Data
 * New operator: Throw Exception
 * New file system operators: Copy File, Move File, Delete File, Rename File, Create Directory
 * Aggregate: new aggregation functions: sum (fractional), count (fractional), count (percentage) and string concatenation
+* Execute Program operator has File Object ports for stdin, stdout, stderr
 * Loop Attributes: new output port which collects the data from all iterations 
+* Macros can be passed through the command line. Example: 'rapidminer //repository/home/test/process -Mkey1=value "-Mkey2=value with spaces"' will provide two macros named key1 and key2
 * Result Perspective: Added button in top right corner of a result tab to close all open results at once
 * Repositories View: Added button which navigates to the repository location of the currently opened process
 * Repositories View: Added popup menu item to open the selected entry in the OS file browser (only for Local Repositories)
