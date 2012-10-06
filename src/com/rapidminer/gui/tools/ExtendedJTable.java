@@ -660,10 +660,11 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
                 Point p = e.getPoint();
                 int row = rowAtPoint(p);
                 int c = columnAtPoint(p);
-                int column = convertColumnIndexToModel(c);
+                // NOT needed here because we are operating on the view only
+//                int column = convertColumnIndexToModel(c);
 
                 setRowSelectionInterval(row, row);
-                setColumnSelectionInterval(column, column);
+                setColumnSelectionInterval(c, c);
 
                 JPopupMenu menu = createPopupMenu();
 
