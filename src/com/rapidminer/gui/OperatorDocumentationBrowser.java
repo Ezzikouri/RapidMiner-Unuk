@@ -281,7 +281,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	 */
 	private void changeDocumentation(final URL resourceURL) {
 		editor.setContentType("text/html");
-		editor.setText("<html>" + I18N.getMessage(I18N.getGUIBundle(), "gui.progress.loading_documentation.label") + "...</html>"); 
+		editor.setText("<html><div style=\"height:100%;width:100%;text-align:center;vertical-align:middle;margin-top:50px;\"><img src=\"icon:///48/hourglass.png\"/></div></html>"); 
 		editor.setCaretPosition(0);
 		documentationUpdateQueue.executeBackgroundJob(new ProgressThread("loading_documentation") {
 

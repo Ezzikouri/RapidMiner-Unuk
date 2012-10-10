@@ -31,13 +31,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.AbstractCellEditor;
+import javax.swing.AbstractListModel;
 import javax.swing.Action;
-import javax.swing.DefaultComboBoxModel;
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
@@ -61,24 +61,41 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 
 	private static final long serialVersionUID = -771727412083431607L;
 
-	class DatabaseConnectionComboBoxModel extends DefaultComboBoxModel {
+	class DatabaseConnectionComboBoxModel extends AbstractListModel implements ComboBoxModel {
 
-		private static final long serialVersionUID = -2984664300141879731L;
+		private static final long serialVersionUID = 5358838374857978178L;
 
-		public void updateModel() {
-			Object selected = getSelectedItem();
-			removeAllElements();
-			Collection<FieldConnectionEntry> connectionEntries = DatabaseConnectionService.getConnectionEntries();
-			int index = 0;
-			for (ConnectionEntry entry : connectionEntries) {
-				insertElementAt(entry, index);
-				++index;
-			}
-			if (model.getSize() == 0) {
-				setSelectedItem(null);
-			} else if (selected != null) {
-				setSelectedItem(selected);
-			}
+		private ConnectionEntry selectedConnection;
+		
+		private List<ConnectionEntry> getList() {
+			return new ArrayList<ConnectionEntry>(DatabaseConnectionService.getConnectionEntries());
+		}
+				
+		@Override
+		public void setSelectedItem(Object anItem) {
+			if ((selectedConnection != null && !selectedConnection.getName().equals( (String) anItem )) ||
+					selectedConnection == null && anItem != null) {
+				selectedConnection = DatabaseConnectionService.getConnectionEntry((String) anItem);
+				fireContentsChanged(this, -1, -1);
+			}			
+		}
+
+		@Override
+		public Object getSelectedItem() {
+	        return (selectedConnection == null ? null : selectedConnection.getName());
+		}
+
+		@Override
+		public int getSize() {
+			return getList().size();
+		}
+
+		@Override
+		public Object getElementAt(int index) {
+	        if ( index >= 0 && index < getList().size() )
+	            return getList().get(index).getName();
+	        else
+	            return null;
 		}
 	}
 
@@ -89,14 +106,6 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 	private JComboBox comboBox = new JComboBox(model);
 
 	public DatabaseConnectionValueCellEditor(final ParameterTypeDatabaseConnection type) {
-		comboBox.addItemListener(new ItemListener() {
-
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				System.out.println("Item has changed to: " + e.getItem());
-				new Throwable().printStackTrace();
-			}
-		});
 
 		panel.setLayout(new GridBagLayout());
 		panel.setToolTipText(type.getDescription());
@@ -118,7 +127,7 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 
 			@Override
 			public void focusGained(FocusEvent e) {
-				model.updateModel();
+//				model.updateModel();
 			}
 		});
 
@@ -165,7 +174,7 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 									return;
 								}
 							}
-							model.updateModel();
+//							model.updateModel();
 							model.setSelectedItem(entry.getName());
 							fireEditingStopped();
 							super.ok();
@@ -175,7 +184,7 @@ public class DatabaseConnectionValueCellEditor extends AbstractCellEditor implem
 				;
 				SetDatabaseConnectionDialog dialog = new SetDatabaseConnectionDialog();
 				dialog.setVisible(true);
-				model.updateModel();
+//				model.updateModel();
 			}
 		});
 		button.setMargin(new Insets(0, 0, 0, 0));

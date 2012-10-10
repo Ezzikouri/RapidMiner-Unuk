@@ -38,20 +38,26 @@ import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
  */
 public class ContinuousColorProvider implements ColorProvider {
 	private double minValue;
-	private double maxValue; 
+	private double maxValue;
+	private double originalMinValue;
+	private double originalMaxValue;
 	
 	Color minColor;
 	Color maxColor;
 	int alpha;
 	private boolean logarithmic;
+	private boolean useGrayForOutliers;
 		
 	public ContinuousColorProvider(double minValue, double maxValue, Color minColor, Color maxColor, int alpha, boolean logarithmic) {
 		this.minValue = minValue;
 		this.maxValue = maxValue;
+		this.originalMinValue = minValue;
+		this.originalMaxValue = maxValue;
 		this.minColor = minColor;
 		this.maxColor = maxColor;
 		this.alpha = alpha;
 		this.logarithmic = logarithmic;
+		this.useGrayForOutliers = false;
 	}
 	
 	/**
@@ -61,11 +67,14 @@ public class ContinuousColorProvider implements ColorProvider {
 	public ContinuousColorProvider(PlotInstance plotInstance, double minValue, double maxValue, int alpha, boolean logarithmic) {
 		this.minValue = minValue;
 		this.maxValue = maxValue;
+		this.originalMinValue = minValue;
+		this.originalMaxValue = maxValue;
 		PlotConfiguration currentPlotConfigurationClone = plotInstance.getCurrentPlotConfigurationClone();
 		this.minColor = ColorRGB.convertToColor(currentPlotConfigurationClone.getActiveColorScheme().getGradientStartColor());
 		this.maxColor = ColorRGB.convertToColor(currentPlotConfigurationClone.getActiveColorScheme().getGradientEndColor());
 		this.alpha = alpha;
 		this.logarithmic = logarithmic;
+		this.useGrayForOutliers = false;
 	}
 	
 	
@@ -138,13 +147,23 @@ public class ContinuousColorProvider implements ColorProvider {
 		if (minValue == maxValue) {
 			value = 0.5;
 		} else if (value <= minValue) {
-			Color minColor = this.minColor;
+			Color minColor;
+			if (useGrayForOutliers)  {
+				minColor = Color.GRAY;
+			} else {
+				minColor = this.minColor;
+			}
 			if (alpha < 255) {
 				minColor = DataStructureUtils.setColorAlpha(minColor, alpha);
 			}
 			return minColor;
 		} else if (value >= maxValue) {
-			Color maxColor = this.maxColor;
+			Color maxColor;
+			if (useGrayForOutliers)  {
+				maxColor = Color.GRAY;
+			} else {
+				maxColor = this.maxColor;
+			}
 			if (alpha < 255) {
 				maxColor = DataStructureUtils.setColorAlpha(maxColor, alpha);
 			}
@@ -211,5 +230,18 @@ public class ContinuousColorProvider implements ColorProvider {
 
 	public void setMinValue(double minValue) {
 		this.minValue = minValue;
+	}
+	
+	public void revertMinAndMaxValuesBackToOriginalValues() {
+		this.minValue = originalMinValue;
+		this.maxValue = originalMaxValue;
+	}
+
+	public boolean isUseGrayForOutliers() {
+		return useGrayForOutliers;
+	}
+
+	public void setUseGrayForOutliers(boolean useGrayForOutliers) {
+		this.useGrayForOutliers = useGrayForOutliers;
 	}
 }

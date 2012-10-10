@@ -32,10 +32,13 @@ import java.util.Map;
 import org.jfree.data.Range;
 
 import com.rapidminer.gui.new_plotter.PlotConfigurationError;
+import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
+import com.rapidminer.gui.new_plotter.data.DimensionConfigData;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushListener;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection.SelectionType;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelectionListener;
+import com.rapidminer.gui.new_plotter.utility.ContinuousColorProvider;
 import com.rapidminer.tools.container.Pair;
 
 /**
@@ -146,6 +149,32 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 
 		if (e.getType() == SelectionType.RESTORE_AUTO_BOUNDS) {
 			clearZooming(false);
+		}
+		
+		if (e.getType() == SelectionType.COLOR) {
+			Double minColorValue = e.getMinColorValue();
+			Double maxColorValue = e.getMaxColorValue();
+			if (e.getPlotInstance() != null) {
+				DimensionConfigData dimensionConfigData = e.getPlotInstance().getPlotData().getDimensionConfigData(plotConfig.getDefaultDimensionConfigs().get(PlotDimension.COLOR));
+				if (minColorValue != null && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					ContinuousColorProvider colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.setMinValue(minColorValue);
+				}
+				if (maxColorValue != null  && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					ContinuousColorProvider colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.setMaxValue(maxColorValue);
+				}
+			}
+		} 
+		
+		if (e.getType() == SelectionType.RESTORE_COLOR) {
+			if (e.getPlotInstance() != null) {
+				DimensionConfigData dimensionConfigData = e.getPlotInstance().getPlotData().getDimensionConfigData(plotConfig.getDefaultDimensionConfigs().get(PlotDimension.COLOR));
+				if (dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					ContinuousColorProvider colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.revertMinAndMaxValuesBackToOriginalValues();
+				}
+			}
 		}
 		
 		informLinkAndBrushListeners(e);
