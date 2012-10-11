@@ -22,11 +22,13 @@
  */
 package com.rapid_i.deployment.update.client.listmodels;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.rapid_i.deployment.update.client.PackageDescriptorCache;
 import com.rapid_i.deployment.update.client.UpdateManager;
+import com.rapid_i.deployment.update.client.UpdateServerAccount;
 import com.rapidminer.deployment.client.wsimport.AccountService;
 import com.rapidminer.gui.tools.SwingTools;
 
@@ -46,6 +48,9 @@ public class LicencedPackageListModel extends AbstractPackageListModel {
 	
 	@Override
 	public List<String> fetchPackageNames() {
+		UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
+		if (!account.isLoggedIn()) return new ArrayList<String>();
+		
 		AccountService accountService = null;
 		try {
 			accountService = UpdateManager.getAccountService();

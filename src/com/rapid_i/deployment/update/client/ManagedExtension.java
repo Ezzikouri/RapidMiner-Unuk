@@ -413,14 +413,6 @@ public class ManagedExtension {
         return result;
     }
 
-    static void checkForLicenseConflicts() {
-        Collection<ManagedExtension> lgpl = getActiveByLicense("GPL");
-        Collection<ManagedExtension> comm = getActiveByLicense(UpdateManager.COMMERCIAL_LICENSE_NAME);
-        if (!lgpl.isEmpty() && !comm.isEmpty()) {
-            new LicenseConflictDialog(lgpl, comm).setVisible(true);
-        }
-    }
-
     /** Returns true if uninstall was successful. */
     public boolean uninstallActiveVersion() {
         File file = findFile(selectedVersion);

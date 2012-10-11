@@ -58,7 +58,6 @@ import com.rapidminer.operator.tools.OperatorCreationHook;
 import com.rapidminer.tools.documentation.OperatorDocBundle;
 import com.rapidminer.tools.documentation.XMLOperatorDocBundle;
 import com.rapidminer.tools.plugin.Plugin;
-import com.sun.corba.se.spi.orb.OperationFactory;
 
 /**
  * This class maintains all registered operators in the current context.
@@ -67,7 +66,7 @@ import com.sun.corba.se.spi.orb.OperationFactory;
  * 
  * It provides convenience methods for creating new {@link Operator}s. See the description of
  * the {@link #createOperator(Class)} method. Please mind that {@link Operator}s that are
- * built from an {@link OperationFactory} cannot be constructed with this method. Please use {@link #createOperator(String)} method instead,
+ * built from an {@link GenericOperatorFactory} cannot be constructed with this method. Please use {@link #createOperator(String)} method instead,
  * that can be passed the {@link Operator}'s key.
  * 
  * 

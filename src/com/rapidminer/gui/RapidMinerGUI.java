@@ -117,6 +117,8 @@ public class RapidMinerGUI extends RapidMiner {
 
     // --- Properties ---
 
+    public static final String PROPERTY_RAPIDMINER_GUI_PURCHASED_NOT_INSTALLED_CHECK  = "rapidminer.update.purchased.not_installed.check";
+    
     public static final String PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK  = "rapidminer.update.check";
 
     public static final String PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS = "rapidminer.gui.max_statistics_rows";
@@ -153,6 +155,7 @@ public class RapidMinerGUI extends RapidMiner {
     public static final String PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES  = DatabaseDataReader.PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES;
 
     static {
+    	ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_PURCHASED_NOT_INSTALLED_CHECK, "Check for recently purchased but not installed RapidMiner extensions at start up time?", true));
         ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK, "Check for new RapidMiner versions at start up time?", true));
         ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_STATISTICS_ROWS, "Indicates the maximum number of rows for the automatic calculation of statistics and other time intensive data viewing actions.", 1, Integer.MAX_VALUE, 100000));
         ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_MAX_SORTABLE_ROWS, "Indicates the maximum number of rows for sortable tables.", 1, Integer.MAX_VALUE, 100000));
@@ -276,6 +279,7 @@ public class RapidMinerGUI extends RapidMiner {
         // check for updates
         Plugin.initPluginUpdateManager();
         UpdateManager.checkForUpdates();
+        UpdateManager.checkForPurchasedNotInstalled();
     }
 
     private void setupToolTipManager() {

@@ -47,6 +47,7 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 	protected PackageDescriptorCache cache;
 	
 	protected boolean updatedOnce = false;
+	private boolean forceUpdate = false;
 
 	protected boolean fetching = false;
 	protected int completed = 0;
@@ -60,8 +61,13 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 		this.noPackagesMessageKey = noPackagesMessageKey;
 	}
 	
+	public void update(boolean forceUpdate) {
+			this.forceUpdate = forceUpdate;
+			update();
+	}
+	
 	public synchronized void update() {
-		if (shouldUpdate()) {
+		if (shouldUpdate() || forceUpdate) {
 			fetching = true;
 			new ProgressThread("fetching_updates", false) {
 				@Override
@@ -97,6 +103,7 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 					}
 				}
 			}.start();
+			forceUpdate = false;
 		}
 	}
 	

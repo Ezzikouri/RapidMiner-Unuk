@@ -22,27 +22,32 @@
  */
 package com.rapid_i.deployment.update.client;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.net.PasswordAuthentication;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
+import java.util.Observer;
 
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.JPanel;
 
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.tools.PasswordDialog;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
-import com.rapidminer.tools.GlobalAuthenticator;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.NetTools;
 
 /**
@@ -71,39 +76,71 @@ public class UpdateDialog extends ButtonDialog {
 	private final UpdateService service;
 
 	private final UpdateListPanel ulp;
+	
+    private static class USAcountInfoButton extends LinkButton implements Observer {
 
-	static {
-		GlobalAuthenticator.registerServerAuthenticator(new GlobalAuthenticator.URLAuthenticator() {
-			@Override
-			public PasswordAuthentication getAuthentication(URL url) {
-				try {
-					if (url.toString().startsWith(UpdateManager.getUpdateServerURI("").toString())) {
-						return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+		private static final long serialVersionUID = 1L;
+
+		public USAcountInfoButton() {
+			super(new AbstractAction("") {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
+					if (account.isLoggedIn()) {
+						account.logout();
 					} else {
-						return null;
+						account.login();
 					}
-				} catch (URISyntaxException e) {
-					return null;
+					
+				}			
+			});
+			
+			Dimension size = new Dimension(300, 24);
+			this.setSize(size);
+			this.setMaximumSize(size);
+			this.setPreferredSize(size);
+		}
+		
+		@Override
+		public void update(Observable obs, Object arg) {
+			if (obs instanceof UpdateServerAccount) {
+				UpdateServerAccount account = (UpdateServerAccount)obs;
+				if (account.isLoggedIn()) {
+					this.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.account_button.logged_in", account.getUserName()));
+				} else {
+					this.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.account_button.logged_out"));
 				}
 			}
-
-			@Override
-			public String getName() {
-				return "UpdateService authenticator.";
-			}
-			
-			@Override
-			public String toString() {
-				return getName();
-			}
-		});
-	}
+		}
+    } 
+    
+	private USAcountInfoButton accountInfoButton = new USAcountInfoButton();
 
 	public UpdateDialog(UpdateService service, List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
 		super("update");
 		this.service = service;
-		ulp = new UpdateListPanel(this, descriptors, preselectedExtensions);
+		UpdateServerAccount usAccount = UpdateManager.getUpdateServerAccount();
+		usAccount.addObserver(accountInfoButton);
+		ulp = new UpdateListPanel(this, descriptors, preselectedExtensions, usAccount);
 		layoutDefault(ulp, LARGE, makeOkButton("update.install"), makeCloseButton());
+	}
+	
+	@Override
+	/** Overriding makeButtonPanel in order to display account information. **/
+	protected JPanel makeButtonPanel(AbstractButton ... buttons) {
+		JPanel buttonPanel = new JPanel(new BorderLayout());
+		JPanel buttonPanelRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, GAP, GAP));		
+		for (AbstractButton button : buttons) {
+			if (button != null) {
+				buttonPanelRight.add(button);
+			}
+		}
+		buttonPanel.add(buttonPanelRight, BorderLayout.CENTER);
+		JPanel buttonPanelLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, GAP, 2*GAP));
+		buttonPanelLeft.add(accountInfoButton, false);
+		buttonPanel.add(buttonPanelLeft, BorderLayout.WEST);
+		return buttonPanel;
 	}
 
 	public static void showUpdateDialog(final String... preselectedExtensions) {

@@ -62,14 +62,18 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 //	private static final Icon SELECTED_ICON = SwingTools.createIcon("16/checkbox.png");
 //	private static final Icon NON_SELECTED_ICON = SwingTools.createIcon("16/checkbox_unchecked.png");
 	
-	private final UpdateListPanel packageDescriptorListPanel;
+	private final UpdateListPanel packageDescriptorListPanel ;
+	private boolean allPurchased = false;
 
 //	private final JLabel freeCommercial = new JLabel();
 	
 	UpdateListCellRenderer(UpdateListPanel updateListPanel) {
 		packageDescriptorListPanel = updateListPanel;
-		
-
+	}
+	
+	UpdateListCellRenderer(boolean allPurchased) {
+		this.allPurchased = allPurchased;
+		this.packageDescriptorListPanel = null;
 	}
 	
 	
@@ -143,7 +147,7 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 		String text = "";
 		if (value instanceof PackageDescriptor) {
 			PackageDescriptor desc = (PackageDescriptor) value;
-			boolean selectedForInstallation = packageDescriptorListPanel.isSelected(desc);
+			boolean selectedForInstallation = packageDescriptorListPanel != null ? packageDescriptorListPanel.isSelected(desc) : true;
 			Icon packageIcon = getResizedIcon(getIcon(desc));
 			
 			text = "<html><body style='width: " + (packageIcon != null ? (310 - packageIcon.getIconWidth()) : 314) + ";" + 
@@ -203,7 +207,7 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 			selectedLabel.setEnabled(!upToDate);
 			
 			if ("COMMERCIAL".equals(desc.getLicenseName())) {
-				if (packageDescriptorListPanel.isPurchased(desc)) {
+				if (allPurchased || (packageDescriptorListPanel != null && packageDescriptorListPanel.isPurchased(desc))) {
 					selectedLabel.setEnabled(true);
 				} else {
 					selectedLabel.setEnabled(false);
