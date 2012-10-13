@@ -244,4 +244,8 @@ public class ContinuousColorProvider implements ColorProvider {
 	public void setUseGrayForOutliers(boolean useGrayForOutliers) {
 		this.useGrayForOutliers = useGrayForOutliers;
 	}
+	
+	public boolean isColorMinMaxValueDifferentFromOriginal(double minValue, double maxValue) {
+		return !(minValue == originalMinValue && maxValue == originalMaxValue);
+	}
 }

@@ -197,7 +197,14 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 
 		public void hyperlinkUpdate(HyperlinkEvent e) {
 			if (e.getEventType().equals(EventType.ACTIVATED)) {
-
+				// ask for confirmation before stopping the currently running process and opening another one!
+            	if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING || 
+            			RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
+            		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+            			return;
+            		}
+            	}
+            	
 				// ask user if he wants to save his current proces because the example process will replace his current process
 				if (RapidMinerGUI.getMainFrame().isChanged()) {
 					// current process is flagged as unsaved

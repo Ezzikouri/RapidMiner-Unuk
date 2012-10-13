@@ -36,7 +36,7 @@ import com.rapidminer.tools.container.Pair;
 public class LinkAndBrushSelection {
 
 	public enum SelectionType {
-		ZOOM_IN, ZOOM_OUT, RESTORE_AUTO_BOUNDS, SELECTION, RESTORE_SELECTION, COLOR, RESTORE_COLOR
+		ZOOM_IN, ZOOM_OUT, RESTORE_AUTO_BOUNDS, SELECTION, RESTORE_SELECTION, COLOR_ZOOM, COLOR_SELECTION, RESTORE_COLOR
 	}
 
 	private final List<Pair<Integer, Range>> domainAxisRanges;
@@ -123,6 +123,10 @@ public class LinkAndBrushSelection {
 
 	public PlotInstance getPlotInstance() {
 		return plotInstance;
+	}
+
+	public void setPlotInstance(PlotInstance plotInstance) {
+		this.plotInstance = plotInstance;
 	}
 
 }

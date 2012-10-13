@@ -46,6 +46,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * Regular Expression Dialog: Dialog has a new tab: Regex Options. In this tab, the user can define options like multiline mode or
   case-insensitive matching. These options will be added to the pattern though embedded flag expressions.
 * Recent files are now updated on process save
+* Added new shortcut to toggle the breakpoint before an operator (Shift+F7)
 * Improved many error messages
 * BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases.
 * BUGFIX: Editing context variables now immediately flags the process as changed
@@ -68,8 +69,8 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: Fixed possible data loss when trying to store data/processes/etc in the repository using invalid characters for the given
 		  filesystem by now showing an error instead of failing silently
 * BUGFIX: fixed an initialization problem in the Cross Distances operator, which caused wrong calculation of distances in some rare cases
-* BUGFIX: Quickfix Dialogs shouldn't vanish right after showing (RCOMM2012)
-* BUGFIX: RapidMiner should no longer block for a varying amount of time if a connection to an online server fails
+* BUGFIX: Quickfix Dialogs no longer vanish right after showing (RCOMM2012)
+* BUGFIX: RapidMiner no longer blocks for a varying amount of time if a connection to an online server fails
 * BUGFIX: Focus issue with delete action 
 * BUGFIX: Import Binary File no longer freezes the GUI
 * BUGFIX: New Plotters showed a "This should not happen" message once in a while and where unusable until restart of RapidMiner (Bug #1274)

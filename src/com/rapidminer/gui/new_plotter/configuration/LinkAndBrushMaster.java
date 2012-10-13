@@ -151,21 +151,43 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 			clearZooming(false);
 		}
 		
-		if (e.getType() == SelectionType.COLOR) {
+		if (e.getType() == SelectionType.COLOR_ZOOM) {
 			Double minColorValue = e.getMinColorValue();
 			Double maxColorValue = e.getMaxColorValue();
 			if (e.getPlotInstance() != null) {
 				DimensionConfigData dimensionConfigData = e.getPlotInstance().getPlotData().getDimensionConfigData(plotConfig.getDefaultDimensionConfigs().get(PlotDimension.COLOR));
+				ContinuousColorProvider colProv = null;
 				if (minColorValue != null && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
-					ContinuousColorProvider colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
 					colProv.setMinValue(minColorValue);
 				}
 				if (maxColorValue != null  && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
-					ContinuousColorProvider colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
 					colProv.setMaxValue(maxColorValue);
 				}
+				if (colProv != null) {
+					colProv.setUseGrayForOutliers(false);
+				}
 			}
-		} 
+		} else if (e.getType() == SelectionType.COLOR_SELECTION) {
+			Double minColorValue = e.getMinColorValue();
+			Double maxColorValue = e.getMaxColorValue();
+			if (e.getPlotInstance() != null) {
+				DimensionConfigData dimensionConfigData = e.getPlotInstance().getPlotData().getDimensionConfigData(plotConfig.getDefaultDimensionConfigs().get(PlotDimension.COLOR));
+				ContinuousColorProvider colProv = null;
+				if (minColorValue != null && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.setMinValue(minColorValue);
+				}
+				if (maxColorValue != null  && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.setMaxValue(maxColorValue);
+				}
+				if (colProv != null) {
+					colProv.setUseGrayForOutliers(true);
+				}
+			}
+		}
 		
 		if (e.getType() == SelectionType.RESTORE_COLOR) {
 			if (e.getPlotInstance() != null) {
