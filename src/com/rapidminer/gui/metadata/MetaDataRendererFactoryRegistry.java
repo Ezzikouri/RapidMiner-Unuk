@@ -24,8 +24,8 @@ package com.rapidminer.gui.metadata;
 
 import java.awt.Component;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-
 import com.rapidminer.gui.flow.ExampleSetMetaDataTableModel;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
@@ -64,6 +64,91 @@ public class MetaDataRendererFactoryRegistry {
 		factories.put(factory.getSupportedClass(), factory);
 	}
 	
+	private int getInheritenceLevelDistanceRecursive(Class<?> currentClass, Class<?> targetClass, int distance) {
+		
+		// if the current class is the target class then return with the current distance
+		if (currentClass.equals(targetClass)) {
+			return distance;
+		} 
+
+		// if it is a leaf node of the inheritance tree and it is not the target class then return with -1
+		if (currentClass.isInterface() && currentClass.getInterfaces().length == 0) {
+			return -1;
+		}		
+		if (!currentClass.isInterface() && currentClass.getSuperclass().equals(Object.class)) {
+			return -1;
+		}
+				
+		// determine all super* (included superclass and superinterfaces)
+		Class<?>[] superClassAndInterfaces = null;
+		
+		if (currentClass.isInterface()) {
+			// if it is interface then there is no superclass
+			superClassAndInterfaces = new Class<?>[currentClass.getInterfaces().length];
+		} else {
+			// if it is a class then then is a superclass
+			superClassAndInterfaces = new Class<?>[currentClass.getInterfaces().length + 1];
+		}
+
+		// add interfaces to list
+		for (int i=0;i<currentClass.getInterfaces().length;i++) {
+			superClassAndInterfaces[i] = currentClass.getInterfaces()[i];
+		}
+		
+		// add superclass if it is not interface
+		if (!currentClass.isInterface()) {
+			superClassAndInterfaces[superClassAndInterfaces.length - 1] = currentClass.getSuperclass();
+		}
+		
+		// run recursive search
+		int[] returnDistances = new int[superClassAndInterfaces.length];
+		for (int i=0;i<superClassAndInterfaces.length;i++) {
+			returnDistances[i] = getInheritenceLevelDistanceRecursive(superClassAndInterfaces[i], targetClass, distance + 1);
+		}
+		
+		// select the smallest valid value from the return list
+		int minReturn = Integer.MAX_VALUE;
+		for (int i=0;i<returnDistances.length;i++) {
+			if (returnDistances[i] != -1 && returnDistances[i] < minReturn) {
+				minReturn = returnDistances[i];
+			}
+		}
+		
+		// if the minReturn is not changed then return -1
+		// this means that target class is nnot found in that branch
+		if (minReturn == Integer.MAX_VALUE) {
+			return -1;
+		} else {
+			return minReturn;
+		}
+		
+	}
+
+	/**
+	 * 
+	 * Determine the inheritance distance between two classes
+	 * 
+	 * @param child Child class
+	 * @param parent Parent class
+	 * @return Distance between the child and the parent
+	 */
+	private int getInheritenceLevelDistance(Class<?> child, Class<?> parent) {
+		
+		// null input parameters are not acceptable
+		if (child == null || parent == null) {
+			return -1;
+		} 
+		
+		// if they are not in the same inheritance branch then return -1
+		if (!parent.isAssignableFrom(child)) {
+			return -1;
+		} else {
+			
+			// call the recursive inheritance tree travelsar 
+			return getInheritenceLevelDistanceRecursive(child, parent, 0);
+		}
+	}
+	
 	/** Creates a renderer for this meta data object or null if there is no suitable renderer
 	 *  or if the meta data is null. */
 	public Component createRenderer(MetaData metaData) {
@@ -74,7 +159,40 @@ public class MetaDataRendererFactoryRegistry {
 		if (f != null) {
 			return f.createRenderer(metaData);
 		} else {
-			return null;
+			
+			// find the closest (inheritance) renderer from the factories 
+			
+			int distance = Integer.MAX_VALUE;
+			
+			Iterator<Class<? extends MetaData>> iterator = factories.keySet().iterator();
+			
+			Class<?> rendererCandidateMetaDataClass = null;
+			
+			while (iterator.hasNext()) {
+				
+				// get the next key from the factories
+				Class<?> metaDataClass = iterator.next();
+				
+				// calculate the distance between key MD and parameter MD 
+				int currentDistance = getInheritenceLevelDistance(metaData.getClass(), metaDataClass);
+				
+				// find the closest one
+				if (currentDistance != -1 && currentDistance < distance) {
+					distance = currentDistance;
+					rendererCandidateMetaDataClass = metaDataClass;
+				}
+			}
+
+			// if an appropriate renderer is exist, then register it for this metadata 
+			if (rendererCandidateMetaDataClass != null) {
+				MetaDataRendererFactory factory = factories.get(rendererCandidateMetaDataClass);				
+				factories.put(metaData.getClass(), factory);
+				return factory.createRenderer(metaData);
+			} else { // else add null to this metadata (to avoid further lookups)
+				factories.put(metaData.getClass(), null);
+				return null;
+			}
+			
 		}
 	}
 }

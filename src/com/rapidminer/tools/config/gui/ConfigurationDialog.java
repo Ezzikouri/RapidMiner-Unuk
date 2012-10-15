@@ -152,6 +152,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 		this.configurator = configurator;
 		this.configurationPanel = configurator.createConfigurationPanel();
 		setI18NVariables(this.I18NKey);
+		this.setModal(true);
 		
 		JPanel allButtonPanel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
