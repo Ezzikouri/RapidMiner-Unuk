@@ -79,7 +79,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	
 	public static Action getOpenWindowAction(String typeID) {
 		final String finalTypeID = typeID;
-		Action OPEN_WINDOW = new ResourceAction("configuration." + ConfigurationManager.getInstance().getConfigurator(typeID).getI18NBaseKey()) {
+		Action OPEN_WINDOW = new ResourceAction(true, "configuration." + ConfigurationManager.getInstance().getConfigurator(typeID).getI18NBaseKey()) {
 			{
 				setCondition(EDIT_IN_PROGRESS, DONT_CARE);
 			}
