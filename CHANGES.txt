@@ -76,6 +76,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: New Plotters showed a "This should not happen" message once in a while and where unusable until restart of RapidMiner (Bug #1274)
 * BUGFIX: Real to Integer operator: don't convert missings to 0, but keep them as missing
 * BUGFIX: Fixed wrong cell selection on rightclick for some tables after reordering columns
+* BUGFIX: Fixed startup failure when trying to start RapidMiner with broken Plugins
  
 
 Changes from RapidMiner 5.2.6 to 5.2.8

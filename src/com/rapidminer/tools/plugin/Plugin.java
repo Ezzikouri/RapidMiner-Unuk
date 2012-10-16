@@ -862,14 +862,20 @@ public class Plugin {
 
 	private static void callPluginInitMethods(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
         List<Plugin> plugins = getAllPlugins();
-        for (Plugin plugin : plugins) {
-            plugin.callInitMethod(methodName, arguments, argumentValues, useOriginalJarClassLoader);
-        }
+        for (Iterator<Plugin> iterator = plugins.iterator(); iterator.hasNext();) {
+			Plugin plugin = iterator.next();
+			if (!plugin.callInitMethod(methodName, arguments, argumentValues, useOriginalJarClassLoader)) {
+				iterator.remove();
+			}
+		}
     }
 
-    private void callInitMethod(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
+	/**
+	 * @return true if everything went well, false if a fatal error occurred. The plugin should be unregistered in this case.
+	 */
+    private boolean callInitMethod(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
         if (pluginInitClassName == null) {
-            return;
+            return true;
         }
         try {
             ClassLoader classLoader;
@@ -883,16 +889,18 @@ public class Plugin {
             try {
                 initMethod = pluginInitator.getMethod(methodName, arguments);
             } catch (NoSuchMethodException e) {
-                return;
+                return true;
             }
             initMethod.invoke(null, argumentValues);
-        } catch (Exception e) {
+            return true;
+        } catch (Throwable e) {
             //LogService.getRoot().log(Level.WARNING, "Plugin initializer " + pluginInitClassName + "." + methodName + " of Plugin " + getName() + " causes an error: " + e.getMessage(), e);
 			LogService.getRoot().log(
 					Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
 							"com.rapidminer.tools.plugin.Plugin.plugin_initializer_error", pluginInitClassName, methodName, getName(), e
 									.getMessage()), e);
+			return false;
         }
     }
 

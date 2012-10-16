@@ -139,7 +139,7 @@
 	<target name="build" depends="init, copy-resources,version.updateFiles, create-documentation" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<echo message="RapidMiner: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner: using Java version: ${java.version}" />
-		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false">
+		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false" target="1.6">
 			<compilerarg value="${compiler.arguments}" />
 
 			<classpath refid="classpath" />
@@ -630,7 +630,7 @@
 	<!-- BEGIN Test targets -->
 	<target name="test.build" depends="test.clean">
 		<mkdir dir="${test.build}" />
-		<javac debug="${compiler.debug}" destdir="${test.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m">
+		<javac debug="${compiler.debug}" destdir="${test.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" target="1.6">
 
 			<classpath refid="classpath" />
 			<src path="${src_test}" />
