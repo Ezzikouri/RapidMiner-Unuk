@@ -48,6 +48,7 @@ public class SaveAction extends ResourceAction {
 		setCondition(EDIT_IN_PROGRESS, DONT_CARE);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		save(RapidMinerGUI.getMainFrame().getProcess());
 	}

@@ -31,6 +31,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.text.NumberFormat;
+import java.text.ParseException;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
@@ -106,10 +108,16 @@ public class CronExpressionCellEditor extends AbstractCellEditor implements Prop
 
 			public void actionPerformed(ActionEvent e) {
 				CronEditorDialog dialog = new CronEditorDialog(operator, type);
+				String cronExpression = textField.getText();
+				
+				dialog.setSpinnerCronExpressionValues(cronExpression);
+				
 				dialog.setVisible(true);
+				
 				if (dialog.wasConfirmed()) {
 					textField.setText(dialog.getCronExpression());
 				}
+				
 				fireEditingStopped();
 			}
 		});

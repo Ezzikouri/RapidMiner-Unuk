@@ -137,10 +137,11 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 
     private transient final Action CLEAR_FILTER_ACTION = new ResourceAction(true, "clear_filter") {
         private static final long serialVersionUID = 3236281211064051583L;
-
+        
         @Override
         public void actionPerformed(ActionEvent e) {
             filterField.clearFilter();
+            filterField.requestFocusInWindow();
         }
     };
 

@@ -144,6 +144,7 @@ public class FilterTextField extends JTextField {
 
 			@Override
 			public void focusGained(FocusEvent e) {
+				selectAll();
 			}
 
 			@Override
