@@ -75,7 +75,7 @@ public class UpdateDialog extends ButtonDialog {
 
 	private final UpdateService service;
 
-	private final UpdateListPanel ulp;
+	private final UpdatePanel ulp;
 	
     private static class USAcountInfoButton extends LinkButton implements Observer {
 
@@ -122,7 +122,7 @@ public class UpdateDialog extends ButtonDialog {
 		this.service = service;
 		UpdateServerAccount usAccount = UpdateManager.getUpdateServerAccount();
 		usAccount.addObserver(accountInfoButton);
-		ulp = new UpdateListPanel(this, descriptors, preselectedExtensions, usAccount);
+		ulp = new UpdatePanel(this, descriptors, preselectedExtensions, usAccount);
 		layoutDefault(ulp, LARGE, makeOkButton("update.install"), makeCloseButton());
 	}
 	
@@ -185,12 +185,12 @@ public class UpdateDialog extends ButtonDialog {
 
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
-						um.performUpdates(acceptedList, getProgressListener());
+						int result=um.performUpdates(acceptedList, getProgressListener());
 						getProgressListener().complete();
 						UpdateDialog.this.dispose();
 						// TODO: re-enable
 						// ManagedExtension.checkForLicenseConflicts();
-						if (SwingTools.showConfirmDialog("update.complete_restart", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.YES_OPTION) {
+						if (SwingTools.showConfirmDialog("update.complete_restart", ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
 							RapidMinerGUI.getMainFrame().exit(true);
 						}
 					} else {

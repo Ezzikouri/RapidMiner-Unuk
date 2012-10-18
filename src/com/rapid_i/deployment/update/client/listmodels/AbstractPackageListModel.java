@@ -146,9 +146,11 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 		return cache.getPackageInfo(packageNames.get(index), "ANY");
 	}
 
-	public void update(PackageDescriptor descr) {
-		int index = packageNames.indexOf(descr.getPackageId());
-		fireContentsChanged(this, index, index);
+	public void updateView(PackageDescriptor descr) {
+		if (descr != null) {
+			int index = packageNames.indexOf(descr.getPackageId());
+			fireContentsChanged(this, index, index);
+		}
 	}
 	
 	public void add(PackageDescriptor desc) {

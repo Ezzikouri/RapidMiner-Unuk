@@ -220,9 +220,9 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
-						um.performUpdates(acceptedList, getProgressListener());
+						int result= um.performUpdates(acceptedList, getProgressListener());
 						getProgressListener().complete();
-						if (SwingTools.showConfirmDialog("update.complete_restart", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.YES_OPTION) {
+						if (SwingTools.showConfirmDialog("update.complete_restart", ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
 							RapidMinerGUI.getMainFrame().exit(true);
 						}
 					} else {

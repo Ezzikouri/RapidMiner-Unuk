@@ -221,18 +221,14 @@ public class OperatorService {
         try {
             document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(operatorsXML);
             if (!document.getDocumentElement().getTagName().toLowerCase().equals("operators")) {
-                //LogService.getRoot().severe("Operator description file '" + name + "': outermost tag must be <operators>!");
                 LogService.getRoot().log(Level.SEVERE, "com.rapidminer.tools.OperatorService.operator_description_file_outermost_tag", name);
                 return;
             }
             version = document.getDocumentElement().getAttribute("version");
             if (version.startsWith("5.")) {
                 parseOperators(document, classLoader, provider);
-                // } else {
-                // parseOperatorsPre5(document, classLoader, provider);
             }
         } catch (Exception e) {
-            //LogService.getRoot().log(Level.SEVERE, "Cannot read operator description file '" + name + "': no valid XML: " + e.getMessage(), e);
             LogService.getRoot().log(Level.SEVERE,
             		I18N.getMessage(LogService.getRoot().getResourceBundle(),
             		"com.rapidminer.tools.OperatorService.operator_descripton_file_reading_error",
@@ -243,7 +239,11 @@ public class OperatorService {
             try {
                 operatorsXML.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                LogService.getRoot().log(Level.WARNING,
+                		I18N.getMessage(LogService.getRoot().getResourceBundle(),
+                		"com.rapidminer.tools.OperatorService.error_closing_stream",
+                		e.getMessage()), 
+                		e);
             }
         }
     }
@@ -253,7 +253,6 @@ public class OperatorService {
         OperatorDocBundle bundle;
         if (docBundle == null || docBundle.isEmpty()) {
             bundle = null;
-            //LogService.getRoot().warning("Operators for " + provider.getName() + " don't have an attached documentation.");
             String providerName;
             if (provider == null) {
             	providerName = "RapidMiner core";

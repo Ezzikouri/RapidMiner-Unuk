@@ -23,6 +23,7 @@
 package com.rapidminer.tools.math.similarity.mixed;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.tools.math.similarity.DistanceMeasure;
@@ -69,13 +70,25 @@ public class MixedEuclideanDistance extends DistanceMeasure {
 	@Override
 	public void init(ExampleSet exampleSet) throws OperatorException {
 	    super.init(exampleSet);
-	    isNominal = new boolean[exampleSet.getAttributes().size()];
+	    Attributes attributes = exampleSet.getAttributes();
+	    init(attributes);
+	}
+
+	private void init(Attributes attributes) {
+		isNominal = new boolean[attributes.size()];
 		int index = 0;
-		for (Attribute attribute : exampleSet.getAttributes()) {
+		for (Attribute attribute : attributes) {
 			isNominal[index++] = attribute.isNominal();
 		}
 	}
-
+	
+	@Override
+	public DistanceMeasureConfig init(Attributes firstSetAttributes, Attributes secondSetAttributes) {
+		DistanceMeasureConfig config = super.init(firstSetAttributes, secondSetAttributes);
+		init(firstSetAttributes);
+		return config;
+	}
+	
 	@Override
 	public String toString() {
 		return "Mixed euclidean distance";

@@ -153,6 +153,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 
 			// clear text field
 			addRuleTextField.setText("");
+			addRuleTextField.requestFocusInWindow();
 
 			if (newRule != null && newRule.trim().length() != 0 && !(selectedRules.contains(newRule))) {
 				// add rule to list
@@ -317,6 +318,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				attributeSearchField.clearFilter();
+				attributeSearchField.requestFocusInWindow();
 			}
 		});
 		JPanel itemSearchFieldPanel = new JPanel(new GridBagLayout());

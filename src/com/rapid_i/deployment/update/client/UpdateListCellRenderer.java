@@ -42,7 +42,6 @@ import javax.swing.SwingConstants;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.SwingTools;
-import com.rapidminer.tools.I18N;
 
 /**
  * Renders a cell of the update list. This contains icons for the type of extension or update.
@@ -62,18 +61,19 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 //	private static final Icon SELECTED_ICON = SwingTools.createIcon("16/checkbox.png");
 //	private static final Icon NON_SELECTED_ICON = SwingTools.createIcon("16/checkbox_unchecked.png");
 	
-	private final UpdateListPanel packageDescriptorListPanel ;
+	//private final UpdatePanel packageDescriptorListPanel ;
+    private final UpdatePackagesModel updateModel;
 	private boolean allPurchased = false;
 
 //	private final JLabel freeCommercial = new JLabel();
 	
-	UpdateListCellRenderer(UpdateListPanel updateListPanel) {
-		packageDescriptorListPanel = updateListPanel;
+	UpdateListCellRenderer(UpdatePackagesModel updateModel) {
+		this.updateModel = updateModel;
 	}
 	
 	UpdateListCellRenderer(boolean allPurchased) {
 		this.allPurchased = allPurchased;
-		this.packageDescriptorListPanel = null;
+		this.updateModel = null;
 	}
 	
 	
@@ -147,7 +147,7 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 		String text = "";
 		if (value instanceof PackageDescriptor) {
 			PackageDescriptor desc = (PackageDescriptor) value;
-			boolean selectedForInstallation = packageDescriptorListPanel != null ? packageDescriptorListPanel.isSelected(desc) : true;
+			boolean selectedForInstallation = updateModel != null ? updateModel.isSelectedForInstallation(desc) : true;
 			Icon packageIcon = getResizedIcon(getIcon(desc));
 			
 			text = "<html><body style='width: " + (packageIcon != null ? (310 - packageIcon.getIconWidth()) : 314) + ";" + 
@@ -207,7 +207,7 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 			selectedLabel.setEnabled(!upToDate);
 			
 			if ("COMMERCIAL".equals(desc.getLicenseName())) {
-				if (allPurchased || (packageDescriptorListPanel != null && packageDescriptorListPanel.isPurchased(desc))) {
+				if (allPurchased || (updateModel != null && updateModel.isPurchased(desc))) {
 					selectedLabel.setEnabled(true);
 				} else {
 					selectedLabel.setEnabled(false);

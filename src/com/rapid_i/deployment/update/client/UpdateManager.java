@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapid_i.deployment.update.client;
 
 import java.io.BufferedReader;
@@ -37,7 +36,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -151,10 +149,21 @@ public class UpdateManager {
 			}
 		}
 	}
-
-	public void performUpdates(List<PackageDescriptor> downloadList, ProgressListener progressListener) throws IOException, UpdateServiceException_Exception {
-		//TODO: show user when we complete update has failed because of the md5 hash
+	
+	/**
+	 * method loads down the required packages and installs them
+	 * @param downloadList	list of the required Packages
+	 * @param progressListener	current ProgressListener
+	 * @return	returns the number of successful updates or downloads 
+	 * @throws IOException
+	 * @throws UpdateServiceException_Exception
+	 */
+	public int performUpdates(List<PackageDescriptor> downloadList, ProgressListener progressListener) throws IOException, UpdateServiceException_Exception {
 		int i = 0;
+		//number of failed Downloads
+		int FaildLoads=0;
+		//number of all available Downloads
+		int availableLoads=downloadList.size();
 		try {
 			for (PackageDescriptor desc : downloadList) {
 				String urlString = service.getDownloadURL(desc.getPackageId(), desc.getVersion(), desc.getPlatformName());
@@ -190,7 +199,8 @@ public class UpdateManager {
 							updatePlugin(extension, openStream(url, progressListener, minProgress, maxProgress), desc.getVersion(), urlString + "?md5");
 						} catch (IOException e) {
 							LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Plugin");
-							ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, desc.getName());
+							FaildLoads++;
+							ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true,new Object[] {desc.getName()});
 							dialog.setVisible(true);
 						}
 
@@ -205,25 +215,30 @@ public class UpdateManager {
 					try {
 						updateRapidMiner(openStream(url, progressListener, minProgress, maxProgress), desc.getVersion(), urlString + (incremental ? "?baseVersion=" + URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") + "&md5" : "?md5"));
 					} catch (IOException e) {
+						FaildLoads++;
 						LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Update");
-						ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, "the RapidMiner-Update");
+						ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] {"RapidMiner"});
 						dialog.setVisible(true);
 					}
 				}
 				i++;
 				progressListener.setCompleted(20 + 80 * i / downloadList.size());
+				
 			}
 		} catch (URISyntaxException e) {
 			throw new IOException(e);
 		} finally {
 			progressListener.complete();
 		}
+		if(availableLoads==FaildLoads)
+			throw new IOException(I18N.getMessage(I18N.getGUIBundle(),"gui.dialog.error.no_update_md5.message"));
+		return availableLoads-FaildLoads;
 	}
 
-	/**
+	/*
 	 * Creates a path to the directory of the User-directory instead of the program files-directory.
 	 * so that there is no io excetption because of the userlevel
-	 */
+	 
 	private File getDestinationPluginFile(ManagedExtension extension, String newVersion) throws IOException {
 		File outFile = extension.getDestinationFile(newVersion);
 		String destPath = outFile.getPath();
@@ -240,7 +255,8 @@ public class UpdateManager {
 		outFile = new File(FileSystemService.getUserRapidMinerDir().getPath() + "\\RUinstall" + destPath);
 		return outFile;
 	}
-
+*/
+	
 	private void updatePlugin(ManagedExtension extension, InputStream updateIn, String newVersion, String md5Adress) throws IOException {
 		File outFile = extension.getDestinationFile(newVersion);
 		OutputStream out = new FileOutputStream(outFile);
@@ -257,8 +273,7 @@ public class UpdateManager {
 		}
 
 	}
-
-	@SuppressWarnings("resource")
+	
 	private void updateRapidMiner(InputStream openStream, String version, String md5adress) throws IOException {
 		//File updateDir = new File(FileSystemService.getRapidMinerHome(), "update");
 		File updateRootDir = new File(FileSystemService.getUserRapidMinerDir(), "update");
@@ -281,7 +296,7 @@ public class UpdateManager {
 			throw new IOException("MD5-hashes are not equal");
 		}
 
-		File ruInstall = new File(FileSystemService.getUserRapidMinerDir(), "RUinstall");
+		File ruInstall = new File(updateRootDir, "RUinstall");
 		ZipFile zip = new ZipFile(updateFile);
 		Enumeration<? extends ZipEntry> en = zip.entries();
 
@@ -475,8 +490,9 @@ public class UpdateManager {
 	/**
 	* method to get the MD5 hash from the server
 	* @param md5Stream Inputstream from server user with md5hash of the download
+	* @return returns a hexString to be compatible to the local MD5-hash-method
 	*/
-	private byte[] getServerMD5(InputStream md5Stream) throws IOException {
+	private String getServerMD5(InputStream md5Stream) throws IOException {
 		byte[] md5Hash = {};
 		try {
 			ByteArrayOutputStream md5Buffer = new ByteArrayOutputStream();
@@ -486,8 +502,7 @@ public class UpdateManager {
 			md5Stream.close();
 			throw new IOException("failure while downloading the hash from Server: " + e.getMessage());
 		}
-//		return new BigInteger(md5Hash);
-		return md5Hash;
+		return new String(md5Hash);
 	}
 
 	/**
@@ -498,41 +513,33 @@ public class UpdateManager {
 	 * @throws URISyntaxException
 	 * @throws IOException
 	 */
-	private boolean compareMD5(File toCompare, String urlString) throws IOException {
+	private boolean compareMD5(File toCompare, String urlString) {
 		if (urlString == null || toCompare == null || urlString.equals(""))
 			throw new IllegalArgumentException("parameter is empty");
-		//create MD5 hash from File on disk
-//		BigInteger localMD5 = UpdateManager.getMD5hash(toCompare);
-		byte[] localMD5 = UpdateManager.getMD5hash(toCompare);
-		//download MD5 from File on server
+		
 		try {
+			//create MD5 hash from File on disk
+			String localMD5 = UpdateManager.getMD5hash(toCompare);
+			//download MD5 from File on server
 			URL url = UpdateManager.getUpdateServerURI(urlString).toURL();
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			WebServiceTools.setURLConnectionDefaults(con);
 			con.setDoInput(true);
 			con.setDoOutput(false);
-//			BigInteger serverMD5;
-			byte[] serverMD5;
+			String serverMD5;
 			try {
 				serverMD5 = getServerMD5(con.getInputStream());
 			} catch (IOException e) {
 				throw new IOException(con.getResponseCode() + ": " + con.getResponseMessage(), e);
 			}
 			//compare MD5 hashes
-//			if (serverMD5.compareTo(localMD5) == 0)
-//				return true;
-			if(serverMD5.length!=localMD5.length)
-//				return false;
-				throw new IOException("totaler fail die md5-hashes sind unterschiedlich lang"+localMD5.toString()+" "+serverMD5.toString());
-			for(int i=0;i<localMD5.length;i++) {
-				if(serverMD5[i]!=localMD5[i])
-					return false;
-			}
-			return true;
-		} catch (URISyntaxException e) {
-			throw new IOException("URI-String was invalid");
+			if (serverMD5.compareTo(localMD5) == 0)
+				return true;
+			return false;
+		} catch (Exception e) {
+			// will delete the data of this downloadpart and show message to user to laod this data again
+			return false;
 		}
-//		return false;
 	}
 
 	/**
@@ -543,12 +550,11 @@ public class UpdateManager {
 	 * @throws URISyntaxException
 	 * @throws IOException
 	 */
-	private boolean compareMD5(byte[] toCompare, String urlString) throws IOException {
+	private boolean compareMD5(byte[] toCompare, String urlString) {
 		if (urlString == null || toCompare == null || urlString.equals(""))
 			throw new IllegalArgumentException("parameter is empty");
 		//create MD5 hash from File on disk
-//		BigInteger localMD5 = UpdateManager.getMD5hash(toCompare);
-		byte[] localMD5 = UpdateManager.getMD5hash(toCompare);
+		String localMD5 = UpdateManager.getMD5hash(toCompare);
 		//download MD5 from File on server 
 		try {
 			URL url = UpdateManager.getUpdateServerURI(urlString).toURL();
@@ -556,37 +562,29 @@ public class UpdateManager {
 			WebServiceTools.setURLConnectionDefaults(con);
 			con.setDoInput(true);
 			con.setDoOutput(false);
-//			BigInteger serverMD5;
-			byte[] serverMD5;
+			String serverMD5;
 			try {
 				serverMD5 = getServerMD5(con.getInputStream());
 			} catch (IOException e) {
 				throw new IOException(con.getResponseCode() + ": " + con.getResponseMessage(), e);
 			}
 			//compare MD5 hashes
-//			if (serverMD5.equals(localMD5))
-//				return true;
-			if(serverMD5.length!=localMD5.length)
-//				return false;
-				throw new IOException("totaler fail die md5-hashes sind unterschiedlich lang"+localMD5.toString()+" "+serverMD5.toString());
-			for(int i=0;i<localMD5.length;i++) {
-				if(serverMD5[i]!=localMD5[i])
-					return false;
-			}
-			return true;
-		} catch (URISyntaxException e) {
-			throw new IOException("URI Syntax");
+			if (serverMD5.compareTo(localMD5)==0)
+				return true;
+			return false;
+		} catch (Exception e) {
+			// will delete the data of this downloadpart and show message to user to laod this data again
+			return false;
 		}
-//		return false;
 	}
 
 	/**
 	 * method to get the MD5Hash of a File
 	 * @param toHash 
-	 * @return returns the BigInteger which represents the MD5-hash or null if an error occurred
+	 * @return returns a hexString which represents the MD5-hash 
 	 * @throws FileNotFoundException if the given File was not found
 	 */
-	public static byte[] getMD5hash(File toHash) throws FileNotFoundException {
+	public static String getMD5hash(File toHash) throws FileNotFoundException {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("MD5");
 			InputStream inputStream = new FileInputStream(toHash);
@@ -597,8 +595,13 @@ public class UpdateManager {
 					digest.update(buffer, 0, read);
 				}
 				byte[] md5sum = digest.digest();
-//				return new BigInteger(1, md5sum);
-				return md5sum;
+				//convert array to hexString because a wrong representation in the digest return value
+				StringBuffer hex= new StringBuffer();
+				for (byte one : md5sum) {
+					//delete minus-signs and make sure that every byte has exactly two chars 
+					hex.append(Integer.toHexString((one & 0xFF) | 0x100).toLowerCase().substring(1, 3));
+				}
+				return hex.toString();
 			} catch (IOException e) {
 				throw new RuntimeException("Unable to process file for MD5", e);
 			} finally {
@@ -614,29 +617,34 @@ public class UpdateManager {
 	}
 
 	/**
-	 * method to get the MD5Hash of a File
-	 * @param toHash byte-Array of the Object of which the MD5-hash should be created
-	 * @return returns the BigInteger which represents the MD5-hash or null if an error occurred
+	 * method to get the MD5Hash of a Byte-Array
+	 * @param toHash byte[] of the Object of which the MD5-hash should be created
+	 * @return returns a hexString which represents the MD5-hash 
 	 * @throws FileNotFoundException if the given File was not found
 	 */
-	public static byte[] getMD5hash(byte[] toHash) {
+	public static String getMD5hash(byte[] toHash) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("MD5");
 			digest.update(toHash, 0, toHash.length);
 			byte[] md5sum = digest.digest();
-//			return new BigInteger(1, md5sum);
-			return md5sum;
+			//convert array to hexString because a wrong representation in the digest return value
+			StringBuffer hex= new StringBuffer();
+			for (byte one : md5sum) {
+				//delete minus-signs and make sure that every byte has exactly two chars 
+				hex.append(Integer.toHexString((one & 0xFF) | 0x100).toLowerCase().substring(1, 3));
+			}
+			return hex.toString();
 		} catch (NoSuchAlgorithmException e) {
 			throw new UnsupportedOperationException("No implementation of MD5 found.");
 		}
 	}
 
 	/**
-	 * method to get the MD5Hash of a File
-	 * @param toHash 
-	 * @return returns the BigInteger which represents the MD5-hash or null if an error occurred
+	 * method to get the MD5Hash of a Stream
+	 * @param toHash InputStream of a given File
+	 * @return returns a hexString which represents the MD5-hash 
 	 */
-	public static byte[] getMD5hash(InputStream toHash) {
+	public static String getMD5hash(InputStream toHash) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("MD5");
 			byte[] buffer = new byte[8192];
@@ -646,8 +654,13 @@ public class UpdateManager {
 					digest.update(buffer, 0, read);
 				}
 				byte[] md5sum = digest.digest();
-//				return new BigInteger(1, md5sum);
-				return md5sum;
+				//convert array to hexString because a wrong representation in the digest return value
+				StringBuffer hex= new StringBuffer();
+				for (byte one : md5sum) {
+					//delete minus-signs and make sure that every byte has exactly two chars 
+					hex.append(Integer.toHexString((one & 0xFF) | 0x100).toLowerCase().substring(1, 3));
+				}
+				return hex.toString();
 			} catch (IOException e) {
 				throw new RuntimeException("Unable to process file for MD5", e);
 			} finally {

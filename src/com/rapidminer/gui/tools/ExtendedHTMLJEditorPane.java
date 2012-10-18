@@ -88,7 +88,7 @@ public class ExtendedHTMLJEditorPane extends JEditorPane {
 		//css.addRule("a  {text-decoration:none}");
 		//css.addRule("a:hover  {text-decoration:underline}");
 		css.addRule("dt  {font-weight:bold;}");
-		//css.addRule("a  {text-decoration:underline; font-weight:bold;}");
+		//css.addRule("a  {text-decoration:underline; font-weight:bold;color:blue;}");
 		css.addRule("hr  {color:red; background-color:red}");
     }
 }

@@ -20,15 +20,36 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.tools.config;
 
 import java.util.Map;
 
 import com.rapidminer.repository.remote.RemoteRepository;
+import com.rapidminer.tools.config.gui.ConfigurationDialog;
 
 /**
  * Interface, describing objects which can be listed and configured through a
  * {@link ConfigurationDialog}.
+ * 
+ * For every {@link Configurable} localized information has to be saved in the resource file.
+ * The keys that have to be defined are these:
+ * 
+ * gui.configurable.TYPE_ID.name          = 
+ * gui.configurable.TYPE_ID.description   = 
+ * gui.configurable.TYPE_ID.icon          =
+ *
+ * gui.dialog.configuration.TYPE_ID.title   = 
+ * gui.dialog.configuration.TYPE_ID.icon    = 
+ * gui.dialog.configuration.TYPE_ID.message = 
+ *
+ * gui.action.configuration.TYPE_ID.label = 
+ * gui.action.configuration.TYPE_ID.icon  = 
+ * gui.action.configuration.TYPE_ID.mne   =
+ * gui.action.configuration.TYPE_ID.tip   =
+ *
+ * gui.configuration.TYPE_ID.list          = 
+ * gui.configuration.TYPE_ID.configuration = 
  * 
  * @author Simon Fischer, Dominik Halfkann
  * 

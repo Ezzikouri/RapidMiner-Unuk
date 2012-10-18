@@ -69,6 +69,9 @@ import com.rapidminer.tools.config.Configurator;
 
 /**
  * A dialog, providing access to {@link Configurable}s of a specified typeID. Offers options to create, delete or modify {Configurable}s.
+ * 
+ * The I18N Keys for this dialog can be found at the {@link Configurable} interface.
+ * 
  * @author Dominik Halfkann
  *
  * @param <T> A subclass of {@link Configurable} which should be configured through the dialog.
@@ -250,11 +253,11 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	public JPanel makeConfigurableManagementPanel() {
 		JPanel panel = new JPanel(createGridLayout(1, 2));
 		JScrollPane configurableListPane = new ExtendedJScrollPane(configurableList);
-		configurableListPane.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui." + I18NKey + ".list")));
+		configurableListPane.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui.border." + I18NKey + ".list")));
 		panel.add(configurableListPane);
 		//panel.add(new JPanel());
 		JComponent configPanel = configurationPanel.getComponent();
-		configPanel.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui." + I18NKey + ".configuration")));
+		configPanel.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui.border." + I18NKey + ".configuration")));
 		panel.add(configPanel);
 		return panel;
 	}

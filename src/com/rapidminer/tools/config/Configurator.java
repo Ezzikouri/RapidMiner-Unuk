@@ -33,7 +33,9 @@ import com.rapidminer.tools.config.gui.DefaultConfigurationPanel;
 
 /** Can be used to configure {@link Configurable}s. The {@link ConfigurationManager} will take
  *  care of saving the configuration to configuration files or to a database and to provide access
- *  to dialogs which can be used to edit these configurables.   
+ *  to dialogs which can be used to edit these configurables. 
+ *  
+ *  The I18N Keys can be found at the {@link Configurable} Interface.
  * 
  * @author Simon Fischer, Dominik Halfkann
  */

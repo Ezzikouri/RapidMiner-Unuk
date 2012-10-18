@@ -43,7 +43,7 @@ import com.rapidminer.parameter.ParameterHandler;
 public abstract class DistanceMeasure implements Serializable {
     private static final long serialVersionUID = 1290079829430640414L;
 
-    private class DistanceMeasureConfig {
+    protected class DistanceMeasureConfig {
         Attribute[] firstSetAttributes;
         Attribute[] secondSetAttributes;
         // this indicates if a distance can be calculated at all

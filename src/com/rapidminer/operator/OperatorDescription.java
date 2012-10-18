@@ -345,6 +345,8 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
             throw new OperatorCreationException(OperatorCreationException.NO_CONSTRUCTOR_ERROR, key + "(" + clazz.getName() + ")", e);
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw new OperatorCreationException(OperatorCreationException.CONSTRUCTION_ERROR, key + "(" + clazz.getName() + ")", e);
+        } catch (Throwable t) {
+        	throw new OperatorCreationException(OperatorCreationException.INSTANTIATION_ERROR, "(" + clazz.getName() + ")", t);
         }
         OperatorService.invokeCreationHooks(operator);
         return operator;

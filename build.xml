@@ -37,6 +37,7 @@
 
 	<!-- Update and release server properties -->
 	<property file="server.properties" />
+	<property file="local-build.properties" />
 	
 	<!-- Language variables for getting .properties files -->
 	<property name="language" value="de,fr,ja,hu" />
@@ -106,7 +107,9 @@
 		</condition>
 	</target>
 
-	<target name="create-documentation" depends="init, check.newDocumentationPresent" if="lock.newDocumentationPresent">
+	<target name="create-documentation" depends="init, check.newDocumentationPresent" 
+	    if="lock.newDocumentationPresent"
+	    unless="skip.documentation">
 		<ant antfile="${manual}/build.xml" dir="${manual}" target="install" />
 	</target>
 
