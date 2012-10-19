@@ -291,6 +291,13 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
             return this.key;
         }
     }
+    
+    /**
+     * Returns the key of this operator without any prefix.
+     */
+    public String getKeyWithoutPrefix() {
+    	return this.key;
+    }
 
     public void disable() {
         this.enabled = false;

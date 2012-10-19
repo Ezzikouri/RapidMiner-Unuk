@@ -22,13 +22,14 @@
  */
 package com.rapidminer.tools.plugin;
 
+import java.net.URL;
+
 import com.rapidminer.RapidMiner;
 
 /** A class loader that consecutively tries to load classes from all registered plugins. 
  *  It starts with the system class loader and then tries all plugins in the order as returned
  *  by {@link Plugin#getAllPlugins()}. 
  *  
- *  TODO: implement {@link #getResource(String)}?
  * @author Simon Fischer
  *
  */
@@ -59,5 +60,28 @@ public class AllPluginsClassLoader extends ClassLoader {
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		return loadClass(name);
 	}
+	
+	/** 
+	 * Loads the resource from the first plugin classloader which does not
+	 * return <code>null</code> and <code>null</code> if no classloader
+	 * can find the resource.
+	 */
+	@Override
+	public URL getResource(String name) {
+		URL url = super.getResource(name);
+		if (url!=null) {
+			return url;
+		}
+		for (Plugin plugin : Plugin.getAllPlugins()) {
+			ClassLoader classLoader = plugin.getClassLoader();
+			url = classLoader.getResource(name);
+			if (url!=null) {
+				return url;
+			}
+		}
+		return url;
+	}
+	
+	
 }
 

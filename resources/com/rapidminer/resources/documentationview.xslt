@@ -135,6 +135,9 @@
 				</tr>
 				<tr>
 					<td>
+						<xsl:if test="@type = 'through'">
+							<p>It is not compulsory to connect any object with this port. Any object connected at this port is delivered without any modifications to the output port. This operator can have multiple inputs. When one input is connected, another <em>through</em> input port becomes available which is ready to accept another input (if any). The order of inputs remains the same. The object supplied at the first <em>through</em> input port of the operator is available at the first <em>through</em> output port.</p>
+						</xsl:if>
 						<xsl:value-of select="."/>
 					</td>
 				</tr>
@@ -170,6 +173,9 @@
 				</tr>
 				<tr>
 					<td>
+						<xsl:if test="@type = 'through'">
+							<p>Objects that were given as input are passed without changing to the output through this port. It is not compulsory to attach this port to any other port, the macro value is set even if this port is left without connections. The operator can have multiple outputs. When one output is connected, another <em>through</em> output port becomes available which is ready to deliver another output (if any). The order of outputs remains the same. The object delivered at the first <em>through</em> input port of the operator is delivered at the first <em>through</em> output port.</p>
+						</xsl:if>
 						<xsl:value-of select="."/>
 					</td>
 				</tr>
@@ -190,13 +196,24 @@
 				</tr>
 				<tr>
 					<td>
-						<xsl:value-of select="."/>
+						<xsl:apply-templates /> 
 						<b> Range: </b> <i> <xsl:value-of select="@type" /> </i>
 					</td>
 				</tr>
 			</xsl:for-each>
 		</table>
 	</xsl:template>
+	
+	<xsl:template match="values">
+		<ul>
+			<xsl:for-each select="value">
+				<li>
+					<b><xsl:value-of select="@value" /></b>: <xsl:value-of select="."/>
+				</li>
+			</xsl:for-each>
+		</ul>
+	</xsl:template>
+	
 	<xsl:template match="ul">
 		<ul>
 			

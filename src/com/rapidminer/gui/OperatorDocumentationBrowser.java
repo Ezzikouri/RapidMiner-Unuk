@@ -68,6 +68,7 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.XMLException;
+import com.rapidminer.tools.plugin.Plugin;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
 
@@ -151,9 +152,15 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	 * It creates an absolute path that indicates the corresponding documentation XML file.
 	 */
 	private void assignDocumentation() {
+		boolean isPlugin = displayedOperator.getOperatorDescription().getProvider()!=null;
+		String documentationRoot = isPlugin
+							? displayedOperator.getOperatorDescription().getProvider().getPrefix() + "/"
+							: DOCUMENTATION_ROOT;
 		String groupPath = ((displayedOperator.getOperatorDescription().getGroup()).replace(".", "/"));
-		String opDescXMLResourcePath = DOCUMENTATION_ROOT + groupPath + "/" + displayedOperator.getOperatorDescription().getKey() + ".xml";
-		URL resourceURL = this.getClass().getClassLoader().getResource(opDescXMLResourcePath);
+		String key = displayedOperator.getOperatorDescription().getKeyWithoutPrefix();
+		
+		String opDescXMLResourcePath = documentationRoot + groupPath + "/" + key + ".xml";
+		URL resourceURL = Plugin.getMajorClassLoader().getResource(opDescXMLResourcePath);
 		changeDocumentation(resourceURL);
 		currentResourceURL = resourceURL;
 	}
