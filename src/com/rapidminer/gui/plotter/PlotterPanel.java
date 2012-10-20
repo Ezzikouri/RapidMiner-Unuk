@@ -24,6 +24,9 @@ package com.rapidminer.gui.plotter;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -153,6 +156,26 @@ public class PlotterPanel extends JPanel {
 		}
 		repaint();
 		revalidate();
+	}
+	
+	@Override
+	public void print(Graphics pg) {
+
+		final Dimension printSize = getSize();
+
+		JPanel printPanel = new JPanel() {
+
+			private static final long serialVersionUID = 7315234075649335574L;
+
+			@Override
+			public void paintComponent(Graphics g) {
+				Graphics2D g2 = (Graphics2D) g;
+				oldPlotterComponent.paint(g2);
+			}
+		};
+		printPanel.setSize(printSize);
+
+		printPanel.print(pg);
 	}
 	
 	/**

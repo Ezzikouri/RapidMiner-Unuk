@@ -312,7 +312,7 @@ public class UpdatePanelTab extends JPanel {
 					installButton.setVisible(false);
 					
 				} else if (updateModel.isPurchased(desc)) {
-					installButton.setIcon(SwingTools.createIcon("16/currency_euro.png"));
+					installButton.setIcon(SwingTools.createIcon("16/shopping_cart_empty.png"));
 					installButton.setText("Purchase extension");
 				}
 				

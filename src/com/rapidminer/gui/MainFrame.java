@@ -51,6 +51,7 @@ import com.rapid_i.deployment.update.client.UpdateDialog;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessLocation;
+import com.rapidminer.ProcessStorageListener;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.actions.AboutAction;
 import com.rapidminer.gui.actions.Actions;
@@ -483,6 +484,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     private final JMenu recentFilesMenu = new ResourceMenu("recent_files");
 
     private final LinkedList<String> undoList = new LinkedList<String>();
+    
+    private final LinkedList<ProcessStorageListener> storageListeners = new LinkedList<ProcessStorageListener>();
 
     /** XML representation of the process at last validation. */
     private String lastProcessXML;
@@ -1327,6 +1330,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             addToUndoList();
             changed = false;
             setTitle();
+            fireProcessLoaded();
 
             // show unsupported parameters info?
             List<UnknownParameterInformation> unknownParameters = process.getUnknownParameters();
@@ -1496,6 +1500,18 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public void addProcessEditor(ProcessEditor p) {
         processEditors.add(ProcessEditor.class, p);
     }
+    
+    public void removeProcessEditor(ProcessEditor p) {
+        processEditors.remove(ProcessEditor.class, p);
+    }
+    
+	public void addProcessStorageListener(ProcessStorageListener listener){
+		storageListeners.add(listener);
+	}
+	
+	public void removeProcessStorageListener(ProcessStorageListener listener){
+		storageListeners.remove(listener);
+	}
 
     public void selectOperator(Operator currentlySelected) {
         if (currentlySelected == null) {
@@ -1538,6 +1554,12 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         }
     }
 
+    private void fireProcessLoaded() {
+    	LinkedList<ProcessStorageListener> list= new LinkedList<ProcessStorageListener> (storageListeners);
+    	for (ProcessStorageListener l : list){
+    		l.opened(process);
+    	}
+    }
     public DockingDesktop getDockingDesktop() {
         return dockingDesktop;
     }

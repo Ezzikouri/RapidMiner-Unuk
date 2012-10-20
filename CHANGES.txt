@@ -45,11 +45,12 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * Select Parameters Dialog: All acceptable parameter types are now shown, even if the continuous/discrete mode is enabled.
 * Regular Expression Dialog: Dialog has a new tab: Regex Options. In this tab, the user can define options like multiline mode or
   case-insensitive matching. These options will be added to the pattern though embedded flag expressions.
-* Recent files are now updated on process save
 * Added new shortcut to toggle the breakpoint before an operator (Shift+F7)
 * Improved many error messages
 * Update Dialog: Revamped update dialog to show various lists of packages (search,  most popular, bookmarks, etc. as well as functionality to log in/out)
 * Added a startup check for purchased but not installed extensions and a property to disable the check. Those Extensions can be directly installed from the dialog.  
+* RapidMiner enters safe mode (not loading plugins) when startup was interrupted
+* BUGFIX: Recent files are now updated on process save
 * BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases.
 * BUGFIX: Editing context variables now immediately flags the process as changed
 * BUGFIX: If set to 'ask', the 'close previous results' dialog will no longer appear when resuming from a breakpoint

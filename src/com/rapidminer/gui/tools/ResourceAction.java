@@ -67,7 +67,7 @@ public abstract class ResourceAction extends ConditionalAction {
 				getMessage(i18nKey+".label") : 
 					MessageFormat.format(getMessage(i18nKey+".label"), i18nArgs));
 		this.key = i18nKey;
-		String mne = getMessageOrNull(i18nKey + ".mne");
+		String mne = getMessageOrNull(i18nKey + ".mne");		
 		if (mne != null && mne.length() > 0) {			
 			String name = (String)getValue(NAME);
 			if (name != null && name.length() > 0 && name.indexOf(mne.charAt(0)) == -1) {
@@ -105,6 +105,7 @@ public abstract class ResourceAction extends ConditionalAction {
 			KeyStroke stroke = KeyStroke.getKeyStroke(acc);
 			putValue(ACCELERATOR_KEY, stroke);			
 		}
+		putValue("rm_id", i18nKey);
 	}
 	
 	private static String getMessage(String key) {

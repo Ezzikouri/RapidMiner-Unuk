@@ -958,7 +958,7 @@ public class ProcessRenderer extends JPanel {
      *            If true and no position has been defined yet, a position will be
      *            created, either based on the position of adjacent operators or based on the index.
      */
-    Rectangle2D getOperatorRect(Operator op, boolean autoPositionIfMissing) {
+    public Rectangle2D getOperatorRect(Operator op, boolean autoPositionIfMissing) {
         Rectangle2D rect = operatorRects.get(op);
         if (rect == null && autoPositionIfMissing) {
             // if connected (e.g. because inserted by quick fix), place in the middle
