@@ -72,5 +72,6 @@
 	<classpathentry kind="lib" path="lib/SassyReader-0.5.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.6.4.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-simple-1.6.4.jar"/>
+	<classpathentry kind="lib" path="lib/itextpdf-5.3.3.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

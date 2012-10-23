@@ -22,6 +22,7 @@
  */
 package com.rapidminer.gui.new_plotter.templates.gui;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -37,6 +38,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -45,6 +47,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.rapidminer.gui.actions.ExportPdfAction;
 import com.rapidminer.gui.new_plotter.templates.HistogramTemplate;
 import com.rapidminer.gui.new_plotter.templates.actions.ExportImageAction;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -237,9 +240,14 @@ public class HistogrammTemplatePanel extends PlotterTemplatePanel implements Obs
 		gbc.gridy = 9;
 		this.add(opaqueSlider, gbc);
 		
+		// add export buttons
+		JPanel exportPanel = new JPanel(new BorderLayout());
 		JButton exportImageButton = new JButton(new ExportImageAction(histogramTemplate));
+		JButton exportPdfButton = new JButton(new ExportPdfAction(histogramTemplate));
+		exportPanel.add(exportPdfButton, BorderLayout.PAGE_START);
+		exportPanel.add(exportImageButton, BorderLayout.PAGE_END);
 		gbc.gridy = 10;
-		this.add(exportImageButton, gbc);
+		this.add(exportPanel, gbc);
 	}
 
 	@Override

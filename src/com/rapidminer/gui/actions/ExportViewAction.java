@@ -25,9 +25,12 @@ package com.rapidminer.gui.actions;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 
+import javax.swing.JPanel;
+
 import org.freehep.util.export.ExportDialog;
 
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.plotter.PlotterPanel;
 import com.rapidminer.gui.tools.ResourceAction;
 
 
@@ -50,7 +53,18 @@ public class ExportViewAction extends ResourceAction {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		ExportDialog exportDialog = new ExportDialog("RapidMiner");	
-		exportDialog.showExportDialog(RapidMinerGUI.getMainFrame(), "Export", component, componentName);
+		ExportDialog exportDialog = new ExportDialog("RapidMiner");
+		// hack to export old plotters with plotter only (exluding config panels)
+		if (component instanceof JPanel) {
+			for (int i=0; i<((JPanel)component).getComponentCount(); i++) {
+				Component comp = ((JPanel) component).getComponent(i);
+				if (comp instanceof PlotterPanel) {
+					exportDialog.showExportDialog(RapidMinerGUI.getMainFrame(), "Export", ((PlotterPanel) comp).getPlotterComponent(), componentName);
+					return;
+				}
+			}
+		} else {
+			exportDialog.showExportDialog(RapidMinerGUI.getMainFrame(), "Export", component, componentName);
+		}
 	}
 }
