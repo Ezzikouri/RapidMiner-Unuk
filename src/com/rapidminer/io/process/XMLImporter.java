@@ -280,11 +280,8 @@ public class XMLImporter {
         this(listener);
     }
 
-    private int messageCount = 0;
-
     public void addMessage(String msg) {
         LogService.getRoot().info(msg);
-        messageCount++;
         messages.append("<li>");
         messages.append(msg);
         messages.append("</li>");

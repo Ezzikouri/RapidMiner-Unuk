@@ -817,7 +817,7 @@
 	<ac:for list="${language}" param="language">  
 	  <sequential>  
 	    <get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/Errors.properties/download/" 
-	      dest="${resources_generated}/com/rapidminer/resources/i18n/Errors_@{language}.properties" 
+	      dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/Errors_@{language}.properties" 
 	      verbose="true"
 	      usetimestamp="true"/>
 	    <get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/GUI.properties/download/" 

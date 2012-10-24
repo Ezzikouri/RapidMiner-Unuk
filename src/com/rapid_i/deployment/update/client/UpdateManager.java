@@ -231,6 +231,7 @@ public class UpdateManager {
 			progressListener.complete();
 		}
 		if(availableLoads==FaildLoads)
+			// show Message that no Update was successful
 			throw new IOException(I18N.getMessage(I18N.getGUIBundle(),"gui.dialog.error.no_update_md5.message"));
 		return availableLoads-FaildLoads;
 	}

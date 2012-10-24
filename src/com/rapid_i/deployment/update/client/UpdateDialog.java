@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapid_i.deployment.update.client;
 
 import java.awt.BorderLayout;
@@ -62,6 +63,7 @@ public class UpdateDialog extends ButtonDialog {
 		NetTools.init();
 	}
 	public static final Action UPDATE_ACTION = new ResourceAction("update_manager") {
+
 		private static final long serialVersionUID = 1L;
 		{
 			setCondition(EDIT_IN_PROGRESS, DONT_CARE);
@@ -76,14 +78,16 @@ public class UpdateDialog extends ButtonDialog {
 	private final UpdateService service;
 
 	private final UpdatePanel ulp;
-	
-    private static class USAcountInfoButton extends LinkButton implements Observer {
+
+	private static class USAcountInfoButton extends LinkButton implements Observer {
 
 		private static final long serialVersionUID = 1L;
 
 		public USAcountInfoButton() {
 			super(new AbstractAction("") {
+
 				private static final long serialVersionUID = 1L;
+
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
@@ -92,20 +96,20 @@ public class UpdateDialog extends ButtonDialog {
 					} else {
 						account.login();
 					}
-					
-				}			
+
+				}
 			});
-			
+
 			Dimension size = new Dimension(300, 24);
 			this.setSize(size);
 			this.setMaximumSize(size);
 			this.setPreferredSize(size);
 		}
-		
+
 		@Override
 		public void update(Observable obs, Object arg) {
 			if (obs instanceof UpdateServerAccount) {
-				UpdateServerAccount account = (UpdateServerAccount)obs;
+				UpdateServerAccount account = (UpdateServerAccount) obs;
 				if (account.isLoggedIn()) {
 					this.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.account_button.logged_in", account.getUserName()));
 				} else {
@@ -113,8 +117,8 @@ public class UpdateDialog extends ButtonDialog {
 				}
 			}
 		}
-    } 
-    
+	}
+
 	private USAcountInfoButton accountInfoButton = new USAcountInfoButton();
 
 	public UpdateDialog(UpdateService service, List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
@@ -125,19 +129,19 @@ public class UpdateDialog extends ButtonDialog {
 		ulp = new UpdatePanel(this, descriptors, preselectedExtensions, usAccount);
 		layoutDefault(ulp, LARGE, makeOkButton("update.install"), makeCloseButton());
 	}
-	
+
 	@Override
 	/** Overriding makeButtonPanel in order to display account information. **/
-	protected JPanel makeButtonPanel(AbstractButton ... buttons) {
+	protected JPanel makeButtonPanel(AbstractButton... buttons) {
 		JPanel buttonPanel = new JPanel(new BorderLayout());
-		JPanel buttonPanelRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, GAP, GAP));		
+		JPanel buttonPanelRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, GAP, GAP));
 		for (AbstractButton button : buttons) {
 			if (button != null) {
 				buttonPanelRight.add(button);
 			}
 		}
 		buttonPanel.add(buttonPanelRight, BorderLayout.CENTER);
-		JPanel buttonPanelLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, GAP, 2*GAP));
+		JPanel buttonPanelLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, GAP, 2 * GAP));
 		buttonPanelLeft.add(accountInfoButton, false);
 		buttonPanel.add(buttonPanelLeft, BorderLayout.WEST);
 		return buttonPanel;
@@ -151,13 +155,14 @@ public class UpdateDialog extends ButtonDialog {
 			SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
 			return;
 		}
-		
+
 		final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
 		new UpdateDialog(service, descriptors, preselectedExtensions).setVisible(true);
 	}
 
 	public void startUpdate(final List<PackageDescriptor> downloadList) {
 		new ProgressThread("installing_updates", true) {
+
 			@Override
 			public void run() {
 				try {
@@ -185,12 +190,12 @@ public class UpdateDialog extends ButtonDialog {
 
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
-						int result=um.performUpdates(acceptedList, getProgressListener());
+						int result = um.performUpdates(acceptedList, getProgressListener());
 						getProgressListener().complete();
 						UpdateDialog.this.dispose();
 						// TODO: re-enable
 						// ManagedExtension.checkForLicenseConflicts();
-						if (SwingTools.showConfirmDialog("update.complete_restart", ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
+						if (SwingTools.showConfirmDialog((result == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
 							RapidMinerGUI.getMainFrame().exit(true);
 						}
 					} else {

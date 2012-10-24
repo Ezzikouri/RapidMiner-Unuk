@@ -83,7 +83,7 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 	JCheckBox neverAskAgain = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.purchased_not_installed.not_check_on_startup"));
 
 	private final List<String> packages;
-	
+
 	private class PurchasedNotInstalledModel extends AbstractPackageListModel {
 
 		private static final long serialVersionUID = 1L;
@@ -91,13 +91,13 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 		public PurchasedNotInstalledModel(PackageDescriptorCache cache) {
 			super(cache, "gui.dialog.update.tab.no_packages");
 		}
-		
+
 		@Override
 		public List<String> fetchPackageNames() {
 			return packages;
 		}
 	}
-	
+
 	public PurchasedNotInstalledDialog(List<String> packages) {
 		super("purchased_not_installed");
 		this.packages = packages;
@@ -116,7 +116,7 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 		purchasedModel.update();
 		JPanel southPanel = new JPanel(new BorderLayout(0, 7));
 		JLabel question = new JLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.purchased_not_installed.should_install"));
-		
+
 		southPanel.add(question, BorderLayout.CENTER);
 		southPanel.add(neverAskAgain, BorderLayout.SOUTH);
 		panel.add(southPanel, BorderLayout.SOUTH);
@@ -133,37 +133,41 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 
 	private JButton remindLaterButton() {
 		Action Action = new ResourceAction("ask_later") {
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wasConfirmed = false;
 				checkNeverAskAgain();
 				close();
-			}			
+			}
 		};
-		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false), "CLOSE");  
+		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false), "CLOSE");
 		getRootPane().getActionMap().put("CLOSE", Action);
 		JButton button = new JButton(Action);
 		getRootPane().setDefaultButton(button);
 		return button;
 	}
-	
+
 	private JButton remindNeverButton() {
 		Action Action = new ResourceAction("ask_never") {
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wasConfirmed = false;
 				checkNeverAskAgain();
 				neverRemindAgain();
 				close();
-			}			
+			}
 		};
 		JButton button = new JButton(Action);
 		getRootPane().setDefaultButton(button);
 		return button;
 	}
-	
+
 	@Override
 	protected void ok() {
 		checkNeverAskAgain();
@@ -181,8 +185,7 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 		}
 		return packageList;
 	}
-	
-	
+
 	public void startUpdate(final List<PackageDescriptor> downloadList) {
 		final UpdateService service;
 		try {
@@ -220,9 +223,9 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
-						int result= um.performUpdates(acceptedList, getProgressListener());
+						int result = um.performUpdates(acceptedList, getProgressListener());
 						getProgressListener().complete();
-						if (SwingTools.showConfirmDialog("update.complete_restart", ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
+						if (SwingTools.showConfirmDialog((result == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
 							RapidMinerGUI.getMainFrame().exit(true);
 						}
 					} else {
@@ -234,14 +237,14 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 			}
 		}.start();
 	}
-	
+
 	private void checkNeverAskAgain() {
 		if (neverAskAgain.isSelected()) {
 			ParameterService.setParameterValue(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_PURCHASED_NOT_INSTALLED_CHECK, "false");
 			ParameterService.saveParameters();
 		}
 	}
-	
+
 	private void neverRemindAgain() {
 		LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.PurchasedNotInstalledDialog.saving_ignored_extensions_file");
 		Document doc;
@@ -249,15 +252,15 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 		} catch (ParserConfigurationException e) {
 			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapid_i.deployment.update.client.PurchasedNotInstalledDialog.creating_xml_document_error", 
-					e),
+					I18N.getMessage(LogService.getRoot().getResourceBundle(),
+							"com.rapid_i.deployment.update.client.PurchasedNotInstalledDialog.creating_xml_document_error",
+							e),
 					e);
 			return;
 		}
 		Element root = doc.createElement(UpdateManager.NEVER_REMIND_INSTALL_EXTENSIONS_FILE_NAME);
 		doc.appendChild(root);
-		for (String i : purchasedModel.fetchPackageNames()){
+		for (String i : purchasedModel.fetchPackageNames()) {
 			Element entryElem = doc.createElement("extension_name");
 			entryElem.setTextContent(i);
 			root.appendChild(entryElem);
@@ -267,9 +270,9 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 			XMLTools.stream(doc, file, null);
 		} catch (XMLException e) {
 			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapid_i.deployment.update.client.PurchasedNotInstalledDialog.saving_ignored_extensions_file_error", 
-					e),
+					I18N.getMessage(LogService.getRoot().getResourceBundle(),
+							"com.rapid_i.deployment.update.client.PurchasedNotInstalledDialog.saving_ignored_extensions_file_error",
+							e),
 					e);
 		}
 	}

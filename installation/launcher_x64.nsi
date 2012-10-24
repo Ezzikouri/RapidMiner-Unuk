@@ -13,6 +13,36 @@ RequestExecutionLevel user
 SilentInstall silent
 AutoCloseWindow true
 ShowInstDetails nevershow
+
+
+;includes are part of the macro
+!include LogicLib.nsh
+!include WinMessages.nsh
+ 
+ 
+ ;macro to run a programm with UAC and wait until it is terminated
+!macro ShellExecWait verb app param workdir show exitoutvar ;only app and show must be != "", every thing else is optional
+#define SEE_MASK_NOCLOSEPROCESS 0x40 
+System::Store S
+System::Call '*(&i60)i.r0'
+System::Call '*$0(i 60,i 0x40,i $hwndparent,t "${verb}",t $\'${app}$\',t $\'${param}$\',t "${workdir}",i ${show})i.r0'
+System::Call 'shell32::ShellExecuteEx(ir0)i.r1 ?e'
+${If} $1 <> 0
+	System::Call '*$0(is,i,i,i,i,i,i,i,i,i,i,i,i,i,i.r1)' ;stack value not really used, just a fancy pop ;)
+	System::Call 'kernel32::WaitForSingleObject(ir1,i-1)'
+	System::Call 'kernel32::GetExitCodeProcess(ir1,*i.s)'
+	System::Call 'kernel32::CloseHandle(ir1)'
+${EndIf}
+System::Free $0
+!if "${exitoutvar}" == ""
+	pop $0
+!endif
+System::Store L
+!if "${exitoutvar}" != ""
+	pop ${exitoutvar}
+!endif
+!macroend
+
  
 Section ""
 
@@ -78,27 +108,26 @@ done:
   IntCmp $1 2 Relaunch
 SectionEnd
 
-Function PerformUpdate
+Function PerformUpdate 
 ;
 ;  Check for Directory RUinstall
 ;  If found, copy everything from this directory and remove it 
 
-  ;RapidMiner directory in UserProfile --------- important change for new version
-  StrCpy $R9 "$PROFILE\.RapidMiner5"
-
+  ;RapidMiner directory in UserProfile ----------- important change for new version
+  StrCpy $R8 "$PROFILE\.RapidMiner5"
+  
   Push $R0
  
   ClearErrors
-  StrCpy $R0 "$R9\RUinstall\*"
+  StrCpy $R0 "$R8\update\*"
   IfFileExists $R0 UpdateFound NoUpdate
         
   UpdateFound:
      MessageBox MB_OKCANCEL "An Update was found. Press press OK to perform the update now or press Cancel to delay the update until the next start. You need to enter the Administrator-Password to start the update" IDOK OK IDCANCEL CANCEL
 	 ;start RapidMinerUpdate.exe which will elevate administrator privileges
 	 OK:
-	 	ExecShell "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' "$R9"
-	 	Abort		
-		Quit
+	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_SHOW} $R9
+	 	MessageBox MB_OK "Update was successful"
 		 
 	CANCEL:
 		; User delayed update

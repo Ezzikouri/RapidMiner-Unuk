@@ -25,22 +25,22 @@ Section ""
      StrCpy $R2 $EXEDIR -8
      
 	 ; Check if RUinstall contains new RapidMinerUpdate.exe
-     StrCpy $R0 "$R1\RUinstall\RapidMinerUpdate.exe"
+     StrCpy $R0 "$R1\update\RUinstall\RapidMinerUpdate.exe"
      IfFileExists $R0 UpdateItself SecondCheck
      
      UpdateItself:
         ; copy RapidMinerUpdate and rename it after next systemreboot
-        Rename "$R1\RUinstall\RapidMinerUpdate.exe" "$R2\RapidMinerUpdate.exex"
+        Rename "$R1\update\RUinstall\RapidMinerUpdate.exe" "$R2\RapidMinerUpdate.exex"
         Rename /REBOOTOK "$R2\RapidMinerUpdate.exex" "$R2\RapidMinerUpdate.exe"
        
      SecondCheck:
      	;check whether RUinstall contains a new RapidMiner.exe
-     	StrCpy $R0 "$R1\RUinstall\RapidMiner.exe"
+     	StrCpy $R0 "$R1\update\RUinstall\RapidMiner.exe"
         IfFileExists $R0 UpdateRapidMiner thirdCheck
         
      UpdateRapidMiner:
         ; copy RapidMiner and rename it after next systemreboot
-        Rename "$R1\RUinstall\RapidMiner.exe" "$R2\RapidMiner.exex"
+        Rename "$R1\update\RUinstall\RapidMiner.exe" "$R2\RapidMiner.exex"
         Rename /REBOOTOK "$R2\RapidMiner.exex" "$R2\RapidMiner.exe"
         
      thirdCheck:
@@ -56,18 +56,14 @@ Section ""
      DoRest:
         ;copy files from user-profile to program files
         ClearErrors
-        CopyFiles "$R1\RUinstall\*" "$R2"
+        CopyFiles "$R1\update\RUinstall\*" "$R2"
         
         ;clean up the files
-        ClearErrors
-        RmDir /r $R1\RUinstall
         ClearErrors
         RmDir /r $R1\update
         ClearErrors
         RmDir /r $R1\deleteMe
         
-     ; Re-start RapidMiner
-     Exec '"$R2\RapidMiner.exe"'
      Quit
    
 SectionEnd
