@@ -22,35 +22,26 @@
  */
 package com.rapidminer.gui.actions;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 
-import org.freehep.util.export.ExportDialog;
-
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
-
+import com.rapidminer.gui.tour.RapidMinerTour;
 
 /**
  * Start the corresponding action.
  * 
- * @author Ingo Mierswa
+ * @author Marco Boeck
  */
-public class ExportViewAction extends ResourceAction {
+public class TourAction extends ResourceAction {
 
-	private static final long serialVersionUID = 2438568343977468901L;
-
-	private final Component component;
-	private final String componentName;
+	private static final long serialVersionUID = 1L;
 	
-	public ExportViewAction(Component component, String componentName) {
-		super("export", componentName);
-		this.component = component;
-		this.componentName = componentName;
+	
+	public TourAction() {
+		super("tour");
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		ExportDialog exportDialog = new ExportDialog("RapidMiner");
-		exportDialog.showExportDialog(RapidMinerGUI.getMainFrame(), "Export", component, componentName);
+		RapidMinerTour.startTour();
 	}
 }

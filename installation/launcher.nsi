@@ -18,7 +18,7 @@ ShowInstDetails nevershow
 !include LogicLib.nsh
 !include WinMessages.nsh
  
- 
+ ;taken from http://nsis.sourceforge.net/ShellExecWait
  ;macro to run a programm with UAC and wait until it is terminated
 !macro ShellExecWait verb app param workdir show exitoutvar ;only app and show must be != "", every thing else is optional
 #define SEE_MASK_NOCLOSEPROCESS 0x40 
@@ -129,20 +129,23 @@ Function PerformUpdate
  
   ClearErrors
   StrCpy $R0 "$R8\update\*"
-  IfFileExists $R0 UpdateFound NoUpdate
+  IfFileExists $R0 UpdateFound CANCEL
         
   UpdateFound:
      MessageBox MB_OKCANCEL "An Update was found. Press press OK to perform the update now or press Cancel to delay the update until the next start. You need to enter the Administrator-Password to start the update" IDOK OK IDCANCEL CANCEL
 	 ;start RapidMinerUpdate.exe which will elevate administrator privileges
 	 OK:
-	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_SHOW} $R9
-	 	MessageBox MB_OK "Update was successful"
-		 
+	 	StrCpy $R9 ""
+	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_HIDE} $R9
+	 	MessageBox MB_OK "exitcode = $R9"
+	 	;check exitcode to and show suitable message
+	 	StrCmp $R9 "1223" UACAbort CANCEL
+	UACAbort:
+		MessageBox MB_OK "Delayed update to the next start of RapidMiner."
+		
 	CANCEL:
 		; User delayed update
 		
-  NoUpdate:
- 
 FunctionEnd
 
 Function GetJRE

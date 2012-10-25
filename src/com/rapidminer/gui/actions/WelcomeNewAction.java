@@ -29,6 +29,7 @@ import javax.swing.Icon;
 
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.tools.I18N;
 
 /**
  * Start the corresponding action.
@@ -39,19 +40,17 @@ public class WelcomeNewAction extends AbstractAction {
 
 	private static final long serialVersionUID = 1358354112149248404L;
 
-	private static final String ICON_NAME = "document_plain_new.png";
-	
 	private static Icon icon = null;
 	
 	static {
-		icon = SwingTools.createIcon("48/" + ICON_NAME);
+		icon = SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.new.icon"));
 	}
 		
 	private MainFrame mainFrame;
 	
 	public WelcomeNewAction(MainFrame mainFrame) {
-		super("New", icon);
-		putValue(SHORT_DESCRIPTION, "Start with a new process definition");
+		super(I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.new.label"), icon);
+		putValue(SHORT_DESCRIPTION, I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.new.tip"));
 		this.mainFrame = mainFrame;
 	}
 

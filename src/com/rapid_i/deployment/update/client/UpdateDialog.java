@@ -37,6 +37,7 @@ import java.util.Observer;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
@@ -78,6 +79,8 @@ public class UpdateDialog extends ButtonDialog {
 	private final UpdateService service;
 
 	private final UpdatePanel ulp;
+	
+	private UpdatePackagesModel updateModel;
 
 	private static class USAcountInfoButton extends LinkButton implements Observer {
 
@@ -118,6 +121,27 @@ public class UpdateDialog extends ButtonDialog {
 			}
 		}
 	}
+	
+	private class InstallButton extends JButton implements Observer {
+		private static final long serialVersionUID = 1L;
+
+		InstallButton(Action a) {
+			super(a);
+		}
+		
+		@Override
+		public void update(Observable o, Object arg) {
+			if (o instanceof UpdatePackagesModel) {
+				UpdatePackagesModel currentModel = (UpdatePackagesModel)o;
+				if (currentModel.getInstallationList() != null && currentModel.getInstallationList().size() > 0) {
+					this.setEnabled(true);
+				} else {
+					this.setEnabled(false);
+				}
+			}
+		}
+		
+	}
 
 	private USAcountInfoButton accountInfoButton = new USAcountInfoButton();
 
@@ -126,10 +150,30 @@ public class UpdateDialog extends ButtonDialog {
 		this.service = service;
 		UpdateServerAccount usAccount = UpdateManager.getUpdateServerAccount();
 		usAccount.addObserver(accountInfoButton);
-		ulp = new UpdatePanel(this, descriptors, preselectedExtensions, usAccount);
+		updateModel = new UpdatePackagesModel(descriptors, usAccount);
+		ulp = new UpdatePanel(this, descriptors, preselectedExtensions, usAccount, updateModel);
 		layoutDefault(ulp, LARGE, makeOkButton("update.install"), makeCloseButton());
 	}
 
+	@Override
+	protected JButton makeOkButton(String i18nKey) {
+		
+		Action okAction = new ResourceAction(i18nKey) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				wasConfirmed = true;
+				ok();
+			}			
+		};
+		InstallButton button = new InstallButton(okAction);
+		getRootPane().setDefaultButton(button);
+
+		button.setEnabled(false);
+		updateModel.addObserver(button);
+		return button;
+	}
+	
 	@Override
 	/** Overriding makeButtonPanel in order to display account information. **/
 	protected JPanel makeButtonPanel(AbstractButton... buttons) {
@@ -191,18 +235,15 @@ public class UpdateDialog extends ButtonDialog {
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
 						int result = um.performUpdates(acceptedList, getProgressListener());
-						getProgressListener().complete();
 						UpdateDialog.this.dispose();
-						// TODO: re-enable
-						// ManagedExtension.checkForLicenseConflicts();
 						if (SwingTools.showConfirmDialog((result == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
 							RapidMinerGUI.getMainFrame().exit(true);
 						}
-					} else {
-						getProgressListener().complete();
 					}
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
+				} finally {					
+					getProgressListener().complete();
 				}
 			}
 		}.start();

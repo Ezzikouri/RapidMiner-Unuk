@@ -200,6 +200,7 @@ public class UpdateManager {
 						} catch (IOException e) {
 							LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Plugin");
 							FaildLoads++;
+							//show MD5-Error to the user
 							ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true,new Object[] {desc.getName()});
 							dialog.setVisible(true);
 						}
@@ -216,6 +217,7 @@ public class UpdateManager {
 						updateRapidMiner(openStream(url, progressListener, minProgress, maxProgress), desc.getVersion(), urlString + (incremental ? "?baseVersion=" + URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") + "&md5" : "?md5"));
 					} catch (IOException e) {
 						FaildLoads++;
+						//show MD5-Error to the user
 						LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Update");
 						ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] {"RapidMiner"});
 						dialog.setVisible(true);
@@ -862,7 +864,7 @@ public class UpdateManager {
 							return;
 						}
 						if (updatesExist) {
-							PurchasedNotInstalledDialog pnid = new PurchasedNotInstalledDialog(purchasedExtensions);
+							PendingPurchasesInstallationDialog pnid = new PendingPurchasesInstallationDialog(purchasedExtensions);
 							pnid.setVisible(true);
 						} else {
 							LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.no_purchased_extensions", "");

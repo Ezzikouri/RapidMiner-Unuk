@@ -44,7 +44,7 @@ import com.rapidminer.tools.plugin.Dependency;
 /**
  * @author Simon Fischer, Dominik Halfkann
  */
-public class UpdatePackagesModel {
+public class UpdatePackagesModel extends Observable {
 
 	private final List<PackageDescriptor> descriptors;
 	
@@ -54,7 +54,6 @@ public class UpdatePackagesModel {
 	
 	/** Read the comment of {@link #isPurchased(PackageDescriptor)}. */
 	private Set<String> purchasedPackages = new HashSet<String>();
-	
 	
 	public UpdatePackagesModel(List<PackageDescriptor> descriptors, UpdateServerAccount usAccount) {
 		this.descriptors = descriptors;
@@ -73,6 +72,11 @@ public class UpdatePackagesModel {
 	
 	public void setSelectedForInstallation(PackageDescriptor desc, boolean selected) {
 		selectionMap.put(desc, true);
+	}
+	
+	public void forceNotifyObservers() {
+		setChanged();
+		notifyObservers();
 	}
 	
 	public void toggleSelesctionForInstallation(PackageDescriptor desc) {
@@ -98,6 +102,8 @@ public class UpdatePackagesModel {
 				SwingTools.showMessageDialog("purchase_package", desc.getName());
 			}
 			selectionMap.put(desc, select);
+			this.setChanged();
+			this.notifyObservers(desc);
 		}
 	}
 	

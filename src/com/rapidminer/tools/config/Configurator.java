@@ -60,7 +60,9 @@ public abstract class Configurator<T extends Configurable> {
 		} catch (InstantiationException e) {
 			throw new ConfigurationException("Cannot instantiate "+getConfigurableClass(), e);
 		} catch (IllegalAccessException e) {
-			throw new ConfigurationException("Cannot instantiate "+getConfigurableClass(), e);
+			throw new ConfigurationException("Cannot access "+getConfigurableClass(), e);
+		} catch (Throwable e) {
+			throw new ConfigurationException("Cannot instantiate "+getConfigurableClass() + " (fatal error)", e);
 		}
 		return instance;
 	}

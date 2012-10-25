@@ -84,6 +84,7 @@ import com.rapidminer.gui.actions.SettingsAction;
 import com.rapidminer.gui.actions.StopAction;
 import com.rapidminer.gui.actions.ToggleAction;
 import com.rapidminer.gui.actions.ToggleExpertModeAction;
+import com.rapidminer.gui.actions.TourAction;
 import com.rapidminer.gui.actions.TutorialAction;
 import com.rapidminer.gui.actions.UndoAction;
 import com.rapidminer.gui.actions.ValidateAutomaticallyAction;
@@ -398,6 +399,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public final transient Action SETTINGS_ACTION = new SettingsAction();
     public final transient ToggleAction TOGGLE_EXPERT_MODE_ACTION = new ToggleExpertModeAction(this);
     public final transient Action TUTORIAL_ACTION = new TutorialAction(this);
+    public final transient Action TOUR_ACTION = new TourAction();
     public final transient Action UNDO_ACTION = new UndoAction(this);
     public final transient Action REDO_ACTION = new RedoAction(this);
     public final transient Action ANOVA_CALCULATOR_ACTION = new AnovaCalculatorAction();
@@ -790,6 +792,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
         // help menu
         helpMenu = new ResourceMenu("help");
+        helpMenu.add(TOUR_ACTION);
         helpMenu.add(TUTORIAL_ACTION);
         // TODO: Re-add updated manual
         // helpMenu.add(new ResourceAction("gui_manual") {

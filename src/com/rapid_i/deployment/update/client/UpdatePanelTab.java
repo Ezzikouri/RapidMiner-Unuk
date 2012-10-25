@@ -35,10 +35,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URI;
 import java.util.Observable;
 import java.util.Observer;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -81,11 +83,49 @@ public class UpdatePanelTab extends JPanel {
 	UpdateServerAccount usAccount;
 	
 	private ExtendedHTMLJEditorPane displayPane;
-	private JToggleButton installButton;
+	private final SelectForInstallationButton installButton;
 	private LinkButton loginForInstallHint;
 	private PackageDescriptor lastSelected = null;
 
 	private JList packageList;
+	
+	private class SelectForInstallationButton extends JToggleButton implements Observer {
+		
+		private boolean purchaseFirst = false;
+		
+		private static final long serialVersionUID = 1L;
+
+		public SelectForInstallationButton(Action a) {
+			super(a);
+		}
+		
+		public void setPurchaseFirst(boolean purchaseFirst) {
+			this.purchaseFirst = purchaseFirst;
+		}
+		
+		public boolean getPurchaseFirst() {
+			return purchaseFirst;
+		}
+
+		@Override
+		public void update(Observable o, Object arg) {
+			if (o instanceof UpdatePackagesModel) {
+				UpdatePackagesModel currentModel = (UpdatePackagesModel)o;
+				if (arg != null && arg instanceof PackageDescriptor) {
+					PackageDescriptor desc = (PackageDescriptor)arg;
+					PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
+					if (selectedDescriptor != null && desc.getPackageId().equals(selectedDescriptor.getPackageId())) {
+							this.setSelected(currentModel.isSelectedForInstallation(desc));
+							if (this.isSelected()) {
+								this.setIcon(SwingTools.createIcon("16/checkbox.png"));
+							} else {
+								this.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+							}
+					}
+				}
+			}
+		}
+	}
 
 	public UpdatePanelTab(UpdatePackagesModel updateModel, AbstractPackageListModel model, final UpdateServerAccount usAccount) {
 		super(new GridBagLayout());
@@ -109,29 +149,43 @@ public class UpdatePanelTab extends JPanel {
 		c.weighty = 1;
 		c.insets = new Insets(0, 0, 0, ButtonDialog.GAP);
 		
-		installButton = new JToggleButton(new ResourceAction(true, "update.select") {
+		installButton = new SelectForInstallationButton(new ResourceAction(true, "update.select") {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
-				UpdatePanelTab.this.updateModel.toggleSelesctionForInstallation(selectedDescriptor);
-				getModel().updateView(selectedDescriptor);
+				if (installButton.getPurchaseFirst()) {
+					try {
+						PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
+						String url = UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + selectedDescriptor.getPackageId();
+						Desktop.getDesktop().browse(new URI(url));
+					} catch (Exception e1) {
+						SwingTools.showVerySimpleErrorMessage("cannot_open_browser");
+					}
+
+				} else {
+					PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
+					UpdatePanelTab.this.updateModel.toggleSelesctionForInstallation(selectedDescriptor);
+					getModel().updateView(selectedDescriptor);
+				}
 			}
 		});
 		installButton.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (installButton.isSelected()) {
-					installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
-				} else {
-					installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+				if (!installButton.getPurchaseFirst()) {
+					if (installButton.isSelected()) {
+						installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+					} else {
+						installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+					}
 				}
 			}
 		});
 		installButton.setEnabled(false);
+		updateModel.addObserver(installButton);
 
 		displayPane = new ExtendedHTMLJEditorPane("text/html", "");
 		displayPane.installDefaultStylesheet();
@@ -289,10 +343,6 @@ public class UpdatePanelTab extends JPanel {
 
 			installButton.setSelected(updateModel.isSelectedForInstallation(desc));
 
-			installButton.setVisible(true);
-			installButton.setText("Select for installation");
-			loginForInstallHint.setText("");
-			
 			boolean isInstalled = false;
 			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 			if (ext != null) {
@@ -308,19 +358,45 @@ public class UpdatePanelTab extends JPanel {
 			
 			if (desc.isRestricted() && !isInstalled) {
 				if (!usAccount.isLoggedIn()) {
-					loginForInstallHint.setText("<a href=\"#\">Login</a> in order to install commercial extensions.");
+					// restricted, uninstalled, not logged in
 					installButton.setVisible(false);
-					
+					loginForInstallHint.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.need_to_log_in.label"));
 				} else if (updateModel.isPurchased(desc)) {
+					// restricted, purchased but not installed yet
+					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
+					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int)I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+					installButton.setPurchaseFirst(false);
+					installButton.setVisible(true);
+					loginForInstallHint.setText("");
+					
+					if (updateModel.isSelectedForInstallation(desc)) {
+						installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+					} else {
+						installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+					}
+				} else {
+					// restricted, not purchased
+					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.label"));
 					installButton.setIcon(SwingTools.createIcon("16/shopping_cart_empty.png"));
-					installButton.setText("Purchase extension");
-				}
-				
-			} else if (updateModel.isSelectedForInstallation(desc)) {
-				installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int)I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.mne").toUpperCase().charAt(0));
+					
+					
+					installButton.setPurchaseFirst(true);
+				}				
 			} else {
-				installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
-			}						
+				// not restricted / restricted but already installed
+				installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
+				installButton.getAction().putValue(Action.MNEMONIC_KEY, (int)I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+				installButton.setPurchaseFirst(false);
+				installButton.setVisible(true);
+				loginForInstallHint.setText("");
+				
+				if (updateModel.isSelectedForInstallation(desc)) {
+					installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+				} else {
+					installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+				}
+			}
 		}
 	}
 
@@ -329,5 +405,6 @@ public class UpdatePanelTab extends JPanel {
 	public void removeNotify() {
 		super.removeNotify();
 		usAccount.deleteObservers();
+		updateModel.deleteObservers();
 	}
 }

@@ -349,7 +349,7 @@ public class OperatorService {
                         Class factoryClass = null;
                         try {
                             factoryClass = Class.forName(factoryClassName, true, classLoader);
-                        } catch (ClassNotFoundException e) {
+                        } catch (Throwable e) {
                             //LogService.getRoot().warning("Operator factory class '" + factoryClassName + "' not found!");
                             LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.OperatorService.operator_factory_class_not_found", factoryClassName);
                         }

@@ -30,6 +30,7 @@ import javax.swing.Icon;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.dialog.Tutorial;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.tools.I18N;
 
 /**
  * Start the corresponding action.
@@ -40,19 +41,17 @@ public class WelcomeTutorialAction extends AbstractAction {
 
 	private static final long serialVersionUID = 1358354112149248404L;
 
-	private static final String ICON_NAME = "book_blue.png";
-	
 	private static Icon icon = null;
 	
 	static {
-		icon = SwingTools.createIcon("48/" + ICON_NAME);
+		icon = SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.tutorial.icon"));
 	}
 		
 	private MainFrame mainFrame;
 	
 	public WelcomeTutorialAction(MainFrame mainFrame) {
-		super("Online Tutorial", icon);
-		putValue(SHORT_DESCRIPTION, "Start the RapidMiner online tutorial");
+		super(I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.tutorial.label"), icon);
+		putValue(SHORT_DESCRIPTION, I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.tutorial.tip"));
 		this.mainFrame = mainFrame;
 	}
 

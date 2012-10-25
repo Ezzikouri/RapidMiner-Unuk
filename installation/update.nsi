@@ -56,7 +56,7 @@ Section ""
      DoRest:
         ;copy files from user-profile to program files
         ClearErrors
-        CopyFiles "$R1\update\RUinstall\*" "$R2"
+        CopyFiles /SILENT "$R1\update\RUinstall\*" "$R2"
         
         ;clean up the files
         ClearErrors
@@ -64,6 +64,9 @@ Section ""
         ClearErrors
         RmDir /r $R1\deleteMe
         
+        ;show dialog
+        MessageBox MB_OK "Update was successful"
+     
      Quit
    
 SectionEnd

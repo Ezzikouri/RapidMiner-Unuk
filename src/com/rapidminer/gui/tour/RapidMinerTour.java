@@ -48,13 +48,13 @@ import com.rapidminer.repository.gui.RepositoryBrowser;
 public class RapidMinerTour {
 	
 	public static void startTour(){
-			Step step = new SimpleStep (Alignment.TOP, RapidMinerGUI.getMainFrame(), "start", "new");
-			Step step1 = new SimpleStep (Alignment.TOP, RapidMinerGUI.getMainFrame(), "tryrun", "run");
+			Step step = new SimpleStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "start", "new");
+			Step step1 = new SimpleStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "tryrun", "run");
 			Step step2 = new AddOperatorStep(Alignment.BOTTOM, RapidMinerGUI.getMainFrame(), "adddatabase", RepositorySource.class, RepositoryBrowser.REPOSITORY_BROWSER_DOCK_KEY);
 			final AddOperatorStep step3 = new AddOperatorStep(Alignment.LEFT, RapidMinerGUI.getMainFrame(), "dragdrop", AbstractTreeLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
 			final OperatorStep step4 = new ChangeParameterStep(Alignment.RIGHT, RapidMinerGUI.getMainFrame(), "changeparam",null, AbstractTreeLearner.PARAMETER_CRITERION, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY,  "information_gain");
 			final OperatorStep step5 = new AddBreakpointStep(Alignment.RIGHT, RapidMinerGUI.getMainFrame(),"addbreakpoint", null, Position.AFTER);
-			Step step6 = new SimpleStep (Alignment.TOP, RapidMinerGUI.getMainFrame(), "run", "run");
+			Step step6 = new SimpleStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "run", "run");
 			final OperatorStep step7 = new ResumeFromBreakpointStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "goon", null, "run") ;
 			Step step8 = new SaveProcessStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "saveas", "save_as");
 			Step step8b = new OpenProcessStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "open");

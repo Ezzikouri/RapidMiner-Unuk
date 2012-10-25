@@ -58,6 +58,7 @@ import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.actions.WelcomeNewAction;
 import com.rapidminer.gui.actions.WelcomeOpenAction;
 import com.rapidminer.gui.actions.WelcomeOpenRecentAction;
+import com.rapidminer.gui.actions.WelcomeTourAction;
 import com.rapidminer.gui.actions.WelcomeTutorialAction;
 import com.rapidminer.gui.actions.WelcomeWizardAction;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
@@ -176,6 +177,7 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 		actionBar.addSeparator();
 		actionBar.addSeparator();
 		actionBar.addSeparator();
+		actionBar.addSeparator();
 		
 		button = new JButton(new WelcomeWizardAction(this.mainFrame));
 		button.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -184,8 +186,20 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 		
 		actionBar.addSeparator();
 		actionBar.addSeparator();
+		actionBar.addSeparator();
+		actionBar.addSeparator();
 		
 		button = new JButton(new WelcomeTutorialAction(this.mainFrame));
+		button.setHorizontalTextPosition(SwingConstants.CENTER);
+		button.setVerticalTextPosition(SwingConstants.BOTTOM);
+		actionBar.add(button);
+		
+		actionBar.addSeparator();
+		actionBar.addSeparator();
+		actionBar.addSeparator();
+		actionBar.addSeparator();
+		
+		button = new JButton(new WelcomeTourAction(this.mainFrame));
 		button.setHorizontalTextPosition(SwingConstants.CENTER);
 		button.setVerticalTextPosition(SwingConstants.BOTTOM);
 		actionBar.add(button);

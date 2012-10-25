@@ -75,7 +75,7 @@ import com.rapidminer.tools.XMLException;
  * 
  * @author Dominik Halfkann
  */
-public class PurchasedNotInstalledDialog extends ButtonDialog {
+public class PendingPurchasesInstallationDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = 1L;
 	private final PackageDescriptorCache packageDescriptorCache = new PackageDescriptorCache();
@@ -98,7 +98,7 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 		}
 	}
 
-	public PurchasedNotInstalledDialog(List<String> packages) {
+	public PendingPurchasesInstallationDialog(List<String> packages) {
 		super("purchased_not_installed");
 		this.packages = packages;
 		layoutDefault(makeContentPanel(), NORMAL, makeOkButton("confirm.yes"), remindNeverButton(), remindLaterButton());
@@ -224,7 +224,6 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
 						int result = um.performUpdates(acceptedList, getProgressListener());
-						getProgressListener().complete();
 						if (SwingTools.showConfirmDialog((result == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
 							RapidMinerGUI.getMainFrame().exit(true);
 						}
@@ -233,6 +232,8 @@ public class PurchasedNotInstalledDialog extends ButtonDialog {
 					}
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
+				} finally {					
+					getProgressListener().complete();
 				}
 			}
 		}.start();

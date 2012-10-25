@@ -81,6 +81,11 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: Real to Integer operator: don't convert missings to 0, but keep them as missing
 * BUGFIX: Fixed wrong cell selection on rightclick for some tables after reordering columns
 * BUGFIX: Fixed startup failure when trying to start RapidMiner with broken Plugins
+* BUGFIX: Optimized update routine. Instead of failing with an cryptic error if no admin rights available, RapidMiner no shows an dialog 
+		  that asks for admin rights
+* BUGFIX: Fixed the "Select for installation" button: Error when content/behaviour changed according to factors like if the extension was purchased.
+          Now leads to the extension website when purchased but not installed. Now reacts properly to double-clicks in the extension list.
+          The "Install" button turns to a disabled state when no extensions are marked for installation.
  
 
 Changes from RapidMiner 5.2.6 to 5.2.8

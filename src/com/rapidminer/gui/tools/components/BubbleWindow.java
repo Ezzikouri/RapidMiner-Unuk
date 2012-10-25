@@ -361,11 +361,9 @@ public class BubbleWindow extends JDialog {
 		AbstractButton button = findButton(i18nKeyOfButton, RapidMinerGUI.getMainFrame());
 		if (button != null) {
 			// attach
-			System.out.println("Found button \""+ i18nKeyOfButton + "\": "+button);
 			attachToButton(button);		
 		} else {
-			// handle missing case
-			System.out.println("Button not foud: \""+ i18nKeyOfButton + "\"");
+			// TODO: handle missing case
 		}
 	}
 

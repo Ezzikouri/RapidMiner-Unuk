@@ -67,11 +67,11 @@ public class UpdatePanel extends JPanel {
 	
 	private UpdatePackagesModel updateModel;
 	
-	public UpdatePanel(UpdateDialog dialog, List<PackageDescriptor> descriptors, String[] preselectedExtensions, final UpdateServerAccount usAccount) {
+	public UpdatePanel(UpdateDialog dialog, List<PackageDescriptor> descriptors, String[] preselectedExtensions, final UpdateServerAccount usAccount, UpdatePackagesModel updateModel) {
 
 		this.usAccount = usAccount;
 		
-		updateModel = new UpdatePackagesModel(descriptors, usAccount);
+		this.updateModel = updateModel;
 
 		for (String pE : preselectedExtensions) {
 			for (PackageDescriptor desc : descriptors) {
@@ -113,6 +113,7 @@ public class UpdatePanel extends JPanel {
 
 		add(updatesTabbedPane, BorderLayout.CENTER);
 
+		updateModel.forceNotifyObservers();
 		usAccount.forceNotifyObservers();
 	}
 	

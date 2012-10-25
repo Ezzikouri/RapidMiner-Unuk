@@ -62,7 +62,6 @@ import com.rapidminer.gui.look.ui.RapidDockingUISettings;
 import com.rapidminer.gui.safemode.SafeMode;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.DecisionRememberingConfirmDialog;
-import com.rapidminer.gui.tour.RapidMinerTour;
 import com.rapidminer.gui.viewer.MetaDataViewerTableModel;
 import com.rapidminer.operator.io.DatabaseDataReader;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -285,8 +284,6 @@ public class RapidMinerGUI extends RapidMiner {
 		Plugin.initPluginUpdateManager();
 		UpdateManager.checkForUpdates();
 		UpdateManager.checkForPurchasedNotInstalled();
-
-		RapidMinerTour.startTour();
 	}
 	
 	private void setupToolTipManager() {
