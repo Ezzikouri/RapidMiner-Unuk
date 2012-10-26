@@ -2013,7 +2013,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
      * for the ports using the {@link MDTransformer#addRule(com.rapidminer.operator.ports.metadata.MDTransformationRule)}
      * method or one of it's more specialized sisters.
      */
-    protected final MDTransformer getTransformer() {
+    public final MDTransformer getTransformer() {
         return transformer;
     }
 
