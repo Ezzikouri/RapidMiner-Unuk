@@ -73,6 +73,7 @@ import com.rapidminer.tools.math.function.expressions.Maximum;
 import com.rapidminer.tools.math.function.expressions.Minimum;
 import com.rapidminer.tools.math.function.expressions.Missing;
 import com.rapidminer.tools.math.function.expressions.ParameterValue;
+import com.rapidminer.tools.math.function.expressions.Random;
 import com.rapidminer.tools.math.function.expressions.Signum;
 import com.rapidminer.tools.math.function.expressions.date.Date2String;
 import com.rapidminer.tools.math.function.expressions.date.Date2StringCustom;
@@ -617,6 +618,8 @@ public class ExpressionParser {
 		if (process != null) {
 			parser.addFunction("param", new ParameterValue(process));
 			parser.addFunction("macro", new MacroValue(process));
+			parser.removeFunction("rand");
+			parser.addFunction("rand", new Random(process));
 		}
 	}
 

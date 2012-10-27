@@ -51,6 +51,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * Added a startup check for purchased but not installed extensions and a property to disable the check. Those Extensions can be directly installed from the dialog.  
 * RapidMiner enters safe mode (not loading plugins) when startup was interrupted
 * Added new 'Export as PDF' action to the 'Print results or export' dropdown button
+* Replaced the standard Random funcion in the ExpressionParser with a custom one in order to involve the random seed/the RandomGenerator for the process    
 * BUGFIX: Recent files are now updated on process save
 * BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases
 * BUGFIX: Editing context variables now immediately flags the process as changed
@@ -85,7 +86,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 		  that asks for admin rights
 * BUGFIX: Fixed the "Select for installation" button: Error when content/behaviour changed according to factors like if the extension was purchased.
           Now leads to the extension website when purchased but not installed. Now reacts properly to double-clicks in the extension list.
-          The "Install" button turns to a disabled state when no extensions are marked for installation.
+          The "Install" button turns to a disabled state when no extensions are marked for installation.   
  
 
 Changes from RapidMiner 5.2.6 to 5.2.8
