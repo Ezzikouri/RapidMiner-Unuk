@@ -152,13 +152,27 @@ public class MetaDataRendererFactoryRegistry {
 	/** Creates a renderer for this meta data object or null if there is no suitable renderer
 	 *  or if the meta data is null. */
 	public Component createRenderer(MetaData metaData) {
+		
+		// handle the case when we get null metadata
 		if (metaData == null) {
 			return null;
 		}
-		MetaDataRendererFactory f = factories.get(metaData.getClass());
-		if (f != null) {
-			return f.createRenderer(metaData);
-		} else {
+		
+		// first of all, we need to check that factories contains or doesn't contain render for metadata
+		if (factories.containsKey(metaData.getClass())) {
+			
+			// if there is a renderer factory element in factories then we need to check that it is null or not
+			MetaDataRendererFactory factory = factories.get(metaData.getClass());
+			
+			if (factory == null) {
+				// if it is null then return with null
+				return null;
+			} else {
+				// it it is not null then call the createRenderer function on the renderer factory
+				return factory.createRenderer(metaData);				
+			}
+			
+		} else { // there is no factory in factories for the given metadata, so let's try to find one
 			
 			// find the closest (inheritance) renderer from the factories 
 			
