@@ -195,7 +195,19 @@ public class UpdatePackagesModel extends Observable {
 				} catch (URISyntaxException e) {}
 			}
 		}
-		b.append("<p><a href=\"" + UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + descriptor.getPackageId() + "\">Extension homepage</a></p>");
+		
+//     TODO: Dominik: Please cache and re-enable, see RM-87
+//		try {
+//			URI changesURI = UpdateManager.getUpdateServerURI("/download/changes/"+descriptor.getPackageId()+"/"+descriptor.getVersion());
+//			String changes = Tools.readTextFile(changesURI.toURL().openStream());
+//			b.append("<h1 style=\"font-size:11px;font-weight:bold;\">Changes</h1>");
+//			b.append(changes);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+		
+		b.append("<p style=\"margin-top:10px\"><a href=\"" + UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + descriptor.getPackageId() + "\">Extension homepage</a></p>");
 		b.append("</body></html>");
 		return b.toString();
 	}

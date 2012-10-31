@@ -655,6 +655,19 @@
 					<key>create_directory</key>
 					<class>com.rapidminer.operator.filesystem.CreateDirectoryOperator</class>
 				</operator>
+				<group key="compression">
+					<operator>
+						<key>create_zip_file</key>
+						<icon>box_new.png</icon>
+						<class>com.rapidminer.operator.nio.file.compression.CreateZipFileOperator
+						</class>
+					</operator>
+					<operator>
+						<key>add_entry_to_zip_file</key>
+						<icon>box_into.png</icon>
+						<class>com.rapidminer.operator.nio.file.compression.AddEntryToZipFile</class>
+					</operator>
+				</group>
 			</group>
 			<group key="data_generation">
 				<icon>data_new.png</icon>

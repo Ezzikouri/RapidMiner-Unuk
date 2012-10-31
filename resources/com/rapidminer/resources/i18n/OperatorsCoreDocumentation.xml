@@ -8449,5 +8449,15 @@ Thomas Breuel, Faisal Shafait. The Learning Workshop, Cliff Lodge, Snowbird, Uta
       <help>This operator writes a file object to a file or to the repository as a blob. Note that you cannot use this to save an example set, model, or other object. This is used only for uninterpreted data delivered by Open File, etc.</help>
       <key>write_file</key>
    </operator>
+   
+   <operator>
+	   <name>Create Zip File</name>
+	   <key>create_zip_file</key>
+   </operator>
+     
+   <operator>
+	   <name>Add Entry to Zip File</name>
+	   <key>add_entry_to_zip_file</key>
+   </operator>
      
 </operatorHelp>

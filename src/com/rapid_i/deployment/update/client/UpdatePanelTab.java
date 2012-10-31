@@ -58,6 +58,7 @@ import com.rapid_i.deployment.update.client.listmodels.AbstractPackageListModel;
 import com.rapid_i.deployment.update.client.listmodels.BookmarksPackageListModel;
 import com.rapid_i.deployment.update.client.listmodels.LicencedPackageListModel;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
+import com.rapidminer.gui.tools.ExtendedHTMLEditorKit;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -332,8 +333,14 @@ public class UpdatePanelTab extends JPanel {
 		if (desc != null) {
 			
 			installButton.setEnabled(true);
-			StyleSheet css = ExtendedHTMLJEditorPane.makeDefaultStylesheet();
+			StyleSheet css = new StyleSheet();//.makeDefaultStylesheet();
 			css.addRule("a  {text-decoration:underline; color:blue;}");
+			css.addRule("h2 {font-weight:bold; }");
+			css.addRule("div.changes-section{padding-left:10px;font-size:9px;color:#444444;}");
+			css.addRule(".changes-header-version {margin-top:10px;margin-bottom:5px;color:#111111;}");
+			css.addRule("ul {padding-left:10px;}");
+			css.addRule("ul li {margin-left:0px;padding-left:0px;}");
+			//ExtendedHTMLJEditorPane.installDefaultStylesheet(css);		
 			HTMLDocument doc = new HTMLDocument(css);
 			displayPane.setDocument(doc);
 			displayPane.setText(updateModel.toString(desc));

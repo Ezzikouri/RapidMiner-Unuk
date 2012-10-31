@@ -69,7 +69,7 @@ public class ExtendedHTMLJEditorPane extends JEditorPane {
 	}
 
     public static void installDefaultStylesheet(StyleSheet css ) {
-		css.addRule("body {font-family:Sans;font-size:12pt}");
+		css.addRule("body {font-family:Sans;font-size:12pt}");		
 		css.addRule("h3 {margin:0; padding:0; }");
 		//String hcolor = Integer.toHexString(SwingTools.DARKEST_BLUE.darker().darker().darker().getRGB());
 		//hcolor = hcolor.substring(2, 8);
@@ -79,7 +79,7 @@ public class ExtendedHTMLJEditorPane extends JEditorPane {
 		css.addRule("p  {margin-top:0; margin-bottom:2ex; padding:0}");
 //		css.addRule("ul {margin-top:0; margin-bottom:1ex; list-style-image:url(" + Tools.getResource("icons/help/circle.png") + "); }");
 		css.addRule("ul.ports {margin-top:0; margin-bottom:1ex; list-style-image:url(" + Tools.getResource("icons/help/circle.png") + "); }");
-		css.addRule("ul li {padding-bottom:1ex}");
+		css.addRule("ul li {padding-bottom:1ex}");		
 //		css.addRule("li.outPorts {padding-bottom:0px}");
 		css.addRule("ul.param_dep {margin-top:0; margin-bottom:1ex; list-style-type:none; list-style-image:none; }");
 //		css.addRule("ul li ul {margin-top:0; margin-bottom:1ex; list-style-type:none; list-style-image:none; }");
