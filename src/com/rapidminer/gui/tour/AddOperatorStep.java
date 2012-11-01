@@ -74,7 +74,7 @@ public class AddOperatorStep extends Step {
 
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey);
+		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.positionRelativeToDockable(targetDockKey));
 		ProcessSetupListener l = new ProcessSetupListener() {
 			
 			@Override
@@ -105,7 +105,8 @@ public class AddOperatorStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(l);
-		bubble.positionRelativeToDockable(targetDockKey);
+		//TODO:delete
+		//bubble.positionRelativeToDockable(targetDockKey);
 		return bubble;
 	}
 	

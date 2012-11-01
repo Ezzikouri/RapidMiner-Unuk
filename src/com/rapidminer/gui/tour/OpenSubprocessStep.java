@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
 import java.awt.Component;
@@ -42,14 +43,14 @@ import com.rapidminer.operator.OperatorChain;
  */
 
 public class OpenSubprocessStep extends Step {
-	
+
 	private Alignment alignment;
 	private Window owner;
 	private String i18nKey;
 	private Component attachTo;
 	private String attachToKey;
 	private Class<? extends OperatorChain> operator;
-	
+
 	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, String attachToKey, Class<? extends OperatorChain> operator) {
 		this.alignment = alignment;
 		this.owner = owner;
@@ -66,7 +67,7 @@ public class OpenSubprocessStep extends Step {
 		this.attachTo = attachTo;
 		this.operator = operator;
 	}
-	
+
 	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, String attachToKey) {
 		this.alignment = alignment;
 		this.owner = owner;
@@ -84,52 +85,55 @@ public class OpenSubprocessStep extends Step {
 		this.operator = null;
 	}
 
-	
-	
-	public void setOperator(Class <? extends OperatorChain> operator) {
+	public void setOperator(Class<? extends OperatorChain> operator) {
 		this.operator = operator;
 	}
-	
-	public Class <? extends OperatorChain> getOperator(){
+
+	public Class<? extends OperatorChain> getOperator() {
 		return operator;
 	}
 
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey);
+//		bubble = new BubbleWindow(owner, alignment, i18nKey);
+		if (attachTo == null) {
+			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey);
+		} else {
+			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
+		}
 		RapidMinerGUI.getMainFrame().addProcessEditor(new ProcessEditor() {
-			
+
 			@Override
 			public void setSelection(List<Operator> selection) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void processUpdated(Process process) {
-				if(RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().getDisplayedChain().getClass().equals(OpenSubprocessStep.this.operator) 
-						|| OpenSubprocessStep.this.operator == null){
+				if (RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().getDisplayedChain().getClass().equals(OpenSubprocessStep.this.operator)
+						|| OpenSubprocessStep.this.operator == null) {
 					bubble.triggerFire();
 					RapidMinerGUI.getMainFrame().removeProcessEditor(this);
 				}
-				
+
 			}
-			
+
 			@Override
 			public void processChanged(Process process) {
-				if(RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().getDisplayedChain().getClass().equals(OpenSubprocessStep.this.operator) 
-						&& OpenSubprocessStep.this.operator != null){
+				if (RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().getDisplayedChain().getClass().equals(OpenSubprocessStep.this.operator)
+						&& OpenSubprocessStep.this.operator != null) {
 					bubble.triggerFire();
 					RapidMinerGUI.getMainFrame().removeProcessEditor(this);
 				}
-				
-				
+
 			}
 		});
-		if(attachTo == null){
-			attachTo = BubbleWindow.findButton(attachToKey, RapidMinerGUI.getMainFrame());
-		}
-		bubble.positionRelativeTo(attachTo);
+		//TODO: delete
+//		if(attachTo == null){
+//			attachTo = BubbleWindow.findButton(attachToKey, RapidMinerGUI.getMainFrame());
+//		}
+//		bubble.positionRelativeTo(attachTo);
 		return bubble;
 	}
 

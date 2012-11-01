@@ -61,8 +61,9 @@ public class SaveProcessStep extends Step {
 
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey);
-		bubble.positionRelativeTo(BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame()));
+		bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey);
+		//TODO: delete
+		//bubble.positionRelativeTo(BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame()));
 		RapidMinerGUI.getMainFrame().getProcess().addProcessStorageListener(new ProcessStorageListener() {
 			
 			@Override

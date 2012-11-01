@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
 import com.rapidminer.gui.RapidMinerGUI;
@@ -45,77 +46,61 @@ import com.rapidminer.repository.gui.RepositoryBrowser;
  * @author Philipp Kersting
  *
  */
-public class RapidMinerTour {
-	
-	public static void startTour(){
-			Step step = new SimpleStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "start", "new");
-			Step step1 = new SimpleStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "tryrun", "run");
-			Step step2 = new AddOperatorStep(Alignment.BOTTOM, RapidMinerGUI.getMainFrame(), "adddatabase", RepositorySource.class, RepositoryBrowser.REPOSITORY_BROWSER_DOCK_KEY);
-			final AddOperatorStep step3 = new AddOperatorStep(Alignment.LEFT, RapidMinerGUI.getMainFrame(), "dragdrop", AbstractTreeLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
-			final OperatorStep step4 = new ChangeParameterStep(Alignment.RIGHT, RapidMinerGUI.getMainFrame(), "changeparam",null, AbstractTreeLearner.PARAMETER_CRITERION, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY,  "information_gain");
-			final OperatorStep step5 = new AddBreakpointStep(Alignment.RIGHT, RapidMinerGUI.getMainFrame(),"addbreakpoint", null, Position.AFTER);
-			Step step6 = new SimpleStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "run", "run");
-			final OperatorStep step7 = new ResumeFromBreakpointStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "goon", null, "run") ;
-			Step step8 = new SaveProcessStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "saveas", "save_as");
-			Step step8b = new OpenProcessStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "open");
-			final OperatorStep step9 = new RemoveOperatorStep(Alignment.BOTTOM, RapidMinerGUI.getMainFrame(), "remove", null, RapidMinerGUI.getMainFrame().getProcessPanel().getComponent());
-			AddOperatorStep step10 = new AddOperatorStep(Alignment.BOTTOM, RapidMinerGUI.getMainFrame(), "restore", AbstractLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
-			OperatorStep step11 = new AddBreakpointStep(Alignment.RIGHT, RapidMinerGUI.getMainFrame(), "restorebreakpoint", AbstractLearner.class, Position.BEFORE);
-			OperatorStep step12 = new RemoveBreakpointStep(Alignment.RIGHT, RapidMinerGUI.getMainFrame(), "removebreakpoint", AbstractLearner.class);
-			OperatorStep step13 = new RenameOperatorStep(Alignment.RIGHT, RapidMinerGUI.getMainFrame(), "rename", AbstractLearner.class, "Tree", "rename_in_processrenderer");
-			Step step14 = new SaveProcessStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "save", "save");
-			AddOperatorStep step15 = new AddOperatorStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "subprocess", SimpleOperatorChain.class, ProcessPanel.PROCESS_PANEL_DOCK_KEY);
-			Step step16 = new OpenSubprocessStep(Alignment.LEFT, RapidMinerGUI.getMainFrame(), "opensubprocess", RapidMinerGUI.getMainFrame().getProcessPanel(), SimpleOperatorChain.class);
-			final AddOperatorStep step17 = new AddOperatorStep(Alignment.TOP, RapidMinerGUI.getMainFrame(), "subprocesses", Operator.class, ProcessPanel.PROCESS_PANEL_DOCK_KEY); 
-			AddOperatorStepListener operatorListener = new AddOperatorStepListener() {
-				
-				@Override
-				public void operatorAvailable(Operator op) {
-					step4.setOperator(op.getClass());
-					step5.setOperator(op.getClass());
-					step7.setOperator(op.getClass());
-					step9.setOperator(op.getClass());
-					for (ExecutionUnit e : RapidMinerGUI.getMainFrame().getProcess().getRootOperator().getSubprocesses()){
-						System.out.println(e.getEnclosingOperator().equals(RapidMinerGUI.getMainFrame().getProcess().getRootOperator()));
-						
-					}
-					step3.removeListener(this);
+public class RapidMinerTour extends IntroductoryTour {
+
+	public RapidMinerTour() {
+		super(2, "RapidMiner");
+
+		//create Sights
+		sights[0] = new SimpleStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "start", "new");
+		sights[1] = new SimpleStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "tryrun", "run");
+		sights[2] = new AddOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "adddatabase", RepositorySource.class, RepositoryBrowser.REPOSITORY_BROWSER_DOCK_KEY);
+		sights[3] = new AddOperatorStep(Alignment.LEFTBOTTOM, RapidMinerGUI.getMainFrame(), "dragdrop", AbstractTreeLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
+		sights[4] = new ChangeParameterStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "changeparam", null, AbstractTreeLearner.PARAMETER_CRITERION, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY, "information_gain");
+		sights[5] = new AddBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "addbreakpoint", null, Position.AFTER);
+		sights[6] = new SimpleStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "run", "run");
+		sights[7] = new ResumeFromBreakpointStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "goon", null, "run");
+		sights[8] = new SaveProcessStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "saveas", "save_as");
+		sights[9] = new OpenProcessStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "open","open");
+		sights[10] = new RemoveOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "remove", null, RapidMinerGUI.getMainFrame().getProcessPanel().getComponent());
+		sights[11] = new AddOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "restore", AbstractLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
+		sights[12] = new AddBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "restorebreakpoint", AbstractLearner.class, Position.BEFORE);
+		sights[13] = new RemoveBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "removebreakpoint", AbstractLearner.class, Position.BEFORE);
+		sights[14] = new RenameOperatorStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "rename", AbstractLearner.class, "Tree", "rename_in_processrenderer");
+		sights[15] = new SaveProcessStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "save", "save");
+		sights[16] = new AddOperatorStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "subprocess", SimpleOperatorChain.class, ProcessPanel.PROCESS_PANEL_DOCK_KEY);
+		sights[17] = new OpenSubprocessStep(Alignment.LEFTBOTTOM, RapidMinerGUI.getMainFrame(), "opensubprocess", RapidMinerGUI.getMainFrame().getProcessPanel(), SimpleOperatorChain.class);
+		sights[18] = new AddOperatorStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "subprocesses", Operator.class, ProcessPanel.PROCESS_PANEL_DOCK_KEY);
+		//add needed listeners
+		AddOperatorStepListener operatorListener = new AddOperatorStepListener() {
+
+			@Override
+			public void operatorAvailable(Operator op) {
+				((OperatorStep) sights[4]).setOperator(op.getClass());
+				((OperatorStep) sights[5]).setOperator(op.getClass());
+				((OperatorStep) sights[7]).setOperator(op.getClass());
+				((OperatorStep) sights[10]).setOperator(op.getClass());
+				for (ExecutionUnit e : RapidMinerGUI.getMainFrame().getProcess().getRootOperator().getSubprocesses()) {
+					System.out.println(e.getEnclosingOperator().equals(RapidMinerGUI.getMainFrame().getProcess().getRootOperator()));
 				}
-			};
-			step15.addListener(new AddOperatorStepListener() {
-				
-				@SuppressWarnings("unchecked")
-				@Override
-				public void operatorAvailable(Operator op) {
-					if (op instanceof OperatorChain){
-						step17.setTargetEnclosingOperatorChain((Class<? extends OperatorChain>) op.getClass());
-					}
-					
-					
+				((AddOperatorStep) sights[3]).removeListener(this);
+			}
+		};
+		((AddOperatorStep) sights[16]).addListener(new AddOperatorStepListener() {
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public void operatorAvailable(Operator op) {
+				if (op instanceof OperatorChain) {
+					((AddOperatorStep) sights[18]).setTargetEnclosingOperatorChain((Class<? extends OperatorChain>) op.getClass());
 				}
-			});
-			step3.addListener(operatorListener);
-			
-			step.setNext(step1);
-			step1.setNext(step2);
-			step2.setNext(step3);
-			step3.setNext(step4);
-			step4.setNext(step5);
-			step5.setNext(step6);
-			step6.setNext(step7);
-			step7.setNext(step8);
-			step8.setNext(step9);
-			step8b.setNext(step9);
-			step9.setNext(step10);
-			step10.setNext(step11);
-			step11.setNext(step12);
-			step12.setNext(step13);
-			step13.setNext(step14);
-			step14.setNext(step15);
-			step15.setNext(step16);
-			step16.setNext(step17);
-			
-			
-			step.start();
+
+			}
+		});
+		((AddOperatorStep) sights[3]).addListener(operatorListener);
+
+		//placeFollower
+		super.placeFollower();
+		System.out.println("check Tourdate performed");
 	}
 }

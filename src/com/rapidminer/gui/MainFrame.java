@@ -257,7 +257,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MINCOLOR, "The color for minimum values of the plotter legend.", java.awt.Color.blue));
         ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MAXCOLOR, "The color for maximum values of the plotter legend.", java.awt.Color.red));
         ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_PLOTTER_COLORS_CLASSLIMIT, "Limit number of displayed classes for colorized plots. -1 for no limit.", -1, Integer.MAX_VALUE, 10));
-        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE, "Maximum number of states in the undo list.", 1, Integer.MAX_VALUE, 10));
+        ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE, "Maximum number of states in the undo list.", 1, Integer.MAX_VALUE, 100));
         ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_GUI_ATTRIBUTEEDITOR_ROWLIMIT, "Maximum number of examples to use for the attribute editor. -1 for no limit.", -1, Integer.MAX_VALUE, 50));
         ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_BEEP_SUCCESS, "Beep on process success?", false));
         ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_BEEP_ERROR, "Beep on error?", false));
@@ -469,6 +469,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
     private final EventListenerList processEditors = new EventListenerList();
     private List<Operator> selectedOperators = Collections.emptyList();
+    private Operator selectedOperatorBeforeUndo;
 
     private boolean changed = false;
     private boolean tutorialMode = false;
@@ -1127,6 +1128,11 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             perspectives.showPerspective("design");
         }
         setTitle();
+        
+        // process changed -> clear undo history
+        undoIndex = 0;
+        undoList.clear();
+        enableUndoAction();
     }
 
     /**
@@ -1204,6 +1210,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public void undo() {
         if (undoIndex > 0) {
             undoIndex--;
+            selectedOperatorBeforeUndo = getFirstSelectedOperator();
             setProcessIntoStateAt(undoIndex);
         }
         enableUndoAction();
@@ -1212,12 +1219,25 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public void redo() {
         if (undoIndex < undoList.size()) {
             undoIndex++;
+            selectedOperatorBeforeUndo = getFirstSelectedOperator();
             setProcessIntoStateAt(undoIndex);
         }
         enableUndoAction();
     }
 
     private void enableUndoAction() {
+    	// select operators again to show the correct subprocess after an undo
+    	if (selectedOperatorBeforeUndo != null) {
+        	Operator op = getProcess().getOperator(selectedOperatorBeforeUndo.getName());
+        	if (op != null) {
+        		selectOperator(op);
+        	} else if (selectedOperatorBeforeUndo.getParent() != null) {
+        		op = getProcess().getOperator(selectedOperatorBeforeUndo.getParent().getName());
+        		selectOperator(op);
+        	}
+        	selectedOperatorBeforeUndo = null;
+        }
+    	
         if (undoIndex > 0) {
             UNDO_ACTION.setEnabled(true);
         } else {

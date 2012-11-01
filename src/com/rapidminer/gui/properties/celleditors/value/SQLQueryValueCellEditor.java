@@ -23,7 +23,9 @@
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 
@@ -37,6 +39,7 @@ import com.rapidminer.gui.tools.dialogs.SQLQueryBuilder;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeSQLQuery;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
@@ -75,10 +78,39 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 				final SQLQueryBuilder queryBuilder = new SQLQueryBuilder(handler);
 				class SQLQueryPropertyDialog extends PropertyDialog {
 					private static final long serialVersionUID = -5224113818406394872L;
+					private JButton resizeButton;
 
 					private SQLQueryPropertyDialog(boolean editOnly) {
 						super(type, "sql");
-						layoutDefault(queryBuilder.makeQueryBuilderPanel(editOnly), NORMAL, makeOkButton(), makeCancelButton());
+						
+						ResourceAction resizeAction = new ResourceAction(true, "text_dialog.enlarge") {
+							
+							private static final long serialVersionUID = 8857840715142145951L;
+
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
+								Dimension dim = new Dimension((int)(screenDim.width * 0.9), (int)(screenDim.height* 0.9));
+								Dimension currentSize = getSize();
+								if (currentSize.getHeight() != dim.getHeight() && currentSize.getWidth() != dim.getWidth()) {
+									setSize(dim);
+									setLocationRelativeTo(null);
+									resizeButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.shrink.label"));
+									resizeButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.shrink.tip"));
+									resizeButton.setMnemonic(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.shrink.mne").charAt(0));
+								} else {
+									setSize(getDefaultSize(NORMAL));
+									setDefaultLocation();
+									resizeButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.enlarge.label"));
+									resizeButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.enlarge.tip"));
+									resizeButton.setMnemonic(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.enlarge.mne").charAt(0));
+								}
+							}
+						};
+						
+				        resizeButton = new JButton(resizeAction);
+						
+						layoutDefault(queryBuilder.makeQueryBuilderPanel(editOnly), NORMAL, resizeButton, makeOkButton(), makeCancelButton());
 					}
 				}
 

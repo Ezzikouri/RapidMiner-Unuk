@@ -20,28 +20,36 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.gui.actions;
+package com.rapidminer.gui.tour;
 
-import java.awt.event.ActionEvent;
+import com.rapidminer.gui.tools.components.BubbleWindow;
+import com.rapidminer.gui.tools.dialogs.MessageDialog;
+import com.rapidminer.tools.I18N;
 
-import com.rapidminer.gui.tools.ResourceAction;
-import com.rapidminer.gui.tour.RapidMinerTour;
 
 /**
- * Start the corresponding action.
- * 
- * @author Marco Boeck
+ * @author Thilo Kamradt
+ *
  */
-public class TourAction extends ResourceAction {
+public class FinalStep extends Step {
 
-	private static final long serialVersionUID = 1L;
+	protected String title, text, textInsert;
 	
-	
-	public TourAction() {
-		super("tour");
+	public FinalStep(String i18nKey, String explicitTour) {
+		this.title =I18N.getMessage(I18N.getGUIBundle(),"gui.bubble." + i18nKey + ".title");
+		this.text = I18N.getMessage(I18N.getGUIBundle(),"gui.bubble." + i18nKey + ".body",explicitTour);
+	}
+	/* (non-Javadoc)
+	 * @see com.rapidminer.gui.tour.Step#createBubble()
+	 */
+	@Override
+	BubbleWindow createBubble() {
+		return null;
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		new RapidMinerTour().startTour(0);
+	@Override
+	public void start() {
+		MessageDialog tourComplete = new MessageDialog(title, text);
+		tourComplete.setVisible(true);
 	}
 }

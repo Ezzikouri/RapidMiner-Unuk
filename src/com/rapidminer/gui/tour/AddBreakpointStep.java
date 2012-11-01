@@ -62,7 +62,12 @@ public class AddBreakpointStep extends OperatorStep {
 
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey);
+//		if(position == Position.BEFORE) {
+//			bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_before");
+//		} else {
+			bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_after");
+//		}
+		
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(new ProcessSetupListener() {
 			
 			@Override
@@ -100,9 +105,10 @@ public class AddBreakpointStep extends OperatorStep {
 				
 			}
 		});
-		String buttonKey = "breakpoint_after";
-		AbstractButton button = BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame());
-		bubble.positionRelativeTo(button);
+		//TODO: delete
+//		String buttonKey = "breakpoint_after";
+//		AbstractButton button = BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame());
+//		bubble.positionRelativeTo(button);
 		return bubble;
 	}
 	

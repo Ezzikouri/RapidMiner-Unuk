@@ -59,6 +59,6 @@ public class WelcomeTourAction extends AbstractAction {
 
 	public void actionPerformed(ActionEvent e) {
 		this.mainFrame.getPerspectives().showPerspective("design");
-		RapidMinerTour.startTour();
+		new RapidMinerTour().startTour(0);
 	}
 }

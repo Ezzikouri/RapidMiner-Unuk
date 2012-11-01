@@ -1952,7 +1952,9 @@ public class ProcessRenderer extends JPanel {
                         if (canBeInsertedIntoConnection(hoveringOperator)) {
                             int pid = getIndex(draggingInSubprocess);
                             Point processSpace = toProcessSpace(e.getPoint(), pid);
-                            hoveringConnectionSource = getPortForConnectorNear(processSpace, draggingInSubprocess);
+                            if (processSpace != null) {
+                            	hoveringConnectionSource = getPortForConnectorNear(processSpace, draggingInSubprocess);
+                            }
                         }
                     }
 

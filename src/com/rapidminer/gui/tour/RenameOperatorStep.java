@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
 import java.awt.Component;
@@ -46,16 +47,18 @@ public class RenameOperatorStep extends OperatorStep {
 	private String targetName;
 	private Component attachTo;
 	private String attachToKey;
-	
-	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, String targetName, Component attachTo) {
+
+	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String targetName, Component attachTo) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.targetName = targetName;
 		this.operator = operator;
 		this.attachTo = attachTo;
+		this.attachToKey = null;
 	}
-	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, String targetName, String attachToKey) {
+
+	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String targetName, String attachToKey) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
@@ -65,43 +68,47 @@ public class RenameOperatorStep extends OperatorStep {
 		this.attachToKey = attachToKey;
 	}
 
-
-
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey);
+//		bubble = new BubbleWindow(owner, alignment, i18nKey);
+		//TODO:check
+		if (attachTo == null) {
+			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey);
+		} else {
+			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
+		}
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(new ProcessSetupListener() {
-			
+
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void operatorChanged(Operator operator) {
-				if (RenameOperatorStep.this.operator.isInstance(operator) && operator.getName().equals(targetName)){
+				if (RenameOperatorStep.this.operator.isInstance(operator) && operator.getName().equals(targetName)) {
 					bubble.triggerFire();
 					RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
 				}
 			}
-			
+
 			@Override
 			public void operatorAdded(Operator operator) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void executionOrderChanged(ExecutionUnit unit) {
 				// TODO Auto-generated method stub
-				
+
 			}
 		});
-		if (attachTo == null){
-			attachTo = BubbleWindow.findButton(attachToKey, RapidMinerGUI.getMainFrame());
-		}
-		bubble.positionRelativeTo(attachTo);
+//		if (attachTo == null){
+//			attachTo = BubbleWindow.findButton(attachToKey, RapidMinerGUI.getMainFrame());
+//		}
+//		bubble.positionRelativeTo(attachTo);
 		return bubble;
 	}
 

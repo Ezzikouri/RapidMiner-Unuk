@@ -86,7 +86,8 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 		  that asks for admin rights
 * BUGFIX: Fixed the "Select for installation" button: Error when content/behaviour changed according to factors like if the extension was purchased.
           Now leads to the extension website when purchased but not installed. Now reacts properly to double-clicks in the extension list.
-          The "Install" button turns to a disabled state when no extensions are marked for installation.   
+          The "Install" button turns to a disabled state when no extensions are marked for installation.
+* BUGFIX: AccountService is only queried when we are logged in. The login state is saved internally.             
  
 
 Changes from RapidMiner 5.2.6 to 5.2.8

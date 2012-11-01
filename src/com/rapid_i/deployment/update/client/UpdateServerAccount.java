@@ -79,13 +79,7 @@ public class UpdateServerAccount extends Observable {
 	}
 	
 	private boolean isAccountServiceLoggedIn() {
-		if (loggedIn == false) return false;
-		try {
-			UpdateManager.getAccountService();
-			return true;
-		} catch (Exception e) {
-			return false;
-		}
+		return loggedIn;
 	}
 	
 	public static void setPasswordAuthentication(PasswordAuthentication pa) {

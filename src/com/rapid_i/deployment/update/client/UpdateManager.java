@@ -276,7 +276,8 @@ public class UpdateManager {
 		}
 
 	}
-	
+		
+	@SuppressWarnings("resource") // stream is closed by copyStreamSynchronously
 	private void updateRapidMiner(InputStream openStream, String version, String md5adress) throws IOException {
 		//File updateDir = new File(FileSystemService.getRapidMinerHome(), "update");
 		File updateRootDir = new File(FileSystemService.getUserRapidMinerDir(), "update");

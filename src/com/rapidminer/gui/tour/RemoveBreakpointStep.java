@@ -29,6 +29,7 @@ import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tour.AddBreakpointStep.Position;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 
@@ -44,6 +45,7 @@ public class RemoveBreakpointStep extends OperatorStep {
 	Window owner;
 	String i18nKey;
 	Component attachTo;
+	Position position;
 	
 
 	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Component attachTo) {
@@ -52,6 +54,7 @@ public class RemoveBreakpointStep extends OperatorStep {
 		this.i18nKey = i18nKey;
 		this.operator = operator;
 		this.attachTo = attachTo;
+		this.position = Position.DONT_CARE;
 	}
 	
 	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String attachToKey) {
@@ -60,21 +63,47 @@ public class RemoveBreakpointStep extends OperatorStep {
 		this.i18nKey = i18nKey;
 		this.operator = operator;
 		this.attachTo = BubbleWindow.findButton(attachToKey, RapidMinerGUI.getMainFrame());
+		this.position = Position.DONT_CARE;
 	}
 	
-
+	/** the Breakpoint after will be chosen as default*/
 	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.operator = operator;
 		this.attachTo = null;
+		this.position = Position.DONT_CARE;
+	}
+	
+	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator,Position breakPointPosition) {
+		this.alignment = alignment;
+		this.owner = owner;
+		this.i18nKey = i18nKey;
+		this.operator = operator;
+		this.attachTo = null;
+		this.position=breakPointPosition;
 	}
 	
 
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey);
+//		bubble = new BubbleWindow(owner, alignment, i18nKey);
+//		switch (position){
+//			case BEFORE:
+//				bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_before");
+//				break;
+//			case AFTER:
+//				bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_after");
+//				break;
+//			case DONT_CARE:
+				if (attachTo == null){
+						bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_after");
+				} else {
+					bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
+				}
+//		}
+		
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(new ProcessSetupListener() {
 			
 			@Override
@@ -104,10 +133,11 @@ public class RemoveBreakpointStep extends OperatorStep {
 				
 			}
 		});
-		if (attachTo == null){
-			attachTo  = BubbleWindow.findButton("breakpoint_after", RapidMinerGUI.getMainFrame());
-		}
-		bubble.positionRelativeTo(attachTo);
+		//TODO: delete
+//		if (attachTo == null){
+//			attachTo  = BubbleWindow.findButton("breakpoint_after", RapidMinerGUI.getMainFrame());
+//		}
+//		bubble.positionRelativeTo(attachTo);
 		return bubble;
 	}
 }
