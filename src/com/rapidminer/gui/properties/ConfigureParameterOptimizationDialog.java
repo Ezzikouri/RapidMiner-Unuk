@@ -221,7 +221,7 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 				toolTipText.append(Tools.getLineSeparator() + "<b>Input:</b> " + SwingTools.toHTMLString(op.getInputPorts()));
 				toolTipText.append(Tools.getLineSeparator() + "<b>Output:</b> " + SwingTools.toHTMLString(op.getOutputPorts()));
 			}
-			operatorListModel.addElement(op, SwingTools.transformToolTipText(toolTipText.toString()));
+			operatorListModel.addElement(op, SwingTools.transformToolTipText(toolTipText.toString(), false, false));
 		}
 
 		operatorList = new ExtendedJList(operatorListModel);

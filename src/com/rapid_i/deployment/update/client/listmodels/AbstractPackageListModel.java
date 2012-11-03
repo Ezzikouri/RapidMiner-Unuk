@@ -43,7 +43,9 @@ import com.rapidminer.tools.ProgressListener;
 public abstract class AbstractPackageListModel extends AbstractListModel {
 
 	private static final long serialVersionUID = 1L;
-
+	
+	private static final String TARGET_PLATFORM = "ANY";
+	
 	protected PackageDescriptorCache cache;
 	
 	protected boolean updatedOnce = false;
@@ -84,6 +86,7 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 						while(it.hasNext()) {
 							String packageName = it.next();
 							PackageDescriptor desc = cache.getPackageInfo(packageName, "ANY");
+							cache.getPackageChanges(packageName);
 							a++;
 							setCompleted(getProgressListener(), 30 + 70 * a / size);
 							if (desc == null) it.remove();
@@ -143,7 +146,11 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 		if (packageNames.size() == 0) {			
 			return I18N.getMessage(I18N.getGUIBundle(), noPackagesMessageKey);
 		} 
-		return cache.getPackageInfo(packageNames.get(index), "ANY");
+		return cache.getPackageInfo(packageNames.get(index), TARGET_PLATFORM);
+	}
+	
+	public String getChanges(String packageId) {
+		return cache.getPackageChanges(packageId);
 	}
 
 	public void updateView(PackageDescriptor descr) {

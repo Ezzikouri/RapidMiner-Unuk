@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.security.UserCredential;
@@ -127,7 +128,21 @@ public class PasswordDialog extends ButtonDialog {
         	authentication = new UserCredential(forUrl, null, null);
         }
         final PasswordDialog pd = new PasswordDialog(authentication);
-        pd.setVisible(true);
+        if (SwingUtilities.isEventDispatchThread()) {
+        	pd.setVisible(true);
+        } else {
+        	try {
+        		SwingUtilities.invokeAndWait(new Runnable() {
+        			@Override
+        			public void run() {
+        				pd.setVisible(true);
+        			}        	
+        		});
+        	} catch (Exception e) {
+        		LogService.getRoot().log(Level.WARNING, "Error waiting for password authentication: "+e, e);
+        		return null;
+        	}
+        }
         if (pd.wasConfirmed()) {
             PasswordAuthentication result = pd.makeAuthentication();
             if (pd.rememberBox.isSelected()) {

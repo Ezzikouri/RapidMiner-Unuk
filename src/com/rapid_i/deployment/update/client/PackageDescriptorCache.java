@@ -22,12 +22,14 @@
  */
 package com.rapid_i.deployment.update.client;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.tools.Tools;
 
 /**
  * Cache for PackageDescriptor which is used by the Rapidminer Update Dialog.
@@ -38,6 +40,7 @@ import com.rapidminer.gui.tools.SwingTools;
 public class PackageDescriptorCache {
 
 	private final Map<String, PackageDescriptor> descriptors = new HashMap<String, PackageDescriptor>();
+	private final Map<String, String> packageChanges = new HashMap<String, String>();
 
 	private UpdateService updateService = null;
 
@@ -51,6 +54,35 @@ public class PackageDescriptorCache {
 			if (descriptors.containsKey(packageId)) {
 				return descriptors.get(packageId);
 			} else {
+				return null;
+			}
+		}
+	}
+	
+	public String getPackageChanges(String packageId) {
+		if (packageChanges.containsKey(packageId)) {
+			//in Cache
+			return packageChanges.get(packageId);
+		} else {
+			//need to fetch Info
+			
+			try {
+				ManagedExtension ext = ManagedExtension.get(packageId);
+				String installedVersion = ext != null ? ext.getLatestInstalledVersion() : null;
+				URI changesURI;
+				if (installedVersion != null) {
+					changesURI = UpdateManager.getUpdateServerURI("/download/changes/"+packageId+"?baseVersion="+installedVersion);
+				} else {
+					changesURI = UpdateManager.getUpdateServerURI("/download/changes/"+packageId);
+				}
+				
+				
+				String changes = Tools.readTextFile(changesURI.toURL().openStream());
+				packageChanges.put(packageId, changes);
+				return changes;
+			} catch (Exception e) {
+				packageChanges.put(packageId, null);
+				// no changes avaliable
 				return null;
 			}
 		}

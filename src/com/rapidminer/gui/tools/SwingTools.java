@@ -374,18 +374,38 @@ public class SwingTools {
         return transformToolTipText(description, true, TOOL_TIP_LINE_LENGTH, escapeSlashes);
     }
 
+    /** This method transforms the given tool tip text into HTML. Lines are splitted at linebreaks
+     *  and additional line breaks are added after ca. {@link #TOOL_TIP_LINE_LENGTH} characters.
+     *  @param escapeSlashes Inidicates if forward slashes ("/") are escaped by the html code "&#47;"
+     *  @param escapeHTML Indicates if previously added html tags are escaped
+     */
+    public static String transformToolTipText(String description, boolean escapeSlashes, boolean escapeHTML) {
+        return transformToolTipText(description, true, TOOL_TIP_LINE_LENGTH, escapeSlashes, escapeHTML);
+    }
     
     public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength) {
     	return transformToolTipText(description, addHTMLTags, lineLength, false);
+    }
+    
+    /** This method transforms the given tool tip text into HTML. Lines are splitted at linebreaks
+     *  and additional line breaks are added after ca. lineLength characters.
+     *  @param escapeSlashes Inidicates if forward slashes ("/") are escaped by the html code "&#47;"
+     */
+    public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength, boolean escapeSlashes) {
+    	return transformToolTipText(description, addHTMLTags, lineLength, escapeSlashes, true);
     }
     
     
     /** This method transforms the given tool tip text into HTML. Lines are splitted at linebreaks
      *  and additional line breaks are added after ca. lineLength characters.
      *  @param escapeSlashes Inidicates if forward slashes ("/") are escaped by the html code "&#47;"
+     *  @param escapeHTML Indicates if previously added html tags are escaped
      *  TODO: Use <div style="width:XXXpx"> */
-    public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength, boolean escapeSlashes) {
-        String completeText = Tools.escapeHTML(description.trim());
+    public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength, boolean escapeSlashes, boolean escapeHTML) {
+    	String completeText = description.trim();
+    	if (escapeHTML) {
+        	completeText = Tools.escapeHTML(completeText);
+        }
         if (escapeSlashes) {
         	completeText = completeText.replaceAll("/", "&#47;");
         }

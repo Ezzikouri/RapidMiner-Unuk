@@ -47,38 +47,47 @@ import com.rapidminer.tools.plugin.Dependency;
 public class UpdatePackagesModel extends Observable {
 
 	private final List<PackageDescriptor> descriptors;
-	
+
 	private final Map<PackageDescriptor, Boolean> selectionMap = new HashMap<PackageDescriptor, Boolean>();
-	
+
 	private final Map<PackageDescriptor, List<Dependency>> dependencyMap = new HashMap<PackageDescriptor, List<Dependency>>();
-	
+
 	/** Read the comment of {@link #isPurchased(PackageDescriptor)}. */
 	private Set<String> purchasedPackages = new HashSet<String>();
-	
-	public UpdatePackagesModel(List<PackageDescriptor> descriptors, UpdateServerAccount usAccount) {
+
+	public UpdatePackagesModel(List<PackageDescriptor> descriptors, final UpdateServerAccount usAccount) {
 		this.descriptors = descriptors;
-		
+
 		usAccount.addObserver(new Observer(){
 			@Override
 			public void update(Observable o, Object arg) {
-				try {
-					purchasedPackages = new HashSet<String>(UpdateManager.getAccountService().getLicensedProducts());
-				} catch (Exception e1) {
+				if (usAccount.isLoggedIn()) {
+					new Thread() {
+						public void run() {
+							try {
+								purchasedPackages = new HashSet<String>(UpdateManager.getAccountService().getLicensedProducts());
+								UpdatePackagesModel.this.notifyObservers();
+							} catch (Exception e1) {
+								purchasedPackages = new HashSet<String>();
+							}
+						};
+					}.start();
+				} else {
 					purchasedPackages = new HashSet<String>();
 				}
 			}
 		});
 	}
-	
+
 	public void setSelectedForInstallation(PackageDescriptor desc, boolean selected) {
 		selectionMap.put(desc, true);
 	}
-	
+
 	public void forceNotifyObservers() {
 		setChanged();
 		notifyObservers();
 	}
-	
+
 	public void toggleSelesctionForInstallation(PackageDescriptor desc) {
 		if (desc != null) {
 			boolean select = !isSelectedForInstallation(desc);
@@ -106,12 +115,12 @@ public class UpdatePackagesModel extends Observable {
 			this.notifyObservers(desc);
 		}
 	}
-	
+
 	public boolean isSelectedForInstallation(PackageDescriptor desc) {
 		Boolean selected = selectionMap.get(desc);
 		return (selected != null) && selected.booleanValue();
 	}
-	
+
 	public List<PackageDescriptor> getInstallationList() {
 		List<PackageDescriptor> downloadList = new LinkedList<PackageDescriptor>();
 		for (Entry<PackageDescriptor, Boolean> entry : selectionMap.entrySet()) {
@@ -121,11 +130,11 @@ public class UpdatePackagesModel extends Observable {
 		}
 		return downloadList;
 	}
-	
+
 	public void setDependencies(PackageDescriptor desc, List<Dependency> dependencies) {
 
 	}
-	
+
 	private boolean isUpToDate(PackageDescriptor desc) {
 		ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 		if (ext != null) {
@@ -140,7 +149,7 @@ public class UpdatePackagesModel extends Observable {
 			return false;
 		}
 	}
-	
+
 	private void resolveDependencies(PackageDescriptor desc) {
 		List<Dependency> deps = dependencyMap.get(desc);
 		if (deps != null) {
@@ -159,7 +168,7 @@ public class UpdatePackagesModel extends Observable {
 			}
 		}
 	}
-	
+
 	/**
 	 * Currently, this is an unused feature. There are no extensions that can be purchased. Don't be afraid, RapidMiner
 	 * is, and will always be, open source and free. However, future extensions like connectors to SAP or other data
@@ -169,48 +178,44 @@ public class UpdatePackagesModel extends Observable {
 	public boolean isPurchased(PackageDescriptor desc) {
 		return purchasedPackages.contains(desc.getPackageId());
 	}
-	
-	
-	public String toString(PackageDescriptor descriptor) {
+
+	public String getExtensionURL(PackageDescriptor descriptor) {
+		return UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + descriptor.getPackageId();
+	}
+
+
+	public String toString(PackageDescriptor descriptor, String changes) {		
 		StringBuilder b = new StringBuilder("<html><body>");
-		b.append("<span style=\"font-size:14px;\">");
+		b.append("<h1>");
 		if (descriptor.isRestricted()) {
 			b.append("<img src=\"icon:///").append("16/currency_euro.png").append("\"/>&nbsp;");
 		}
-		b.append(descriptor.getName()).append("</span>");
+		b.append(descriptor.getName()).append("</h1>");
 		Date date = new Date(descriptor.getCreationTime().toGregorianCalendar().getTimeInMillis());
-		b.append("<hr style=\"margin-bottom:8px;\"/><p style=\"margin-bottom:8px;\"><strong>Version ").append(descriptor.getVersion()).append(", released ").append(Tools.formatDate(date));
+		b.append("<hr><p><strong>Version ").append(descriptor.getVersion()).append(", released ").append(Tools.formatDate(date));
 		b.append(", ").append(Tools.formatBytes(descriptor.getSize())).append("</strong></p>");
 		if ((descriptor.getDependencies() != null) && !descriptor.getDependencies().isEmpty()) {
-			b.append("<div style=\"margin-bottom:8px;\">Depends on: " + descriptor.getDependencies() + "</div>");
+			b.append("<div>Depends on: " + descriptor.getDependencies() + "</div>");
 		}
-		b.append("<div style=\"margin-bottom:8px;\">").append(descriptor.getLongDescription()).append("</div>");
+		b.append("<div>").append(descriptor.getLongDescription()).append("</div>");
 		// Before you are shocked, read the comment of isPurchased() :-)
 		if (UpdateManager.COMMERCIAL_LICENSE_NAME.equals(descriptor.getLicenseName())) {
 			if (isPurchased(descriptor)) {
 				b.append("<p>You have purchased this package. However, you cannot install this extension with this version of RapidMiner. Please upgrade first.</p>");
 			} else {
 				try {
-					b.append("<p><a style=\"color:blue;text-decoration:underline;\"href=" + UpdateManager.getUpdateServerURI("/shop/" + descriptor.getPackageId()).toString() + ">Order this extension.</a></p><p>You cannot install this extension with this pre-release of RapidMiner. Please upgrade first.</p>");
+					b.append("<p><a href=" + UpdateManager.getUpdateServerURI("/shop/" + descriptor.getPackageId()).toString() + ">Order this extension.</a></p><p>You cannot install this extension with this pre-release of RapidMiner. Please upgrade first.</p>");
 				} catch (URISyntaxException e) {}
 			}
 		}
-		
-//     TODO: Dominik: Please cache and re-enable, see RM-87
-//		try {
-//			URI changesURI = UpdateManager.getUpdateServerURI("/download/changes/"+descriptor.getPackageId()+"/"+descriptor.getVersion());
-//			String changes = Tools.readTextFile(changesURI.toURL().openStream());
-//			b.append("<h1 style=\"font-size:11px;font-weight:bold;\">Changes</h1>");
-//			b.append(changes);
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-		b.append("<p style=\"margin-top:10px\"><a href=\"" + UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + descriptor.getPackageId() + "\">Extension homepage</a></p>");
+
+		if (changes != null && !changes.trim().equals("")) {
+			b.append("<h2>Changes</h2>");
+			b.append(changes);
+		}
 		b.append("</body></html>");
 		return b.toString();
 	}
-	
-	
+
+
 }

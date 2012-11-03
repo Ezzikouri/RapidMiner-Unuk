@@ -35,9 +35,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -58,7 +61,6 @@ import com.rapid_i.deployment.update.client.listmodels.AbstractPackageListModel;
 import com.rapid_i.deployment.update.client.listmodels.BookmarksPackageListModel;
 import com.rapid_i.deployment.update.client.listmodels.LicencedPackageListModel;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
-import com.rapidminer.gui.tools.ExtendedHTMLEditorKit;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -66,6 +68,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
 
 
 /**
@@ -75,6 +78,8 @@ import com.rapidminer.tools.I18N;
  */
 public class UpdatePanelTab extends JPanel {
 
+	private JPanel extensionButtonPane;
+	
 	private static final long serialVersionUID = 1L;
 
 	private static final int LIST_WIDTH = 330;
@@ -86,6 +91,7 @@ public class UpdatePanelTab extends JPanel {
 	private ExtendedHTMLJEditorPane displayPane;
 	private final SelectForInstallationButton installButton;
 	private LinkButton loginForInstallHint;
+	private LinkButton extensionHomepageLink;
 	private PackageDescriptor lastSelected = null;
 
 	private JList packageList;
@@ -128,7 +134,7 @@ public class UpdatePanelTab extends JPanel {
 		}
 	}
 
-	public UpdatePanelTab(UpdatePackagesModel updateModel, AbstractPackageListModel model, final UpdateServerAccount usAccount) {
+	public UpdatePanelTab(final UpdatePackagesModel updateModel, AbstractPackageListModel model, final UpdateServerAccount usAccount) {
 		super(new GridBagLayout());
 		
 		this.updateModel = updateModel;
@@ -219,6 +225,37 @@ public class UpdatePanelTab extends JPanel {
 			}
 			
 		});
+		
+		extensionHomepageLink = new LinkButton(new AbstractAction(){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
+				if (selectedDescriptor != null) {
+					String url = updateModel.getExtensionURL(selectedDescriptor);
+					// open link
+					Desktop desktop = Desktop.getDesktop();
+					 
+			        if(desktop.isSupported(Desktop.Action.BROWSE) ) {
+			          URI uri;
+						try {
+							uri = new java.net.URI(url);
+							desktop.browse(uri);
+						} catch (URISyntaxException e1) {
+							LogService.getRoot().log(Level.WARNING, "Malformed extension URI.");
+							return;
+						} catch (IOException e2) {
+							LogService.getRoot().log(Level.WARNING, "Error opening extension URI in the default browser.");
+							return;
+						}
+			              
+			        }
+				}
+			}
+			
+		});
 
 		packageList = createUpdateList();
 		JScrollPane updateListScrollPane = new ExtendedJScrollPane(packageList);
@@ -247,14 +284,27 @@ public class UpdatePanelTab extends JPanel {
 		JPanel descriptionPanel = new JPanel(new BorderLayout());
 		descriptionPanel.add(jScrollPane, BorderLayout.CENTER);
 
-		JPanel extensionButtonPane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		extensionButtonPane = new JPanel(new BorderLayout());
+		extensionButtonPane.setMinimumSize(new Dimension(100,35));
+		extensionButtonPane.setPreferredSize(new Dimension(100,35));
+		
+		JPanel extensionButtonPaneRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		
+		extensionButtonPaneRight.add(loginForInstallHint);
+		extensionButtonPaneRight.add(installButton);
+		extensionButtonPane.add(extensionButtonPaneRight, BorderLayout.CENTER);
+		
+		JPanel extensionButtonPaneLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
+		extensionButtonPaneLeft.add(extensionHomepageLink);
+		extensionButtonPane.add(extensionButtonPaneLeft, BorderLayout.WEST);
+		
 		extensionButtonPane.setBackground(Color.white);
-
-		extensionButtonPane.add(loginForInstallHint);
-		extensionButtonPane.add(installButton);
+		extensionButtonPane.setVisible(false);
+		
 		descriptionPanel.add(extensionButtonPane, BorderLayout.SOUTH);
 
-		add(descriptionPanel, c);		
+		add(descriptionPanel, c);
 	}
 	
 	protected Component makeTopPanel() {
@@ -333,17 +383,21 @@ public class UpdatePanelTab extends JPanel {
 		if (desc != null) {
 			
 			installButton.setEnabled(true);
+			extensionButtonPane.setVisible(true);
 			StyleSheet css = new StyleSheet();//.makeDefaultStylesheet();
 			css.addRule("a  {text-decoration:underline; color:blue;}");
-			css.addRule("h2 {font-weight:bold; }");
+			css.addRule("h1 {font-size: 14px;}");
+			css.addRule("h2 {font-size: 11px;font-weight:bold;}");
+			css.addRule("div, p, hr { margin-bottom:8px }");
 			css.addRule("div.changes-section{padding-left:10px;font-size:9px;color:#444444;}");
 			css.addRule(".changes-header-version {margin-top:10px;margin-bottom:5px;color:#111111;}");
 			css.addRule("ul {padding-left:10px;}");
 			css.addRule("ul li {margin-left:0px;padding-left:0px;}");
+			
 			//ExtendedHTMLJEditorPane.installDefaultStylesheet(css);		
 			HTMLDocument doc = new HTMLDocument(css);
 			displayPane.setDocument(doc);
-			displayPane.setText(updateModel.toString(desc));
+			displayPane.setText(updateModel.toString(desc, model.getChanges(desc.getPackageId())));
 			//displayPane.installDefaultStylesheet();
 			
 			displayPane.setCaretPosition(0);
