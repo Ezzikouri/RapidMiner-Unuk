@@ -87,6 +87,7 @@ public class ExcelExampleSource extends AbstractDataResultSetReader {
 
 	static {
 		AbstractReader.registerReaderDescription(new ReaderDescription("xls", ExcelExampleSource.class, PARAMETER_EXCEL_FILE));
+		AbstractReader.registerReaderDescription(new ReaderDescription("xlsx", ExcelExampleSource.class, PARAMETER_EXCEL_FILE));
 	}	
 	
 	public ExcelExampleSource(OperatorDescription description) {

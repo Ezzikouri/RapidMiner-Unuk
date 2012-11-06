@@ -985,6 +985,11 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			}
     	}
         if (close()) {
+        	 // process changed -> clear undo history
+            undoIndex = 0;
+            undoList.clear();
+            enableUndoAction();
+            
             stopProcess();
             setProcess(new Process(), true);
             addToUndoList();
@@ -1128,11 +1133,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             perspectives.showPerspective("design");
         }
         setTitle();
-        
-        // process changed -> clear undo history
-        undoIndex = 0;
-        undoList.clear();
-        enableUndoAction();
     }
 
     /**
@@ -1210,7 +1210,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public void undo() {
         if (undoIndex > 0) {
             undoIndex--;
-            selectedOperatorBeforeUndo = getFirstSelectedOperator();
+            selectedOperatorBeforeUndo = getProcessPanel().getProcessRenderer().getDisplayedChain();
             setProcessIntoStateAt(undoIndex);
         }
         enableUndoAction();
@@ -1219,7 +1219,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public void redo() {
         if (undoIndex < undoList.size()) {
             undoIndex++;
-            selectedOperatorBeforeUndo = getFirstSelectedOperator();
+            selectedOperatorBeforeUndo = getProcessPanel().getProcessRenderer().getDisplayedChain();
             setProcessIntoStateAt(undoIndex);
         }
         enableUndoAction();
@@ -1346,6 +1346,11 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         }
 
         SAVE_ACTION.setEnabled(false);
+        
+        // process changed -> clear undo history
+        undoIndex = 0;
+        undoList.clear();
+        enableUndoAction();
 
         synchronized (process) {
             RapidMinerGUI.useProcessFile(MainFrame.this.process);
@@ -1456,6 +1461,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             recentFilesMenu.add(menuItem);
             j++;
         }
+        welcomeScreen.updateRecentFileList();
     }
 
     @Override

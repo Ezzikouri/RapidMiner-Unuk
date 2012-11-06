@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JList;
@@ -52,6 +53,7 @@ import javax.swing.border.BevelBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
+import com.rapidminer.ProcessLocation;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.OpenAction;
@@ -341,5 +343,16 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 	@Override
 	public DockKey getDockKey() {
 		return DOCK_KEY;
+	}
+	
+	/**
+	 * Updates the recent file list.
+	 */
+	public void updateRecentFileList() {
+		DefaultListModel model = new DefaultListModel();
+		for (ProcessLocation location : RapidMinerGUI.getRecentFiles()) {
+			model.addElement(location);
+		}
+		recentFileList.setModel(model);
 	}
 }

@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.ResultObject;
 import com.rapidminer.repository.RepositoryException;
@@ -42,17 +43,24 @@ import com.rapidminer.repository.gui.RepositoryLocationChooser;
 public class StoreInRepositoryAction extends ResourceAction {
 
 	private final IOObject object;
+	private RepositoryLocation lastLocation;
 
 	public StoreInRepositoryAction(IOObject object) {
 		super(true, "store_in_repository", ((object instanceof ResultObject) ? ((ResultObject)object).getName() : "result"));
 		this.object = object;
+	}
+	
+	public StoreInRepositoryAction(IOObject object, RepositoryLocation initialLocation) {
+		super(true, "store_in_repository", ((object instanceof ResultObject) ? ((ResultObject)object).getName() : "result"));
+		this.object = object;
+		this.lastLocation = initialLocation;
 	}
 
 	private static final long serialVersionUID = 1L;
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String loc = RepositoryLocationChooser.selectLocation(null, null, RapidMinerGUI.getMainFrame(), true, false);
+		String loc = RepositoryLocationChooser.selectLocation(lastLocation, "", RapidMinerGUI.getMainFrame(), true, false);
 		if (loc != null) {
 			RepositoryLocation location;
 			try {
@@ -62,7 +70,14 @@ public class StoreInRepositoryAction extends ResourceAction {
 				return;
 			}
 			try {
+				if (location.locateEntry() != null) {
+					// overwrite?
+					if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, location) != ConfirmDialog.YES_OPTION) {
+						return;
+					}
+				}
 				RepositoryManager.getInstance(null).store(object, location, null);
+				lastLocation = location;
 			} catch (RepositoryException ex) {
 				SwingTools.showSimpleErrorMessage("cannot_store_obj_at_location", ex, loc);
 			}			

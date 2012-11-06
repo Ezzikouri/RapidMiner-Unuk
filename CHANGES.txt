@@ -73,6 +73,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: Fixed GUI problem when trying to schedule a process on RapidAnalytics without existing RapidAnalytics repositories
 * BUGFIX: Fixed possible data loss when trying to store data/processes/etc in the repository using invalid characters for the given
 		  filesystem by now showing an error instead of failing silently
+* BUGFIX: Fixed possible data loss when trying to move repository entries into their own folder
 * BUGFIX: fixed an initialization problem in the Cross Distances operator, which caused wrong calculation of distances in some rare cases
 * BUGFIX: Quickfix Dialogs no longer vanish right after showing (RCOMM2012)
 * BUGFIX: RapidMiner no longer blocks for a varying amount of time if a connection to an online server fails
@@ -85,9 +86,14 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: Optimized update routine. Instead of failing with an cryptic error if no admin rights available, RapidMiner no shows an dialog 
 		  that asks for admin rights
 * BUGFIX: Fixed the "Select for installation" button: Error when content/behaviour changed according to factors like if the extension was purchased.
-          Now leads to the extension website when purchased but not installed. Now reacts properly to double-clicks in the extension list.
-          The "Install" button turns to a disabled state when no extensions are marked for installation.
-* BUGFIX: AccountService is only queried when we are logged in. The login state is saved internally.             
+          Now leads to the extension website when purchased but not installed. Now reacts properly to double-clicks in the extension list
+          The "Install" button turns to a disabled state when no extensions are marked for installation
+* BUGFIX: AccountService is only queried when we are logged in. The login state is saved internally
+* BUGFIX: Process undo steps are now reset when a new process is opened
+* BUGFIX: Using undo in a subprocess will no longer reset the view to the top-level of the process
+* BUGFIX: The welcome perspective now updates the recent files list, so opening a process via it now opens the correct selected process
+* BUGFIX: Drag&Drop from the OS to the RapidMiner Process design canvas now also works for .xlsx files
+* BUGFIX: Fixed several repository problems when trying to overwrite entries with themselves
  
 
 Changes from RapidMiner 5.2.6 to 5.2.8

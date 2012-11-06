@@ -482,6 +482,17 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		if (entry == null) {
 			throw new RepositoryException("No such entry: " + source);
 		} else {
+			String sourceAbsolutePath = source.getAbsoluteLocation();
+			String destinationAbsolutePath;
+			if (!(entry instanceof Folder)) {
+				destinationAbsolutePath = destination.getLocation().getAbsoluteLocation() + RepositoryLocation.SEPARATOR + source.getName();
+			} else {
+				destinationAbsolutePath = destination.getLocation().getAbsoluteLocation();
+			}
+			if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
+				SwingTools.showVerySimpleErrorMessage("repository_same_folder");
+				return;
+			}
 			if (destination.getLocation().getRepository() != source.getRepository()) {
 				copy(source, destination, newName, listener);
 				entry.delete();
