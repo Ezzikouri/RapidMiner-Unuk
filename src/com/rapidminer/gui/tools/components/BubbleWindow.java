@@ -87,7 +87,7 @@ public class BubbleWindow extends JDialog {
 
 	private List<BubbleListener> listeners = new LinkedList<BubbleListener>();
 
-	/** Used to define the position of the pointer of the bubble. (Discribes exspacilly the corner in which the pointer starts)*/
+	/** Used to define the position of the pointer of the bubble. (Describes the corner which points to the component)*/
 	public enum Alignment {
 		TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT, LEFTTOP, LEFTBOTTOM, RIGHTTOP, RIGHTBOTTOM
 	}
@@ -204,6 +204,7 @@ public class BubbleWindow extends JDialog {
 				insets = new Insets(10, 10, 10, CORNER_RADIUS + 15);
 				lInsets = new Insets(0, 10, 10, CORNER_RADIUS + 15);
 				break;
+			default:
 		}
 		c.insets = insets;
 		c.fill = GridBagConstraints.BOTH;
@@ -271,17 +272,17 @@ public class BubbleWindow extends JDialog {
 	/**
 	 * Creates a speech bubble-shaped Shape.
 	 * 
-	 * @param a The alignment of the pointer.
+	 * @param alignment The alignment of the pointer.
 	 * 
 	 * @return A speech-bubble <b>Shape</b>.
 	 */
-	public Shape createShape(Alignment a) {
+	public Shape createShape(Alignment alignment) {
 		int w = getSize().width - 2 * CORNER_RADIUS;
 		int h = getSize().height - 2 * CORNER_RADIUS;
 		int o = CORNER_RADIUS;
 
 		GeneralPath gp = new GeneralPath();
-		switch (a) {
+		switch (alignment) {
 			case TOPLEFT:
 				gp.moveTo(0, 0);
 				gp.lineTo(0, h + o);
@@ -370,6 +371,7 @@ public class BubbleWindow extends JDialog {
 				gp.lineTo(w + (2 * o), 0);
 				gp.lineTo(o, 0);
 				break;
+			default:
 		}
 		AffineTransform tx = new AffineTransform();
 		return gp.createTransformedShape(tx);
@@ -384,7 +386,7 @@ public class BubbleWindow extends JDialog {
 	}
 
 	public void positionRelative() {
-		//TODO: Check
+		
 		pointAtComponent(this.component);
 
 		registerMovementListener();
@@ -431,6 +433,7 @@ public class BubbleWindow extends JDialog {
 				targetx = x + 0.5 * w - getWidth();
 				targety = y - getHeight();
 				break;
+			default:
 		}
 
 		target = new Point((int) Math.round(targetx), (int) Math.round(targety));
@@ -442,9 +445,6 @@ public class BubbleWindow extends JDialog {
 		for (DockableState ds : dockables) {
 			System.out.println("Found: " + ds.getDockable().getDockKey().getKey());
 			if (ds.getDockable().getDockKey().getKey().equals(dockableKey)) {
-				//TODO:deletePart
-//				component = ds.getDockable().getComponent().getParent().getParent();
-//				positionRelativeTo(component);
 				return ds.getDockable().getComponent().getParent().getParent();
 //				Location location = ds.getLocation();
 //				RelativeDockablePosition position = ds.getPosition();				
@@ -458,8 +458,6 @@ public class BubbleWindow extends JDialog {
 	 *  closes the BubbleWindow as soon as the button is pressed and one that 
 	 *  makes sure that the pointer always points at the right position. */
 	public void attachToButton(AbstractButton button) {
-		//TODO: delete
-		//positionRelativeTo(button);
 		this.button = button;
 		this.component = button;
 		listener = new ActionListener() {
@@ -494,8 +492,8 @@ public class BubbleWindow extends JDialog {
 				if (name.equals(id)) {
 					return b;
 				}
-			} else {}
-		} else {}
+			} 
+		} 
 		if (searchRoot instanceof Container) {
 			Component[] all = ((Container) searchRoot).getComponents();
 			for (Component child : all) {

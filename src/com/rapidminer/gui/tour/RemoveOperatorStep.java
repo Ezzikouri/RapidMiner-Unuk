@@ -61,6 +61,8 @@ public class RemoveOperatorStep extends OperatorStep {
 	}
 	@Override
 	BubbleWindow createBubble() {
+		if(component== null)
+			throw new IllegalArgumentException("Component is null. Please add any Component to attach to ");
 		bubble = new BubbleWindow(owner, alignment, i18nKey,component);
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(new ProcessSetupListener() {
 			
@@ -91,8 +93,6 @@ public class RemoveOperatorStep extends OperatorStep {
 				
 			}
 		});
-		//TODO: delete
-//		bubble.positionRelativeTo(component);
 		return bubble;
 	}
 

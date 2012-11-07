@@ -94,8 +94,6 @@ public class ResumeFromBreakpointStep extends OperatorStep {
 	@Override
 	BubbleWindow createBubble() {
 		bubble = new BubbleWindow(owner, alignment, i18nKey, component);
-		//TODO: delete?
-		//bubble.positionRelativeTo(component);
 		RapidMinerGUI.getMainFrame().getProcess().addBreakpointListener(new BreakpointListener() {
 			
 			@Override

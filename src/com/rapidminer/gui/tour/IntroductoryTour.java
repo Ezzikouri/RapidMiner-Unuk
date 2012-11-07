@@ -40,6 +40,17 @@ public abstract class IntroductoryTour {
 		sights = new Step[maxSteps];
 		sights[max] = new FinalStep("complete_Tour", tourName);
 	}
+	
+	public IntroductoryTour(int max, String tourName, boolean AddComppleteWindow) {
+		if(AddComppleteWindow) {
+			this.maxSteps = max+1;
+			sights = new Step[maxSteps];
+			sights[max] = new FinalStep("complete_Tour", tourName);
+			} else {
+				this.maxSteps = max;
+				sights = new Step[maxSteps];
+			}
+	}
 
 	public void startTour(int startPoint){
 		if (startPoint <= maxSteps) {
@@ -52,7 +63,7 @@ public abstract class IntroductoryTour {
 	/**
 	 * method to connect the single Steps
 	 */
-	protected void placeFollower() {
+	protected void placeFollowers() {
 		for(int i = 0;i<(sights.length-1);i++){
 			sights[i].setNext(sights[i+1]);
 		}

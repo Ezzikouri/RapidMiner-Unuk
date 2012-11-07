@@ -105,8 +105,6 @@ public class AddOperatorStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(l);
-		//TODO:delete
-		//bubble.positionRelativeToDockable(targetDockKey);
 		return bubble;
 	}
 	

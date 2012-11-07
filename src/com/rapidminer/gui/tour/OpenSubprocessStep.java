@@ -95,8 +95,9 @@ public class OpenSubprocessStep extends Step {
 
 	@Override
 	BubbleWindow createBubble() {
-//		bubble = new BubbleWindow(owner, alignment, i18nKey);
 		if (attachTo == null) {
+			if(attachToKey == null)
+				throw new IllegalArgumentException("Component attachTo and Buttenkey attachToKey are null. Please add any Component to attach to ");
 			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey);
 		} else {
 			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
@@ -129,11 +130,6 @@ public class OpenSubprocessStep extends Step {
 
 			}
 		});
-		//TODO: delete
-//		if(attachTo == null){
-//			attachTo = BubbleWindow.findButton(attachToKey, RapidMinerGUI.getMainFrame());
-//		}
-//		bubble.positionRelativeTo(attachTo);
 		return bubble;
 	}
 

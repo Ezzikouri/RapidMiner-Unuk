@@ -72,7 +72,6 @@ public class OpenProcessStep extends Step {
 
 	@Override
 	BubbleWindow createBubble() {
-		//bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
 		if (attachTo == null) {
 			if (attachToKey == null)
 				throw new IllegalArgumentException("attach to Key is empty or null");
@@ -93,11 +92,6 @@ public class OpenProcessStep extends Step {
 				RapidMinerGUI.getMainFrame().removeProcessStorageListener(this);
 			}
 		});
-		//TODO: delete
-//		if (attachTo == null){
-//			attachTo = BubbleWindow.findButton(attachToKey, RapidMinerGUI.getMainFrame());
-//		}
-//		bubble.positionRelativeTo(attachTo);
 		return bubble;
 	}
 

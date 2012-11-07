@@ -70,9 +70,9 @@ public class RenameOperatorStep extends OperatorStep {
 
 	@Override
 	BubbleWindow createBubble() {
-//		bubble = new BubbleWindow(owner, alignment, i18nKey);
-		//TODO:check
 		if (attachTo == null) {
+			if(attachToKey== null)
+				throw new IllegalArgumentException("Buttonkey and Component is null. Please add any Component to attach");
 			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey);
 		} else {
 			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
@@ -105,10 +105,6 @@ public class RenameOperatorStep extends OperatorStep {
 
 			}
 		});
-//		if (attachTo == null){
-//			attachTo = BubbleWindow.findButton(attachToKey, RapidMinerGUI.getMainFrame());
-//		}
-//		bubble.positionRelativeTo(attachTo);
 		return bubble;
 	}
 

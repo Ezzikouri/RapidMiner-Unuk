@@ -91,8 +91,6 @@ public class ChangeParameterStep extends OperatorStep {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(l);
-		//TODO: delete
-		//bubble.positionRelativeToDockable(targetDockKey);
 		return bubble;
 	}
 

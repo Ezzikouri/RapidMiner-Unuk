@@ -50,8 +50,6 @@ public class SimpleStep extends Step {
 	@Override
 	BubbleWindow createBubble() {
 		bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey);
-		//TODO: delete
-		//bubble.attachToButton(buttonKey);
 		return bubble;
 	}
 

@@ -54,7 +54,7 @@ public abstract class Step {
 			@Override
 			public void bubbleClosed(BubbleWindow bw) {
 				bw.removeBubbleListener(this);
-				
+				//TODO: store current index and key to restart here
 			}
 			
 			@Override

@@ -49,7 +49,7 @@ import com.rapidminer.repository.gui.RepositoryBrowser;
 public class RapidMinerTour extends IntroductoryTour {
 
 	public RapidMinerTour() {
-		super(2, "RapidMiner");
+		super(19, "RapidMiner");
 
 		//create Sights
 		sights[0] = new SimpleStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "start", "new");
@@ -65,7 +65,7 @@ public class RapidMinerTour extends IntroductoryTour {
 		sights[10] = new RemoveOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "remove", null, RapidMinerGUI.getMainFrame().getProcessPanel().getComponent());
 		sights[11] = new AddOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "restore", AbstractLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
 		sights[12] = new AddBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "restorebreakpoint", AbstractLearner.class, Position.BEFORE);
-		sights[13] = new RemoveBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "removebreakpoint", AbstractLearner.class, Position.BEFORE);
+		sights[13] = new RemoveBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "removebreakpoint", AbstractLearner.class);
 		sights[14] = new RenameOperatorStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "rename", AbstractLearner.class, "Tree", "rename_in_processrenderer");
 		sights[15] = new SaveProcessStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "save", "save");
 		sights[16] = new AddOperatorStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "subprocess", SimpleOperatorChain.class, ProcessPanel.PROCESS_PANEL_DOCK_KEY);
@@ -100,7 +100,6 @@ public class RapidMinerTour extends IntroductoryTour {
 		((AddOperatorStep) sights[3]).addListener(operatorListener);
 
 		//placeFollower
-		super.placeFollower();
-		System.out.println("check Tourdate performed");
+		super.placeFollowers();
 	}
 }

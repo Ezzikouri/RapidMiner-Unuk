@@ -24,8 +24,6 @@ package com.rapidminer.gui.tour;
 
 import java.awt.Window;
 
-import javax.swing.AbstractButton;
-
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
@@ -62,11 +60,7 @@ public class AddBreakpointStep extends OperatorStep {
 
 	@Override
 	BubbleWindow createBubble() {
-//		if(position == Position.BEFORE) {
-//			bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_before");
-//		} else {
 			bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_after");
-//		}
 		
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(new ProcessSetupListener() {
 			
@@ -105,10 +99,6 @@ public class AddBreakpointStep extends OperatorStep {
 				
 			}
 		});
-		//TODO: delete
-//		String buttonKey = "breakpoint_after";
-//		AbstractButton button = BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame());
-//		bubble.positionRelativeTo(button);
 		return bubble;
 	}
 	
