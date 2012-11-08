@@ -64,6 +64,14 @@ public class WebServiceTools {
 //		ctxt.put(BindingProviderProperties.CONNECT_TIMEOUT, timeout);
 	}
 	
+	/** Pre-authenticates the Web service if password is not null. */
+	public static void setCredentials(BindingProvider bp, String username, char[] password) {
+		if (password != null) {	
+			bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, username);
+			bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, new String(password));
+		}
+	}
+	
 	/**
 	 * Sets some default settings for {@link URLConnection}s, e.g. timeouts.
 	 * @param connection

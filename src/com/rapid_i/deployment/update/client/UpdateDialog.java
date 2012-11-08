@@ -80,7 +80,7 @@ public class UpdateDialog extends ButtonDialog {
 
 	private final UpdatePanel ulp;
 	
-	private UpdatePackagesModel updateModel;
+	private static UpdatePackagesModel updateModel;
 
 	private static class USAcountInfoButton extends LinkButton implements Observer {
 
@@ -97,7 +97,7 @@ public class UpdateDialog extends ButtonDialog {
 					if (account.isLoggedIn()) {
 						account.logout();
 					} else {
-						account.login();
+						account.login(updateModel);
 					}
 
 				}

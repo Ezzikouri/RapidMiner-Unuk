@@ -293,6 +293,14 @@ public class RepositoryLocationChooser extends JPanel {
 	public boolean resolveRelative() {
 		return resolveBox.isSelected();
 	}
+	
+	public void setResolveRelative(boolean resolveRelative) {
+		if (!resolveRelative && resolveBox.isSelected()) {
+			resolveBox.doClick();
+		} else if (resolveRelative && !resolveBox.isSelected()) {
+			resolveBox.doClick();
+		}
+	}
 
 	public void addChangeListener(ChangeListener l) {
 		listeners.add(l);
@@ -321,9 +329,16 @@ public class RepositoryLocationChooser extends JPanel {
 	public static String selectLocation(RepositoryLocation resolveRelativeTo, Component c) {
 		return selectLocation(resolveRelativeTo, null, c, true, true);
 	}
-
+	
 	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder) {
+		return selectLocation(resolveRelativeTo, initialValue, c, selectEntries, selectFolder, false);
+	}
+
+	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder, final boolean forceDisableRelativeResolve) {
 		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue, selectEntries, selectFolder);
+		if (forceDisableRelativeResolve) {
+			dialog.chooser.setResolveRelative(false);
+		}
 		dialog.setVisible(true);
 
 		// if user has used double click to submit
@@ -331,7 +346,7 @@ public class RepositoryLocationChooser extends JPanel {
 			return dialog.userSelection;
 		}
 		if (dialog.wasConfirmed()) {
-			if (resolveRelativeTo != null) {
+			if (resolveRelativeTo != null && !forceDisableRelativeResolve) {
 				ParameterService.setParameterValue(RapidMinerGUI.PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS, dialog.chooser.resolveRelative() ? "true" : "false");
 				ParameterService.saveParameters();
 			}

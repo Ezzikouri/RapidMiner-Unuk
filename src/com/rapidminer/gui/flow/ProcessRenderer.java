@@ -119,7 +119,6 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.MetaDataError;
 import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.operator.ports.quickfix.QuickFix;
-import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
 import com.rapidminer.tools.ClassColorMap;
@@ -2205,10 +2204,10 @@ public class ProcessRenderer extends JPanel {
 
                 });
                 menu.add(showResult);
-                String locationString = mainFrame.getProcess().getRepositoryLocation().getAbsoluteLocation();
                 try {
+                	String locationString = mainFrame.getProcess().getRepositoryLocation().getAbsoluteLocation();
 					menu.add(new StoreInRepositoryAction(data, new RepositoryLocation(locationString.substring(0, locationString.lastIndexOf(RepositoryLocation.SEPARATOR)))));
-				} catch (MalformedRepositoryLocationException e1) {
+				} catch (Exception e1) {
 					menu.add(new StoreInRepositoryAction(data));
 				}
                 menu.addSeparator();

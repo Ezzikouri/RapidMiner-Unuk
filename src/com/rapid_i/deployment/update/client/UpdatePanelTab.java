@@ -164,6 +164,7 @@ public class UpdatePanelTab extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				if (installButton.getPurchaseFirst()) {
 					try {
+						installButton.setSelected(false);
 						PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
 						String url = UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + selectedDescriptor.getPackageId();
 						Desktop.getDesktop().browse(new URI(url));
@@ -221,7 +222,7 @@ public class UpdatePanelTab extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				usAccount.login();
+				usAccount.login(updateModel);
 			}
 			
 		});
@@ -288,16 +289,16 @@ public class UpdatePanelTab extends JPanel {
 		extensionButtonPane.setMinimumSize(new Dimension(100,35));
 		extensionButtonPane.setPreferredSize(new Dimension(100,35));
 		
-		JPanel extensionButtonPaneRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		
-		extensionButtonPaneRight.add(loginForInstallHint);
-		extensionButtonPaneRight.add(installButton);
-		extensionButtonPane.add(extensionButtonPaneRight, BorderLayout.CENTER);
-		
 		JPanel extensionButtonPaneLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
-		extensionButtonPaneLeft.add(extensionHomepageLink);
+		
+		extensionButtonPaneLeft.add(installButton);
+		extensionButtonPaneLeft.add(loginForInstallHint);
 		extensionButtonPane.add(extensionButtonPaneLeft, BorderLayout.WEST);
+		
+		JPanel extensionButtonPaneRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
+		extensionButtonPaneRight.add(extensionHomepageLink);
+		extensionButtonPane.add(extensionButtonPaneRight, BorderLayout.CENTER);
 		
 		extensionButtonPane.setBackground(Color.white);
 		extensionButtonPane.setVisible(false);
@@ -345,7 +346,7 @@ public class UpdatePanelTab extends JPanel {
 
 	public void selectNotify() {		
 		if (model instanceof BookmarksPackageListModel || model instanceof LicencedPackageListModel) {
-			usAccount.login();
+			usAccount.login(updateModel);
 		}
 		model.update();		
 	}
@@ -393,12 +394,10 @@ public class UpdatePanelTab extends JPanel {
 			css.addRule(".changes-header-version {margin-top:10px;margin-bottom:5px;color:#111111;}");
 			css.addRule("ul {padding-left:10px;}");
 			css.addRule("ul li {margin-left:0px;padding-left:0px;}");
-			
-			//ExtendedHTMLJEditorPane.installDefaultStylesheet(css);		
+				
 			HTMLDocument doc = new HTMLDocument(css);
 			displayPane.setDocument(doc);
 			displayPane.setText(updateModel.toString(desc, model.getChanges(desc.getPackageId())));
-			//displayPane.installDefaultStylesheet();
 			
 			displayPane.setCaretPosition(0);
 

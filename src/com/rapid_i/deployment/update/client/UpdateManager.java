@@ -61,6 +61,7 @@ import java.util.zip.ZipOutputStream;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import javax.xml.ws.BindingProvider;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -472,6 +473,7 @@ public class UpdateManager {
 			AccountServiceService ass = new AccountServiceService(uri.toURL(),
 					new QName("http://ws.update.deployment.rapid_i.com/", "AccountServiceService"));
 			accountService = ass.getAccountServicePort();
+			WebServiceTools.setCredentials((BindingProvider)accountService, usAccount.getUserName(), usAccount.getPassword());
 		}
 		return accountService;
 	}

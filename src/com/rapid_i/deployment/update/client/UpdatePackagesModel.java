@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Observable;
-import java.util.Observer;
 import java.util.Set;
 
 import com.rapidminer.RapidMiner;
@@ -52,31 +51,29 @@ public class UpdatePackagesModel extends Observable {
 
 	private final Map<PackageDescriptor, List<Dependency>> dependencyMap = new HashMap<PackageDescriptor, List<Dependency>>();
 
+	private UpdateServerAccount usAccount;
+	
 	/** Read the comment of {@link #isPurchased(PackageDescriptor)}. */
 	private Set<String> purchasedPackages = new HashSet<String>();
 
 	public UpdatePackagesModel(List<PackageDescriptor> descriptors, final UpdateServerAccount usAccount) {
 		this.descriptors = descriptors;
-
-		usAccount.addObserver(new Observer(){
-			@Override
-			public void update(Observable o, Object arg) {
-				if (usAccount.isLoggedIn()) {
-					new Thread() {
-						public void run() {
-							try {
-								purchasedPackages = new HashSet<String>(UpdateManager.getAccountService().getLicensedProducts());
-								UpdatePackagesModel.this.notifyObservers();
-							} catch (Exception e1) {
-								purchasedPackages = new HashSet<String>();
-							}
-						};
-					}.start();
-				} else {
-					purchasedPackages = new HashSet<String>();
-				}
+		this.usAccount = usAccount;
+	}
+	
+	/** Should only be accessed within a thread. **/
+	public void updatePurchasedPackages() {
+		if (usAccount.isLoggedIn()) {
+			try {
+				purchasedPackages = new HashSet<String>(UpdateManager.getAccountService().getLicensedProducts());
+				UpdatePackagesModel.this.notifyObservers();
+			} catch (Exception e1) {
+				SwingTools.showSimpleErrorMessage("error_accessing_marketplace_account", e1);
+				purchasedPackages = new HashSet<String>();
 			}
-		});
+		} else {
+			purchasedPackages = new HashSet<String>();
+		}
 	}
 
 	public void setSelectedForInstallation(PackageDescriptor desc, boolean selected) {

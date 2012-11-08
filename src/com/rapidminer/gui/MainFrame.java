@@ -96,6 +96,7 @@ import com.rapidminer.gui.dialog.UnknownParametersInfoDialog;
 import com.rapidminer.gui.docking.RapidDockingToolbar;
 import com.rapidminer.gui.flow.ErrorTable;
 import com.rapidminer.gui.flow.ProcessPanel;
+import com.rapidminer.gui.flow.ProcessUndoManager;
 import com.rapidminer.gui.operatortree.OperatorTree;
 import com.rapidminer.gui.operatortree.OperatorTreePanel;
 import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
@@ -130,6 +131,7 @@ import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DatabaseImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.access.AccessImportWizard;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.nio.CSVImportWizard;
@@ -469,7 +471,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
     private final EventListenerList processEditors = new EventListenerList();
     private List<Operator> selectedOperators = Collections.emptyList();
-    private Operator selectedOperatorBeforeUndo;
 
     private boolean changed = false;
     private boolean tutorialMode = false;
@@ -486,7 +487,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
     private final JMenu recentFilesMenu = new ResourceMenu("recent_files");
 
-    private final LinkedList<String> undoList = new LinkedList<String>();
+    private final ProcessUndoManager undoManager = new ProcessUndoManager();
     
     private final LinkedList<ProcessStorageListener> storageListeners = new LinkedList<ProcessStorageListener>();
 
@@ -985,10 +986,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			}
     	}
         if (close()) {
-        	 // process changed -> clear undo history
-            undoIndex = 0;
-            undoList.clear();
-            enableUndoAction();
+        	// process changed -> clear undo history
+        	resetUndo();
             
             stopProcess();
             setProcess(new Process(), true);
@@ -1165,28 +1164,32 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
      * @return true if process really differs.
      */
     private boolean addToUndoList(String currentStateXML) {
-        final String lastStateXML = undoList.size() != 0 ? (String) undoList.get(undoList.size() - 1) : null;
-        if (currentStateXML == null)
+        final String lastStateXML = undoManager.getNumberOfUndos() != 0 ? undoManager.getXml(undoManager.getNumberOfUndos() - 1) : null;
+        if (currentStateXML == null) {
             currentStateXML = this.process.getRootOperator().getXML(true);
+        }
         if (currentStateXML != null) {
             if (lastStateXML == null || !lastStateXML.equals(currentStateXML)) {
-                if (undoIndex < undoList.size() - 1) {
-                    while (undoList.size() > undoIndex + 1)
-                        undoList.removeLast();
+                if (undoIndex < undoManager.getNumberOfUndos() - 1) {
+                    while (undoManager.getNumberOfUndos() > undoIndex + 1) {
+                        undoManager.removeLast();
+                    }
                 }
-                undoList.add(currentStateXML);
+                undoManager.add(currentStateXML, getProcessPanel().getProcessRenderer().getDisplayedChain());
                 String maxSizeProperty = ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE);
                 int maxSize = 20;
                 try {
-                    if (maxSizeProperty != null)
+                    if (maxSizeProperty != null) {
                         maxSize = Integer.parseInt(maxSizeProperty);
+                    }
                 } catch (NumberFormatException e) {
                     LogService.getRoot().warning("com.rapidminer.gui.main_frame_warning");
                 	//LogService.getRoot().warning("Bad integer format for property 'rapidminer.gui.undolist.size', using default size of 20.");
                 }
-                while (undoList.size() > maxSize)
-                    undoList.removeFirst();
-                undoIndex = undoList.size() - 1;
+                while (undoManager.getNumberOfUndos() > maxSize) {
+                    undoManager.removeFirst();
+                }
+                undoIndex = undoManager.getNumberOfUndos() - 1;
                 enableUndoAction();
 
                 boolean oldValue = MainFrame.this.changed;
@@ -1210,48 +1213,40 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     public void undo() {
         if (undoIndex > 0) {
             undoIndex--;
-            selectedOperatorBeforeUndo = getProcessPanel().getProcessRenderer().getDisplayedChain();
-            setProcessIntoStateAt(undoIndex);
+            setProcessIntoStateAt(undoIndex, true);
         }
         enableUndoAction();
     }
 
     public void redo() {
-        if (undoIndex < undoList.size()) {
+        if (undoIndex < undoManager.getNumberOfUndos()) {
             undoIndex++;
-            selectedOperatorBeforeUndo = getProcessPanel().getProcessRenderer().getDisplayedChain();
-            setProcessIntoStateAt(undoIndex);
+            setProcessIntoStateAt(undoIndex, false);
         }
         enableUndoAction();
     }
 
     private void enableUndoAction() {
-    	// select operators again to show the correct subprocess after an undo
-    	if (selectedOperatorBeforeUndo != null) {
-        	Operator op = getProcess().getOperator(selectedOperatorBeforeUndo.getName());
-        	if (op != null) {
-        		selectOperator(op);
-        	} else if (selectedOperatorBeforeUndo.getParent() != null) {
-        		op = getProcess().getOperator(selectedOperatorBeforeUndo.getParent().getName());
-        		selectOperator(op);
-        	}
-        	selectedOperatorBeforeUndo = null;
-        }
-    	
         if (undoIndex > 0) {
             UNDO_ACTION.setEnabled(true);
         } else {
             UNDO_ACTION.setEnabled(false);
         }
-        if (undoIndex < undoList.size() - 1) {
+        if (undoIndex < undoManager.getNumberOfUndos() - 1) {
             REDO_ACTION.setEnabled(true);
         } else {
             REDO_ACTION.setEnabled(false);
         }
     }
 
-    private void setProcessIntoStateAt(int undoIndex) {
-        String stateXML = undoList.get(undoIndex);
+    private void setProcessIntoStateAt(int undoIndex, boolean undo) {
+        String stateXML = undoManager.getXml(undoIndex);
+        OperatorChain shownOperatorChain = null;
+        if (undo) {
+        	shownOperatorChain = undoManager.getOperatorChain(undoIndex+1);
+        } else {
+        	shownOperatorChain = undoManager.getOperatorChain(undoIndex);
+        }
         try {
             synchronized (process) {
                 Process process = new Process(stateXML, this.process);
@@ -1263,6 +1258,12 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 setTitle();
                 if (this.process.getProcessLocation() != null && !tutorialMode) {
                     this.SAVE_ACTION.setEnabled(true);
+                }
+                
+                // restore process panel view on correct subprocess on undo
+                if (shownOperatorChain != null) {
+                	OperatorChain restoredOperatorChain = (OperatorChain) getProcess().getOperator(shownOperatorChain.getName());
+                	getProcessPanel().showOperatorChain(restoredOperatorChain);
                 }
             }
         } catch (Exception e) {
@@ -1348,9 +1349,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         SAVE_ACTION.setEnabled(false);
         
         // process changed -> clear undo history
-        undoIndex = 0;
-        undoList.clear();
-        enableUndoAction();
+        resetUndo();
 
         synchronized (process) {
             RapidMinerGUI.useProcessFile(MainFrame.this.process);
@@ -1379,6 +1378,12 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             }
         }
     }
+
+	private void resetUndo() {
+		undoIndex = 0;
+        undoManager.reset();
+        enableUndoAction();
+	}
 
     public void saveAsTemplate() {
         synchronized (process) {

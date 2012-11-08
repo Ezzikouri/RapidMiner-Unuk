@@ -30,6 +30,7 @@ import java.util.Observable;
 import java.util.logging.Level;
 
 import com.rapidminer.gui.tools.PasswordDialog;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.LogService;
 
@@ -73,62 +74,65 @@ public class UpdateServerAccount extends Observable {
 	}
 	
 	public void forceNotifyObservers() {
-		if (isAccountServiceLoggedIn()) loggedIn = true;
 		setChanged();
 		notifyObservers();
-	}
-	
-	private boolean isAccountServiceLoggedIn() {
-		return loggedIn;
 	}
 	
 	public static void setPasswordAuthentication(PasswordAuthentication pa) {
 		upateServerPA = pa;
 	}
 	
-	/** Shows the login dialog and notifies observers when the status changed.
-	 * @return true when the user logged in successfully, false otherwise **/
-	public boolean login() {
-		try {
-			while (true) {
-				
-				if (isAccountServiceLoggedIn()) {
-					loggedIn = true;
-					return true;
-				}
-				
-				PasswordAuthentication pa = PasswordDialog.getPasswordAuthentication(UpdateManager.getUpdateServerURI("").toString(), false, false);
-
-				loggedIn = pa != null;
-				if (loggedIn) {
-					//user hit "ok"
-					upateServerPA = pa;
-
-					//check the provided login data
-					try {
-						UpdateManager.getAccountService();
-					} catch (Exception e) {
-						LogService.getRoot().log(Level.WARNING, "Failed to login: "+e, e);
-						// wrong login data
-						loggedIn = false;
-						continue;
+	/** Shows the login dialog and notifies observers when the status changed.**/
+	public void login(final UpdatePackagesModel updateModel) {
+		new ProgressThread("log_in_to_updateserver", false) {
+			public void run() {
+				try {
+					while (true) {
+						
+						if (loggedIn) {
+							return;
+						}
+						
+						UpdateManager.clearAccountSerive();
+						
+						PasswordAuthentication pa = PasswordDialog.getPasswordAuthentication(UpdateManager.getUpdateServerURI("").toString(), false, false);
+		
+						boolean clickedOk = pa != null;
+						if (clickedOk) {
+							//user hit "ok"
+							upateServerPA = pa;
+		
+							getProgressListener().setCompleted(10);
+							//check the provided login data
+							try {
+								UpdateManager.getAccountService();
+							} catch (Exception e) {
+								LogService.getRoot().log(Level.WARNING, "Failed to login: "+e, e);
+								// wrong login data
+								continue;
+							}
+							getProgressListener().setCompleted(50);
+							loggedIn = true;
+							updateModel.updatePurchasedPackages();
+							getProgressListener().setCompleted(90);
+							setChanged();
+							notifyObservers(null);
+							getProgressListener().setCompleted(100);
+							return;
+						} else {
+							//user hit "cancel"
+							upateServerPA = null;
+							setChanged();
+							notifyObservers(null);
+							return;
+						}
+						
 					}
-					//updateAccountInfoButton(pa.getUserName());
-					setChanged();
-					notifyObservers(null);
-					return true;
-				} else {
-					//user hit "cancel"
-					upateServerPA = null;
-					setChanged();
-					notifyObservers(null);
-					return false;
+				} catch (URISyntaxException e) {
+					return;
 				}
-				
 			}
-		} catch (URISyntaxException e) {
-			return false;
-		}
+		}.start();
 	}
 	
 	public void logout() {
@@ -145,6 +149,10 @@ public class UpdateServerAccount extends Observable {
 	
 	public String getUserName() {
 		return upateServerPA != null ? upateServerPA.getUserName() : null;
+	}
+
+	public char[] getPassword() {
+		return upateServerPA.getPassword();
 	}
 	
 }

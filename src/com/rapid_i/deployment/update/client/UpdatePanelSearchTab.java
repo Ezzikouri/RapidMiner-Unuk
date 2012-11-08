@@ -48,7 +48,6 @@ import com.rapidminer.tools.I18N;
 public class UpdatePanelSearchTab extends UpdatePanelTab {
 
 	private static final long serialVersionUID = 1L;
-
 	private JTextField searchField;
 	private JButton searchButton;
 	private SearchPackageListModel searchModel;

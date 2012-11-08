@@ -10,6 +10,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * Run on RapidAnalytics-Dialog can choose execution queue
 * New operator: Performance to Data
 * New operator: Throw Exception
+* New operators: Create Zip File and Add Entry to Zip File
 * New file system operators: Copy File, Move File, Delete File, Rename File, Create Directory
 * Aggregate: new aggregation functions: sum (fractional), count (fractional), count (percentage) and string concatenation
 * Execute Program operator has File Object ports for stdin, stdout, stderr
@@ -51,6 +52,8 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * Added a startup check for purchased but not installed extensions and a property to disable the check. Those Extensions can be directly installed from the dialog.  
 * RapidMiner enters safe mode (not loading plugins) when startup was interrupted
 * Added new 'Export as PDF' action to the 'Print results or export' dropdown button
+* Deleted tooltips for the operator list of the OptimizeParameters (Grid) operator
+* UpdateDialog: Swiched the positions of the install button and the link to the extension homepage
 * Replaced the standard Random funcion in the ExpressionParser with a custom one in order to involve the random seed/the RandomGenerator for the process    
 * BUGFIX: Recent files are now updated on process save
 * BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases
@@ -94,6 +97,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: The welcome perspective now updates the recent files list, so opening a process via it now opens the correct selected process
 * BUGFIX: Drag&Drop from the OS to the RapidMiner Process design canvas now also works for .xlsx files
 * BUGFIX: Fixed several repository problems when trying to overwrite entries with themselves
+* BUGFIX: UpdateDialog: Purchase link now changes to "install" after logging in and the purchase button now redirects to the extension website
  
 
 Changes from RapidMiner 5.2.6 to 5.2.8
