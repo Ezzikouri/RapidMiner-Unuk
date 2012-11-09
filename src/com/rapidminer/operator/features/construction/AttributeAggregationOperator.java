@@ -106,59 +106,62 @@ public class AttributeAggregationOperator extends AbstractFeatureConstruction {
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {    	
 		AttributeSubsetSelector selector = new AttributeSubsetSelector(this, getExampleSetInputPort());
 		Set<Attribute> attributes = selector.getAttributeSubset(exampleSet, false);
-		String functionName = AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[getParameterAsInt(PARAMETER_AGGREGATION_FUNCTION)];
-		boolean ignoreMissings = getParameterAsBoolean(PARAMETER_IGNORE_MISSINGS);
-		AggregationFunction aggregationFunction = null;
-		try {
-			aggregationFunction = AbstractAggregationFunction.createAggregationFunction(functionName, ignoreMissings);
-		} catch (InstantiationException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		} catch (IllegalAccessException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		} catch (ClassNotFoundException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		} catch (NoSuchMethodException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		} catch (InvocationTargetException e) {
-			throw new UserError(this, 904, functionName, e.getMessage());
-		}
-
-		int valueType = Ontology.ATTRIBUTE_VALUE;
-		for (Attribute attribute: attributes) {
-			if (valueType == Ontology.ATTRIBUTE_VALUE) {
-				if (attribute.isNominal() || attribute.isNumerical()) {
-					valueType = Ontology.NUMERICAL;
-				} else {
-					valueType = attribute.getValueType();
+		// cannot do anything with no attributes
+		if (attributes.size() > 0) {
+			String functionName = AbstractAggregationFunction.KNOWN_AGGREGATION_FUNCTION_NAMES[getParameterAsInt(PARAMETER_AGGREGATION_FUNCTION)];
+			boolean ignoreMissings = getParameterAsBoolean(PARAMETER_IGNORE_MISSINGS);
+			AggregationFunction aggregationFunction = null;
+			try {
+				aggregationFunction = AbstractAggregationFunction.createAggregationFunction(functionName, ignoreMissings);
+			} catch (InstantiationException e) {
+				throw new UserError(this, 904, functionName, e.getMessage());
+			} catch (IllegalAccessException e) {
+				throw new UserError(this, 904, functionName, e.getMessage());
+			} catch (ClassNotFoundException e) {
+				throw new UserError(this, 904, functionName, e.getMessage());
+			} catch (NoSuchMethodException e) {
+				throw new UserError(this, 904, functionName, e.getMessage());
+			} catch (InvocationTargetException e) {
+				throw new UserError(this, 904, functionName, e.getMessage());
+			}
+			
+			int valueType = Ontology.ATTRIBUTE_VALUE;
+			for (Attribute attribute: attributes) {
+				if (valueType == Ontology.ATTRIBUTE_VALUE) {
+					if (attribute.isNominal() || attribute.isNumerical()) {
+						valueType = Ontology.NUMERICAL;
+					} else {
+						valueType = attribute.getValueType();
+					}
+				}
+				if (!aggregationFunction.supportsAttribute(attribute)) {
+					throw new UserError(this, 136, attribute.getName());
 				}
 			}
-			if (!aggregationFunction.supportsAttribute(attribute)) {
-				throw new UserError(this, 136, attribute.getName());
-			}
-		}
-
-		// create aggregation attribute
+			
+			// create aggregation attribute
 //		Attribute newAttribute = AttributeFactory.createAttribute(getParameterAsString(PARAMETER_ATTRIBUTE_NAME), Ontology.REAL);
-		Attribute newAttribute = AttributeFactory.createAttribute(getParameterAsString(PARAMETER_ATTRIBUTE_NAME), valueType);
-		
-		exampleSet.getExampleTable().addAttribute(newAttribute);
-		exampleSet.getAttributes().addRegular(newAttribute);
-
-		// iterate over examples and aggregate values
-		double[] values = new double[attributes.size()];
-		for (Example example : exampleSet) {
-			int i = 0;
-			for (Attribute attribute: attributes) {
-				values[i] = example.getValue(attribute);
-				i++;
+			Attribute newAttribute = AttributeFactory.createAttribute(getParameterAsString(PARAMETER_ATTRIBUTE_NAME), valueType);
+			
+			exampleSet.getExampleTable().addAttribute(newAttribute);
+			exampleSet.getAttributes().addRegular(newAttribute);
+			
+			// iterate over examples and aggregate values
+			double[] values = new double[attributes.size()];
+			for (Example example : exampleSet) {
+				int i = 0;
+				for (Attribute attribute: attributes) {
+					values[i] = example.getValue(attribute);
+					i++;
+				}
+				example.setValue(newAttribute, aggregationFunction.calculate(values));
 			}
-			example.setValue(newAttribute, aggregationFunction.calculate(values));
-		}
-
-		// remove old attributes
-		if (!getParameterAsBoolean(PARAMETER_KEEP_ALL)) {
-			for (Attribute attribute: attributes) {
-				exampleSet.getAttributes().remove(attribute);
+			
+			// remove old attributes
+			if (!getParameterAsBoolean(PARAMETER_KEEP_ALL)) {
+				for (Attribute attribute: attributes) {
+					exampleSet.getAttributes().remove(attribute);
+				}
 			}
 		}
 

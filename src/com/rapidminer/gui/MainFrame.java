@@ -990,11 +990,13 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         	resetUndo();
             
             stopProcess();
+            changed = false;
             setProcess(new Process(), true);
             addToUndoList();
             if (!"false".equals(ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION))) {
                 SaveAction.save(getProcess());
             }
+            SAVE_ACTION.setEnabled(false);
         }
     }
 
@@ -1452,13 +1454,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     if (RapidMinerGUI.getMainFrame().close()) {
-                    	// ask for confirmation before stopping the currently running process and opening another one!
-                    	if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING || 
-                    			RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
-                    		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
-                    			return;
-                    		}
-                    	}
                         OpenAction.open(recentLocation, true);
                     }
                 }

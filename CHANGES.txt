@@ -98,6 +98,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: Drag&Drop from the OS to the RapidMiner Process design canvas now also works for .xlsx files
 * BUGFIX: Fixed several repository problems when trying to overwrite entries with themselves
 * BUGFIX: UpdateDialog: Purchase link now changes to "install" after logging in and the purchase button now redirects to the extension website
+* BUGFIX: Generate Aggregation operator can now handle the case of zero matching attributes
  
 
 Changes from RapidMiner 5.2.6 to 5.2.8

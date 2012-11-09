@@ -269,25 +269,29 @@ public class DatabaseDataReader extends AbstractExampleSource implements Connect
 
     private static List<Attribute> getAttributes(ResultSetMetaData metaData) throws SQLException {
         List<Attribute> result = new LinkedList<Attribute>();
-        // A map mapping original column names to a counter specifying how often
-        // they were chosen
-        Map<String, Integer> duplicateNameMap = new HashMap<String, Integer>();
-
-        for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {
-            String columnName = metaData.getColumnLabel(columnIndex);
-            Integer duplicateCount = duplicateNameMap.get(columnName);
-            if (duplicateCount != null) {
-                columnName = columnName + "_" + duplicateCount;
-                Integer incremented = new Integer(duplicateCount.intValue() + 1);
-                duplicateNameMap.put(columnName, incremented);
-            } else {
-                duplicateNameMap.put(columnName, new Integer(1));
-            }
-            int attributeType = DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex));
-            final Attribute attribute = AttributeFactory.createAttribute(columnName, attributeType);
-            attribute.getAnnotations().setAnnotation("sql_type", metaData.getColumnTypeName(columnIndex));
-            result.add(attribute);
+        
+        if (metaData != null) {
+        	// A map mapping original column names to a counter specifying how often
+        	// they were chosen
+        	Map<String, Integer> duplicateNameMap = new HashMap<String, Integer>();
+        	
+        	for (int columnIndex = 1; columnIndex <= metaData.getColumnCount(); columnIndex++) {
+        		String columnName = metaData.getColumnLabel(columnIndex);
+        		Integer duplicateCount = duplicateNameMap.get(columnName);
+        		if (duplicateCount != null) {
+        			columnName = columnName + "_" + duplicateCount;
+        			Integer incremented = new Integer(duplicateCount.intValue() + 1);
+        			duplicateNameMap.put(columnName, incremented);
+        		} else {
+        			duplicateNameMap.put(columnName, new Integer(1));
+        		}
+        		int attributeType = DatabaseHandler.getRapidMinerTypeIndex(metaData.getColumnType(columnIndex));
+        		final Attribute attribute = AttributeFactory.createAttribute(columnName, attributeType);
+        		attribute.getAnnotations().setAnnotation("sql_type", metaData.getColumnTypeName(columnIndex));
+        		result.add(attribute);
+        	}
         }
+        
         return result;
     }
 
