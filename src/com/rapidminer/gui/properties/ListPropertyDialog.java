@@ -40,7 +40,7 @@ import com.rapidminer.parameter.ParameterTypeList;
  * also supported.
  * 
  * @see com.rapidminer.gui.properties.ListPropertyTable
- * @author Ingo Mierswa, Simon Fischer, Tobias Malbrecht, Nils Woehler
+ * @author Ingo Mierswa, Simon Fischer, Tobias Malbrecht, Nils Woehler, Marius Helf
  */
 public class ListPropertyDialog extends PropertyDialog {
 
@@ -67,6 +67,7 @@ public class ListPropertyDialog extends PropertyDialog {
 
 			public void actionPerformed(ActionEvent e) {
 				listPropertyTable.addRow();
+				listPropertyTable.requestFocusInWindow();
 			}
 		}), new JButton(new ResourceAction("list.remove_row") {
 
@@ -76,6 +77,10 @@ public class ListPropertyDialog extends PropertyDialog {
 				listPropertyTable.removeSelected();
 			}
 		}), makeOkButton(), makeCancelButton());
+		
+		listPropertyTable.requestFocusInWindow();
+		listPropertyTable.getSelectionModel().setSelectionInterval(0, 0);
+		listPropertyTable.editCellAt(1, 1);
 	}
 
 	@Override

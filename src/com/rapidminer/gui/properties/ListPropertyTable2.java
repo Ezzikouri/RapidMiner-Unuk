@@ -29,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JTable;
+import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
@@ -47,7 +48,7 @@ import com.rapidminer.parameter.ParameterTypeStringCategory;
  *  once for starting editing and then again for opening a combo box, e.g. This may be related
  *  to editingStopped-events which are fired by the cells that loose focus.
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Marius Helf
  *
  */
 public class ListPropertyTable2 extends JTable {
@@ -88,13 +89,11 @@ public class ListPropertyTable2 extends JTable {
 		setRowSelectionAllowed(true);
 		setColumnSelectionAllowed(false);
 		setRowHeight(PropertyPanel.VALUE_CELL_EDITOR_HEIGHT);
-
+		setSurrendersFocusOnKeystroke(true);
+		putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+		
 		setModel(new ListTableModel(types, createParameterListCopy(parameterList)));
 
-		//		for (int i = 0; i < types.length; i++) {
-		//			getColumnModel().getColumn(i).setCellEditor(PropertyPanel.instantiateValueCellEditor(types[i], operator));
-		//			getColumnModel().getColumn(i).setCellRenderer(PropertyPanel.instantiateValueCellEditor(types[i], operator));
-		//		}
 		fillEditors();
 	}
 
@@ -109,6 +108,11 @@ public class ListPropertyTable2 extends JTable {
 	public void addRow() {
 		((ListTableModel) getModel()).addRow();
 		fillEditors();
+
+		// start editing the new row
+		int rowCount = getModel().getRowCount();
+		changeSelection(rowCount-1, 0, false, false);
+		editCellAt(rowCount-1, 0);
 	}
 
 	public boolean isEmpty() {
@@ -135,11 +139,19 @@ public class ListPropertyTable2 extends JTable {
 	}
 
 	public void storeParameterList(List<String[]> parameterList2) {
+		TableCellEditor editor = getCellEditor();
+		if (editor != null) {
+			editor.stopCellEditing();
+		}
 		parameterList2.clear();
 		parameterList2.addAll(((ListTableModel) getModel()).getParameterList());
 	}
 
 	public void storeParameterEnumeration(List<String> parameterList2) {
+		TableCellEditor editor = getCellEditor();
+		if (editor != null) {
+			editor.stopCellEditing();
+		}
 		parameterList2.clear();
 		for (String[] values : ((ListTableModel) getModel()).getParameterList()) {
 			parameterList2.add(values[0]);
@@ -173,5 +185,31 @@ public class ListPropertyTable2 extends JTable {
 		}
 		String toolTipText = SwingTools.transformToolTipText(toolTip.toString());
 		return toolTipText;
+	}
+	
+	/**
+	 * Row selection change listener
+	 */
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		super.valueChanged(e);
+		int col = getSelectedColumn();
+		int row = getSelectedRow();
+		if (col >= 0 && row >= 0) {
+			editCellAt(row, col);
+		}
+	}
+	
+	/**
+	 * Column selection change listener
+	 */
+	@Override
+	public void columnSelectionChanged(ListSelectionEvent e) {
+		super.columnSelectionChanged(e);
+		int col = getSelectedColumn();
+		int row = getSelectedRow();
+		if (col >= 0 && row >= 0) {
+			editCellAt(row, col);
+		}
 	}
 }

@@ -27,6 +27,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -76,6 +78,31 @@ public class UpdateDialog extends ButtonDialog {
 		}
 	};
 
+	private WindowListener windowListener = new WindowListener() {
+		public void windowActivated(WindowEvent e) {
+			UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
+			account.updatePurchasedPackages(updateModel);
+	    }
+
+		@Override
+		public void windowOpened(WindowEvent e) {}
+
+		@Override
+		public void windowClosing(WindowEvent e) {}
+
+		@Override
+		public void windowClosed(WindowEvent e) {}
+
+		@Override
+		public void windowIconified(WindowEvent e) {}
+
+		@Override
+		public void windowDeiconified(WindowEvent e) {}
+
+		@Override
+		public void windowDeactivated(WindowEvent e) {}
+	};
+	
 	private final UpdateService service;
 
 	private final UpdatePanel ulp;
@@ -153,6 +180,7 @@ public class UpdateDialog extends ButtonDialog {
 		updateModel = new UpdatePackagesModel(descriptors, usAccount);
 		ulp = new UpdatePanel(this, descriptors, preselectedExtensions, usAccount, updateModel);
 		layoutDefault(ulp, LARGE, makeOkButton("update.install"), makeCloseButton());
+		this.addWindowListener(windowListener);
 	}
 
 	@Override

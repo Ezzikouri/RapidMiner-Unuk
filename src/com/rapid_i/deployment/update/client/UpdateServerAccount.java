@@ -143,6 +143,19 @@ public class UpdateServerAccount extends Observable {
 		notifyObservers(null);
 	}
 	
+	public void updatePurchasedPackages(final UpdatePackagesModel updateModel) {
+		new ProgressThread("fetching_updates", false) {
+			public void run() {
+				getProgressListener().setCompleted(10);
+				updateModel.updatePurchasedPackages();
+				getProgressListener().setCompleted(75);
+				setChanged();
+				notifyObservers(null);
+				getProgressListener().setCompleted(100);
+			}
+		}.start();
+	}
+	
 	public boolean isLoggedIn() {
 		return loggedIn;
 	}

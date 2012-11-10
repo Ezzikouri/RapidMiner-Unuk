@@ -583,6 +583,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 		delegate.setValue(value);
+		// TODO why is this commented?
 //		if (isSelected)
 //			editorComponent.setBackground(SwingTools.LIGHTEST_BLUE);
 //		else
