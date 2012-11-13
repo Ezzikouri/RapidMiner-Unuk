@@ -146,7 +146,7 @@ public class ContinuousColorProvider implements ColorProvider {
 		// map value to [0,1]
 		if (minValue == maxValue) {
 			value = 0.5;
-		} else if (value <= minValue) {
+		} else if (value < minValue) {
 			Color minColor;
 			if (useGrayForOutliers)  {
 				minColor = Color.GRAY;
@@ -157,7 +157,7 @@ public class ContinuousColorProvider implements ColorProvider {
 				minColor = DataStructureUtils.setColorAlpha(minColor, alpha);
 			}
 			return minColor;
-		} else if (value >= maxValue) {
+		} else if (value > maxValue) {
 			Color maxColor;
 			if (useGrayForOutliers)  {
 				maxColor = Color.GRAY;
