@@ -38,9 +38,13 @@
 	<!-- Update and release server properties -->
 	<property file="server.properties" />
 	<property file="local-build.properties" />
-	
+
 	<!-- Language variables for getting .properties files -->
 	<property name="language" value="de,fr,ja,hu" />
+
+	<!-- URL and variables to upload CHANGES to Marketplace -->
+	<property name="changes_location" location="changes" />
+	<property name="changes_current" value="${changes_location}/CHANGES_${rapidminer.longversion}.txt" />
 
 	<property name="makensis" value="makensis" />
 	<!-- Assume this is on the PATH -->
@@ -303,10 +307,10 @@
 	</target>
 
 	<target name="release.makeUpdater">
-			<exec executable="${makensis}">
-				<arg line="installation/update.nsi" />
-			</exec>
-		</target>
+		<exec executable="${makensis}">
+			<arg line="installation/update.nsi" />
+		</exec>
+	</target>
 
 	<target name="release.makeWin32" depends="release.prepare" description="This creates the installer for the Windows32 platform">
 		<echo message="Releasing Windows32 Installer..." />
@@ -322,12 +326,12 @@
 		<exec executable="${makensis}">
 			<arg line="installation/launcher.nsi" />
 		</exec>
-		
+
 		<!-- Now build Updater: Will generate release/files/scripts/RapidMinerUpdate.exe -->
 		<echo message="Building Updatefunction..." />
-				<exec executable="${makensis}">
-					<arg line="installation/update.nsi" />
-				</exec>
+		<exec executable="${makensis}">
+			<arg line="installation/update.nsi" />
+		</exec>
 
 		<!-- Copy JRE -->
 		<echo message="Copying JRE..." />
@@ -367,13 +371,13 @@
 		<exec executable="${makensis}">
 			<arg line="installation/launcher_x64.nsi" />
 		</exec>
-		
+
 		<!-- Now build Updater: Will generate release/files/scripts/RapidMinerUpdate.exe -->
 		<echo message="Building Updatefunction..." />
-						<exec executable="${makensis}">
-							<arg line="installation/update.nsi" />
-						</exec>
-		
+		<exec executable="${makensis}">
+			<arg line="installation/update.nsi" />
+		</exec>
+
 		<!-- Copy JRE -->
 		<copy todir="${release.files}/jre">
 			<fileset dir="${jre64}" />
@@ -609,11 +613,11 @@
 
 		<echo message="Publishing update ${rapidminer.longversion} using ${server.marketplace.user} to Marketplace..." />
 		<echo message="...Platform Independent" />
-		<put targetUrl="${server.marketplace.url}/rapidminer/${rapidminer.longversion}/ANY" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
+		<put targetUrl="${server.marketplace.url}/admin/upload/rapidminer/${rapidminer.longversion}/ANY" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 		<echo message="...Windows 32" />
-		<put targetUrl="${server.marketplace.url}/rapidminer/${rapidminer.longversion}/WIN32" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x32.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
+		<put targetUrl="${server.marketplace.url}/admin/upload/rapidminer/${rapidminer.longversion}/WIN32" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x32.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 		<echo message="...Windows 64" />
-		<put targetUrl="${server.marketplace.url}/rapidminer/${rapidminer.longversion}/WIN64" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x64.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
+		<put targetUrl="${server.marketplace.url}/admin/upload/rapidminer/${rapidminer.longversion}/WIN64" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x64.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 
 	</target>
 
@@ -812,32 +816,37 @@
 	Update .properties files from Rapid-I Pootle. 
 	You can change the language variables in the property name "language" attribute.
 	-->
-	<target name="update.properties" description="Updating .properties files">
-	<echo message="Getting the following .properties files for languages: ${language}."/>  
-	<ac:for list="${language}" param="language">  
-	  <sequential>  
-	    <get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/Errors.properties/download/" 
-	      dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/Errors_@{language}.properties" 
-	      verbose="true"
-	      usetimestamp="true"/>
-	    <get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/GUI.properties/download/" 
-	      dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/GUI_@{language}.properties" 
-	      verbose="true"
-	      usetimestamp="true"/>
-	    <get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/LogMessages.properties/download/" 
-	      dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/LogMessages_@{language}.properties" 
-	      verbose="true"
-	      usetimestamp="true"/>
-		<get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/PlotterMessages.properties/download/" 
-		  dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/PlotterMessages_@{language}.properties" 
-		  verbose="true"
-		  usetimestamp="true"/>
-		<get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/UserErrorMessages.properties/download/" 
-		  dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/UserErrorMessages_@{language}.properties" 
-		  verbose="true"
-		  usetimestamp="true"/>
-	  </sequential> 
-	</ac:for>  
+	<target name="update.properties" depends="init" description="Updating .properties files">
+		<echo message="Getting the following .properties files for languages: ${language}." />
+		<ac:for list="${language}" param="language">
+			<sequential>
+				<get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/Errors.properties/download/" dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/Errors_@{language}.properties" verbose="true" usetimestamp="true" />
+				<get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/GUI.properties/download/" dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/GUI_@{language}.properties" verbose="true" usetimestamp="true" />
+				<get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/LogMessages.properties/download/" dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/LogMessages_@{language}.properties" verbose="true" usetimestamp="true" />
+				<get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/PlotterMessages.properties/download/" dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/PlotterMessages_@{language}.properties" verbose="true" usetimestamp="true" />
+				<get src="http://pootle.rapid-i.com/pootle/@{language}/rapidminer/UserErrorMessages.properties/download/" dest="${resources_generated}/com/rapidminer/resources/i18n/pootle/UserErrorMessages_@{language}.properties" verbose="true" usetimestamp="true" />
+			</sequential>
+		</ac:for>
+	</target>
+
+	<!-- Upload current changes.txt to corresponding marketplace project url -->
+	<target name="upload.changes" depends="init" description="Uploading current CHANGES file to the Marketplace">
+		<echo message="Uploading current CHANGES File to Rapid-I Marketplace" />
+		<put targetUrl="${server.marketplace.url}/admin/upload-changes/rapidminer/${rapidminer.longversion}" uploadFile="${changes_current}" username="${server.marketplace.user}" password="${server.marketplace.password}" /> 
+	</target>
+
+
+	<!-- Merge all Changes files in the changes folder to one file -->
+	<target name="merge.changes" depends="init" description="Merge all changes file from folder changes to CHANGES.txt">
+		<echo message="Merging all changes files" />
+		<concat destfile="CHANGES.txt" fixlastline="true">
+			<sort>
+				<fileset dir="${changes_location}" includes="*.txt" />
+				<reverse xmlns="antlib:org.apache.tools.ant.types.resources.comparators">
+					<name />
+				</reverse>
+			</sort>
+		</concat>
 	</target>
 
 
@@ -864,7 +873,7 @@
 			<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=114160&type=16" width="150" height="40" />
 		</a>]]></footer>
 	<bottom>
-		<![CDATA[<i>Copyright &#169; 2001-2009 by <a href="http://rapid-i.com" target="_blank">Rapid-I</a>
+		<![CDATA[<i>Copyright &#169; 2001-2012 by <a href="http://rapid-i.com" target="_blank">Rapid-I</a>
 	</i>]]></bottom>
 <!-- Links are not supported here -->
 <tag name="rapidminer.todo" description="To do:" />

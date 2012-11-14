@@ -404,7 +404,7 @@ Name "${extension.name.long}"
 		<echo message="...Platform Independent on update server" />
 		<put targetUrl="${server.update.url}/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.update.user}" password="${server.update.password}" />
 		<echo message="...Platform Independent on marketplace" />
-		<put targetUrl="${server.marketplace.url}/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.marketplace.user}" password="${server.marketplace.password}" />
+		<put targetUrl="${server.marketplace.url}/admin/upload/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 	</target>
 
 	<target name="update" description="This target will perform a full update including file generation and uploading them to the update server.">
