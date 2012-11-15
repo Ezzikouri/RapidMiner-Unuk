@@ -44,6 +44,7 @@ import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -66,7 +67,6 @@ import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
-import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
@@ -84,8 +84,8 @@ public class UpdatePanelTab extends JPanel {
 
 	private static final int LIST_WIDTH = 330;
 	
-	private UpdatePackagesModel updateModel;
-	private AbstractPackageListModel model;
+	protected UpdatePackagesModel updateModel;
+	protected AbstractPackageListModel model;
 	UpdateServerAccount usAccount;
 	
 	private ExtendedHTMLJEditorPane displayPane;
@@ -154,7 +154,7 @@ public class UpdatePanelTab extends JPanel {
 		c.gridy = 0;
 		c.weightx = 0;
 		c.weighty = 1;
-		c.insets = new Insets(0, 0, 0, ButtonDialog.GAP);
+		c.insets = new Insets(0, 0, 0, 0);
 		
 		installButton = new SelectForInstallationButton(new ResourceAction(true, "update.select") {
 
@@ -257,22 +257,27 @@ public class UpdatePanelTab extends JPanel {
 			}
 			
 		});
-
+		
 		packageList = createUpdateList();
 		JScrollPane updateListScrollPane = new ExtendedJScrollPane(packageList);
 		updateListScrollPane.setMinimumSize(new Dimension(LIST_WIDTH, 100));
 		updateListScrollPane.setPreferredSize(new Dimension(LIST_WIDTH, 100));
 		updateListScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		Component topPanel = makeTopPanel();
+		Component bottomPanel = makeBottomPanel();
 		if (topPanel != null) {
 			JPanel leftPanel = new JPanel(new BorderLayout());
 			leftPanel.add(updateListScrollPane, BorderLayout.CENTER);
 			leftPanel.add(topPanel, BorderLayout.NORTH);
 			add(leftPanel, c);
+		} else if (bottomPanel != null) {
+			JPanel leftPanel = new JPanel(new BorderLayout());
+			leftPanel.add(updateListScrollPane, BorderLayout.CENTER);
+			leftPanel.add(bottomPanel, BorderLayout.SOUTH);
+			add(leftPanel, c);
 		} else {
 			add(updateListScrollPane, c);
 		}
-		
 
 		c.gridx = 1;
 		c.gridy = 0;
@@ -302,13 +307,19 @@ public class UpdatePanelTab extends JPanel {
 		
 		extensionButtonPane.setBackground(Color.white);
 		extensionButtonPane.setVisible(false);
+		extensionButtonPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
 		
+		descriptionPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, Color.LIGHT_GRAY));
 		descriptionPanel.add(extensionButtonPane, BorderLayout.SOUTH);
 
 		add(descriptionPanel, c);
 	}
 	
 	protected Component makeTopPanel() {
+		return null;
+	}
+	
+	protected Component makeBottomPanel() {
 		return null;
 	}
 
@@ -436,10 +447,12 @@ public class UpdatePanelTab extends JPanel {
 					}
 				} else {
 					// restricted, not purchased
+					
 					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.label"));
 					installButton.setIcon(SwingTools.createIcon("16/shopping_cart_empty.png"));
 					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int)I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.mne").toUpperCase().charAt(0));
-					
+					installButton.setVisible(true);
+					loginForInstallHint.setText("");
 					
 					installButton.setPurchaseFirst(true);
 				}				

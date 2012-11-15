@@ -149,6 +149,14 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 		return cache.getPackageInfo(packageNames.get(index), TARGET_PLATFORM);
 	}
 	
+	public List<String> getAllPackageNames() {
+		return packageNames;
+	}
+	
+	public PackageDescriptorCache getCache() {
+		return cache;
+	}
+	
 	public String getChanges(String packageId) {
 		return cache.getPackageChanges(packageId);
 	}
@@ -160,9 +168,14 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 		}
 	}
 	
+	public void updateView() {
+		fireContentsChanged(this, 0, packageNames.size() > 0 ? packageNames.size() : 1);
+	}
+	
 	public void add(PackageDescriptor desc) {
 		packageNames.add(desc.getPackageId());
 		fireIntervalAdded(this, packageNames.size()-1, packageNames.size()-1);
 	}
+	
 	
 }

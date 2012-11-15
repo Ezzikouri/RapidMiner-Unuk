@@ -493,6 +493,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
     /** XML representation of the process at last validation. */
     private String lastProcessXML;
+    /** the OperatorChain which was last viewed */
+    private OperatorChain lastProcessDisplayedOperatorChain;
 
     /**
      * The host name of the system. Might be empty (no host name will be shown) and will be initialized
@@ -525,12 +527,15 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         lastUpdate = System.currentTimeMillis();
         String xmlWithoutGUIInformation = process.getRootOperator().getXML(true, false);
         if (!xmlWithoutGUIInformation.equals(lastProcessXML)) {
-            addToUndoList(xmlWithoutGUIInformation);
+            addToUndoList(xmlWithoutGUIInformation, false);
             validateProcess(false);
-        } else {
-            processPanel.getProcessRenderer().repaint();
+        } else if (processPanel.getProcessRenderer().getDisplayedChain() != lastProcessDisplayedOperatorChain) {
+        	// same xml but different view -> we switched subprocess views. Store as undo step
+        	addToUndoList(xmlWithoutGUIInformation, true);
         }
+        processPanel.getProcessRenderer().repaint();
         lastProcessXML = xmlWithoutGUIInformation;
+        lastProcessDisplayedOperatorChain = processPanel.getProcessRenderer().getDisplayedChain();
     }
 
     public void validateProcess(boolean force) {
@@ -1154,7 +1159,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     }
 
     private boolean addToUndoList() {
-        return addToUndoList(null);
+        return addToUndoList(null, false);
     }
     /**
      * Adds the current state of the process to the undo list.
@@ -1165,19 +1170,19 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
      * 
      * @return true if process really differs.
      */
-    private boolean addToUndoList(String currentStateXML) {
+    private boolean addToUndoList(String currentStateXML, boolean viewSwitch) {
         final String lastStateXML = undoManager.getNumberOfUndos() != 0 ? undoManager.getXml(undoManager.getNumberOfUndos() - 1) : null;
         if (currentStateXML == null) {
             currentStateXML = this.process.getRootOperator().getXML(true);
         }
         if (currentStateXML != null) {
-            if (lastStateXML == null || !lastStateXML.equals(currentStateXML)) {
+            if (lastStateXML == null || !lastStateXML.equals(currentStateXML) || viewSwitch) {
                 if (undoIndex < undoManager.getNumberOfUndos() - 1) {
                     while (undoManager.getNumberOfUndos() > undoIndex + 1) {
                         undoManager.removeLast();
                     }
                 }
-                undoManager.add(currentStateXML, getProcessPanel().getProcessRenderer().getDisplayedChain());
+                undoManager.add(currentStateXML, getProcessPanel().getProcessRenderer().getDisplayedChain(), getFirstSelectedOperator());
                 String maxSizeProperty = ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE);
                 int maxSize = 20;
                 try {
@@ -1245,10 +1250,11 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         String stateXML = undoManager.getXml(undoIndex);
         OperatorChain shownOperatorChain = null;
         if (undo) {
-        	shownOperatorChain = undoManager.getOperatorChain(undoIndex+1);
+        	shownOperatorChain = undoManager.getOperatorChain(undoIndex);
         } else {
         	shownOperatorChain = undoManager.getOperatorChain(undoIndex);
         }
+        Operator selectedOperator = undoManager.getSelectedOperator(undoIndex);
         try {
             synchronized (process) {
                 Process process = new Process(stateXML, this.process);
@@ -1262,6 +1268,14 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                     this.SAVE_ACTION.setEnabled(true);
                 }
                 
+                // restore selected operator
+                if (selectedOperator != null) {
+                	Operator restoredOperator = getProcess().getOperator(selectedOperator.getName());
+                	if (restoredOperator != null) {
+                		selectOperator(restoredOperator);
+                	}
+                }
+
                 // restore process panel view on correct subprocess on undo
                 if (shownOperatorChain != null) {
                 	OperatorChain restoredOperatorChain = (OperatorChain) getProcess().getOperator(shownOperatorChain.getName());

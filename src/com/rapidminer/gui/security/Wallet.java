@@ -77,7 +77,6 @@ public class Wallet {
 	public void readCache() {
 		final File userConfigFile = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
 		if (!userConfigFile.exists()) {
-			System.err.println("No file exists");
 			return;
 		}
 		//LogService.getRoot().config("Reading secrets file.");

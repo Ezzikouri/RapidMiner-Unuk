@@ -26,8 +26,9 @@ import java.util.LinkedList;
 
 import com.rapidminer.Process;
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
-import com.rapidminer.tools.container.Pair;
+import com.rapidminer.tools.container.Triple;
 
 /**
  * Handles the undo system for the current {@link MainFrame} {@link Process}. Operations are <i>not</i> synchronized.
@@ -36,14 +37,14 @@ import com.rapidminer.tools.container.Pair;
  */
 public class ProcessUndoManager {
 
-	private final LinkedList<Pair<String, OperatorChain>> undoList;
+	private final LinkedList<Triple<String, OperatorChain, Operator>> undoList;
 	
 	
 	/**
 	 * Standard constructor.
 	 */
 	public ProcessUndoManager() {
-		undoList = new LinkedList<Pair<String, OperatorChain>>();
+		undoList = new LinkedList<Triple<String, OperatorChain, Operator>>();
 	}
 	
 	/**
@@ -76,12 +77,41 @@ public class ProcessUndoManager {
 	
 	/**
 	 * Gets the {@link OperatorChain} associated with the undo step with the given index or <code>null</code>.
+	 * If the index is >= {@link #getNumberOfUndos()}, will return the last item.
+	 * If the index is < 0, will return the first item.
 	 * @param index
 	 * @return
 	 */
 	public OperatorChain getOperatorChain(int index) {
+		if (index >= getNumberOfUndos()) {
+			index = getNumberOfUndos()-1;
+		}
+		if (index < 0) {
+			index = 0;
+		}
 		try {
 			return undoList.get(index).getSecond();
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * Gets the selected {@link Operator} associated with the undo step with the given index or <code>null</code>.
+	 * If the index is >= {@link #getNumberOfUndos()}, will return the last item.
+	 * If the index is < 0, will return the first item.
+	 * @param index
+	 * @return
+	 */
+	public Operator getSelectedOperator(int index) {
+		if (index >= getNumberOfUndos()) {
+			index = getNumberOfUndos()-1;
+		}
+		if (index < 0) {
+			index = 0;
+		}
+		try {
+			return undoList.get(index).getThird();
 		} catch (IndexOutOfBoundsException e) {
 			return null;
 		}
@@ -109,23 +139,12 @@ public class ProcessUndoManager {
 	 * Adds an undo step.
 	 * @param processXml
 	 * @param currentlyShownOperatorChain
+	 * @param selectedOperator
 	 */
-	public void add(String processXml, OperatorChain currentlyShownOperatorChain) {
+	public void add(String processXml, OperatorChain currentlyShownOperatorChain, Operator selectedOperator) {
 		if (processXml == null) {
 			throw new IllegalArgumentException("processXml must not be null!");
 		}
-		undoList.add(new Pair<String, OperatorChain>(processXml, currentlyShownOperatorChain));
+		undoList.add(new Triple<String, OperatorChain, Operator>(processXml, currentlyShownOperatorChain, selectedOperator));
 	}
-	
-//	/**
-//	 * Overwrites the {@link OperatorChain} stored for the given index.
-//	 * If the given index is invalid, does nothing.
-//	 * @param index
-//	 * @param currentlyShownOperatorChain
-//	 */
-//	public void overwriteUndoOperatorChain(int index, OperatorChain currentlyShownOperatorChain) {
-//		try {
-//			undoList.get(index).setSecond(currentlyShownOperatorChain);
-//		} catch (IndexOutOfBoundsException e) {}
-//	}
 }

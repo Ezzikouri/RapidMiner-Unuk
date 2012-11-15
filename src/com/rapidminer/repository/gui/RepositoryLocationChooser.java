@@ -144,7 +144,12 @@ public class RepositoryLocationChooser extends JPanel {
 	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders) {
 		if (initialValue != null) {
 			try {
-				RepositoryLocation repositoryLocation = new RepositoryLocation(resolveRelativeTo, initialValue);
+				RepositoryLocation repositoryLocation;
+				if (resolveRelativeTo != null) {
+					repositoryLocation = new RepositoryLocation(resolveRelativeTo, initialValue);
+				} else {
+					repositoryLocation = new RepositoryLocation(initialValue);
+				}
 				locationField.setText(repositoryLocation.getName());
 				resultLabel.setText(repositoryLocation.toString());
 			} catch (Exception e) {

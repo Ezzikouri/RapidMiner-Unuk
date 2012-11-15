@@ -42,9 +42,9 @@
 	<!-- Language variables for getting .properties files -->
 	<property name="language" value="de,fr,ja,hu" />
 
-	<!-- URL and variables to upload CHANGES to Marketplace -->
-	<property name="changes_location" location="changes" />
-	<property name="changes_current" value="${changes_location}/CHANGES_${rapidminer.longversion}.txt" />
+	<!-- Location of changes files -->
+	<property name="changes.dir" location="changes" />
+	<property name="changes.current" value="${changes.dir}/CHANGES_${rapidminer.longversion}.txt" />
 
 	<property name="makensis" value="makensis" />
 	<!-- Assume this is on the PATH -->
@@ -143,7 +143,7 @@
 		<property name="lock.isCopied" value="true" />
 	</target>
 
-	<target name="build" depends="init, copy-resources,version.updateFiles, create-documentation" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
+	<target name="build" depends="init, copy-resources,version.updateFiles, create-documentation, merge.changes" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<echo message="RapidMiner: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner: using Java version: ${java.version}" />
 		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false" target="1.6">
@@ -505,6 +505,7 @@
 		<ant target="release.publish" />
 		<ant target="update.makeAll" />
 		<ant target="update.publish" />
+		<ant target="update.uploadChanges" />
 	</target>
 
 
@@ -830,9 +831,9 @@
 	</target>
 
 	<!-- Upload current changes.txt to corresponding marketplace project url -->
-	<target name="upload.changes" depends="init" description="Uploading current CHANGES file to the Marketplace">
+	<target name="update.uploadChanges" depends="init" description="Uploading current CHANGES file to the Marketplace">
 		<echo message="Uploading current CHANGES File to Rapid-I Marketplace" />
-		<put targetUrl="${server.marketplace.url}/admin/upload-changes/rapidminer/${rapidminer.longversion}" uploadFile="${changes_current}" username="${server.marketplace.user}" password="${server.marketplace.password}" /> 
+		<put targetUrl="${server.marketplace.url}/admin/upload-changes/rapidminer/${rapidminer.longversion}" uploadFile="${changes.current}" username="${server.marketplace.user}" password="${server.marketplace.password}" /> 
 	</target>
 
 
@@ -841,7 +842,7 @@
 		<echo message="Merging all changes files" />
 		<concat destfile="CHANGES.txt" fixlastline="true">
 			<sort>
-				<fileset dir="${changes_location}" includes="*.txt" />
+				<fileset dir="${changes.dir}" includes="*.txt" />
 				<reverse xmlns="antlib:org.apache.tools.ant.types.resources.comparators">
 					<name />
 				</reverse>

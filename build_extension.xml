@@ -1,4 +1,5 @@
-<project name="buildExtension">
+<project name="buildExtension" xmlns:ac="antlib:net.sf.antcontrib">
+	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar"/>
 	<property file="build.properties" />
 
 	<property name="extension.updateServerId" value="rmx_${extension.namespace}" />
@@ -26,6 +27,10 @@
 	<!-- Update and release server properties -->
 	<property file="${rm.dir}/server.properties" />
 
+	<!-- Location of changes files -->
+	<property name="changes.dir" location="changes" />
+	<property name="changes.current" value="${changes.dir}/CHANGES_${rapidminer.longversion}.txt" />
+	
 	<condition property="build.compiletime" value="">
 	   <not>  
 	      <isset property="build.compiletime"/>
@@ -73,21 +78,19 @@
 		<pathelement location="${java.home}/classes" />
 	</path>
 
-
-	<!-- HTTP and Documentation tasks -->
-	<taskdef onerror="fail" resource="antlib.xml" classpath="${rm.ant}/rapidAntTasks.jar" />
-
-	<!-- RPM Tasks-->
-	<taskdef onerror="fail" resource="org/freecompany/redline/ant/antlib.xml" classpath="${rm.ant}/redline-1.1.3.jar" />
-
-	<!-- FOR Tasks and other ant-contrib tasks -->
-	<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="${rm.ant}/ant-contrib-1.0b3.jar" />
-
-
-
 	<target name="init" depends="version.get, init.setEncoding" unless="lock.isInitialized">
 		<tstamp />
+		<!-- HTTP and Documentation tasks -->
+		<taskdef onerror="fail" resource="antlib.xml" classpath="ant/rapidAntTasks.jar" />
 
+		<!-- RPM Tasks-->
+		<taskdef onerror="fail" resource="org/freecompany/redline/ant/antlib.xml" classpath="ant/redline-1.1.3.jar" />
+
+		<!-- FOR Tasks -->
+		<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar" />
+		
+		<!-- SCP Tasks -->
+		<copy file="ant/jsch-0.1.42.jar" todir="${ant.library.dir}" failonerror="false" />
 		<!-- Building properties here, because they depend on version number -->
 		<property name="release.name" value="rapidminer-${extension.name}-${extension.longversion}.jar" />
 		<property name="release.installer.name" value="rapidminer-${extension.name}-${extension.longversion}-installer.exe" />
@@ -130,7 +133,7 @@
 		<property name="lock.isCopied" value="true" />
 	</target>
 
-	<target name="build" depends="init, copy-resources" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
+	<target name="build" depends="init, copy-resources, merge.changes" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<!-- testing if rapid miner must be built beforehand -->
 		<available file="${rm.lib}/rapidminer.jar" property="build.rmAvailable" />
 		<antcall target="build.rm" />
@@ -395,6 +398,30 @@ Name "${extension.name.long}"
 		<antcall target="release.publishToRapidShare" />
 		<antcall target="release.publish" />
 		<antcall target="update.publish" />
+		<antcall target="update.uploadChanges" />
+	</target>
+
+	<target name="changes.testExistence">
+		<available file="${changes.dir}" property="changes.exist"/>
+	</target>
+	
+	<!-- Upload current changes.txt to corresponding marketplace project url -->
+	<target name="update.uploadChanges" depends="init" description="Uploading current CHANGES file to the Marketplace">
+		<echo message="Uploading current CHANGES File to Rapid-I Marketplace" />
+		<put targetUrl="${server.marketplace.url}/admin/upload-changes/${extension.updateServerId}/${extension.longversion}" uploadFile="${changes.current}" username="${server.marketplace.user}" password="${server.marketplace.password}" /> 
+	</target>
+
+	<!-- Merge all Changes files in the changes folder to one file -->
+	<target name="merge.changes" depends="init, changes.testExistence" description="Merge all changes file from folder changes to CHANGES.txt" if="changes.exist">
+		<echo message="Merging all changes files" />
+		<concat destfile="CHANGES-ALL.txt" fixlastline="true">
+			<sort>
+				<fileset dir="${changes.dir}" includes="*.txt" />
+				<reverse xmlns="antlib:org.apache.tools.ant.types.resources.comparators">
+					<name />
+				</reverse>
+			</sort>
+		</concat>
 	</target>
 
 	<!-- Uploading updates -->

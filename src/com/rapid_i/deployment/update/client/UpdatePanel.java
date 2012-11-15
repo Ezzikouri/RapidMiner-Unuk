@@ -38,7 +38,6 @@ import com.rapid_i.deployment.update.client.listmodels.BookmarksPackageListModel
 import com.rapid_i.deployment.update.client.listmodels.LicencedPackageListModel;
 import com.rapid_i.deployment.update.client.listmodels.TopDownloadsPackageListModel;
 import com.rapid_i.deployment.update.client.listmodels.TopRatedPackageListModel;
-import com.rapid_i.deployment.update.client.listmodels.UpdatesPackageListModel;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.ResourceTabbedPane;
 import com.rapidminer.tools.NetTools;
@@ -95,7 +94,7 @@ public class UpdatePanel extends JPanel {
 		setMinimumSize(new Dimension(800, 320));
 
 		updatesTabbedPane.addTabI18N("search", createSerchListPanel());
-		updatesTabbedPane.addTabI18N("updates", createUpdateListPanel(new UpdatesPackageListModel(packageDescriptorCache)));
+		updatesTabbedPane.addTabI18N("updates", createUpdatesListPanel());
 		updatesTabbedPane.addTabI18N("top_downloads", createUpdateListPanel(new TopDownloadsPackageListModel(packageDescriptorCache)));
 		updatesTabbedPane.addTabI18N("top_rated", createUpdateListPanel(new TopRatedPackageListModel(packageDescriptorCache)));
 		updatesTabbedPane.addTabI18N("purchased", createUpdateListPanel(new LicencedPackageListModel(packageDescriptorCache), true));
@@ -153,6 +152,9 @@ public class UpdatePanel extends JPanel {
 		return new UpdatePanelSearchTab(updateModel, packageDescriptorCache, usAccount);
 	}
 
+	private JPanel createUpdatesListPanel() {
+		return new UpdatePanelUpdatesTab(updateModel, packageDescriptorCache, usAccount);
+	}
 
 	public void startUpdate() {
 		final List<PackageDescriptor> downloadList = updateModel.getInstallationList();

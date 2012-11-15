@@ -50,6 +50,7 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 	private final PlotConfiguration plotConfig;
 
 	private boolean zoomedIn = false;
+	private boolean useGrayForOutliers = false;
 
 	private Map<Integer, Range> rangeAxisIndexToZoomMap = new HashMap<Integer, Range>();
 	private Range domainAxisZoom;
@@ -166,7 +167,7 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 					colProv.setMaxValue(maxColorValue);
 				}
 				if (colProv != null) {
-					colProv.setUseGrayForOutliers(false);
+					colProv.setUseGrayForOutliers(useGrayForOutliers);
 				}
 			}
 		} else if (e.getType() == SelectionType.COLOR_SELECTION) {
@@ -184,7 +185,7 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 					colProv.setMaxValue(maxColorValue);
 				}
 				if (colProv != null) {
-					colProv.setUseGrayForOutliers(true);
+					colProv.setUseGrayForOutliers(useGrayForOutliers);
 				}
 			}
 		}
@@ -294,5 +295,13 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 				it.remove();
 			}
 		}
+	}
+
+	public boolean isUseGrayForOutliers() {
+		return useGrayForOutliers;
+	}
+
+	public void setUseGrayForOutliers(boolean useGrayForOutliers) {
+		this.useGrayForOutliers = useGrayForOutliers;
 	}
 }

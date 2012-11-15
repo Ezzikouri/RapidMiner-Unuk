@@ -174,6 +174,7 @@ public class UpdateDialog extends ButtonDialog {
 
 	public UpdateDialog(UpdateService service, List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
 		super("update");
+		setModal(true);
 		this.service = service;
 		UpdateServerAccount usAccount = UpdateManager.getUpdateServerAccount();
 		usAccount.addObserver(accountInfoButton);

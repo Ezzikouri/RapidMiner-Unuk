@@ -533,7 +533,11 @@ public class RepositoryTree extends JTree {
         RepositoryLocation loc;
         boolean full = true;
         try {
-            loc = new RepositoryLocation(relativeTo, location);
+        	if (relativeTo != null) {
+        		loc = new RepositoryLocation(relativeTo, location);
+        	} else {
+        		loc = new RepositoryLocation(location + "/");
+        	}
         } catch (Exception e) {
             // do nothing
             return false;

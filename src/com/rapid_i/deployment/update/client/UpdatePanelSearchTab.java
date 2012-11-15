@@ -80,7 +80,7 @@ public class UpdatePanelSearchTab extends UpdatePanelTab {
 
 	protected JComponent makeTopPanel() {
 		JToolBar toolBar = new ExtendedJToolBar();
-		toolBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+		toolBar.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
 		toolBar.setFloatable(false);
 
 		searchField = new JTextField(12);
