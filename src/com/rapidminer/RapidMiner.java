@@ -748,6 +748,10 @@ public class RapidMiner {
 		isInitiated = true;
 	}
 	
+	public static boolean isInitiated() {
+		return isInitiated;
+	}
+	
 	private static void runStartupHook(Runnable runnable) {
 		try {
 			runnable.run();

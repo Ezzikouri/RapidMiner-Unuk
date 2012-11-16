@@ -26,10 +26,10 @@
 
 	<!-- Update and release server properties -->
 	<property file="${rm.dir}/server.properties" />
-
+	<property file="${rm.dir}/local-build.properties" />
+	
 	<!-- Location of changes files -->
-	<property name="changes.dir" location="changes" />
-	<property name="changes.current" value="${changes.dir}/CHANGES_${rapidminer.longversion}.txt" />
+	<property name="changes.dir" location="changes" />	
 	
 	<condition property="build.compiletime" value="">
 	   <not>  
@@ -413,8 +413,8 @@ Name "${extension.name.long}"
 
 	<!-- Merge all Changes files in the changes folder to one file -->
 	<target name="merge.changes" depends="init, changes.testExistence" description="Merge all changes file from folder changes to CHANGES.txt" if="changes.exist">
-		<echo message="Merging all changes files" />
-		<concat destfile="CHANGES-ALL.txt" fixlastline="true">
+		<echo message="Merging all changes files in ${changes.dir}" />
+		<concat destfile="CHANGES-ALL.txt" fixlastline="true" >
 			<sort>
 				<fileset dir="${changes.dir}" includes="*.txt" />
 				<reverse xmlns="antlib:org.apache.tools.ant.types.resources.comparators">
@@ -467,7 +467,7 @@ Name "${extension.name.long}"
 	<target name="version.get">
 		<property name="extension.shortversion" value="${extension.version}.${extension.revision}" />
 		<property name="extension.longversion" value="${extension.version}.${extension.revision}.${extension.update}" />
-
+		<property name="changes.current" value="${changes.dir}/CHANGES_${extension.longversion}.txt" />
 		<echo message="Long version: ${extension.longversion}; short version: ${extension.shortversion}" />
 
 		<!-- <antcall target="version.updateFiles" /> -->

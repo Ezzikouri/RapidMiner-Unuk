@@ -840,7 +840,7 @@
 	<!-- Merge all Changes files in the changes folder to one file -->
 	<target name="merge.changes" depends="init" description="Merge all changes file from folder changes to CHANGES.txt">
 		<echo message="Merging all changes files" />
-		<concat destfile="CHANGES.txt" fixlastline="true">
+		<concat destfile="CHANGES-ALL.txt" fixlastline="true">
 			<sort>
 				<fileset dir="${changes.dir}" includes="*.txt" />
 				<reverse xmlns="antlib:org.apache.tools.ant.types.resources.comparators">
