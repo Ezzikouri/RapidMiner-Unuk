@@ -728,6 +728,7 @@ public class ProcessRenderer extends JPanel {
                         Operator selected = getSelection().get(0);
                         if (selected instanceof OperatorChain) {
                             ProcessRenderer.this.processPanel.showOperatorChain((OperatorChain) selected);
+                            ProcessRenderer.this.mainFrame.addViewSwitchToUndo();
                         }
                     }
                     e.consume();
@@ -2068,6 +2069,7 @@ public class ProcessRenderer extends JPanel {
                     } else if (getHoveringOperator() != null) {
                         if (getHoveringOperator() instanceof OperatorChain) {
                             processPanel.showOperatorChain((OperatorChain) getHoveringOperator());
+                            ProcessRenderer.this.mainFrame.addViewSwitchToUndo();
                         }
                     }
                 }

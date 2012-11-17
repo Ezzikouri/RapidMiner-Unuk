@@ -66,6 +66,7 @@ public class UpdatePackagesModel extends Observable {
 		if (usAccount.isLoggedIn()) {
 			try {
 				purchasedPackages = new HashSet<String>(UpdateManager.getAccountService().getLicensedProducts());
+				UpdatePackagesModel.this.setChanged();
 				UpdatePackagesModel.this.notifyObservers();
 			} catch (Exception e1) {
 				SwingTools.showSimpleErrorMessage("error_accessing_marketplace_account", e1);
@@ -73,6 +74,17 @@ public class UpdatePackagesModel extends Observable {
 			}
 		} else {
 			purchasedPackages = new HashSet<String>();
+		}
+	}
+	
+	public void clearPurchasedPackages() {
+		if (!usAccount.isLoggedIn()) {
+			purchasedPackages = new HashSet<String>();
+			for (Map.Entry<PackageDescriptor, Boolean> selectionEntry : selectionMap.entrySet()) {
+				if (selectionEntry.getKey().isRestricted() && selectionEntry.getValue()) {
+					toggleSelesctionForInstallation(selectionEntry.getKey());
+				}
+			}
 		}
 	}
 

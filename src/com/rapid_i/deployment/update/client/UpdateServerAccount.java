@@ -135,12 +135,17 @@ public class UpdateServerAccount extends Observable {
 		}.start();
 	}
 	
-	public void logout() {
-		UpdateManager.clearAccountSerive();
-		upateServerPA = null;
-		loggedIn = false;
-		setChanged();
-		notifyObservers(null);
+	public void logout(final UpdatePackagesModel updateModel) {
+		new ProgressThread("log_out_frm_updateserver", false) {
+			public void run() {
+				UpdateManager.clearAccountSerive();
+				upateServerPA = null;
+				loggedIn = false;
+				updateModel.clearPurchasedPackages();
+				setChanged();
+				notifyObservers(null);
+			}
+		}.start();
 	}
 	
 	public void updatePurchasedPackages(final UpdatePackagesModel updateModel) {

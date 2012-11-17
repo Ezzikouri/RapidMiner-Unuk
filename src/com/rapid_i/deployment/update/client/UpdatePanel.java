@@ -127,12 +127,7 @@ public class UpdatePanel extends JPanel {
 		@Override
 		public void update(Observable obs, Object arg) {
 			if (obs instanceof UpdateServerAccount) {
-				UpdateServerAccount account = (UpdateServerAccount)obs;
-				if (account.isLoggedIn()) {
-					model.update(true);
-				} else {
-					model.update(true);
-				}
+				model.update(true);
 			}
 		}
 	}

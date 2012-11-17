@@ -45,6 +45,7 @@ public class ProcessButtonBar extends ParentButtonPanel<Operator> {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				mainFrame.selectOperator(getSelectedNode());
+				mainFrame.addViewSwitchToUndo();
 			}
 		});
 	}

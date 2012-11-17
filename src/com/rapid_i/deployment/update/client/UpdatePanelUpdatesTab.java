@@ -58,7 +58,7 @@ public class UpdatePanelUpdatesTab extends UpdatePanelTab {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			updateModel.markAllPackages(model.getAllPackageNames(), model.getCache());
+			updateModel.markAllPackages(listModel.getAllPackageNames(), listModel.getCache());
 			getModel().updateView();
 			updateAllButton.setEnabled(false);
 		}
@@ -74,7 +74,7 @@ public class UpdatePanelUpdatesTab extends UpdatePanelTab {
 	}
 
 	protected JComponent makeBottomPanel() {
-		JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		panel.setMinimumSize(new Dimension(100,35));
 		panel.setPreferredSize(new Dimension(100,35));
 		panel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
@@ -82,7 +82,7 @@ public class UpdatePanelUpdatesTab extends UpdatePanelTab {
 		updateAllButton = new JButton(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.updates.update_all_button"));
 		updateAllButton.setIcon(SwingTools.createIcon("16/checks.png"));
 		updateAllButton.setEnabled(false);
-		model.addListDataListener(new ListDataListener(){
+		listModel.addListDataListener(new ListDataListener(){
 
 			@Override
 			public void intervalAdded(ListDataEvent e) {}
@@ -92,7 +92,7 @@ public class UpdatePanelUpdatesTab extends UpdatePanelTab {
 
 			@Override
 			public void contentsChanged(ListDataEvent e) {
-				if (model.getAllPackageNames().size() > 0) {
+				if (listModel.getAllPackageNames().size() > 0) {
 					updateAllButton.setEnabled(true);
 				} else {
 					updateAllButton.setEnabled(false);

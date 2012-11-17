@@ -522,6 +522,16 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             setRepeats(false);
         }
     };
+    
+    public void addViewSwitchToUndo() {
+    	String xmlWithoutGUIInformation = process.getRootOperator().getXML(true, false);
+    	if (lastProcessDisplayedOperatorChain != null && processPanel.getProcessRenderer().getDisplayedChain() != null &&
+        		!processPanel.getProcessRenderer().getDisplayedChain().getName().equals(lastProcessDisplayedOperatorChain.getName())) {
+        	addToUndoList(xmlWithoutGUIInformation, true);
+        }
+    	lastProcessXML = xmlWithoutGUIInformation;
+    	lastProcessDisplayedOperatorChain = processPanel.getProcessRenderer().getDisplayedChain();
+    }
 
     private void updateProcessNow() {
         lastUpdate = System.currentTimeMillis();
@@ -529,9 +539,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         if (!xmlWithoutGUIInformation.equals(lastProcessXML)) {
             addToUndoList(xmlWithoutGUIInformation, false);
             validateProcess(false);
-        } else if (processPanel.getProcessRenderer().getDisplayedChain() != lastProcessDisplayedOperatorChain) {
-        	// same xml but different view -> we switched subprocess views. Store as undo step
-        	addToUndoList(xmlWithoutGUIInformation, true);
         }
         processPanel.getProcessRenderer().repaint();
         lastProcessXML = xmlWithoutGUIInformation;
@@ -1285,6 +1292,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         } catch (Exception e) {
             SwingTools.showSimpleErrorMessage("while_changing_process", e);
         }
+        
+        lastProcessDisplayedOperatorChain = getProcessPanel().getProcessRenderer().getDisplayedChain();
+        lastProcessXML = process.getRootOperator().getXML(true, false);
     }
 
     /**
@@ -1342,6 +1352,13 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 // we return the process changed status.
                 return !isChanged();
             case ConfirmDialog.NO_OPTION:
+            	// ask for confirmation before stopping the currently running process
+            	if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING || 
+            			RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
+            		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+        				return false;
+        			}
+            	}
                 if (getProcessState() != Process.PROCESS_STATE_STOPPED) {
                     synchronized (processThread) {
                         processThread.stopProcess();
@@ -1372,6 +1389,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             updateRecentFileList();
             addToUndoList();
             changed = false;
+            SAVE_ACTION.setEnabled(false);
             setTitle();
             fireProcessLoaded();
 

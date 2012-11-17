@@ -748,7 +748,7 @@ public class RapidMiner {
 		isInitiated = true;
 	}
 	
-	public static boolean isInitiated() {
+	public static boolean isInitialized() {
 		return isInitiated;
 	}
 	

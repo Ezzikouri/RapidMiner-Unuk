@@ -85,7 +85,7 @@ public class UpdatePanelTab extends JPanel {
 	private static final int LIST_WIDTH = 330;
 	
 	protected UpdatePackagesModel updateModel;
-	protected AbstractPackageListModel model;
+	protected AbstractPackageListModel listModel;
 	UpdateServerAccount usAccount;
 	
 	private ExtendedHTMLJEditorPane displayPane;
@@ -120,15 +120,20 @@ public class UpdatePanelTab extends JPanel {
 				UpdatePackagesModel currentModel = (UpdatePackagesModel)o;
 				if (arg != null && arg instanceof PackageDescriptor) {
 					PackageDescriptor desc = (PackageDescriptor)arg;
-					PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
-					if (selectedDescriptor != null && desc.getPackageId().equals(selectedDescriptor.getPackageId())) {
-							this.setSelected(currentModel.isSelectedForInstallation(desc));
-							if (this.isSelected()) {
-								this.setIcon(SwingTools.createIcon("16/checkbox.png"));
-							} else {
-								this.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
-							}
+					Object selectedObject = getPackageList().getSelectedValue();
+					if (selectedObject instanceof PackageDescriptor) {
+						PackageDescriptor selectedDescriptor = (PackageDescriptor)selectedObject;
+						if (desc.getPackageId().equals(selectedDescriptor.getPackageId())) {
+								this.setSelected(currentModel.isSelectedForInstallation(desc));
+								if (this.isSelected()) {
+									this.setIcon(SwingTools.createIcon("16/checkbox.png"));
+								} else {
+									this.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+								}
+								
+						}
 					}
+					listModel.updateView(desc);
 				}
 			}
 		}
@@ -138,7 +143,7 @@ public class UpdatePanelTab extends JPanel {
 		super(new GridBagLayout());
 		
 		this.updateModel = updateModel;
-		this.model = model;
+		this.listModel = model;
 		this.usAccount = usAccount;
 		this.usAccount.addObserver(new Observer() {
 			@Override
@@ -324,7 +329,7 @@ public class UpdatePanelTab extends JPanel {
 	}
 
 	private JList createUpdateList() {
-		JList updateList = new JList(model);
+		JList updateList = new JList(listModel);
 		updateList.addListSelectionListener(new ListSelectionListener() {
 
 			@Override
@@ -356,15 +361,15 @@ public class UpdatePanelTab extends JPanel {
 	}
 
 	public void selectNotify() {		
-		if (model instanceof BookmarksPackageListModel || model instanceof LicencedPackageListModel) {
+		if (listModel instanceof BookmarksPackageListModel || listModel instanceof LicencedPackageListModel) {
 			usAccount.login(updateModel);
 		}
-		model.update();		
+		listModel.update();		
 	}
 
 	
 	public AbstractPackageListModel getModel() {
-		return model;
+		return listModel;
 	}
 	
 	private void setDefaultDescription() {
@@ -408,7 +413,7 @@ public class UpdatePanelTab extends JPanel {
 				
 			HTMLDocument doc = new HTMLDocument(css);
 			displayPane.setDocument(doc);
-			displayPane.setText(updateModel.toString(desc, model.getChanges(desc.getPackageId())));
+			displayPane.setText(updateModel.toString(desc, listModel.getChanges(desc.getPackageId())));
 			
 			displayPane.setCaretPosition(0);
 

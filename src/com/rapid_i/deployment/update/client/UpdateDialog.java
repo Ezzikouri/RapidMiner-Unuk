@@ -122,7 +122,7 @@ public class UpdateDialog extends ButtonDialog {
 				public void actionPerformed(ActionEvent e) {
 					UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
 					if (account.isLoggedIn()) {
-						account.logout();
+						account.logout(updateModel);
 					} else {
 						account.login(updateModel);
 					}

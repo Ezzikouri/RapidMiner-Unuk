@@ -300,10 +300,12 @@ public class RepositoryLocationChooser extends JPanel {
 	}
 	
 	public void setResolveRelative(boolean resolveRelative) {
-		if (!resolveRelative && resolveBox.isSelected()) {
-			resolveBox.doClick();
-		} else if (resolveRelative && !resolveBox.isSelected()) {
-			resolveBox.doClick();
+		if (resolveBox != null) {
+			if (!resolveRelative && resolveBox.isSelected()) {
+				resolveBox.doClick();
+			} else if (resolveRelative && !resolveBox.isSelected()) {
+				resolveBox.doClick();
+			}
 		}
 	}
 
