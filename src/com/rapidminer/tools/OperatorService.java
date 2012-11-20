@@ -171,7 +171,7 @@ public class OperatorService {
                         }
                     } else {
                         //LogService.getRoot().severe("Cannot find operator description file '" + additionalOperatorFileName + "'");
-                    	LogService.getRoot().log(Level.SEVERE, "com.rapidminer.tools.OperatorService.operator_descripton_file_not_found", additionalOperatorFileName);
+                    	LogService.getRoot().log(Level.SEVERE, "com.rapidminer.tools.OperatorService.operator_description_file_not_found", additionalOperatorFileName);
                     }
                 }
             }
@@ -231,7 +231,7 @@ public class OperatorService {
         } catch (Exception e) {
             LogService.getRoot().log(Level.SEVERE,
             		I18N.getMessage(LogService.getRoot().getResourceBundle(),
-            		"com.rapidminer.tools.OperatorService.operator_descripton_file_reading_error",
+            		"com.rapidminer.tools.OperatorService.operator_description_file_reading_error",
             		name, e.getMessage()),
             		e);
             return;
@@ -320,14 +320,14 @@ public class OperatorService {
                         //LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                         LogService.getRoot().log(Level.WARNING,
                         		I18N.getMessage(LogService.getRoot().getResourceBundle(),
-                        		"com.rapidminer.tools.OperatorService.operator_registring_error",
+                        		"com.rapidminer.tools.OperatorService.operator_registering_error",
                         		extensionId, XMLTools.getTagContents(childElement, "key", false)), 
                         		e);
                     } catch (AbstractMethodError e) {
                         //LogService.getRoot().log(Level.WARNING, "Failed to register operator: " + extensionId + ":" + XMLTools.getTagContents(childElement, "key", false), e);
                         LogService.getRoot().log(Level.WARNING,
                         		I18N.getMessage(LogService.getRoot().getResourceBundle(),
-                        		"com.rapidminer.tools.OperatorService.operator_registring_error",
+                        		"com.rapidminer.tools.OperatorService.operator_registering_error",
                         		extensionId, XMLTools.getTagContents(childElement, "key", false)), 
                         		e);
                     } catch (Throwable e) {
