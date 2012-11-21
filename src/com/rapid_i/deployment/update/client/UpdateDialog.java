@@ -247,7 +247,7 @@ public class UpdateDialog extends ButtonDialog {
 					for (PackageDescriptor desc : downloadList) {
 						String license = licenses.get(desc.getLicenseName());
 						if (license == null) {
-							license = service.getLicenseText(desc.getLicenseName());
+							license = service.getLicenseTextHtml(desc.getLicenseName());
 							licenses.put(desc.getLicenseName(), license);
 						}
 					}

@@ -173,6 +173,20 @@ public interface UpdateService {
 
     /**
      * 
+     * @param licenseName
+     * @return
+     *     returns java.lang.String
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getLicenseTextHtml", targetNamespace = "http://ws.update.deployment.rapid_i.com/", className = "com.rapidminer.deployment.client.wsimport.GetLicenseTextHtml")
+    @ResponseWrapper(localName = "getLicenseTextHtmlResponse", targetNamespace = "http://ws.update.deployment.rapid_i.com/", className = "com.rapidminer.deployment.client.wsimport.GetLicenseTextHtmlResponse")
+    public String getLicenseTextHtml(
+        @WebParam(name = "licenseName", targetNamespace = "")
+        String licenseName);
+
+    /**
+     * 
      * @return
      *     returns java.util.List<java.lang.String>
      */

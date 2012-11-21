@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
 import java.awt.Window;
@@ -41,8 +42,9 @@ import com.rapidminer.operator.OperatorChain;
  */
 
 public class AddOperatorStep extends Step {
-	
-	public interface AddOperatorStepListener{
+
+	public interface AddOperatorStepListener {
+
 		public void operatorAvailable(Operator op);
 	}
 
@@ -52,17 +54,27 @@ public class AddOperatorStep extends Step {
 	private Class type;
 	private String targetDockKey;
 	private Operator operator = null;
+	private boolean checkForChain = true;
 	private Class<? extends OperatorChain> targetEnclosingOperatorChain = OperatorChain.class;
-	private List<AddOperatorStepListener> listeners = new LinkedList <AddOperatorStepListener>();
-	
-	public AddOperatorStep(Alignment alignment, Window owner, String i18nKey, Class <? extends Operator> type, String targetDockKey){
+	private List<AddOperatorStepListener> listeners = new LinkedList<AddOperatorStepListener>();
+
+	public AddOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> type, String targetDockKey) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.type = type;
 		this.targetDockKey = targetDockKey;
 	}
-	
+
+	public AddOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> type, String targetDockKey, boolean checkForEnclosingOperatorChain) {
+		this.alignment = alignment;
+		this.owner = owner;
+		this.i18nKey = i18nKey;
+		this.type = type;
+		this.targetDockKey = targetDockKey;
+		this.checkForChain = checkForEnclosingOperatorChain;
+	}
+
 	public AddOperatorStep(String i18nKey, Alignment alignment, Window owner, Class type, String targetDockKey, Class<? extends OperatorChain> targetEnclosingOperatorChain) {
 		this.i18nKey = i18nKey;
 		this.alignment = alignment;
@@ -74,57 +86,68 @@ public class AddOperatorStep extends Step {
 
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.positionRelativeToDockable(targetDockKey));
+		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.getDockableByKey(targetDockKey));
 		ProcessSetupListener l = new ProcessSetupListener() {
-			
+
 			@Override
-			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
-			}
-			
+			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {}
+
 			@Override
 			public void operatorChanged(Operator operator) {
-			}
-			
-			@Override
-			public void operatorAdded(Operator operator) {
-				if (type.isInstance(operator)){
-					if (targetEnclosingOperatorChain.isInstance(operator.getExecutionUnit().getEnclosingOperator()) || targetEnclosingOperatorChain == null){
-						bubble.triggerFire();
-						RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
-						AddOperatorStep.this.operator = operator;
-						List<AddOperatorStepListener> cache = new LinkedList<AddOperatorStepListener>(listeners);
-						for (AddOperatorStepListener l : cache){
-							l.operatorAvailable(operator);
+				if (type.isInstance(operator)) {
+					if (checkForChain) {
+						if ((targetEnclosingOperatorChain == null || targetEnclosingOperatorChain.isInstance(operator.getExecutionUnit().getEnclosingOperator())) && (operator.getOutputPorts().getNumberOfConnectedPorts() != 0)) {
+
+							bubble.triggerFire();
+							RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
+							AddOperatorStep.this.operator = operator;
+							List<AddOperatorStepListener> cache = new LinkedList<AddOperatorStepListener>(listeners);
+							for (AddOperatorStepListener listener : cache) {
+								listener.operatorAvailable(operator);
+							}
+						}
+					} else {
+						if (operator.getOutputPorts().getNumberOfConnectedPorts() != 0) {
+
+							bubble.triggerFire();
+							RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
+							AddOperatorStep.this.operator = operator;
+							List<AddOperatorStepListener> cache = new LinkedList<AddOperatorStepListener>(listeners);
+							for (AddOperatorStepListener listener : cache) {
+								listener.operatorAvailable(operator);
+							}
 						}
 					}
 				}
 			}
-			
+
 			@Override
-			public void executionOrderChanged(ExecutionUnit unit) {
-			}
+			public void operatorAdded(Operator operator) {}
+
+			@Override
+			public void executionOrderChanged(ExecutionUnit unit) {}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(l);
 		return bubble;
 	}
-	
-	public Operator getOperator(){
+
+	public Operator getOperator() {
 		return this.operator;
 	}
-	
+
 	public Class<? extends OperatorChain> getTargetEnclosingOperatorChain() {
 		return targetEnclosingOperatorChain;
 	}
 
-	
 	public void setTargetEnclosingOperatorChain(Class<? extends OperatorChain> targetEnclosingOperatorChain) {
 		this.targetEnclosingOperatorChain = targetEnclosingOperatorChain;
 	}
-	
-	public void addListener(AddOperatorStepListener l){
+
+	public void addListener(AddOperatorStepListener l) {
 		listeners.add(l);
 	}
-	public void removeListener(AddOperatorStepListener l){
+
+	public void removeListener(AddOperatorStepListener l) {
 		listeners.remove(l);
 	}
 }

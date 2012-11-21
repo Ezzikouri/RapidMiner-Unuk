@@ -61,7 +61,7 @@ public class ChangeParameterStep extends OperatorStep {
 
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.positionRelativeToDockable(targetDockKey));
+		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.getDockableByKey(targetDockKey));
 		ProcessSetupListener l = new ProcessSetupListener() {
 			
 			@Override

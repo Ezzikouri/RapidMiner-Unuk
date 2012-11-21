@@ -26,6 +26,8 @@ package com.rapidminer.gui.tour;
 import java.awt.Component;
 import java.awt.Window;
 
+import javax.swing.AbstractButton;
+
 import com.rapidminer.Process;
 import com.rapidminer.ProcessStorageListener;
 import com.rapidminer.gui.RapidMinerGUI;
@@ -45,15 +47,9 @@ public class OpenProcessStep extends Step {
 	private String i18nKey;
 	private Component attachTo;
 	private String attachToKey;
+	private ProcessStorageListener storageListener;
 
-//	public OpenProcessStep(Alignment alignment, Window owner, String i18nKey) {
-//		this.alignment = alignment;
-//		this.owner = owner;
-//		this.i18nKey = i18nKey;
-//		this.attachTo = null;
-//		this.attachToKey = "open";
-//	}
-
+	
 	public OpenProcessStep(Alignment alignment, Window owner, String i18nKey, Component attachTo) {
 		this.alignment = alignment;
 		this.owner = owner;
@@ -74,25 +70,22 @@ public class OpenProcessStep extends Step {
 	BubbleWindow createBubble() {
 		if (attachTo == null) {
 			if (attachToKey == null)
-				throw new IllegalArgumentException("attach to Key is empty or null");
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey);
+				throw new IllegalArgumentException("no component to attach !");
+			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey, false);
 		} else {
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
+			bubble = new BubbleWindow(owner, alignment, i18nKey,(AbstractButton) attachTo, false);
 		}
-		RapidMinerGUI.getMainFrame().addProcessStorageListener(new ProcessStorageListener() {
+		storageListener = new ProcessStorageListener() {
+			@Override
+			public void stored(Process process) { }
 
 			@Override
-			public void stored(Process process) {
-
-			}
-
-			@Override
-			public void opened(Process process) {
+			public void opened(Process process) {				
 				bubble.triggerFire();
-				RapidMinerGUI.getMainFrame().removeProcessStorageListener(this);
+				RapidMinerGUI.getMainFrame().removeProcessStorageListener(storageListener);
 			}
-		});
+		};
+		RapidMinerGUI.getMainFrame().addProcessStorageListener(storageListener);
 		return bubble;
 	}
-
 }

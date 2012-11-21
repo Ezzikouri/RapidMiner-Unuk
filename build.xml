@@ -1005,6 +1005,20 @@
 </exec>
 </target>
 
+<target name="wsimport.marketplace">
+    <exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapidminer.deployment.client.wsimport" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/UpdateServer/UpdateServiceService?wsdl" />
+</exec>
+    
+</target>
 <target name="signJars" depends="createJar" description="Don't forget to add jarsign.alias and jarsign.storepass to the file server.properties">
 <signjar lazy="true" alias="${jarsign.alias}" storepass="${jarsign.storepass}">
 <path>

@@ -39,13 +39,13 @@ public class ParameterTypeStringCategory extends ParameterTypeSingle {
 
     private static final long serialVersionUID = 1620216625117563601L;
 
-    private static final String ELEMENT_DEFAULT = "default";
+    protected static final String ELEMENT_DEFAULT = "default";
 
-    private static final String ELEMENT_VALUES = "Values";
+    protected static final String ELEMENT_VALUES = "Values";
 
-    private static final String ELEMENT_VALUE = "Value";
+    protected static final String ELEMENT_VALUE = "Value";
 
-    private static final String ATTRIBUTE_IS_EDITABLE = "is-editable";
+    protected static final String ATTRIBUTE_IS_EDITABLE = "is-editable";
 
 
     private String defaultValue = null;

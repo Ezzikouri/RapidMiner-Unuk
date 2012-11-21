@@ -20,53 +20,86 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.tour;
 
-/**
+
+/** A tour consisting of multiple {@link Step}s explaining the usage of RapidMiner
+ *  or an Extension.
+ *  
+ *   Implementations of tour must implement a default (no-arg) constructor since
+ *   they are created reflectively.
+ * 
+ * 
  * @author Thilo Kamradt
  *
  */
 public abstract class IntroductoryTour {
 
-	final int maxSteps;
+	private int maxSteps;
 
 	protected Step[] sights;
-	
+
 	protected int startSight;
 
-	public IntroductoryTour(int max, String tourName) {
-		this.maxSteps = max+1;
-		sights = new Step[maxSteps];
-		sights[max] = new FinalStep("complete_Tour", tourName);
-	}
+	protected String tourKey;
 	
-	public IntroductoryTour(int max, String tourName, boolean AddComppleteWindow) {
-		if(AddComppleteWindow) {
-			this.maxSteps = max+1;
-			sights = new Step[maxSteps];
-			sights[max] = new FinalStep("complete_Tour", tourName);
-			} else {
-				this.maxSteps = max;
-				sights = new Step[maxSteps];
-			}
+	protected boolean completeWindow;
+	
+	public IntroductoryTour(int max, String tourName) {
+		this(max, tourName, true);
 	}
 
-	public void startTour(int startPoint){
-		if (startPoint <= maxSteps) {
-			sights[startPoint].start();
+	public IntroductoryTour(int max, String tourName, boolean addComppleteWindow) {
+		this.tourKey = tourName;
+		this.maxSteps = max;
+		this.completeWindow = addComppleteWindow;
+	}
+
+	protected void init() {
+		if (completeWindow) {
+			this.maxSteps = maxSteps + 1;
+			sights = new Step[maxSteps];
+			sights[maxSteps-1] = new FinalStep("complete_Tour", tourKey);
 		} else {
-			sights[0].start();
+			sights = new Step[maxSteps];
 		}
+	}
+	
+	public void startTour() {
+		init();
+		start();
+		placeListener();
+		placeFollowers();
+		sights[0].start();
+	}
+	
+	
+	protected abstract void start();
+
+	/**
+	 * ensure that the operatorlisteners will listen to the right operator
+	 */
+	protected void placeListener() {
+		
+	}
+	
+	/**
+	 * method to get the key of the tour
+	 * @return String with key of the tour
+	 */
+	public String getKey() {
+		return tourKey;
 	}
 	
 	/**
 	 * method to connect the single Steps
 	 */
 	protected void placeFollowers() {
-		for(int i = 0;i<(sights.length-1);i++){
-			sights[i].setNext(sights[i+1]);
+		for (int i = 0; i < (sights.length - 1); i++) {
+			sights[i].setNext(sights[i + 1]);
 		}
-		
+		sights[maxSteps - 1].setIsFinalStep(true);
+		sights[maxSteps - 1].setTourKey(tourKey);
+
 	}
 }

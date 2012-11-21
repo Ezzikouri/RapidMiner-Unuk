@@ -22,6 +22,8 @@
  */
 package com.rapidminer.gui.tour;
 
+import javax.swing.SwingUtilities;
+
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.BubbleListener;
 
@@ -36,6 +38,8 @@ public abstract class Step {
 	
 	Step next;
 	BubbleWindow bubble;
+	protected String tourkey = "";
+	protected boolean finalStep = false;
 	
 	abstract BubbleWindow createBubble();
 	
@@ -54,13 +58,28 @@ public abstract class Step {
 			@Override
 			public void bubbleClosed(BubbleWindow bw) {
 				bw.removeBubbleListener(this);
-				//TODO: store current index and key to restart here
+				stepCanceled();
+				if(Step.this.isFinal()){
+					Step.this.writeCompleteToFile();
+				}
 			}
 			
 			@Override
 			public void actionPerformed(BubbleWindow bw) {
 				if (next!=null){
-					next.start();
+					new Thread() {
+						public void run() {
+							SwingUtilities.invokeLater(new Runnable() {
+								@Override
+								public void run() {
+									next.start();
+									if(next.isFinal()) {
+										next.writeCompleteToFile();
+									}
+								}
+							});
+						};
+					}.start();
 				}
 				bw.removeBubbleListener(this);
 			}
@@ -74,4 +93,24 @@ public abstract class Step {
 	public void removeBubbleListener(BubbleListener l){
 		bubble.removeBubbleListener(l);
 	}
+	
+	public void setTourKey(String key) {
+		tourkey=key;
+	}
+	
+	public void setIsFinalStep(boolean isFinal) {
+		finalStep = isFinal;
+	}
+	
+	public boolean isFinal() {
+		return finalStep;
+	}
+
+	public void writeCompleteToFile() {
+		TourManager tm = TourManager.getInstance();
+		tm.setTourState(tourkey, TourState.COMPLETED);
+	}
+	
+	/** Can be overridden by subclasses. */
+	protected void stepCanceled() {}
 }

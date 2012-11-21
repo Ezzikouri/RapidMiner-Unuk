@@ -47,7 +47,7 @@ public class RemoveBreakpointStep extends OperatorStep {
 	Component attachTo;
 	
 
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Component attachTo) {
+	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Component attachTo, Position position) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
@@ -55,7 +55,7 @@ public class RemoveBreakpointStep extends OperatorStep {
 		this.attachTo = attachTo;
 	}
 	
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String attachToKey) {
+	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String attachToKey, Position position) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
@@ -64,7 +64,7 @@ public class RemoveBreakpointStep extends OperatorStep {
 	}
 	
 	/** the Breakpoint after will be chosen as default*/
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator) {
+	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;

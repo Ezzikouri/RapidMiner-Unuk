@@ -37,6 +37,7 @@ public class ObjectFactory {
     private final static QName _AnyUpdatesSinceResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "anyUpdatesSinceResponse");
     private final static QName _GetRapidMinerExtensionForOperatorPrefix_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getRapidMinerExtensionForOperatorPrefix");
     private final static QName _GetPackageInfoResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getPackageInfoResponse");
+    private final static QName _GetLicenseTextHtml_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLicenseTextHtml");
     private final static QName _GetLicenseText_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLicenseText");
     private final static QName _GetMirrorsResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getMirrorsResponse");
     private final static QName _GetTopDownloads_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getTopDownloads");
@@ -51,108 +52,13 @@ public class ObjectFactory {
     private final static QName _GetPackageInfo_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getPackageInfo");
     private final static QName _GetLicenseTextResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLicenseTextResponse");
     private final static QName _GetMessageOfTheDay_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getMessageOfTheDay");
+    private final static QName _GetLicenseTextHtmlResponse_QNAME = new QName("http://ws.update.deployment.rapid_i.com/", "getLicenseTextHtmlResponse");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.rapidminer.deployment.client.wsimport
      * 
      */
     public ObjectFactory() {
-    }
-
-    /**
-     * Create an instance of {@link GetMirrors }
-     * 
-     */
-    public GetMirrors createGetMirrors() {
-        return new GetMirrors();
-    }
-
-    /**
-     * Create an instance of {@link GetTopDownloads }
-     * 
-     */
-    public GetTopDownloads createGetTopDownloads() {
-        return new GetTopDownloads();
-    }
-
-    /**
-     * Create an instance of {@link GetTopDownloadsResponse }
-     * 
-     */
-    public GetTopDownloadsResponse createGetTopDownloadsResponse() {
-        return new GetTopDownloadsResponse();
-    }
-
-    /**
-     * Create an instance of {@link SearchForResponse }
-     * 
-     */
-    public SearchForResponse createSearchForResponse() {
-        return new SearchForResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetPackageInfoResponse }
-     * 
-     */
-    public GetPackageInfoResponse createGetPackageInfoResponse() {
-        return new GetPackageInfoResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetMirrorsResponse }
-     * 
-     */
-    public GetMirrorsResponse createGetMirrorsResponse() {
-        return new GetMirrorsResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetTopRated }
-     * 
-     */
-    public GetTopRated createGetTopRated() {
-        return new GetTopRated();
-    }
-
-    /**
-     * Create an instance of {@link AnyUpdatesSince }
-     * 
-     */
-    public AnyUpdatesSince createAnyUpdatesSince() {
-        return new AnyUpdatesSince();
-    }
-
-    /**
-     * Create an instance of {@link SearchFor }
-     * 
-     */
-    public SearchFor createSearchFor() {
-        return new SearchFor();
-    }
-
-    /**
-     * Create an instance of {@link GetTopRatedResponse }
-     * 
-     */
-    public GetTopRatedResponse createGetTopRatedResponse() {
-        return new GetTopRatedResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetLicenseText }
-     * 
-     */
-    public GetLicenseText createGetLicenseText() {
-        return new GetLicenseText();
-    }
-
-    /**
-     * Create an instance of {@link GetPackageInfo }
-     * 
-     */
-    public GetPackageInfo createGetPackageInfo() {
-        return new GetPackageInfo();
     }
 
     /**
@@ -164,43 +70,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetDownloadURLResponse }
+     * Create an instance of {@link SearchFor }
      * 
      */
-    public GetDownloadURLResponse createGetDownloadURLResponse() {
-        return new GetDownloadURLResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetRapidMinerExtensionForOperatorPrefix }
-     * 
-     */
-    public GetRapidMinerExtensionForOperatorPrefix createGetRapidMinerExtensionForOperatorPrefix() {
-        return new GetRapidMinerExtensionForOperatorPrefix();
-    }
-
-    /**
-     * Create an instance of {@link GetExtensionsResponse }
-     * 
-     */
-    public GetExtensionsResponse createGetExtensionsResponse() {
-        return new GetExtensionsResponse();
-    }
-
-    /**
-     * Create an instance of {@link UpdateServiceException }
-     * 
-     */
-    public UpdateServiceException createUpdateServiceException() {
-        return new UpdateServiceException();
-    }
-
-    /**
-     * Create an instance of {@link GetLatestVersionResponse }
-     * 
-     */
-    public GetLatestVersionResponse createGetLatestVersionResponse() {
-        return new GetLatestVersionResponse();
+    public SearchFor createSearchFor() {
+        return new SearchFor();
     }
 
     /**
@@ -212,11 +86,171 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link GetTopRatedResponse }
+     * 
+     */
+    public GetTopRatedResponse createGetTopRatedResponse() {
+        return new GetTopRatedResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetMessageOfTheDayResponse }
+     * 
+     */
+    public GetMessageOfTheDayResponse createGetMessageOfTheDayResponse() {
+        return new GetMessageOfTheDayResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetRapidMinerExtensionForOperatorPrefix }
+     * 
+     */
+    public GetRapidMinerExtensionForOperatorPrefix createGetRapidMinerExtensionForOperatorPrefix() {
+        return new GetRapidMinerExtensionForOperatorPrefix();
+    }
+
+    /**
+     * Create an instance of {@link GetTopRated }
+     * 
+     */
+    public GetTopRated createGetTopRated() {
+        return new GetTopRated();
+    }
+
+    /**
+     * Create an instance of {@link GetPackageInfo }
+     * 
+     */
+    public GetPackageInfo createGetPackageInfo() {
+        return new GetPackageInfo();
+    }
+
+    /**
+     * Create an instance of {@link GetDownloadURLResponse }
+     * 
+     */
+    public GetDownloadURLResponse createGetDownloadURLResponse() {
+        return new GetDownloadURLResponse();
+    }
+
+    /**
+     * Create an instance of {@link AnyUpdatesSince }
+     * 
+     */
+    public AnyUpdatesSince createAnyUpdatesSince() {
+        return new AnyUpdatesSince();
+    }
+
+    /**
+     * Create an instance of {@link GetLicenseTextResponse }
+     * 
+     */
+    public GetLicenseTextResponse createGetLicenseTextResponse() {
+        return new GetLicenseTextResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetTopDownloadsResponse }
+     * 
+     */
+    public GetTopDownloadsResponse createGetTopDownloadsResponse() {
+        return new GetTopDownloadsResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetLicenseTextHtmlResponse }
+     * 
+     */
+    public GetLicenseTextHtmlResponse createGetLicenseTextHtmlResponse() {
+        return new GetLicenseTextHtmlResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetMirrorsResponse }
+     * 
+     */
+    public GetMirrorsResponse createGetMirrorsResponse() {
+        return new GetMirrorsResponse();
+    }
+
+    /**
+     * Create an instance of {@link GetLicenseTextHtml }
+     * 
+     */
+    public GetLicenseTextHtml createGetLicenseTextHtml() {
+        return new GetLicenseTextHtml();
+    }
+
+    /**
      * Create an instance of {@link GetExtensions }
      * 
      */
     public GetExtensions createGetExtensions() {
         return new GetExtensions();
+    }
+
+    /**
+     * Create an instance of {@link GetLatestVersionResponse }
+     * 
+     */
+    public GetLatestVersionResponse createGetLatestVersionResponse() {
+        return new GetLatestVersionResponse();
+    }
+
+    /**
+     * Create an instance of {@link PackageDescriptor }
+     * 
+     */
+    public PackageDescriptor createPackageDescriptor() {
+        return new PackageDescriptor();
+    }
+
+    /**
+     * Create an instance of {@link GetTopDownloads }
+     * 
+     */
+    public GetTopDownloads createGetTopDownloads() {
+        return new GetTopDownloads();
+    }
+
+    /**
+     * Create an instance of {@link GetLatestVersion }
+     * 
+     */
+    public GetLatestVersion createGetLatestVersion() {
+        return new GetLatestVersion();
+    }
+
+    /**
+     * Create an instance of {@link GetRapidMinerExtensionForOperatorPrefixResponse }
+     * 
+     */
+    public GetRapidMinerExtensionForOperatorPrefixResponse createGetRapidMinerExtensionForOperatorPrefixResponse() {
+        return new GetRapidMinerExtensionForOperatorPrefixResponse();
+    }
+
+    /**
+     * Create an instance of {@link UpdateServiceException }
+     * 
+     */
+    public UpdateServiceException createUpdateServiceException() {
+        return new UpdateServiceException();
+    }
+
+    /**
+     * Create an instance of {@link SearchForResponse }
+     * 
+     */
+    public SearchForResponse createSearchForResponse() {
+        return new SearchForResponse();
+    }
+
+    /**
+     * Create an instance of {@link AnyUpdatesSinceResponse }
+     * 
+     */
+    public AnyUpdatesSinceResponse createAnyUpdatesSinceResponse() {
+        return new AnyUpdatesSinceResponse();
     }
 
     /**
@@ -236,51 +270,35 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GetRapidMinerExtensionForOperatorPrefixResponse }
+     * Create an instance of {@link GetExtensionsResponse }
      * 
      */
-    public GetRapidMinerExtensionForOperatorPrefixResponse createGetRapidMinerExtensionForOperatorPrefixResponse() {
-        return new GetRapidMinerExtensionForOperatorPrefixResponse();
+    public GetExtensionsResponse createGetExtensionsResponse() {
+        return new GetExtensionsResponse();
     }
 
     /**
-     * Create an instance of {@link AnyUpdatesSinceResponse }
+     * Create an instance of {@link GetMirrors }
      * 
      */
-    public AnyUpdatesSinceResponse createAnyUpdatesSinceResponse() {
-        return new AnyUpdatesSinceResponse();
+    public GetMirrors createGetMirrors() {
+        return new GetMirrors();
     }
 
     /**
-     * Create an instance of {@link GetLatestVersion }
+     * Create an instance of {@link GetLicenseText }
      * 
      */
-    public GetLatestVersion createGetLatestVersion() {
-        return new GetLatestVersion();
+    public GetLicenseText createGetLicenseText() {
+        return new GetLicenseText();
     }
 
     /**
-     * Create an instance of {@link PackageDescriptor }
+     * Create an instance of {@link GetPackageInfoResponse }
      * 
      */
-    public PackageDescriptor createPackageDescriptor() {
-        return new PackageDescriptor();
-    }
-
-    /**
-     * Create an instance of {@link GetLicenseTextResponse }
-     * 
-     */
-    public GetLicenseTextResponse createGetLicenseTextResponse() {
-        return new GetLicenseTextResponse();
-    }
-
-    /**
-     * Create an instance of {@link GetMessageOfTheDayResponse }
-     * 
-     */
-    public GetMessageOfTheDayResponse createGetMessageOfTheDayResponse() {
-        return new GetMessageOfTheDayResponse();
+    public GetPackageInfoResponse createGetPackageInfoResponse() {
+        return new GetPackageInfoResponse();
     }
 
     /**
@@ -398,6 +416,15 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getPackageInfoResponse")
     public JAXBElement<GetPackageInfoResponse> createGetPackageInfoResponse(GetPackageInfoResponse value) {
         return new JAXBElement<GetPackageInfoResponse>(_GetPackageInfoResponse_QNAME, GetPackageInfoResponse.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetLicenseTextHtml }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getLicenseTextHtml")
+    public JAXBElement<GetLicenseTextHtml> createGetLicenseTextHtml(GetLicenseTextHtml value) {
+        return new JAXBElement<GetLicenseTextHtml>(_GetLicenseTextHtml_QNAME, GetLicenseTextHtml.class, null, value);
     }
 
     /**
@@ -524,6 +551,15 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getMessageOfTheDay")
     public JAXBElement<GetMessageOfTheDay> createGetMessageOfTheDay(GetMessageOfTheDay value) {
         return new JAXBElement<GetMessageOfTheDay>(_GetMessageOfTheDay_QNAME, GetMessageOfTheDay.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetLicenseTextHtmlResponse }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://ws.update.deployment.rapid_i.com/", name = "getLicenseTextHtmlResponse")
+    public JAXBElement<GetLicenseTextHtmlResponse> createGetLicenseTextHtmlResponse(GetLicenseTextHtmlResponse value) {
+        return new JAXBElement<GetLicenseTextHtmlResponse>(_GetLicenseTextHtmlResponse_QNAME, GetLicenseTextHtmlResponse.class, null, value);
     }
 
 }

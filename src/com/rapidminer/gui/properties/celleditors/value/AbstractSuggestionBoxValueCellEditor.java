@@ -140,7 +140,7 @@ public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellE
 		this.operator = operator;
 	}
 
-	class SuggestionComboBoxModelCellRenderer extends DefaultListCellRenderer {
+	public class SuggestionComboBoxModelCellRenderer extends DefaultListCellRenderer {
 
 		private static final long serialVersionUID = 1L;
 

@@ -1,5 +1,5 @@
 <project name="buildExtension" xmlns:ac="antlib:net.sf.antcontrib">
-	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar"/>
+	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar" />
 	<property file="build.properties" />
 
 	<property name="extension.updateServerId" value="rmx_${extension.namespace}" />
@@ -27,16 +27,16 @@
 	<!-- Update and release server properties -->
 	<property file="${rm.dir}/server.properties" />
 	<property file="${rm.dir}/local-build.properties" />
-	
+
 	<!-- Location of changes files -->
-	<property name="changes.dir" location="changes" />	
-	
+	<property name="changes.dir" location="changes" />
+
 	<condition property="build.compiletime" value="">
-	   <not>  
-	      <isset property="build.compiletime"/>
-	   </not>
+		<not>
+			<isset property="build.compiletime" />
+		</not>
 	</condition>
-	
+
 	<!-- Class Paths -->
 	<path id="build.libraries">
 		<fileset dir="${build.compiletime}">
@@ -88,7 +88,7 @@
 
 		<!-- FOR Tasks -->
 		<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar" />
-		
+
 		<!-- SCP Tasks -->
 		<copy file="ant/jsch-0.1.42.jar" todir="${ant.library.dir}" failonerror="false" />
 		<!-- Building properties here, because they depend on version number -->
@@ -160,45 +160,42 @@
 		<property name="lock.isBuilt" value="true" />
 	</target>
 
-	<target name="build.dependencies.prepare" description="If the fileset with id build.dependentExtension is defined, it is copied into the union build.dependentExtensions.actual, otherwise an empty union with that id is created. Necessary to prevent build.dependent from failing for (3rdparty) extensions which do not specify the fileset with their dependencies.">
-		<trycatch>
-			<try>
-				<union id="build.dependentExtensions.actual">
-					<fileset refid="build.dependentExtensions" />
-				</union>
-
-				<pathconvert pathsep="${line.separator}" property="echo.path.compile" refid="build.dependentExtensions">
-				</pathconvert>
-				<echo message="Dependencies of ${extension.name}:" />
-				<echo>${echo.path.compile}</echo>
-
-			</try>
-			<catch>
-				<echo message="No dependencies defined for ${extension.name}." />
-				<union id="build.dependentExtensions.actual">
-					<fileset dir=".">
-						<exclude name="**/*" />
-					</fileset>
-				</union>
-			</catch>
-		</trycatch>
+	<target name="build.dependencies.prepare.unset" description="If the fileset with id build.dependentExtension is defined, it is copied into the union build.dependentExtensions.actual, otherwise an empty union with that id is created. Necessary to prevent build.dependent from failing for (3rdparty) extensions which do not specify the fileset with their dependencies." unless="build.dependentExtensions">
+		<echo message="No dependencies defined for ${extension.name}." />
+		<union id="build.dependentExtensions.actual">
+			<fileset dir=".">
+				<exclude name="**/*" />
+			</fileset>
+		</union>
 	</target>
 
-	<target name="build.dependencies" depends="build.dependencies.prepare" description="Builds dependencies defined in the fileset build.dependentExtensions (yes, the id is semantically incorrect). That fileset contains the build.xml files of the dependencies.">
+
+	<target name="build.dependencies.prepare.set" description="If the fileset with id build.dependentExtension is defined, it is copied into the union build.dependentExtensions.actual, otherwise an empty union with that id is created. Necessary to prevent build.dependent from failing for (3rdparty) extensions which do not specify the fileset with their dependencies." if="build.dependentExtensions">
+		<echo message="Searching for dependencies for ${extension.name}..." />
+		<union id="build.dependentExtensions.actual">
+			<fileset refid="build.dependentExtensions" />
+		</union>
+
+		<pathconvert pathsep="${line.separator}" property="echo.path.compile" refid="build.dependentExtensions" />
+		<echo message="Dependencies of ${extension.name}:" />
+		<echo>${echo.path.compile}</echo>
+	</target>
+
+	<target name="build.dependencies" depends="build.dependencies.prepare.set, build.dependencies.prepare.unset" description="Builds dependencies defined in the fileset build.dependentExtensions (yes, the id is semantically incorrect). That fileset contains the build.xml files of the dependencies.">
 		<!-- building all dependend plugins-->
 		<echo message="Building plugin dependencies of ${extension.name}..." />
 		<!--<subant target="install" verbose="true" inheritall="false">
 			<union refid="build.dependentExtensions.actual" />
 		</subant>-->
 
-		<for param="buildfile">
+		<ac:for param="buildfile">
 			<path>
 				<union refid="build.dependentExtensions.actual" />
 			</path>
-			<sequential>
+			<ac:sequential>
 				<ant antfile="@{buildfile}" target="install" inheritall="false" useNativeBasedir="true" />
-			</sequential>
-		</for>
+			</ac:sequential>
+		</ac:for>
 
 		<echo message="...Finished" />
 	</target>
@@ -402,19 +399,19 @@ Name "${extension.name.long}"
 	</target>
 
 	<target name="changes.testExistence">
-		<available file="${changes.dir}" property="changes.exist"/>
+		<available file="${changes.dir}" property="changes.exist" />
 	</target>
-	
+
 	<!-- Upload current changes.txt to corresponding marketplace project url -->
 	<target name="update.uploadChanges" depends="init" description="Uploading current CHANGES file to the Marketplace">
 		<echo message="Uploading current CHANGES File to Rapid-I Marketplace" />
-		<put targetUrl="${server.marketplace.url}/admin/upload-changes/${extension.updateServerId}/${extension.longversion}" uploadFile="${changes.current}" username="${server.marketplace.user}" password="${server.marketplace.password}" /> 
+		<put targetUrl="${server.marketplace.url}/admin/upload-changes/${extension.updateServerId}/${extension.longversion}" uploadFile="${changes.current}" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 	</target>
 
 	<!-- Merge all Changes files in the changes folder to one file -->
 	<target name="merge.changes" depends="init, changes.testExistence" description="Merge all changes file from folder changes to CHANGES.txt" if="changes.exist">
 		<echo message="Merging all changes files in ${changes.dir}" />
-		<concat destfile="CHANGES-ALL.txt" fixlastline="true" >
+		<concat destfile="CHANGES-ALL.txt" fixlastline="true">
 			<sort>
 				<fileset dir="${changes.dir}" includes="*.txt" />
 				<reverse xmlns="antlib:org.apache.tools.ant.types.resources.comparators">

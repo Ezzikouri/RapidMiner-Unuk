@@ -60,7 +60,7 @@ public class ConfirmLicenseDialog extends ButtonDialog {
 		c.weightx = 1;
 		c.weighty = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
-		JEditorPane pane = new JEditorPane("text/plain", license);
+		JEditorPane pane = new JEditorPane("text/html", license);
 		pane.setEditable(false);
 		JScrollPane scrollPane = new JScrollPane(pane);
 		scrollPane.setPreferredSize(new Dimension(400, 400));

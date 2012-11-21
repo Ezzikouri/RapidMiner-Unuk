@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
 import java.awt.Window;
@@ -48,60 +49,79 @@ public class AddBreakpointStep extends OperatorStep {
 	private Alignment alignment;
 	private Window owner;
 	private Position position;
-	
-	public AddBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, Position position){
+	private String buttonKey;
+	private ProcessSetupListener listener;
+
+	public AddBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.position = position;
 		this.operator = operator;
+		this.buttonKey = null;
 	}
-	
+
+	public AddBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String i18nButtonKey, Position position) {
+		this.alignment = alignment;
+		this.owner = owner;
+		this.i18nKey = i18nKey;
+		this.position = position;
+		this.operator = operator;
+		this.buttonKey = i18nButtonKey;
+	}
 
 	@Override
 	BubbleWindow createBubble() {
-			bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_after");
+		if (buttonKey == null) {
+			bubble = new BubbleWindow(owner, alignment, i18nKey, "breakpoint_after", false);
+		} else {
+			bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey, false);
+		}
+
 		
-		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(new ProcessSetupListener() {
-			
+				listener = new ProcessSetupListener() {
+
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void operatorChanged(Operator operator) {
-				if (AddBreakpointStep.this.operator.isInstance(operator) && operator.hasBreakpoint()){
-					if (position == Position.BEFORE && operator.hasBreakpoint(BreakpointListener.BREAKPOINT_BEFORE)){
+				if (AddBreakpointStep.this.operator.isInstance(operator) && operator.hasBreakpoint()) {
+					if (position == Position.BEFORE && operator.hasBreakpoint(BreakpointListener.BREAKPOINT_BEFORE)) {
 						bubble.triggerFire();
 						RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
-					}else if(position == Position.AFTER && operator.hasBreakpoint(BreakpointListener.BREAKPOINT_AFTER)){
+					} else if (position == Position.AFTER && operator.hasBreakpoint(BreakpointListener.BREAKPOINT_AFTER)) {
 						bubble.triggerFire();
 						RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
-					}else if (position == Position.DONT_CARE){
+					} else if (position == Position.DONT_CARE) {
 						bubble.triggerFire();
 						RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
 					}
 				}
-				
+
 			}
-			
+
 			@Override
 			public void operatorAdded(Operator operator) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void executionOrderChanged(ExecutionUnit unit) {
 				// TODO Auto-generated method stub
-				
+
 			}
-		});
+		};
+				RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
 		return bubble;
 	}
 	
-
-	
+	@Override
+	protected void stepCanceled() {
+		RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+	}
 }

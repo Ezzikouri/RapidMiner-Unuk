@@ -201,7 +201,7 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 		actionBar.addSeparator();
 		actionBar.addSeparator();
 		
-		button = new JButton(new WelcomeTourAction(this.mainFrame));
+		button = new JButton(new WelcomeTourAction());
 		button.setHorizontalTextPosition(SwingConstants.CENTER);
 		button.setVerticalTextPosition(SwingConstants.BOTTOM);
 		actionBar.add(button);

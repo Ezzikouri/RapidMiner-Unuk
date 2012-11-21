@@ -59,6 +59,7 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.ErrorDialog;
 import com.rapidminer.tools.I18N;
 import com.sun.awt.AWTUtilities;
 import com.vlsolutions.swing.docking.DockableState;
@@ -113,13 +114,25 @@ public class BubbleWindow extends JDialog {
 	private Window owner;
 
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, String buttonKeyToAttach) {
-		this(owner, preferedAlignment, i18nKey, (Component) findButton(buttonKeyToAttach, RapidMinerGUI.getMainFrame()));
-		this.attachToButton(buttonKeyToAttach);
+		this(owner, preferedAlignment, i18nKey,buttonKeyToAttach ,true);
 	}
 
+	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, String buttonKeyToAttach, boolean addListener) {
+		this(owner, preferedAlignment, i18nKey, (Component) findButton(buttonKeyToAttach, RapidMinerGUI.getMainFrame()));
+		if(addListener) {
+			this.attachToButton(findButton(buttonKeyToAttach, RapidMinerGUI.getMainFrame()));
+		}
+	}
+	
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, AbstractButton buttonToAttach) {
+		this(owner, preferedAlignment, i18nKey,buttonToAttach, true);
+	}
+	
+	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, AbstractButton buttonToAttach, boolean addListener) {
 		this(owner, preferedAlignment, i18nKey, (Component) buttonToAttach);
-		this.attachToButton(buttonToAttach);
+		if(addListener) {
+			this.attachToButton(buttonToAttach);
+		}
 	}
 
 	/**
@@ -134,7 +147,14 @@ public class BubbleWindow extends JDialog {
 		this.component = toAttach;
 		if (toAttach == null)
 			throw new IllegalArgumentException("the given Component is null !!!");
-		this.alignment = this.calculateAlignment(preferedAlignment, toAttach);
+		try {
+			this.alignment = this.calculateAlignment(preferedAlignment, toAttach);
+		} catch (Exception e) {
+			//TODO: handle this case!
+			fireEventCloseClicked();
+			ErrorDialog dialog = new ErrorDialog("Component_not_on_Sreen");
+			dialog.setVisible(true);
+		}
 		this.component = toAttach;
 		setLayout(new BorderLayout());
 		setUndecorated(true);
@@ -439,8 +459,9 @@ public class BubbleWindow extends JDialog {
 		target = new Point((int) Math.round(targetx), (int) Math.round(targety));
 		setLocation(target);
 	}
+	
 
-	public static Component positionRelativeToDockable(String dockableKey) {
+	public static Component getDockableByKey(String dockableKey) {
 		DockableState[] dockables = RapidMinerGUI.getMainFrame().getDockingDesktop().getDockables();
 		for (DockableState ds : dockables) {
 			System.out.println("Found: " + ds.getDockable().getDockKey().getKey());
@@ -473,16 +494,7 @@ public class BubbleWindow extends JDialog {
 
 	}
 
-	public void attachToButton(String i18nKeyOfButton) {
-		AbstractButton button = findButton(i18nKeyOfButton, RapidMinerGUI.getMainFrame());
-		if (button != null) {
-			// attach
-			attachToButton(button);
-		} else {
-			// TODO: handle missing case
-		}
-	}
-
+	
 	public static AbstractButton findButton(String name, Component searchRoot) {
 		if (searchRoot instanceof AbstractButton) {
 
@@ -611,7 +623,8 @@ public class BubbleWindow extends JDialog {
 		int yframe = owner.getHeight();
 
 		//location of Component
-		Point location = component.getLocationOnScreen();
+		Point location = null;
+		location = component.getLocationOnScreen();
 		double xloc = location.getX();
 		double yloc = location.getY();
 		//size of Component
