@@ -39,18 +39,19 @@ import com.rapidminer.operator.Operator;
  *
  */
 
-public class AddBreakpointStep extends OperatorStep {
+public class AddBreakpointStep extends Step {
 
 	public enum Position {
 		BEFORE, AFTER, DONT_CARE
 	}
 
+	private Class<? extends Operator> operator;
 	private String i18nKey;
 	private Alignment alignment;
 	private Window owner;
 	private Position position;
 	private String buttonKey;
-	private ProcessSetupListener listener;
+	private ProcessSetupListener listener = null;
 
 	public AddBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
 		this.alignment = alignment;
@@ -122,6 +123,7 @@ public class AddBreakpointStep extends OperatorStep {
 	
 	@Override
 	protected void stepCanceled() {
-		RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+		if(listener == null)
+			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
 	}
 }

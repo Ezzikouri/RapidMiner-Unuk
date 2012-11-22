@@ -26,6 +26,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.IOException;
 import java.util.List;
 
@@ -63,7 +65,7 @@ import com.vlsolutions.swing.docking.Dockable;
  * 
  * @author Ingo Mierswa, Simon Fischer
  */
-public class XMLEditor extends JPanel implements ProcessEditor, Dockable {
+public class XMLEditor extends JPanel implements ProcessEditor, Dockable, FocusListener {
 
 	private static final long serialVersionUID = 4172143138689034659L;
 		
@@ -80,7 +82,7 @@ public class XMLEditor extends JPanel implements ProcessEditor, Dockable {
 		this.editor.setAnimateBracketMatching(true);
 		this.editor.setAutoIndentEnabled(true);
 		this.editor.setBorder(null);
-		//this.editor.addFocusListener(this);
+		this.editor.addFocusListener(this);
 		
 		JToolBar toolBar = new ExtendedJToolBar();
 		toolBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
@@ -89,7 +91,7 @@ public class XMLEditor extends JPanel implements ProcessEditor, Dockable {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					validateProcess();
+					validateProcess();					
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				} catch (XMLException e1) {
@@ -142,20 +144,21 @@ public class XMLEditor extends JPanel implements ProcessEditor, Dockable {
 		if (!newExp.getRootOperator().getXML(true).equals(RapidMinerGUI.getMainFrame().getProcess().getRootOperator().getXML(true))) {
 			Process old = RapidMinerGUI.getMainFrame().getProcess();
 			newExp.setProcessLocation(old.getProcessLocation());
-			mainFrame.setProcess(newExp, true);			
+			mainFrame.setProcess(newExp, false, true);
 		}
 	}
 
 	public String getXMLFromEditor(){
 		return this.editor.getText();
 	}
-//	public void focusGained(FocusEvent e) {}
-//
-//	public void focusLost(FocusEvent e) {
-//		try {			
-//			validateProcess();
-//		} catch (Exception e1) { }
-//	}
+	
+	public void focusGained(FocusEvent e) {}
+
+	public void focusLost(FocusEvent e) {
+		try {			
+			validateProcess();
+		} catch (Exception e1) { }
+	}
 
 	public static final String XML_EDITOR_DOCK_KEY = "xml_editor";
 	private final DockKey DOCK_KEY = new ResourceDockKey(XML_EDITOR_DOCK_KEY);

@@ -52,8 +52,12 @@ public class TourChooser extends ButtonDialog {
 
 	@Override
 	protected void ok() {
-		((IntroductoryTour)list.getSelectedValue()).startTour();
-		super.ok();
+		IntroductoryTour choosenTour = (IntroductoryTour)list.getSelectedValue();
+		if(choosenTour!= null) {
+			choosenTour.startTour();
+			super.ok();
+		}
+		
 	}
 	
 	protected JList makeTable() {

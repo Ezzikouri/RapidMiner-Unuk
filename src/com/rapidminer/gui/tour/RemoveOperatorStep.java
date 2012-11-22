@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
 import java.awt.Component;
@@ -37,63 +38,76 @@ import com.rapidminer.operator.Operator;
  * @author Philipp Kersting
  *
  */
-public class RemoveOperatorStep extends OperatorStep {
+public class RemoveOperatorStep extends Step {
 
 	private String i18nKey;
 	private Window owner;
+	private Class<? extends Operator> operatorClass;
 	private Alignment alignment;
 	private Component component;
+	private String buttonKey = null;
+	private ProcessSetupListener listener = null;
+
 	
-	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, Component component) {
+	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String componentKey) {
+		this(alignment, owner, i18nKey, operator, (Component) null);
+		this.buttonKey = componentKey;
+	}
+	
+	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Component component) {
 		this.i18nKey = i18nKey;
 		this.owner = owner;
 		this.alignment = alignment;
-		this.operator = operator;
+		this.operatorClass = operator;
 		this.component = component;
 	}
-	
-	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, String componentKey) {
-		this.i18nKey = i18nKey;
-		this.owner = owner;
-		this.alignment = alignment;
-		this.operator = operator;
-		this.component = BubbleWindow.findButton(componentKey, RapidMinerGUI.getMainFrame());
-	}
+
 	@Override
 	BubbleWindow createBubble() {
-		if(component== null)
-			throw new IllegalArgumentException("Component is null. Please add any Component to attach to ");
-		bubble = new BubbleWindow(owner, alignment, i18nKey,component);
-		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(new ProcessSetupListener() {
-			
+		if (component == null) {
+			if (buttonKey == null)
+				throw new IllegalArgumentException("Component is null. Please add any Component to attach to ");
+			bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey);
+		} else {
+			bubble = new BubbleWindow(owner, alignment, i18nKey, component);
+		}
+		listener = new ProcessSetupListener() {
+
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
-				if (RemoveOperatorStep.this.operator.isInstance(operator)){
+				if (RemoveOperatorStep.this.operatorClass.isInstance(operator)) {
 					bubble.triggerFire();
 					RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
 				}
-				
+
 			}
-			
+
 			@Override
 			public void operatorChanged(Operator operator) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void operatorAdded(Operator operator) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void executionOrderChanged(ExecutionUnit unit) {
 				// TODO Auto-generated method stub
-				
+
 			}
-		});
+		};
+		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
 		return bubble;
+	}
+
+	@Override
+	protected void stepCanceled() {
+		if(listener != null)
+		RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
 	}
 
 }

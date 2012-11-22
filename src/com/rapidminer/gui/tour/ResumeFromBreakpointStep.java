@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
 import java.awt.Component;
@@ -30,17 +31,16 @@ import com.rapidminer.Process;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
-import com.rapidminer.gui.tools.components.BubbleWindow.BubbleListener;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
 
 /**
  * 
- * @author Philipp Kersting
+ * @author Philipp Kersting and Thilo Kamradt
  *
  */
 
-public class ResumeFromBreakpointStep extends OperatorStep {
+public class ResumeFromBreakpointStep extends Step {
 
 	public enum Position {
 		BEFORE, AFTER, DONT_CARE
@@ -50,100 +50,78 @@ public class ResumeFromBreakpointStep extends OperatorStep {
 	private Alignment alignment;
 	private Window owner;
 	private Position position;
+	Class<? extends Operator> operatorClass;
 	private Component component;
-	
-	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, Position position, Component attachTo){
-		this.alignment = alignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.operator = operator;
-		this.position = position;
-		this.component = attachTo;
-	}
-	
-	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, Position position, String attachTo){
-		this.alignment = alignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.operator = operator;
-		this.position = position;
-		this.component = BubbleWindow.findButton(attachTo, RapidMinerGUI.getMainFrame());
-	}
-	
-	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, Component attachTo){
-		this.alignment = alignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.operator = operator;
-		this.position = Position.DONT_CARE;
-		this.component = attachTo;
-	}
+	private String attachToKey = null;
+	private BreakpointListener listener = null;
 
+	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position, String attachTo) {
+		this(alignment, owner, i18nKey, operator, position, (Component) null);
+		this.attachToKey = attachTo;
+	}
 	
-	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, String attachTo){
+	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Component attachTo) {
+		this(alignment, owner, i18nKey, operator, Position.DONT_CARE, attachTo);
+	}
+	
+	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String attachTo) {
+		this(alignment, owner, i18nKey, operator, Position.DONT_CARE, (Component) null);
+		this.attachToKey = attachTo;
+	}
+	
+	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position, Component attachTo) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
-		this.operator = operator;
-		this.position = Position.DONT_CARE;
-		this.component = BubbleWindow.findButton(attachTo, RapidMinerGUI.getMainFrame());
+		this.operatorClass = operator;
+		this.position = position;
+		this.component = attachTo;
 	}
-	
-	
 
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey, component);
-		RapidMinerGUI.getMainFrame().getProcess().addBreakpointListener(new BreakpointListener() {
-			
+		if (component == null) {
+			if (attachToKey == null)
+				throw new IllegalArgumentException("Buttonkey and Component is null. Please add any Component to attach");
+			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey, false);
+		} else {
+			bubble = new BubbleWindow(owner, alignment, i18nKey, component);
+		}
+		listener = new BreakpointListener() {
+
 			@Override
 			public void resume() {
-				if(operator.isInstance(RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator())){
-					if (position == Position.BEFORE && RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator().hasBreakpoint(BreakpointListener.BREAKPOINT_BEFORE)){
+				if (operatorClass.isInstance(RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator())) {
+					if (position == Position.BEFORE && RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator().hasBreakpoint(BreakpointListener.BREAKPOINT_BEFORE)) {
 						bubble.triggerFire();
 						RapidMinerGUI.getMainFrame().getProcess().removeBreakpointListener(this);
-					}else if(position == Position.AFTER && RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator().hasBreakpoint(BreakpointListener.BREAKPOINT_AFTER)){
+					} else if (position == Position.AFTER && RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator().hasBreakpoint(BreakpointListener.BREAKPOINT_AFTER)) {
 						bubble.triggerFire();
 						RapidMinerGUI.getMainFrame().getProcess().removeBreakpointListener(this);
-					}else if (position == Position.DONT_CARE){
+					} else if (position == Position.DONT_CARE) {
 						bubble.triggerFire();
 						RapidMinerGUI.getMainFrame().getProcess().removeBreakpointListener(this);
 					}
 				}
-				
+
 			}
-			
+
 			@Override
 			public void breakpointReached(Process process, Operator op, IOContainer iocontainer, int location) {
-				if (operator.isInstance(op) && ((location == 1 && position == Position.AFTER) || (location == 0 && position == Position.BEFORE)||(position == Position.DONT_CARE))){
+				if (operatorClass.isInstance(op) && ((location == 1 && position == Position.AFTER) || (location == 0 && position == Position.BEFORE) || (position == Position.DONT_CARE))) {
 					bubble.setVisible(true);
 				}
-				
+
 			}
-		});
+		};
+		RapidMinerGUI.getMainFrame().getProcess().addBreakpointListener(listener);
 		return bubble;
 	}
-	
+
 	@Override
-	public void start(){
-		bubble = createBubble();
-		bubble.addBubbleListener(new BubbleListener() {
-			
-			@Override
-			public void bubbleClosed(BubbleWindow bw) {
-				bw.removeBubbleListener(this);
-				
-			}
-			
-			@Override
-			public void actionPerformed(BubbleWindow bw) {
-				if (next!=null){
-					next.start();
-				}
-				bw.removeBubbleListener(this);
-			}
-		});
-		bubble.setVisible(false);
+	protected void stepCanceled() {
+		if (listener != null)
+			RapidMinerGUI.getMainFrame().getProcess().removeBreakpointListener(listener);
 	}
-	
+
 }

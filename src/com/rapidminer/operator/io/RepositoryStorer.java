@@ -60,7 +60,7 @@ public class RepositoryStorer extends AbstractWriter<IOObject> {
 	@Override
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
-		ParameterTypeRepositoryLocation type = new ParameterTypeRepositoryLocation(PARAMETER_REPOSITORY_ENTRY, "Repository entry.", false);
+		ParameterTypeRepositoryLocation type = new ParameterTypeRepositoryLocation(PARAMETER_REPOSITORY_ENTRY, "Repository entry.", true, false, false, false, true);
 		type.setExpert(false);
 		types.add(type);		
 		return types;

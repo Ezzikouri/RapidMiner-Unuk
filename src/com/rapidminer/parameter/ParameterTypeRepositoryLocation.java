@@ -30,7 +30,7 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 
 	private static final long serialVersionUID = 1L;
 
-	private boolean allowFolders, allowEntries, allowAbsoluteEntries;
+	private boolean allowFolders, allowEntries, allowAbsoluteEntries, enforceValidRepositoryEntryName;
 	
 	/** Creates a new parameter type for files with the given extension. If the extension is null
 	 *  no file filters will be used. */
@@ -46,6 +46,20 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 		setOptional(optional);	
 		setAllowEntries(allowEntries);
 		setAllowFolders(allowDirectories);
+	}
+	
+	/** Creates a new parameter type for files with the given extension. If the extension is null
+	 *  no file filters will be used. If {@link #enforceValidRepositoryEntryName} is set to <code>true</code>, will
+	 *  enforce valid repository entry names.
+	 **/
+	public ParameterTypeRepositoryLocation(String key, String description, boolean allowEntries, boolean allowDirectories, boolean allowAbsoluteEntries, boolean optional, boolean enforceValidRepositoryEntryName) {
+		super(key, description, null);
+		
+		setOptional(optional);	
+		setAllowEntries(allowEntries);
+		setAllowFolders(allowDirectories);
+		setAllowAbsoluteEntries(allowAbsoluteEntries);
+		setEnforceValidRepositoryEntryName(enforceValidRepositoryEntryName);
 	}
 	
 	/** Creates a new parameter type for files with the given extension. If the extension is null
@@ -81,5 +95,13 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 	
 	public boolean isAllowAbsoluteEntries() {
 		return this.allowAbsoluteEntries;
+	}
+
+	public boolean isEnforceValidRepositoryEntryName() {
+		return enforceValidRepositoryEntryName;
+	}
+
+	public void setEnforceValidRepositoryEntryName(boolean enforceValidRepositoryEntryName) {
+		this.enforceValidRepositoryEntryName = enforceValidRepositoryEntryName;
 	}
 }

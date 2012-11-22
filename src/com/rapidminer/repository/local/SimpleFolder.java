@@ -39,6 +39,8 @@ import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
+import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 
@@ -74,8 +76,8 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	@Override
 	public boolean rename(String newName) throws RepositoryException {
 		// check for possible invalid name
-		if (!Tools.canFileBeStoredOnCurrentFilesystem(newName)) {
-			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + newName + "')");
+		if (!RepositoryLocation.isNameValid(newName)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName));
 		}
 		
 		renameFile(getFile(), newName);
@@ -141,8 +143,8 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	@Override
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
 		// check for possible invalid name
-		if (!Tools.canFileBeStoredOnCurrentFilesystem(name)) {
-			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + name + "')");
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
 		}
 		
 		ensureLoaded();
@@ -158,11 +160,11 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
 		// check for possible invalid name
-		if (!Tools.canFileBeStoredOnCurrentFilesystem(name)) {
-			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + name + "')");
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
 		}
+		
 		ensureLoaded();
-
 		for (Folder folder : folders) {
 			// folder with the same name (no matter if they have different capitalization) must not be created
 			if (folder.getName().toLowerCase(Locale.ENGLISH).equals(name.toLowerCase(Locale.ENGLISH))) {
@@ -255,8 +257,8 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
 		// check for possible invalid name
-		if (!Tools.canFileBeStoredOnCurrentFilesystem(name)) {
-			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + name + "')");
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
 		}
 				
 		SimpleProcessEntry entry = null;
@@ -277,8 +279,8 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	@Override
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
 		// check for possible invalid name
-		if (!Tools.canFileBeStoredOnCurrentFilesystem(name)) {
-			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + name + "')");
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
 		}
 		
 		BlobEntry entry = new SimpleBlobEntry(name, this, getRepository());

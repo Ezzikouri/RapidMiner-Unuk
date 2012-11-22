@@ -98,7 +98,9 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 			    
 				String locationName = RepositoryLocationChooser.selectLocation(processLocation, textField.getText(), panel, 
 						type.isAllowEntries(), 
-						type.isAllowFolders());
+						type.isAllowFolders(),
+						false,
+						type.isEnforceValidRepositoryEntryName());
 //				if (locationName != null) {
 //					if ((operator != null) && (operator.getProcess() != null)) {
 //						try {

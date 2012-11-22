@@ -66,7 +66,7 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 			currentName = RapidMinerGUI.getMainFrame().getProcess().getProcessLocation().getShortName();
 		}
 		
-		final String name = SwingTools.showInputDialog("store_process", currentName);
+		final String name = SwingTools.showRepositoryEntryInputDialog("store_process", currentName);
 		if (name != null) {
 			if (name.isEmpty()) {
 				SwingTools.showVerySimpleErrorMessage("please_enter_non_empty_name");
@@ -88,6 +88,7 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 					try {
 						getProgressListener().setCompleted(10);
 						Process process = RapidMinerGUI.getMainFrame().getProcess();
+						Process.checkIfSavable(process);
 						folder.createProcessEntry(name, process.getRootOperator().getXML(false));
 						process.setProcessLocation(new RepositoryProcessLocation(new RepositoryLocation(folder.getLocation(), name)));
 						tree.expandPath(tree.getSelectionPath());

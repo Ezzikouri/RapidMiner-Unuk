@@ -108,17 +108,17 @@ public class DBConnectionEntry implements IOObjectEntry {
 
 	@Override
 	public boolean rename(String newName) throws RepositoryException {
-		throw new RepositoryException("Cannot rename items in connection entry.");
+		throw new RepositoryException("This is a read-only view on a database table. Cannot rename entry.");
 	}
 
 	@Override
 	public boolean move(Folder newParent) throws RepositoryException {
-		throw new RepositoryException("Cannot move items in connection entry.");
+		throw new RepositoryException("This is a read-only view on a database table. Cannot move entry.");
 	}
 	
 	@Override
 	public boolean move(Folder newParent, String newName) throws RepositoryException {
-		throw new RepositoryException("Cannot move items in connection entry.");
+		throw new RepositoryException("This is a read-only view on a database table. Cannot move or rename entry.");
 	}
 
 	@Override
@@ -174,7 +174,7 @@ public class DBConnectionEntry implements IOObjectEntry {
 
 	@Override
 	public void storeData(IOObject data, Operator callingOperator, ProgressListener l) throws RepositoryException {
-		throw new RepositoryException("Cannot store items in connection entry.");
+		throw new RepositoryException("This is a read-only view on a database table. Cannot store data here.");
 	}
 
 	@Override

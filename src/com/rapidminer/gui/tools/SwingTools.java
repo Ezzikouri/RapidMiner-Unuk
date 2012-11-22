@@ -66,6 +66,7 @@ import com.rapidminer.gui.tools.dialogs.ExtendedErrorDialog;
 import com.rapidminer.gui.tools.dialogs.InputDialog;
 import com.rapidminer.gui.tools.dialogs.LongMessageDialog;
 import com.rapidminer.gui.tools.dialogs.MessageDialog;
+import com.rapidminer.gui.tools.dialogs.RepositoryEntryInputDialog;
 import com.rapidminer.gui.tools.dialogs.ResultViewDialog;
 import com.rapidminer.gui.tools.dialogs.SelectionInputDialog;
 import com.rapidminer.gui.tools.syntax.SyntaxStyle;
@@ -540,6 +541,22 @@ public class SwingTools {
      */
     public static String showInputDialog(final String key, String text, Object...keyArguments) {
         InputDialog dialog = new InputDialog(key, text, keyArguments);
+        dialog.setVisible(true);
+        if (dialog.wasConfirmed()) {
+            return dialog.getInputText();
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * This method will present a repository entry dialog to enter a text. This text will be returned
+     * if the user confirmed the edit. Otherwise null is returned. Prevents invalid repository names.
+     * The key will be used for the properties gui.dialog.input.-key-.title, gui.dialog.input.-key-.message and
+     * gui.dialog.input.-key-.icon
+     */
+    public static String showRepositoryEntryInputDialog(final String key, String text, Object...keyArguments) {
+        RepositoryEntryInputDialog dialog = new RepositoryEntryInputDialog(key, text, keyArguments);
         dialog.setVisible(true);
         if (dialog.wasConfirmed()) {
             return dialog.getInputText();

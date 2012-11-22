@@ -38,7 +38,7 @@ import com.rapidminer.parameter.UndefinedParameterError;
  *
  */
 
-public class ChangeParameterStep extends OperatorStep {
+public class ChangeParameterStep extends Step {
 
 	private String i18nKey;
 	private String targetDockKey;
@@ -46,7 +46,8 @@ public class ChangeParameterStep extends OperatorStep {
 	private String targetValue;
 	private Alignment alignment;
 	private Window owner;
-
+	private Class<? extends Operator> operatorClass;
+	private ProcessSetupListener listener = null;
 	
 
 	public ChangeParameterStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, String parameter, String targetDockKey, String targetValue) {
@@ -56,13 +57,13 @@ public class ChangeParameterStep extends OperatorStep {
 		this.targetDockKey = targetDockKey;
 		this.parameter = parameter;
 		this.targetValue = targetValue;
-		this.operator = operator;
+		this.operatorClass = operator;
 	}
 
 	@Override
 	BubbleWindow createBubble() {
 		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.getDockableByKey(targetDockKey));
-		ProcessSetupListener l = new ProcessSetupListener() {
+		listener = new ProcessSetupListener() {
 			
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
@@ -70,7 +71,7 @@ public class ChangeParameterStep extends OperatorStep {
 			
 			@Override
 			public void operatorChanged(Operator operator) {
-				if (ChangeParameterStep.this.operator.isInstance(operator)){
+				if (ChangeParameterStep.this.operatorClass.isInstance(operator)){
 					try {
 						if (operator.getParameterAsString(parameter).equals(targetValue)){
 							bubble.triggerFire();
@@ -90,10 +91,15 @@ public class ChangeParameterStep extends OperatorStep {
 			public void executionOrderChanged(ExecutionUnit unit) {
 			}
 		};
-		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(l);
+		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
 		return bubble;
 	}
 
+	@Override
+	protected void stepCanceled() {
+		if(listener == null)
+			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+	}
 
 }
 

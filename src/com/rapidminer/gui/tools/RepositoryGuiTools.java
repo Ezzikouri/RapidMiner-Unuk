@@ -78,7 +78,7 @@ public class RepositoryGuiTools {
      * returned.
      */
     public static BlobEntry selectBlobEntryForStoring() {
-        String selectEntry = RepositoryLocationChooser.selectEntry(null, null);
+        String selectEntry = RepositoryLocationChooser.selectEntry(null, null, true);
         return createBlobEntry(selectEntry);
     }
 

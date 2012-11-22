@@ -23,6 +23,7 @@
 package com.rapidminer.gui.tour;
 
 
+
 /** A tour consisting of multiple {@link Step}s explaining the usage of RapidMiner
  *  or an Extension.
  *  
@@ -67,21 +68,13 @@ public abstract class IntroductoryTour {
 	
 	public void startTour() {
 		init();
-		start();
-		placeListener();
+		buildTour();
 		placeFollowers();
 		sights[0].start();
 	}
 	
 	
-	protected abstract void start();
-
-	/**
-	 * ensure that the operatorlisteners will listen to the right operator
-	 */
-	protected void placeListener() {
-		
-	}
+	protected abstract void buildTour();
 	
 	/**
 	 * method to get the key of the tour

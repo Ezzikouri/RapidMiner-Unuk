@@ -38,7 +38,7 @@ import com.rapidminer.operator.OperatorChain;
 /**
  * 
  * 
- * @author Kersting
+ * @author Kersting and Thilo Kamradt
  *
  */
 
@@ -48,8 +48,9 @@ public class OpenSubprocessStep extends Step {
 	private Window owner;
 	private String i18nKey;
 	private Component attachTo;
-	private String attachToKey;
-	private Class<? extends OperatorChain> operator;
+	private String attachToKey = null;
+	private Class<? extends OperatorChain> operatorClass;
+	private ProcessEditor editor = null;
 
 	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, String attachToKey, Class<? extends OperatorChain> operator) {
 		this.alignment = alignment;
@@ -57,7 +58,7 @@ public class OpenSubprocessStep extends Step {
 		this.i18nKey = i18nKey;
 		this.attachToKey = attachToKey;
 		this.attachTo = null;
-		this.operator = operator;
+		this.operatorClass = operator;
 	}
 
 	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, Component attachTo, Class<? extends OperatorChain> operator) {
@@ -65,7 +66,7 @@ public class OpenSubprocessStep extends Step {
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.attachTo = attachTo;
-		this.operator = operator;
+		this.operatorClass = operator;
 	}
 
 	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, String attachToKey) {
@@ -74,7 +75,7 @@ public class OpenSubprocessStep extends Step {
 		this.i18nKey = i18nKey;
 		this.attachToKey = attachToKey;
 		this.attachTo = null;
-		this.operator = null;
+		this.operatorClass = null;
 	}
 
 	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, Component attachTo) {
@@ -82,15 +83,15 @@ public class OpenSubprocessStep extends Step {
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.attachTo = attachTo;
-		this.operator = null;
+		this.operatorClass = null;
 	}
 
 	public void setOperator(Class<? extends OperatorChain> operator) {
-		this.operator = operator;
+		this.operatorClass = operator;
 	}
 
 	public Class<? extends OperatorChain> getOperator() {
-		return operator;
+		return operatorClass;
 	}
 
 	@Override
@@ -98,39 +99,37 @@ public class OpenSubprocessStep extends Step {
 		if (attachTo == null) {
 			if(attachToKey == null)
 				throw new IllegalArgumentException("Component attachTo and Buttenkey attachToKey are null. Please add any Component to attach to ");
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey);
+			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey, false);
 		} else {
 			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
 		}
-		RapidMinerGUI.getMainFrame().addProcessEditor(new ProcessEditor() {
+		editor = new ProcessEditor() {
 
 			@Override
 			public void setSelection(List<Operator> selection) {
-				// TODO Auto-generated method stub
-
+				if (RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().getDisplayedChain().getClass().equals(OpenSubprocessStep.this.operatorClass)
+						|| OpenSubprocessStep.this.operatorClass == null) {
+					bubble.triggerFire();
+					RapidMinerGUI.getMainFrame().removeProcessEditor(this);
+				}
 			}
 
 			@Override
 			public void processUpdated(Process process) {
-				if (RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().getDisplayedChain().getClass().equals(OpenSubprocessStep.this.operator)
-						|| OpenSubprocessStep.this.operator == null) {
-					bubble.triggerFire();
-					RapidMinerGUI.getMainFrame().removeProcessEditor(this);
-				}
 
 			}
 
 			@Override
 			public void processChanged(Process process) {
-				if (RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().getDisplayedChain().getClass().equals(OpenSubprocessStep.this.operator)
-						&& OpenSubprocessStep.this.operator != null) {
-					bubble.triggerFire();
-					RapidMinerGUI.getMainFrame().removeProcessEditor(this);
-				}
-
 			}
-		});
+		};
+		RapidMinerGUI.getMainFrame().addProcessEditor(editor);
 		return bubble;
 	}
 
+	@Override
+	protected void stepCanceled () {
+		if(editor == null)
+			RapidMinerGUI.getMainFrame().removeProcessEditor(editor);
+	}
 }

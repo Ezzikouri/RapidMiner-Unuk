@@ -36,7 +36,7 @@ import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 
 /**
  * 
- * @author Philipp Kersting
+ * @author Philipp Kersting and Thilo Kamradt
  *
  */
 
@@ -47,7 +47,7 @@ public class OpenProcessStep extends Step {
 	private String i18nKey;
 	private Component attachTo;
 	private String attachToKey;
-	private ProcessStorageListener storageListener;
+	private ProcessStorageListener listener = null;
 
 	
 	public OpenProcessStep(Alignment alignment, Window owner, String i18nKey, Component attachTo) {
@@ -75,17 +75,23 @@ public class OpenProcessStep extends Step {
 		} else {
 			bubble = new BubbleWindow(owner, alignment, i18nKey,(AbstractButton) attachTo, false);
 		}
-		storageListener = new ProcessStorageListener() {
+		listener = new ProcessStorageListener() {
 			@Override
 			public void stored(Process process) { }
 
 			@Override
 			public void opened(Process process) {				
 				bubble.triggerFire();
-				RapidMinerGUI.getMainFrame().removeProcessStorageListener(storageListener);
+				RapidMinerGUI.getMainFrame().removeProcessStorageListener(listener);
 			}
 		};
-		RapidMinerGUI.getMainFrame().addProcessStorageListener(storageListener);
+		RapidMinerGUI.getMainFrame().addProcessStorageListener(listener);
 		return bubble;
+	}
+	
+	@Override
+	protected void stepCanceled() {
+		if(listener == null)
+			RapidMinerGUI.getMainFrame().getProcess().removeProcessStorageListener(listener);
 	}
 }

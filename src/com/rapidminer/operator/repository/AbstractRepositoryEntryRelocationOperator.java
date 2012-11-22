@@ -220,7 +220,7 @@ public class AbstractRepositoryEntryRelocationOperator extends AbstractRepositor
 		List<ParameterType> types = super.getParameterTypes();
 
 		types.add(new ParameterTypeRepositoryLocation(SOURCE, "Entry that should be copied", true, true, false));
-		types.add(new ParameterTypeRepositoryLocation(DESTINATION, "Copy destination", true, true, false));
+		types.add(new ParameterTypeRepositoryLocation(DESTINATION, "Copy destination", true, true, false, false, true));
 		types.add(new ParameterTypeBoolean(OVERWRITE, "Overwrite entry at copy destination?", false, false));
 
 		return types;

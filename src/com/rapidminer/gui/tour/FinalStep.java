@@ -33,7 +33,7 @@ import com.rapidminer.tools.I18N;
  */
 public class FinalStep extends Step {
 
-	protected String title, text, textInsert;
+	protected String title, text;
 	
 	public FinalStep(String i18nKey, String explicitTour) {
 		this.title =I18N.getMessage(I18N.getGUIBundle(),"gui.bubble." + i18nKey + ".title");
@@ -51,5 +51,10 @@ public class FinalStep extends Step {
 	public void start() {
 		MessageDialog tourComplete = new MessageDialog(title, text);
 		tourComplete.setVisible(true);
+	}
+	
+	@Override
+	protected void stepCanceled() {
+		
 	}
 }

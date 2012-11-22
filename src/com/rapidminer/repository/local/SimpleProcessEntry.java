@@ -28,6 +28,8 @@ import java.io.IOException;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
+import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
 /**
  * @author Simon Fischer
@@ -92,8 +94,8 @@ public class SimpleProcessEntry extends SimpleDataEntry implements ProcessEntry 
 	@Override
 	public boolean rename(String newName) throws RepositoryException {
 		// check for possible invalid name
-		if (!Tools.canFileBeStoredOnCurrentFilesystem(newName)) {
-			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + newName + "')");
+		if (!RepositoryLocation.isNameValid(newName)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName));
 		}
 
 		renameFile(getFile(), newName);

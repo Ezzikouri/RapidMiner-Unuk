@@ -49,7 +49,7 @@ public class SimpleStep extends Step {
 	
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey);
+		bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey, true);
 		return bubble;
 	}
 

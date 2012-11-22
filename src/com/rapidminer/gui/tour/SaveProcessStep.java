@@ -42,6 +42,7 @@ public class SaveProcessStep extends Step {
 	private String buttonKey;
 	private Alignment alignment;
 	private Window owner;
+	private ProcessStorageListener listener = null;
 
 	public SaveProcessStep(Alignment alignment, Window owner, String i18nKey, String buttonKey){
 		this.alignment = alignment;
@@ -61,10 +62,10 @@ public class SaveProcessStep extends Step {
 
 	@Override
 	BubbleWindow createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey);
-		//TODO: delete
-		//bubble.positionRelativeTo(BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame()));
-		RapidMinerGUI.getMainFrame().getProcess().addProcessStorageListener(new ProcessStorageListener() {
+		if(buttonKey == null)
+			throw new IllegalArgumentException("NO Buttonkey to attach to. Please enter a Buttonkey or call Constructor without Buttonkey");
+		bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey, false);
+		listener = new ProcessStorageListener() {
 			
 			@Override
 			public void stored(Process process) {
@@ -77,8 +78,15 @@ public class SaveProcessStep extends Step {
 			public void opened(Process process) {
 				
 			}
-		});
+		};
+		RapidMinerGUI.getMainFrame().getProcess().addProcessStorageListener(listener);
 		return bubble;
+	}
+	
+	@Override
+	protected void stepCanceled() {
+		if(listener != null)
+			RapidMinerGUI.getMainFrame().getProcess().removeProcessStorageListener(listener);
 	}
 
 }

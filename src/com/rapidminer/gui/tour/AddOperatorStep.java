@@ -37,7 +37,7 @@ import com.rapidminer.operator.OperatorChain;
 
 /**
  * 
- * @author Philipp Kersting
+ * @author Philipp Kersting and Thilo Kamradt
  *
  */
 
@@ -45,7 +45,7 @@ public class AddOperatorStep extends Step {
 
 	public interface AddOperatorStepListener {
 
-		public void operatorAvailable(Operator op);
+		public void operatorAvailable(Operator op, Step callingStep);
 	}
 
 	private String i18nKey;
@@ -57,6 +57,7 @@ public class AddOperatorStep extends Step {
 	private boolean checkForChain = true;
 	private Class<? extends OperatorChain> targetEnclosingOperatorChain = OperatorChain.class;
 	private List<AddOperatorStepListener> listeners = new LinkedList<AddOperatorStepListener>();
+	private ProcessSetupListener listener = null;
 
 	public AddOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> type, String targetDockKey) {
 		this.alignment = alignment;
@@ -87,7 +88,7 @@ public class AddOperatorStep extends Step {
 	@Override
 	BubbleWindow createBubble() {
 		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.getDockableByKey(targetDockKey));
-		ProcessSetupListener l = new ProcessSetupListener() {
+		listener = new ProcessSetupListener() {
 
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {}
@@ -103,7 +104,7 @@ public class AddOperatorStep extends Step {
 							AddOperatorStep.this.operator = operator;
 							List<AddOperatorStepListener> cache = new LinkedList<AddOperatorStepListener>(listeners);
 							for (AddOperatorStepListener listener : cache) {
-								listener.operatorAvailable(operator);
+								listener.operatorAvailable(operator, AddOperatorStep.this);
 							}
 						}
 					} else {
@@ -114,7 +115,7 @@ public class AddOperatorStep extends Step {
 							AddOperatorStep.this.operator = operator;
 							List<AddOperatorStepListener> cache = new LinkedList<AddOperatorStepListener>(listeners);
 							for (AddOperatorStepListener listener : cache) {
-								listener.operatorAvailable(operator);
+								listener.operatorAvailable(operator, AddOperatorStep.this);
 							}
 						}
 					}
@@ -127,8 +128,14 @@ public class AddOperatorStep extends Step {
 			@Override
 			public void executionOrderChanged(ExecutionUnit unit) {}
 		};
-		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(l);
+		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
 		return bubble;
+	}
+	
+	@Override
+	protected void stepCanceled() {
+		if(listener == null)
+			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
 	}
 
 	public Operator getOperator() {

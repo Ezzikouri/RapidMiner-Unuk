@@ -1097,11 +1097,16 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
     }
 
     /**
-     * Sets a new process and registers the MainFrame listener. Please note
-     * that this method only invoke {@link #processChanged()} if the parameter
-     * newProcess is true.
+     * Sets a new process and registers the MainFrame's listeners.
      */
     public void setProcess(Process process, boolean newProcess) {
+    	setProcess(process, newProcess, false);
+    }
+    
+    /**
+     * Sets a new process and registers the MainFrame's listeners.
+     */
+    public void setProcess(Process process, boolean newProcess, boolean addToUndoList) {
         boolean firstProcess = this.process == null;
         if (this.process != null) {
             // this.process.getRootOperator().removeObserver(processObserver);
@@ -1122,6 +1127,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 this.process = process;
                 this.processThread = new ProcessThread(this.process);
                 this.process.addBreakpointListener(breakpointListener);
+                if (addToUndoList) {
+                	addToUndoList(process.getRootOperator().getXML(true, false), false);
+                }
                 fireProcessChanged();
                 selectOperator(this.process.getRootOperator());
                 if (VALIDATE_AUTOMATICALLY_ACTION.isSelected()) {
@@ -1391,7 +1399,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
             changed = false;
             SAVE_ACTION.setEnabled(false);
             setTitle();
-            fireProcessLoaded();
 
             // show unsupported parameters info?
             List<UnknownParameterInformation> unknownParameters = process.getUnknownParameters();
@@ -1411,6 +1418,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
                 }
             }
         }
+        fireProcessLoaded();
     }
 
 	private void resetUndo() {

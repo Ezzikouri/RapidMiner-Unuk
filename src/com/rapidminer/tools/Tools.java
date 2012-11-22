@@ -826,7 +826,7 @@ public class Tools {
 		// but the result will be an EMPTY file C:\path\x and you never know it failed
 		// see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4645046
 		if (file == null || !canFileBeStoredOnCurrentFilesystem(file.getName())) {
-			throw new FileNotFoundException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + file.getName() + "')");
+			throw new FileNotFoundException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", file == null ? "null" : file.getName()));
 		}
 		
 		FileOutputStream outStream = new FileOutputStream(file);

@@ -72,20 +72,20 @@ public class ResourceFolder extends ResourceEntry implements Folder {
 
 	@Override
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");
+		throw new RepositoryException("This is a read-only sample repository. Cannot create new entries.");
 	}
 
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");	}
+		throw new RepositoryException("This is a read-only sample repository. Cannot create new entries.");	}
 
 	@Override
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener newParam) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");	}
+		throw new RepositoryException("This is a read-only sample repository. Cannot create new entries.");	}
 
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");	}
+		throw new RepositoryException("This is a read-only sample repository. Cannot create new entries.");	}
 
 	@Override
 	public List<DataEntry> getDataEntries() throws RepositoryException {

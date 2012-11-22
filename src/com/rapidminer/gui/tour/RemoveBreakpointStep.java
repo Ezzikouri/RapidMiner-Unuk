@@ -25,6 +25,7 @@ package com.rapidminer.gui.tour;
 import java.awt.Component;
 import java.awt.Window;
 
+import com.rapidminer.BreakpointListener;
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleWindow;
@@ -39,49 +40,51 @@ import com.rapidminer.operator.Operator;
  *
  */
 
-public class RemoveBreakpointStep extends OperatorStep {
+public class RemoveBreakpointStep extends Step {
 	
-	Alignment alignment;
-	Window owner;
-	String i18nKey;
-	Component attachTo;
+	private Alignment alignment;
+	private Window owner;
+	private String i18nKey;
+	private Class<? extends Operator> operatorClass;
+	private Component attachTo;
+	private String attachToKey = null;
+	private Position positionOnOperator;
+	private ProcessSetupListener listener = null;
 	
 
+	/** the Breakpoint after will be chosen as default*/
+	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
+		this(alignment, owner, i18nKey, operator,(Component) null, position);
+	}
+	
+	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String attachToKey, Position position) {
+		this(alignment, owner, i18nKey, operator,(Component) null, position);
+		this.attachToKey = attachToKey;
+	}
+	
 	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Component attachTo, Position position) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
-		this.operator = operator;
+		this.operatorClass = operator;
 		this.attachTo = attachTo;
-	}
-	
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String attachToKey, Position position) {
-		this.alignment = alignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.operator = operator;
-		this.attachTo = BubbleWindow.findButton(attachToKey, RapidMinerGUI.getMainFrame());
-	}
-	
-	/** the Breakpoint after will be chosen as default*/
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
-		this.alignment = alignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.operator = operator;
-		this.attachTo = null;
+		this.positionOnOperator = position;
 	}
 	
 
 	@Override
 	BubbleWindow createBubble() {
 				if (attachTo == null){
-						bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_after");
+					if(attachToKey == null) {
+						bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_after",false);
+					} else {
+						bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey,false);
+					}
 				} else {
 					bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
 				}
 		
-		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(new ProcessSetupListener() {
+		listener = new ProcessSetupListener() {
 			
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
@@ -91,9 +94,18 @@ public class RemoveBreakpointStep extends OperatorStep {
 			
 			@Override
 			public void operatorChanged(Operator operator) {
-				if (RemoveBreakpointStep.this.operator.isInstance(operator) && !operator.hasBreakpoint()){
+				if (RemoveBreakpointStep.this.operatorClass.isInstance(operator) && !operator.hasBreakpoint()){
 					bubble.triggerFire();
 					RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
+				}
+				if (RemoveBreakpointStep.this.operatorClass.isInstance(operator) && operator.hasBreakpoint()) {
+					if (positionOnOperator == Position.BEFORE && !operator.hasBreakpoint(BreakpointListener.BREAKPOINT_BEFORE)) {
+						bubble.triggerFire();
+						RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
+					} else if (positionOnOperator == Position.AFTER && !operator.hasBreakpoint(BreakpointListener.BREAKPOINT_AFTER)) {
+						bubble.triggerFire();
+						RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
+					} 
 				}
 				
 			}
@@ -109,7 +121,14 @@ public class RemoveBreakpointStep extends OperatorStep {
 				// TODO Auto-generated method stub
 				
 			}
-		});
+		};
+		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
 		return bubble;
+	}
+	
+	@Override
+	protected void stepCanceled() {
+		if(listener != null)
+		RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
 	}
 }

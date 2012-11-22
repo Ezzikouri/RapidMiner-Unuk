@@ -65,8 +65,6 @@ public class WelcomeTourAction extends AbstractAction {
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		//TODO: show options and let the optionswindow start the selected tour
-//		tourManager.startTour("RapidMiner");
 		new TourChooser().setVisible(true);
 	}
 

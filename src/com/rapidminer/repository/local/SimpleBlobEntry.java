@@ -33,7 +33,8 @@ import java.io.OutputStream;
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.tools.Tools;
+import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.I18N;
 
 /**
  * Reference on BLOB entries in the repository.
@@ -71,8 +72,8 @@ public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 	@Override
 	public boolean rename(String newName) throws RepositoryException {
 		// check for possible invalid name
-		if (!Tools.canFileBeStoredOnCurrentFilesystem(newName)) {
-			throw new RepositoryException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + newName + "')");
+		if (!RepositoryLocation.isNameValid(newName)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName));
 		}
 
 		renameFile(getFile(), newName);

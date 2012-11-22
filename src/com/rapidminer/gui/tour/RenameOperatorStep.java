@@ -35,49 +35,47 @@ import com.rapidminer.operator.Operator;
 
 /**
  * 
- * @author Philipp Kersting
+ * @author Philipp Kersting and Thilo Kamradt
  *
  */
 
-public class RenameOperatorStep extends OperatorStep {
+public class RenameOperatorStep extends Step {
 
 	private Alignment alignment;
 	private Window owner;
 	private String i18nKey;
 	private String targetName;
+	private Class<? extends Operator> operatorClass;
 	private Component attachTo;
-	private String attachToKey;
-
-	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String targetName, Component attachTo) {
-		this.alignment = alignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.targetName = targetName;
-		this.operator = operator;
-		this.attachTo = attachTo;
-		this.attachToKey = null;
-	}
-
+	private String attachToKey = null;
+	private ProcessSetupListener listener = null;
+	
 	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String targetName, String attachToKey) {
-		this.alignment = alignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.targetName = targetName;
-		this.operator = operator;
-		this.attachTo = null;
+		this(alignment, owner, i18nKey, operator, targetName, (Component) null);
 		this.attachToKey = attachToKey;
 	}
+	
+	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String targetName, Component attachTo) {
+		super();
+		this.alignment = alignment;
+		this.owner = owner;
+		this.i18nKey = i18nKey;
+		this.targetName = targetName;
+		this.operatorClass = operator;
+		this.attachTo = attachTo;
+	}
+
 
 	@Override
 	BubbleWindow createBubble() {
 		if (attachTo == null) {
 			if(attachToKey== null)
 				throw new IllegalArgumentException("Buttonkey and Component is null. Please add any Component to attach");
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey);
+			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey, false);
 		} else {
 			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
 		}
-		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(new ProcessSetupListener() {
+		listener = new ProcessSetupListener() {
 
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
@@ -87,7 +85,7 @@ public class RenameOperatorStep extends OperatorStep {
 
 			@Override
 			public void operatorChanged(Operator operator) {
-				if (RenameOperatorStep.this.operator.isInstance(operator) && operator.getName().equals(targetName)) {
+				if (RenameOperatorStep.this.operatorClass.isInstance(operator) && operator.getName().equals(targetName)) {
 					bubble.triggerFire();
 					RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
 				}
@@ -104,8 +102,14 @@ public class RenameOperatorStep extends OperatorStep {
 				// TODO Auto-generated method stub
 
 			}
-		});
+		};
+		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
 		return bubble;
 	}
 
+	@Override
+	protected void stepCanceled() {
+		if(listener != null)
+			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+	}
 }

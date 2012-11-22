@@ -114,7 +114,7 @@ public class ResourceIOObjectEntry extends ResourceDataEntry implements IOObject
 
 	@Override
 	public void storeData(IOObject data, Operator callingOperator, ProgressListener l) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");
+		throw new RepositoryException("This is a read-only sample data entry. Cannot store data here.");
 	}
 
 	@Override

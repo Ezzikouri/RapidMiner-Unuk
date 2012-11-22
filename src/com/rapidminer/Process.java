@@ -37,7 +37,6 @@ import java.nio.charset.UnsupportedCharsetException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +59,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.DebugMode;
+import com.rapidminer.operator.DummyOperator;
 import com.rapidminer.operator.ExecutionMode;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.IOContainer;
@@ -1031,6 +1031,11 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	/** Saves the process to the process file. */
 	public void save() throws IOException {
+		try {
+			Process.checkIfSavable(this);
+		} catch (Exception e) {
+			throw new IOException(e.getMessage());
+		}
 		if (processLocation != null) {
 			this.isProcessConverted = false;
 			processLocation.store(this, null);
@@ -1042,6 +1047,11 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	/** Saves the process to the given process file. */
 	public void save(File file) throws IOException {
+		try {
+			Process.checkIfSavable(this);
+		} catch (Exception e) {
+			throw new IOException(e.getMessage());
+		}
 		new FileProcessLocation(file).store(this, null);
 		fireProcessStoredEvent(this);
 	}
@@ -1379,6 +1389,15 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 
 	public Annotations getAnnotations() {
 		return annotations;
+	}
+	
+	/** Checks weather the process can be saved as is. Throws an Exception if the Process should not be saved. **/
+	public static void checkIfSavable(Process process) throws Exception {
+		for (Operator operator : process.getAllOperators()) {
+			if (operator instanceof DummyOperator) {
+				throw new Exception("The process contains dummy operators. Remove all dummy operators or install all missing extensions in order to save the process.");
+			}
+		}
 	}
 
 }

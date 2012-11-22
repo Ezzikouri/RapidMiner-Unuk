@@ -42,6 +42,7 @@ import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.ProgressListener;
 /**
  * @author Simon Fischer
@@ -72,6 +73,11 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
+		// check for possible invalid name
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+		}
+		
 		EntryResponse response = getRepository().getRepositoryService().makeFolder(getPath(), name);
 		if (response.getStatus() != RepositoryConstants.OK) {
 			throw new RepositoryException(response.getErrorMessage());
@@ -87,6 +93,11 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	
 	@Override
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
+		// check for possible invalid name
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+		}
+
 		EntryResponse response = getRepository().getRepositoryService().createBlob(getPath(), name);
 		RemoteBlobEntry newBlob= new RemoteBlobEntry(response, this, getRepository());
 		if (this.entries != null) {				
@@ -185,6 +196,11 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
+		// check for possible invalid name
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+		}
+		
 		RepositoryLocation loc;
 		try {
 			loc = new RepositoryLocation(getLocation(), name);
@@ -206,6 +222,11 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
+		// check for possible invalid name
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+		}
+
 		RepositoryLocation loc;
 		try {
 			loc = new RepositoryLocation(getLocation(), name);
