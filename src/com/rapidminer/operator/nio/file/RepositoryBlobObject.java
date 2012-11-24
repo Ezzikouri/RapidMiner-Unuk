@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.nio.file;
 
 import java.io.File;
@@ -57,11 +58,11 @@ public class RepositoryBlobObject extends FileObject {
 	public InputStream openStream() throws OperatorException {
 		BlobEntry entry;
 		try {
-			if( location.locateEntry() instanceof BlobEntry){				
+			if (location.locateEntry() instanceof BlobEntry) {
 				entry = (BlobEntry) location.locateEntry();
 				return entry.openInputStream();
 			} else {
-				throw new OperatorException("942", null, location.getPath(),"blob",location.locateEntry().getType());
+				throw new OperatorException("942", null, location.getPath(), "blob", location.locateEntry().getType());
 			}
 		} catch (RepositoryException e) {
 			throw new OperatorException("319", e, location.getPath());
@@ -76,14 +77,24 @@ public class RepositoryBlobObject extends FileObject {
 				file = File.createTempFile("rm_file_", ".dump");
 				FileOutputStream fos = new FileOutputStream(file);
 				BlobEntry entry;
-				if( location.locateEntry() instanceof BlobEntry){				
-					entry = (BlobEntry) location.locateEntry();
-				} else {
-					throw new OperatorException("942", null, location.getPath(),"blob",location.locateEntry().getType());
+				try {
+					if (location.locateEntry() instanceof BlobEntry) {
+						entry = (BlobEntry) location.locateEntry();
+					} else {
+						throw new OperatorException("942", null, location.getPath(), "blob", location.locateEntry().getType());
+					}
+
+					InputStream in = entry.openInputStream();
+					try {
+						Tools.copyStreamSynchronously(in, fos, true);
+						file.deleteOnExit();
+					} finally {
+						in.close();
+					}
+				} finally {
+					fos.close();
+
 				}
-				InputStream in = entry.openInputStream();
-				Tools.copyStreamSynchronously(in, fos, true);
-				file.deleteOnExit();
 			} catch (IOException e) {
 				throw new OperatorException("303", e, file, e.getMessage());
 			} catch (RepositoryException e) {

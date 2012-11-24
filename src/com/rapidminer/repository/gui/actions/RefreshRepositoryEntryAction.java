@@ -22,34 +22,37 @@
  */
 package com.rapidminer.repository.gui.actions;
 
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
-import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
-import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.gui.RepositoryTree;
 
 /**
- * This action deletes the selected entry.
+ * This action refreshes the selected entry.
  *
  * @author Simon Fischer
  */
-public class DeleteAction extends AbstractRepositoryAction<Entry> {
+public class RefreshRepositoryEntryAction extends AbstractRepositoryAction<Folder> {
 	
 	private static final long serialVersionUID = 1L;
 
 	
-	public DeleteAction(RepositoryTree tree) {
-		super(tree, Entry.class, false, "repository_delete_entry");
+	public RefreshRepositoryEntryAction(RepositoryTree tree) {
+		super(tree, Folder.class, false, "repository_refresh_folder");
 	}
 
 	@Override
-	public void actionPerformed(Entry entry) {
-		if (SwingTools.showConfirmDialog("file_chooser.delete", ConfirmDialog.YES_NO_OPTION, entry.getName()) == ConfirmDialog.YES_OPTION) {
-			try {
-				entry.delete();
-			} catch (Exception e1) {
-				SwingTools.showSimpleErrorMessage("cannot_delete_entry", e1, entry.getLocation());
+	public void actionPerformed(final Folder folder) {					
+		ProgressThread openProgressThread = new ProgressThread("refreshing") {
+			public void run() {
+				try {
+					folder.refresh();
+				} catch (Exception e) {
+					SwingTools.showSimpleErrorMessage("cannot_refresh_folder", e);
+				}
 			}
-		}
+		};
+		openProgressThread.start();														
 	}
 
 }

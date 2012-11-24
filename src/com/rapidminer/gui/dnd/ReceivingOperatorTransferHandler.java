@@ -156,7 +156,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 			} else {
 				// This is probably a data file
 				try {
-					newOperators = Collections.<Operator>singletonList(AbstractReader.createReader(file.toURI().toURL()));
+					newOperators = Collections.<Operator>singletonList(AbstractReader.createReader(file.toURI()));
 				} catch (OperatorCreationException e1) {
 					//LogService.getRoot().log(Level.SEVERE, "While accepting drop: ", e1);	
 					LogService.getRoot().log(Level.SEVERE,
@@ -165,15 +165,16 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 							e1);
 					SwingTools.showSimpleErrorMessage("cannot_create_reader_for_file", e1,file.getName());
 					return false;
-				} catch (MalformedURLException e) {
-					//LogService.getRoot().log(Level.SEVERE, "While accepting drop: ", e);	
-					LogService.getRoot().log(Level.SEVERE,
-							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-							"com.rapidminer.gui.dnd.ReceivingOperatorTransferHandler.error_while_accepting_drop"),
-							e);
-					SwingTools.showSimpleErrorMessage("cannot_create_reader_for_file", e, file.getName());
-					return false;
 				}
+//				} catch (MalformedURLException e) {
+//					//LogService.getRoot().log(Level.SEVERE, "While accepting drop: ", e);	
+//					LogService.getRoot().log(Level.SEVERE,
+//							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+//							"com.rapidminer.gui.dnd.ReceivingOperatorTransferHandler.error_while_accepting_drop"),
+//							e);
+//					SwingTools.showSimpleErrorMessage("cannot_create_reader_for_file", e, file.getName());
+//					return false;
+//				}
 				if (newOperators == null) {							
 					JOptionPane.showMessageDialog(RapidMinerGUI.getMainFrame(), "No reader operator available for file "+file.getName());
 					dropEnds();

@@ -533,6 +533,8 @@ public class ProcessRenderer extends JPanel {
                 if (newOperators.isEmpty()) {
                     return true;
                 }
+                
+                requestFocusInWindow();
 
                 List<Operator> selection = getSelection();
                 // if we don't have a loc, we can use the mouse cursor
@@ -741,7 +743,7 @@ public class ProcessRenderer extends JPanel {
         ((ResourceAction) mainFrame.getActions().TOGGLE_ACTIVATION_ITEM).addToActionMap(this, WHEN_FOCUSED);
         RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
         SELECT_ALL_ACTION.addToActionMap(this, WHEN_FOCUSED);
-        DELETE_SELECTED_CONNECTION.addToActionMap(this, WHEN_FOCUSED);
+        DELETE_SELECTED_CONNECTION.addToActionMap(this, "delete", WHEN_FOCUSED);
 
         OperatorTransferHandler.addToActionMap(this);
 

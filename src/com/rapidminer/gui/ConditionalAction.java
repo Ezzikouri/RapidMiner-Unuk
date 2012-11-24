@@ -83,6 +83,8 @@ public abstract class ConditionalAction extends AbstractAction {
 	public static final int NUMBER_OF_CONDITIONS = 11;
 	
 	private final int[] conditions = new int[NUMBER_OF_CONDITIONS];
+	
+	private boolean isDisabledDueToFocusLost;
 
 	public ConditionalAction(String name) {
 		this(name, null);		
@@ -136,6 +138,11 @@ public abstract class ConditionalAction extends AbstractAction {
 	 * enabling status of the action is not touched.
 	 */
 	protected void update(boolean[] state) {
+		// if this action is disabled due to a focus loss never change its enabled state here
+		if (isDisabledDueToFocusLost) {
+			return;
+		}
+		
 		boolean ok = true;
 		boolean ignore = true;
 		for (int i = 0; i < conditions.length; i++) {
@@ -150,5 +157,17 @@ public abstract class ConditionalAction extends AbstractAction {
 		if (!ignore) {
 			setEnabled(ok);
 		}
+	}
+
+	public boolean isDisabledDueToFocusLost() {
+		return isDisabledDueToFocusLost;
+	}
+
+	/**
+	 * If set to <code>true</code>, will not enable itself to condition changes.
+	 * @param isDisabledDueToFocusLost
+	 */
+	public void setDisabledDueToFocusLost(boolean isDisabledDueToFocusLost) {
+		this.isDisabledDueToFocusLost = isDisabledDueToFocusLost;
 	}	
 }

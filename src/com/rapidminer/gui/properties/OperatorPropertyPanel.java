@@ -35,6 +35,7 @@ import java.awt.event.MouseListener;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -52,6 +53,9 @@ import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.actions.ToggleAction.ToggleActionListener;
+import com.rapidminer.gui.operatortree.actions.DeleteOperatorAction;
+import com.rapidminer.gui.operatortree.actions.InfoOperatorAction;
+import com.rapidminer.gui.operatortree.actions.ToggleActivationItem;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.properties.celleditors.value.PropertyValueCellEditor;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -358,12 +362,36 @@ public class OperatorPropertyPanel extends PropertyPanel implements Dockable, Pr
 			JToggleButton toggleExpertModeButton = mainFrame.TOGGLE_EXPERT_MODE_ACTION.createToggleButton();
 			toggleExpertModeButton.setText(null);
 			toolBar.add(toggleExpertModeButton);
-			toolBar.add(mainFrame.getActions().INFO_OPERATOR_ACTION);
-			JToggleButton enableOperatorButton = mainFrame.getActions().TOGGLE_ACTIVATION_ITEM.createToggleButton();
+			Action infoOperatorAction = new InfoOperatorAction() {
+				private static final long serialVersionUID = 6758272768665592429L;
+
+				@Override
+				protected Operator getOperator() {
+					return mainFrame.getFirstSelectedOperator();
+				}		
+			};
+			toolBar.add(infoOperatorAction);
+			JToggleButton enableOperatorButton = new ToggleActivationItem(mainFrame.getActions()).createToggleButton();
 			enableOperatorButton.setText(null);
 			toolBar.add(enableOperatorButton);
-			toolBar.add(mainFrame.getActions().RENAME_OPERATOR_ACTION);
-			toolBar.add(mainFrame.getActions().DELETE_OPERATOR_ACTION);
+			Action renameOperatorAction = new ResourceAction(true, "rename_in_processrenderer") {
+				{
+					setCondition(OPERATOR_SELECTED, MANDATORY);
+				}
+				
+				private static final long serialVersionUID = -3104160320178045540L;
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Operator operator = mainFrame.getFirstSelectedOperator();
+					String name = SwingTools.showInputDialog("rename_operator", operator.getName());
+					if (name != null && name.length() > 0) {
+						operator.rename(name);
+					}
+				}
+			};
+			toolBar.add(renameOperatorAction);
+			toolBar.add(new DeleteOperatorAction());
 			breakpointButton.addToToolBar(toolBar);
 //			toolBar.add(mainFrame.getActions().MAKE_DIRTY_ACTION);			
 			toolBarPanel.add(toolBar, BorderLayout.NORTH);

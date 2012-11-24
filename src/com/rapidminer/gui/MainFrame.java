@@ -39,6 +39,7 @@ import java.util.List;
 
 import javax.swing.Action;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -99,7 +100,7 @@ import com.rapidminer.gui.flow.ProcessPanel;
 import com.rapidminer.gui.flow.ProcessUndoManager;
 import com.rapidminer.gui.operatortree.OperatorTree;
 import com.rapidminer.gui.operatortree.OperatorTreePanel;
-import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
+import com.rapidminer.gui.operatortree.actions.CutCopyPasteDeleteAction;
 import com.rapidminer.gui.operatortree.actions.ToggleBreakpointItem;
 import com.rapidminer.gui.plotter.PlotterPanel;
 import com.rapidminer.gui.processeditor.CommentEditor;
@@ -688,6 +689,19 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         menuBar.add(fileMenu);
 
         // edit menu
+        ((ResourceAction)actions.INFO_OPERATOR_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+        ((ResourceAction)actions.TOGGLE_ACTIVATION_ITEM).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+        ((ResourceAction)actions.RENAME_OPERATOR_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+        ((ResourceAction)actions.NEW_OPERATOR_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+        ((ResourceAction)actions.NEW_BUILDING_BLOCK_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+        ((ResourceAction)actions.SAVE_BUILDING_BLOCK_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+        // not added for ProcessRenderer because there the DELETE_SELECTED_CONNECTION action is active
+        ((ResourceAction)actions.DELETE_OPERATOR_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getOperatorTree());
+        // commented out because toggleBreakpoint action is used at various places, especially at operator paramter frame which breaks if action is disabled
+//        for (ToggleBreakpointItem item : actions.TOGGLE_BREAKPOINT) {
+//        	 ((ResourceAction)item).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+//        }
+        ((ResourceAction)actions.TOGGLE_ALL_BREAKPOINTS).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
         editMenu = new ResourceMenu("edit");
         editMenu.add(UNDO_ACTION);
         editMenu.add(REDO_ACTION);
@@ -700,10 +714,11 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
         editMenu.add(actions.NEW_BUILDING_BLOCK_ACTION);
         editMenu.add(actions.SAVE_BUILDING_BLOCK_ACTION);
         editMenu.addSeparator();
-        editMenu.add(CutCopyPasteAction.CUT_ACTION);
-        editMenu.add(CutCopyPasteAction.COPY_ACTION);
-        editMenu.add(CutCopyPasteAction.PASTE_ACTION);
-        editMenu.add(actions.DELETE_OPERATOR_ACTION);
+        editMenu.add(CutCopyPasteDeleteAction.CUT_ACTION);
+        editMenu.add(CutCopyPasteDeleteAction.COPY_ACTION);
+        editMenu.add(CutCopyPasteDeleteAction.PASTE_ACTION);
+        editMenu.add(CutCopyPasteDeleteAction.DELETE_ACTION);
+//        editMenu.add(actions.DELETE_OPERATOR_ACTION);
         editMenu.addSeparator();
         for (ToggleBreakpointItem item : actions.TOGGLE_BREAKPOINT) {
             editMenu.add(item.createMenuItem());

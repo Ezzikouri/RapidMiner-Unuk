@@ -123,6 +123,10 @@ public abstract class ApplicationPerspectives {
         perspective.apply(context);
         current = perspective;
         RESTORE_DEFAULT_ACTION.setEnabled(!current.isUserDefined());
+        // try to request focus for the process renderer so actions are enabled after perspective switch
+        if ("design".equals(perspective.getName())) {
+        	RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().requestFocusInWindow();
+        }
     }
 
     public JMenu getWorkspaceMenu() {

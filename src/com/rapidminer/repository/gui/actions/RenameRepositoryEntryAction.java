@@ -22,37 +22,39 @@
  */
 package com.rapidminer.repository.gui.actions;
 
-import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
-import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.gui.RepositoryTree;
 
 /**
- * This action refreshes the selected entry.
+ * This action renames the selected entry.
  *
  * @author Simon Fischer
  */
-public class RefreshAction extends AbstractRepositoryAction<Folder> {
+public class RenameRepositoryEntryAction extends AbstractRepositoryAction<Entry> {
 	
 	private static final long serialVersionUID = 1L;
 
 	
-	public RefreshAction(RepositoryTree tree) {
-		super(tree, Folder.class, false, "repository_refresh_folder");
+	public RenameRepositoryEntryAction(RepositoryTree tree) {
+		super(tree, Entry.class, false, "repository_rename_entry");
 	}
 
 	@Override
-	public void actionPerformed(final Folder folder) {					
-		ProgressThread openProgressThread = new ProgressThread("refreshing") {
-			public void run() {
-				try {
-					folder.refresh();
-				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("cannot_refresh_folder", e);
-				}
+	public void actionPerformed(Entry entry) {
+		String name = SwingTools.showRepositoryEntryInputDialog("file_chooser.rename", entry.getName(), entry.getName());
+		if ((name != null) && !name.equals(entry.getName())) {
+			boolean success = false;
+			try {
+				success = entry.rename(name);
+			} catch (Exception e) {
+				SwingTools.showSimpleErrorMessage("cannot_rename_entry", e, entry.getName(), name);
+				return;
 			}
-		};
-		openProgressThread.start();														
+			if (!success) {
+				SwingTools.showVerySimpleErrorMessage("cannot_rename_entry", entry.getName(), name);
+			}
+		}
 	}
 
 }

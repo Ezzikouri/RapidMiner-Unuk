@@ -39,7 +39,8 @@ import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 
 import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
+import com.rapidminer.gui.operatortree.actions.CutCopyPasteDeleteAction;
+import com.rapidminer.gui.operatortree.actions.DeleteOperatorAction;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
@@ -133,15 +134,17 @@ public abstract class OperatorTransferHandler extends TransferHandler {
 	}
 
 	public static void installMenuItems(JPopupMenu editmenu) {
-		editmenu.add(CutCopyPasteAction.CUT_ACTION);
-		editmenu.add(CutCopyPasteAction.COPY_ACTION);
-		editmenu.add(CutCopyPasteAction.PASTE_ACTION);
+		editmenu.add(CutCopyPasteDeleteAction.CUT_ACTION);
+		editmenu.add(CutCopyPasteDeleteAction.COPY_ACTION);
+		editmenu.add(CutCopyPasteDeleteAction.PASTE_ACTION);
+		editmenu.add(CutCopyPasteDeleteAction.DELETE_ACTION);
 	}
 
 	public static void installMenuItems(JMenu editmenu) {
-		editmenu.add(CutCopyPasteAction.CUT_ACTION);
-		editmenu.add(CutCopyPasteAction.COPY_ACTION);
-		editmenu.add(CutCopyPasteAction.PASTE_ACTION);
+		editmenu.add(CutCopyPasteDeleteAction.CUT_ACTION);
+		editmenu.add(CutCopyPasteDeleteAction.COPY_ACTION);
+		editmenu.add(CutCopyPasteDeleteAction.PASTE_ACTION);
+		editmenu.add(CutCopyPasteDeleteAction.DELETE_ACTION);
 	}
 
 	public static void addToActionMap(JComponent component) {
@@ -149,11 +152,13 @@ public abstract class OperatorTransferHandler extends TransferHandler {
 		actionMap.put(TransferHandler.getCutAction().getValue(Action.NAME),	TransferHandler.getCutAction());
 		actionMap.put(TransferHandler.getCopyAction().getValue(Action.NAME),	TransferHandler.getCopyAction());
 		actionMap.put(TransferHandler.getPasteAction().getValue(Action.NAME),	TransferHandler.getPasteAction());
+		actionMap.put(DeleteOperatorAction.getActionName(), new DeleteOperatorAction());
 
 		// only required if you have not set the menu accelerators
 		InputMap inputMap = component.getInputMap();
 		inputMap.put(KeyStroke.getKeyStroke("ctrl X"),	TransferHandler.getCutAction().getValue(Action.NAME));
 		inputMap.put(KeyStroke.getKeyStroke("ctrl C"),	TransferHandler.getCopyAction().getValue(Action.NAME));
 		inputMap.put(KeyStroke.getKeyStroke("ctrl V"),	TransferHandler.getPasteAction().getValue(Action.NAME));
+		inputMap.put(KeyStroke.getKeyStroke("del"), 	DeleteOperatorAction.getActionName());
 	}
 }

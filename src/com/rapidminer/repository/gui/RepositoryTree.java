@@ -80,12 +80,12 @@ import com.rapidminer.repository.gui.actions.ConfigureRepositoryAction;
 import com.rapidminer.repository.gui.actions.CopyEntryRepositoryAction;
 import com.rapidminer.repository.gui.actions.CopyLocationAction;
 import com.rapidminer.repository.gui.actions.CreateFolderAction;
-import com.rapidminer.repository.gui.actions.DeleteAction;
+import com.rapidminer.repository.gui.actions.DeleteRepositoryEntryAction;
 import com.rapidminer.repository.gui.actions.OpenEntryAction;
 import com.rapidminer.repository.gui.actions.OpenInFileBrowserAction;
 import com.rapidminer.repository.gui.actions.PasteEntryRepositoryAction;
-import com.rapidminer.repository.gui.actions.RefreshAction;
-import com.rapidminer.repository.gui.actions.RenameAction;
+import com.rapidminer.repository.gui.actions.RefreshRepositoryEntryAction;
+import com.rapidminer.repository.gui.actions.RenameRepositoryEntryAction;
 import com.rapidminer.repository.gui.actions.RunRemoteNowProcessAction;
 import com.rapidminer.repository.gui.actions.StoreProcessAction;
 import com.rapidminer.repository.local.LocalRepository;
@@ -143,13 +143,13 @@ public class RepositoryTree extends JTree {
         }
     }
 
-    public final AbstractRepositoryAction<Entry> RENAME_ACTION = new RenameAction(this);
+    public final AbstractRepositoryAction<Entry> RENAME_ACTION = new RenameRepositoryEntryAction(this);
 
-    public final AbstractRepositoryAction<Entry> DELETE_ACTION = new DeleteAction(this);
+    public final AbstractRepositoryAction<Entry> DELETE_ACTION = new DeleteRepositoryEntryAction(this);
 
     public final AbstractRepositoryAction<DataEntry> OPEN_ACTION = new OpenEntryAction(this);
 
-    public final AbstractRepositoryAction<Folder> REFRESH_ACTION = new RefreshAction(this);
+    public final AbstractRepositoryAction<Folder> REFRESH_ACTION = new RefreshRepositoryEntryAction(this);
 
     public final AbstractRepositoryAction<Folder> CREATE_FOLDER_ACTION = new CreateFolderAction(this);
 
@@ -167,13 +167,13 @@ public class RepositoryTree extends JTree {
         addRepositoryAction(RunRemoteNowProcessAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ RemoteProcessEntry.class }, new Class<?>[]{}), false, true);
         addRepositoryAction(OpenEntryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ DataEntry.class }, new Class<?>[]{}), false, false);
         addRepositoryAction(StoreProcessAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ ProcessEntry.class, Folder.class }, new Class<?>[]{}), false, false);
-        addRepositoryAction(RenameAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
+        addRepositoryAction(RenameRepositoryEntryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
         addRepositoryAction(CreateFolderAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Folder.class }, new Class<?>[]{}), false, false);
         addRepositoryAction(CopyEntryRepositoryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{}, new Class<?>[]{}), true, false);
         addRepositoryAction(PasteEntryRepositoryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{}, new Class<?>[]{}), false, false);
         addRepositoryAction(CopyLocationAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{}, new Class<?>[]{}), false, false);
-        addRepositoryAction(DeleteAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
-        addRepositoryAction(RefreshAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Folder.class }, new Class<?>[]{}), true, false);
+        addRepositoryAction(DeleteRepositoryEntryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{}), false, false);
+        addRepositoryAction(RefreshRepositoryEntryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Folder.class }, new Class<?>[]{}), true, false);
         addRepositoryAction(OpenInFileBrowserAction.class, new RepositoryActionConditionImplStandard(new Class<?>[]{ Entry.class }, new Class<?>[]{ LocalRepository.class }), false, false);
     }
 
@@ -200,7 +200,7 @@ public class RepositoryTree extends JTree {
         listToEnable.add(CREATE_FOLDER_ACTION);
 
         RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
-        DELETE_ACTION.addToActionMap(this, WHEN_FOCUSED);
+        DELETE_ACTION.addToActionMap(this, "delete", WHEN_FOCUSED);
         REFRESH_ACTION.addToActionMap(this, WHEN_FOCUSED);
 
         setRootVisible(false);

@@ -23,36 +23,31 @@
 package com.rapidminer.repository.gui.actions;
 
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.gui.RepositoryTree;
 
 /**
- * This action renames the selected entry.
+ * This action deletes the selected entry.
  *
  * @author Simon Fischer
  */
-public class RenameAction extends AbstractRepositoryAction<Entry> {
+public class DeleteRepositoryEntryAction extends AbstractRepositoryAction<Entry> {
 	
 	private static final long serialVersionUID = 1L;
 
 	
-	public RenameAction(RepositoryTree tree) {
-		super(tree, Entry.class, false, "repository_rename_entry");
+	public DeleteRepositoryEntryAction(RepositoryTree tree) {
+		super(tree, Entry.class, false, "repository_delete_entry");
 	}
 
 	@Override
 	public void actionPerformed(Entry entry) {
-		String name = SwingTools.showRepositoryEntryInputDialog("file_chooser.rename", entry.getName(), entry.getName());
-		if ((name != null) && !name.equals(entry.getName())) {
-			boolean success = false;
+		if (SwingTools.showConfirmDialog("file_chooser.delete", ConfirmDialog.YES_NO_OPTION, entry.getName()) == ConfirmDialog.YES_OPTION) {
 			try {
-				success = entry.rename(name);
-			} catch (Exception e) {
-				SwingTools.showSimpleErrorMessage("cannot_rename_entry", e, entry.getName(), name);
-				return;
-			}
-			if (!success) {
-				SwingTools.showVerySimpleErrorMessage("cannot_rename_entry", entry.getName(), name);
+				entry.delete();
+			} catch (Exception e1) {
+				SwingTools.showSimpleErrorMessage("cannot_delete_entry", e1, entry.getLocation());
 			}
 		}
 	}

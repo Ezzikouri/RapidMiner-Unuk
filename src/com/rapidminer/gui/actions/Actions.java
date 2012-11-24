@@ -106,7 +106,7 @@ public class Actions implements ProcessEditor {
 //	
 //	public final Action PASTE_ACTION = new PasteAction(this);
 	
-	public final Action DELETE_OPERATOR_ACTION = new DeleteOperatorAction(this);
+	public final Action DELETE_OPERATOR_ACTION = new DeleteOperatorAction();
 	
 	public final ToggleBreakpointItem TOGGLE_BREAKPOINT[] = { 
 			new ToggleBreakpointItem(this, BreakpointListener.BREAKPOINT_BEFORE), 
@@ -236,7 +236,7 @@ public class Actions implements ProcessEditor {
 //		menu.add(CUT_ACTION);
 //		menu.add(PASTE_ACTION);
 		OperatorTransferHandler.installMenuItems(menu);
-		menu.add(DELETE_OPERATOR_ACTION);
+//		menu.add(DELETE_OPERATOR_ACTION);
 		
 		menu.addSeparator();
 		if ((op != null) && singleSelection) {
@@ -343,12 +343,15 @@ public class Actions implements ProcessEditor {
 	/** The currently selected operator will be deleted. */
 	public void delete() {
 		Operator parent = null;
-		if(!mainFrame.isProcessRendererFocused()) {
-			return;
-		}
+//		if(!mainFrame.isProcessRendererFocused()) {
+//			return;
+//		}
 		for (Operator selectedOperator : new LinkedList<Operator>(getSelectedOperators())) {				
 			if (parent == null) {
 				parent = selectedOperator.getParent();
+			}
+			if (selectedOperator instanceof ProcessRootOperator) {
+				return;
 			}
 			selectedOperator.remove();
 		}		

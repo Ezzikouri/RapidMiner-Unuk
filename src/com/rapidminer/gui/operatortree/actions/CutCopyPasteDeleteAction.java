@@ -26,6 +26,7 @@ import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Arrays;
 
 import javax.swing.Action;
 import javax.swing.JComponent;
@@ -33,19 +34,20 @@ import javax.swing.JComponent;
 import com.rapidminer.gui.tools.ResourceAction;
 /**
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Marco Boeck
  */
-public class CutCopyPasteAction extends ResourceAction {
+public class CutCopyPasteDeleteAction extends ResourceAction {
 
 	private static final long serialVersionUID = 1L;
 	
 	private JComponent focusOwner = null;
 	
-	public static final Action CUT_ACTION   = new CutCopyPasteAction("cut", "cut");
-	public static final Action COPY_ACTION  = new CutCopyPasteAction("copy", "copy");
-	public static final Action PASTE_ACTION = new CutCopyPasteAction("paste", "paste");
+	public static final Action CUT_ACTION   = new CutCopyPasteDeleteAction("cut", "cut");
+	public static final Action COPY_ACTION  = new CutCopyPasteDeleteAction("copy", "copy");
+	public static final Action PASTE_ACTION = new CutCopyPasteDeleteAction("paste", "paste");
+	public static final Action DELETE_ACTION = new CutCopyPasteDeleteAction("delete", "delete");
 	
-	private CutCopyPasteAction(String i18nKey, String action) {
+	private CutCopyPasteDeleteAction(String i18nKey, String action) {
 		super(i18nKey);
 		putValue(ACTION_COMMAND_KEY, action);
 		KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();

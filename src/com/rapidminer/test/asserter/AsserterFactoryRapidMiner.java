@@ -42,6 +42,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.meta.ParameterSet;
 import com.rapidminer.operator.meta.ParameterValue;
 import com.rapidminer.operator.nio.file.FileObject;
+import com.rapidminer.operator.nio.file.SimpleFileObject;
 import com.rapidminer.operator.performance.PerformanceCriterion;
 import com.rapidminer.operator.performance.PerformanceVector;
 import com.rapidminer.operator.visualization.dependencies.NumericalMatrix;
@@ -360,18 +361,21 @@ public class AsserterFactoryRapidMiner implements AsserterFactory {
 		asserters.add(new Asserter() {
 
 			/**
-			 * Tests the two performance vectors for equality by testing the
-			 * size, the criteria names, the main criterion and each criterion.
+			 * Tests the two file objects for equality by testing the
+			 * 
 			 * 
 			 * @param message
 			 *            message to display if an error occurs
 			 * @param expected
-			 *            expected vector
+			 *            expected file object
 			 * @param actual
-			 *            actual vector
+			 *            actual file object
 			 */
 			@Override
 			public void assertEquals(String message, Object expectedObj, Object actualObj) throws RuntimeException {
+				if(expectedObj instanceof SimpleFileObject) {
+					throw new RuntimeException("SimpleFileObjects cannot be compared because expected and actual always point to the same file.");
+				}
 				FileObject fo1 = (FileObject) expectedObj;
 				FileObject fo2 = (FileObject) actualObj;
 				InputStream is1 = null;
