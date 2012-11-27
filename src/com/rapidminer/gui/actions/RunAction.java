@@ -56,6 +56,7 @@ public class RunAction extends ResourceAction {
     }
 
     public void actionPerformed(ActionEvent e) {
+    	mainFrame.getProcessPanel().requestFocus();
     	mainFrame.runProcess();
     }
     

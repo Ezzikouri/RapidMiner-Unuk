@@ -26,6 +26,8 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.EventObject;
 
 import javax.swing.JCheckBox;
@@ -78,9 +80,10 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 				}
 			}
 		});
-		nameField.addActionListener(new ActionListener() {
+		nameField.addFocusListener(new FocusListener() {
+			
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void focusLost(FocusEvent e) {
 				if (value != null) {
 					final String text = nameField.getText();
 					if ((text != null) && !text.isEmpty()) {
@@ -90,6 +93,11 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 						value.setUserDefinedAttributeName(value.getOriginalAttributeName());
 					}
 				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				// not needed
 			}
 		});
 		selectCheckBox.addActionListener(new ActionListener() {
@@ -189,6 +197,28 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 		selectCheckBox.setSelected(value.isSelected());
 		nameField.setText(value.getUserDefinedAttributeName());
 		roleBox.setSelectedItem(value.getRole());
+	}
+	
+	public void updateColumnMetaData() {
+		if (value != null) {
+			// value type
+			value.setAttributeValueType(valueTypeBox.getSelectedIndex());
+			
+			// value name
+			final String text = nameField.getText();
+			if ((text != null) && !text.isEmpty()) {
+				value.setUserDefinedAttributeName(text);
+			} else {
+				nameField.setText(value.getOriginalAttributeName());
+				value.setUserDefinedAttributeName(value.getOriginalAttributeName());
+			}
+			
+			// value selected
+			value.setSelected(selectCheckBox.isSelected());
+			
+			// value role
+			value.setRole(roleBox.getSelectedItem().toString());
+		}
 	}
 
 }

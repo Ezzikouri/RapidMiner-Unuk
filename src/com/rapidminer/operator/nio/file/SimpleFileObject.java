@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.nio.file;
 
 import java.io.File;
@@ -28,6 +29,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import com.rapidminer.operator.OperatorException;
+
 /**
  * Simple implementation of a {@link FileObject} backed by a {@link File}.
  * 
@@ -39,8 +41,7 @@ public class SimpleFileObject extends FileObject {
 	private static final long serialVersionUID = 1L;
 
 	private File file;
-	
-	
+
 	public SimpleFileObject(File file) {
 		super();
 		this.file = file;
@@ -59,11 +60,10 @@ public class SimpleFileObject extends FileObject {
 	public File getFile() {
 		return file;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "File: "+getFile().getAbsolutePath();
+		return "File: " + getFile().getAbsolutePath();
 	}
-
 
 }

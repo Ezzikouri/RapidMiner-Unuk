@@ -74,6 +74,9 @@ public class OpenAction extends ResourceAction {
             public void run() {
                 try {
                     ResultObject result = (ResultObject)data.retrieveData(this.getProgressListener());
+                    if (isCancelled()) {
+                    	return;
+                    }
                     result.setSource(data.getLocation().toString());
                     RapidMinerGUI.getMainFrame().getResultDisplay().showResult(result);
                 } catch (Exception e1) {
@@ -128,7 +131,13 @@ public class OpenAction extends ResourceAction {
                 getProgressListener().setCompleted(10);
                 try {
                     Process process = processLocation.load(getProgressListener());
+                    if (isCancelled()) {
+                    	return;
+                    }
                     process.setProcessLocation(processLocation);
+                    if (isCancelled()) {
+                    	return;
+                    }
                     RapidMinerGUI.getMainFrame().setOpenedProcess(process, showInfo, processLocation.toString());
                 } catch (XMLException ex) {
                     try {

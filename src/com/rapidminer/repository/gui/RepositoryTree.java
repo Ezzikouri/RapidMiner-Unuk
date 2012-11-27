@@ -610,16 +610,15 @@ public class RepositoryTree extends JTree {
 
     /** Opens the process held by the given entry (in the background) and opens it. */
     public static void openProcess(final ProcessEntry processEntry) {
+    	RepositoryProcessLocation processLocation = new RepositoryProcessLocation(processEntry.getLocation());
+    	if (RapidMinerGUI.getMainFrame().close()){
+    		OpenAction.open(processLocation, true);
+    	}
+    	/* PRE FIX OF BUG 308: When opening process with double click all changes are discarded
         ProgressThread openProgressThread = new ProgressThread("open_process") {
             @Override
             public void run() {
-                RepositoryProcessLocation processLocation = new RepositoryProcessLocation(processEntry.getLocation());
-                if (RapidMinerGUI.getMainFrame().close()){
-                    OpenAction.open(processLocation, true);
-                }
-                /* PRE FIX OF BUG 308: When opening process with double click all changes are discarded
-                 * 
-                 * try {
+                 try {
 					RepositoryProcessLocation processLocation = new RepositoryProcessLocation(processEntry.getLocation());
 					String xml = processEntry.retrieveXML();
 					try {
@@ -635,11 +634,11 @@ public class RepositoryTree extends JTree {
 					}
 				} catch (Exception e1) {
 					SwingTools.showSimpleErrorMessage("cannot_fetch_data_from_repository", e1);
-				}*/
+				}
 
             }
         };
-        openProgressThread.start();
+        openProgressThread.start();*/
     }
 
     public Entry getSelectedEntry() {

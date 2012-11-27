@@ -49,10 +49,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import org.freehep.util.export.ExportDialog;
-
 import com.rapidminer.datatable.DataTable;
-import com.rapidminer.gui.ApplicationFrame;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel.PlotterChangedListener;
 import com.rapidminer.gui.plotter.PlotterConfigurationModel.PlotterSettingsChangedListener;
 import com.rapidminer.gui.plotter.PlotterPanel.LineStyleCellRenderer;
@@ -361,19 +358,20 @@ public class PlotterControlPanel extends JPanel implements PlotterChangedListene
 		}
 
 		// Save image button for the plotter
-		if (!plotter.hasSaveImageButton()) {
-			JButton imageButton = new JButton(new ResourceAction(true, "save_image") {
-				private static final long serialVersionUID = -6568814929011124484L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					Component tosave = plotter.getPlotter();
-					ExportDialog exportDialog = new ExportDialog("RapidMiner");
-					exportDialog.showExportDialog(ApplicationFrame.getApplicationFrame(), "Save Image...", tosave, "plot");
-				}
-			});
-			this.add(imageButton, c);
-		}
+		// no longer needed because export now works for old plotters out of the box
+//		if (!plotter.hasSaveImageButton()) {
+//			JButton imageButton = new JButton(new ResourceAction(true, "save_image") {
+//				private static final long serialVersionUID = -6568814929011124484L;
+//
+//				@Override
+//				public void actionPerformed(ActionEvent e) {
+//					Component tosave = plotter.getPlotter();
+//					ExportDialog exportDialog = new ExportDialog("RapidMiner");
+//					exportDialog.showExportDialog(ApplicationFrame.getApplicationFrame(), "Save Image...", tosave, "plot");
+//				}
+//			});
+//			this.add(imageButton, c);
+//		}
 
 		// check if savable (for data)
 		if (plotter.isSaveable()) {

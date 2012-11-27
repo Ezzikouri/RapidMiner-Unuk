@@ -20,10 +20,16 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.nio.file;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectStreamException;
+import java.io.WriteAbortedException;
+
+import sun.misc.IOUtils;
 
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ResultObjectAdapter;
@@ -38,22 +44,44 @@ import com.rapidminer.operator.ResultObjectAdapter;
 public abstract class FileObject extends ResultObjectAdapter {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	/**
 	 * Open Stream to read data in this Object.
 	 * @throws OperatorException 
 	 * 
 	 */
 	public abstract InputStream openStream() throws OperatorException;
-	
+
 	/**
 	 * Returns the data as a file. Maybe slow if underlying implementation needs to copy the data into the file first.
 	 * This file should be used only for reading. Writing to this file has an undefined effect.
 	 */
-	public abstract File getFile() throws OperatorException ;
+	public abstract File getFile() throws OperatorException;
 
 	@Override
 	public String getName() {
 		return "File";
+	}
+
+	@SuppressWarnings("resource")
+	protected Object writeReplace() throws ObjectStreamException {
+		if (this instanceof BufferedFileObject) {
+			return this;
+		}
+		InputStream fileInputStream = null;
+		try {
+			fileInputStream = openStream();
+			return new BufferedFileObject(IOUtils.readFully(fileInputStream, -1, true));
+		} catch (OperatorException e) {
+			throw new WriteAbortedException("Could not write FileObject", e);
+		} catch (IOException e) {
+			throw new WriteAbortedException("Could not write FileObject", e);
+		} finally {
+			if (fileInputStream != null) {
+				try {
+					fileInputStream.close();
+				} catch (IOException e) {}
+			}
+		}
 	}
 }

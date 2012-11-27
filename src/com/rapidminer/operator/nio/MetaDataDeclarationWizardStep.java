@@ -317,9 +317,9 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
         TableColumnModel columnModel = previewTable.getColumnModel();
         previewTable.setTableHeader(new EditableTableHeader(columnModel));
         // header editors and renderers and values
-        MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
         MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
         for (int i = 0; i < previewTable.getColumnCount(); i++) {
+        	MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
             EditableTableHeaderColumn col = (EditableTableHeaderColumn) previewTable.getColumnModel().getColumn(i);
             col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
             col.setHeaderRenderer(headerRenderer);
@@ -351,6 +351,15 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
                 }
             } catch (OperatorException e) {
                 ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);
+            }
+            
+            // use settings edited by user even if he never pressed Enter or otherwise confirmed his changes
+            for (int i = 0; i < previewTable.getColumnCount(); i++) {
+            	EditableTableHeaderColumn col = (EditableTableHeaderColumn) previewTable.getColumnModel().getColumn(i);
+            	if (col.getHeaderEditor() instanceof MetaDataTableHeaderCellEditor) {
+            		MetaDataTableHeaderCellEditor editor = (MetaDataTableHeaderCellEditor) col.getHeaderEditor();
+            		editor.updateColumnMetaData();
+            	}
             }
         }
         return true;
