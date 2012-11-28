@@ -1351,7 +1351,7 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 		if (this.processLocation != null && !this.processLocation.equals(processLocation)) {
 			this.isProcessConverted = false;
 		}
-		if (this.processLocation != null) {
+		if (this.processLocation != null && !processLocation.equals(processLocation)) {
 			getLogger().info("Decoupling process from location " + this.processLocation + ". Process is now associated with file " + processLocation + ".");
 			this.processLocation = null;
 		}

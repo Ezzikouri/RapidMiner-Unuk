@@ -33,6 +33,7 @@ import com.rapidminer.gui.tools.PasswordDialog;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.PasswortInputCanceledException;
 
 /**
  * Observable class which stores information about the currently active user account for the Update Server.
@@ -95,9 +96,15 @@ public class UpdateServerAccount extends Observable {
 						
 						UpdateManager.clearAccountSerive();
 						
-						PasswordAuthentication pa = PasswordDialog.getPasswordAuthentication(UpdateManager.getUpdateServerURI("").toString(), false, false);
+						boolean clickedOk = true;
+						PasswordAuthentication pa = null;
+						try {
+							pa = PasswordDialog.getPasswordAuthentication(UpdateManager.getUpdateServerURI("").toString(), false, false);
+						} catch (PasswortInputCanceledException e1) {
+							clickedOk = false;
+						}
 		
-						boolean clickedOk = pa != null;
+						clickedOk &= pa != null;
 						if (clickedOk) {
 							//user hit "ok"
 							upateServerPA = pa;

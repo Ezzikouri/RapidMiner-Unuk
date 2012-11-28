@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.tools;
 
 import java.net.Authenticator;
@@ -40,124 +41,129 @@ import com.rapidminer.gui.tools.PasswordDialog;
  */
 public class GlobalAuthenticator extends Authenticator {
 
-    private final List<URLAuthenticator> serverAuthenticators = new LinkedList<URLAuthenticator>();
-    private final List<URLAuthenticator> proxyAuthenticators = new LinkedList<URLAuthenticator>();
+	private final List<URLAuthenticator> serverAuthenticators = new LinkedList<URLAuthenticator>();
+	private final List<URLAuthenticator> proxyAuthenticators = new LinkedList<URLAuthenticator>();
 
-    private static final GlobalAuthenticator THE_INSTANCE = new GlobalAuthenticator();
+	private static final GlobalAuthenticator THE_INSTANCE = new GlobalAuthenticator();
 
-    public interface URLAuthenticator {
-        /**
-         * This method returns the PasswordAuthentification if this Authenticator is
-         * registered for the given URL. Otherwise null can be returned.
-         */
-        public PasswordAuthentication getAuthentication(URL url);
+	public interface URLAuthenticator {
 
-        public String getName();
-    }
+		/**
+		 * This method returns the PasswordAuthentification if this Authenticator is
+		 * registered for the given URL. Otherwise null can be returned.
+		 */
+		public PasswordAuthentication getAuthentication(URL url) throws PasswortInputCanceledException;
 
-    private static class ProxyAuthenticator implements URLAuthenticator {
-        private String protocol;
+		public String getName();
+	}
 
-        public ProxyAuthenticator(String protocol) {
-            this.protocol = protocol;
-        }
+	private static class ProxyAuthenticator implements URLAuthenticator {
 
-        @Override
-        public PasswordAuthentication getAuthentication(URL url) {
-            if (url.getProtocol().equals(protocol)) {
-                String username = ParameterService.getParameterValue(protocol + ".proxyUsername");
-                String password = ParameterService.getParameterValue(protocol + ".proxyPassword");
-                if (username == null || username.isEmpty() || password == null) {  //empty passwords possibly valid!
-                    PasswordAuthentication passwordAuthentication = PasswordDialog.getPasswordAuthentication("proxy for " + url.toString(), true, false);
-                    if (passwordAuthentication == null) {
-                        return null;
-                    }
-                    ParameterService.setParameterValue(protocol + ".proxyUsername", passwordAuthentication.getUserName());
-                    ParameterService.setParameterValue(protocol + ".proxyPassword", new String(passwordAuthentication.getPassword()));
-                    ParameterService.saveParameters();
+		private String protocol;
 
-                    return passwordAuthentication;
-                }
-                return new PasswordAuthentication(username, password.toCharArray());
-            }
-            return null;
-        }
+		public ProxyAuthenticator(String protocol) {
+			this.protocol = protocol;
+		}
 
-        @Override
-        public String getName() {
-            return "Proxy Authenticator";
-        }
-    }
+		@Override
+		public PasswordAuthentication getAuthentication(URL url) throws PasswortInputCanceledException {
+			if (url.getProtocol().equals(protocol)) {
+				String username = ParameterService.getParameterValue(protocol + ".proxyUsername");
+				String password = ParameterService.getParameterValue(protocol + ".proxyPassword");
+				if (username == null || username.isEmpty() || password == null) {  //empty passwords possibly valid!
+					PasswordAuthentication passwordAuthentication = PasswordDialog.getPasswordAuthentication("proxy for " + url.toString(), true, false);
+					if (passwordAuthentication == null) {
+						return null;
+					}
+					ParameterService.setParameterValue(protocol + ".proxyUsername", passwordAuthentication.getUserName());
+					ParameterService.setParameterValue(protocol + ".proxyPassword", new String(passwordAuthentication.getPassword()));
+					ParameterService.saveParameters();
 
-    static {
-        Authenticator.setDefault(THE_INSTANCE);
-        registerProxyAuthenticator(new ProxyAuthenticator("http"));
-        registerProxyAuthenticator(new ProxyAuthenticator("https"));
-        registerProxyAuthenticator(new ProxyAuthenticator("ftp"));
-        registerProxyAuthenticator(new ProxyAuthenticator("socks"));
-    }
+					return passwordAuthentication;
+				}
+				return new PasswordAuthentication(username, password.toCharArray());
+			}
+			return null;
+		}
 
+		@Override
+		public String getName() {
+			return "Proxy Authenticator";
+		}
+	}
 
-    @Deprecated
-    /**
-     * This method is deprecated use registerServerAuthenticator instead.
-     */
-    public synchronized static void register(URLAuthenticator authenticator) {
-        registerServerAuthenticator(authenticator);
-    }
-    /**
-     * This method adds another Authenticator to the GlobalAuthenticator that will be enqueued in the list of
-     * Authenticators that are tried for URLs that need authentification.
-     */
-    public synchronized static void registerServerAuthenticator(URLAuthenticator authenticator) {
-        THE_INSTANCE.serverAuthenticators.add(authenticator);
-    }
+	static {
+		Authenticator.setDefault(THE_INSTANCE);
+		registerProxyAuthenticator(new ProxyAuthenticator("http"));
+		registerProxyAuthenticator(new ProxyAuthenticator("https"));
+		registerProxyAuthenticator(new ProxyAuthenticator("ftp"));
+		registerProxyAuthenticator(new ProxyAuthenticator("socks"));
+	}
 
-    /**
-     * This method adds another Authenticator to the GlobalAuthenticator that will be enqueued in the list of
-     * Authenticators that are tried for Proxy requests for authentification.
-     */
-    public synchronized static void registerProxyAuthenticator(URLAuthenticator authenticator) {
-        THE_INSTANCE.proxyAuthenticators.add(authenticator);
-    }
+	@Deprecated
+	/**
+	 * This method is deprecated use registerServerAuthenticator instead.
+	 */
+	public synchronized static void register(URLAuthenticator authenticator) {
+		registerServerAuthenticator(authenticator);
+	}
 
-    @Override
-    protected synchronized PasswordAuthentication getPasswordAuthentication() {
-        URL url = getRequestingURL();
-        switch (getRequestorType()) {
-        case PROXY:
-            //LogService.getRoot().info("Authentication requested for proxy of: " + url + ". Trying these authenticators: " + proxyAuthenticators + ".");
-        	LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested_proxy",  
-        			new Object[] {url, proxyAuthenticators});
-            for (URLAuthenticator a : proxyAuthenticators) {
-                PasswordAuthentication auth = a.getAuthentication(url);
-                if (auth != null) {
-                    return auth;
-                }
-            }
-            // this should not be happen
-            return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
-        case SERVER:
-            //LogService.getRoot().info("Authentication requested for: " + url + ". Trying these authenticators: " + serverAuthenticators + ".");
-        	LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested",  
-        			new Object[] {url, serverAuthenticators});
-            for (URLAuthenticator a : serverAuthenticators) {
-                PasswordAuthentication auth = a.getAuthentication(url);
-                if (auth != null) {
-                    return auth;
-                }
-            }
-        }
-        return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
-    }
+	/**
+	 * This method adds another Authenticator to the GlobalAuthenticator that will be enqueued in the list of
+	 * Authenticators that are tried for URLs that need authentification.
+	 */
+	public synchronized static void registerServerAuthenticator(URLAuthenticator authenticator) {
+		THE_INSTANCE.serverAuthenticators.add(authenticator);
+	}
 
-    /**
-     * This method is called to cause the loading of the class and the execution of static blocks.
-     */
-    public static void init() {
-    }
+	/**
+	 * This method adds another Authenticator to the GlobalAuthenticator that will be enqueued in the list of
+	 * Authenticators that are tried for Proxy requests for authentification.
+	 */
+	public synchronized static void registerProxyAuthenticator(URLAuthenticator authenticator) {
+		THE_INSTANCE.proxyAuthenticators.add(authenticator);
+	}
 
-    public static GlobalAuthenticator getInstance() {
-        return THE_INSTANCE;
-    }
+	@Override
+	protected synchronized PasswordAuthentication getPasswordAuthentication() {
+		URL url = getRequestingURL();
+		try {
+			switch (getRequestorType()) {
+				case PROXY:
+					//LogService.getRoot().info("Authentication requested for proxy of: " + url + ". Trying these authenticators: " + proxyAuthenticators + ".");
+					LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested_proxy",
+							new Object[] { url, proxyAuthenticators });
+					for (URLAuthenticator a : proxyAuthenticators) {
+						PasswordAuthentication auth = a.getAuthentication(url);
+						if (auth != null) {
+							return auth;
+						}
+					}
+					// this should not be happen
+					return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+				case SERVER:
+					//LogService.getRoot().info("Authentication requested for: " + url + ". Trying these authenticators: " + serverAuthenticators + ".");
+					LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested",
+							new Object[] { url, serverAuthenticators });
+					for (URLAuthenticator a : serverAuthenticators) {
+						PasswordAuthentication auth = a.getAuthentication(url);
+						if (auth != null) {
+							return auth;
+						}
+					}
+			}
+			return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+		} catch (PasswortInputCanceledException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * This method is called to cause the loading of the class and the execution of static blocks.
+	 */
+	public static void init() {}
+
+	public static GlobalAuthenticator getInstance() {
+		return THE_INSTANCE;
+	}
 }

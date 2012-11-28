@@ -40,6 +40,7 @@ import com.rapidminer.gui.security.UserCredential;
 import com.rapidminer.gui.security.Wallet;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.PasswortInputCanceledException;
 
 /** Dialog asking for username and passwords. Answers may be cached (if chosen by user).
  * 
@@ -100,11 +101,11 @@ public class PasswordDialog extends ButtonDialog {
         return new PasswordAuthentication(usernameField.getText(), passwordField.getPassword());
     }
 
-	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh) {
+	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh) throws PasswortInputCanceledException {
         return getPasswordAuthentication(forUrl, forceRefresh, false);
     }
 
-    public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown) {
+    public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown) throws PasswortInputCanceledException {
 		if (RapidMiner.getExecutionMode().isHeadless()) {
 			//LogService.getRoot().warning("Cannot query password in batch mode. Password was requested for "+forUrl+".");
 			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.PassworDialog.no_query_password_in_batch_mode", forUrl);
@@ -156,7 +157,7 @@ public class PasswordDialog extends ButtonDialog {
             
             return result;
         } else {
-            return null;
+            throw new PasswortInputCanceledException();
         }
     }
 }

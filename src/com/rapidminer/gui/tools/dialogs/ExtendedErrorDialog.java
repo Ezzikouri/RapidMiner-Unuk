@@ -61,6 +61,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XmlRpcHandler;
@@ -207,7 +208,7 @@ public class ExtendedErrorDialog extends ButtonDialog {
 	 */
 	private Collection<AbstractButton> getButtons(boolean hasError, boolean isBug, final JComponent detailedPane, final Throwable error) {
 		Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
-		if (hasError) {
+		if (hasError && !(error instanceof RepositoryException)) {
 			final JToggleButton showDetailsButton = new JToggleButton(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.label"), SwingTools.createIcon("24/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.icon")));
 			showDetailsButton.setSelected(false);
 			showDetailsButton.addActionListener(new ActionListener() {

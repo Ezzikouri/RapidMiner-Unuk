@@ -230,7 +230,7 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 		toolBar.add(label);
 		toolBar.add(sinceWhenCombo);
 
-		new ToolTipWindow(new TipProvider() {
+		ToolTipWindow window = new ToolTipWindow(new TipProvider() {
 			@Override
 			public Component getCustomComponent(Object id) {
 				if (id instanceof TreePath) {
@@ -345,7 +345,7 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 				Object leaf = event.getPath().getLastPathComponent();
 				if (leaf instanceof RemoteRepository) {
 					treeModel.observe((RemoteRepository) leaf);
-				}				
+				}			
 			}
 
 			@Override

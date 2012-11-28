@@ -125,6 +125,7 @@ public class ParameterTypeInt extends ParameterTypeNumber {
 
     @Override
     public void setDefaultValue(Object defaultValue) {
+    	noDefault = false;
         this.defaultValue = (Integer)defaultValue;
     }
 

@@ -102,6 +102,9 @@ public class UnknownParametersInfoDialog extends JDialog {
 		
 		setLayout(new BorderLayout());
 		
+		setModal(true);
+		
+		
 		// text
 		JTextArea text = new JTextArea();
 		text.setLineWrap(true);

@@ -70,6 +70,7 @@ import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
 import com.rapidminer.tools.GlobalAuthenticator;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.PasswortInputCanceledException;
 import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.cipher.CipherException;
@@ -79,7 +80,7 @@ import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
 /**
  * A repository connecting to a RapidAnalytics installation.
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Nils Woehler
  */
 public class RemoteRepository extends RemoteFolder implements Repository {
 
@@ -102,12 +103,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private boolean offline = true;
 	private boolean isHome;
+	private boolean passwortInputCanceled = false;
 
 	static {
 		GlobalAuthenticator.registerServerAuthenticator(new GlobalAuthenticator.URLAuthenticator() {
 
 			@Override
-			public PasswordAuthentication getAuthentication(URL url) {
+			public PasswordAuthentication getAuthentication(URL url) throws PasswortInputCanceledException {
 				WeakReference<RemoteRepository> reposRef = null;// = ALL_REPOSITORIES.get(url);
 				for (Map.Entry<URI, WeakReference<RemoteRepository>> entry : ALL_REPOSITORIES.entrySet()) {
 					if (url.toString().startsWith(entry.getKey().toString()) || url.toString().replace("127\\.0\\.0\\.1", "localhost").startsWith(entry.getKey().toString())) {
@@ -121,7 +123,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				}
 				RemoteRepository repository = reposRef.get();
 				if (repository != null) {
-					return repository.getAuthentiaction();
+					return repository.getAuthentication();
 				} else {
 					return null;
 				}
@@ -161,7 +163,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			try {
 				ALL_REPOSITORIES.put(remoteRepository.getBaseUrl().toURI(), new WeakReference<RemoteRepository>(remoteRepository));
 			} catch (URISyntaxException e) {
-				//LogService.getRoot().log(Level.SEVERE, "Could not add repository URI: " + remoteRepository.getBaseUrl().toExternalForm(), e);
 				LogService.getRoot().log(Level.WARNING,
 						I18N.getMessage(LogService.getRoot().getResourceBundle(),
 								"com.rapidminer.repository.remote.RemoteRepository.adding_repository_uri_error",
@@ -176,7 +177,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			return new URL(getBaseUrl(), "RAWS/");
 		} catch (MalformedURLException e) {
 			// cannot happen
-			//LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
 							"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error",
@@ -192,7 +192,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			return new URL(getBaseUrl(), url);
 		} catch (MalformedURLException e) {
 			// cannot happen
-			//LogService.getRoot().log(Level.WARNING, "Cannot create Web service url: " + e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
 							"com.rapidminer.repository.remote.RemoteRepository.creating_webservice_error",
@@ -274,37 +273,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	@Override
 	public Entry locate(String string) throws RepositoryException {
 		return RepositoryManager.getInstance(null).locate(this, string, false);
-//		Entry cached = cachedEntries.get(string);
-//		if (cached != null) {
-//			return cached;
-//		}
-//		Entry firstTry = RepositoryManager.getInstance(null).locate(this, string, true);
-//		if (firstTry != null) {
-//			return firstTry;
-//		}
-//
-//		if (!string.startsWith("/")) {
-//			string = "/" + string;
-//		}
-//
-//		EntryResponse response = getRepositoryService().getEntry(string);
-//		if (response.getStatus() != RepositoryConstants.OK) {
-//			if (response.getStatus() == RepositoryConstants.NO_SUCH_ENTRY) {
-//				return null;
-//			}
-//			throw new RepositoryException(response.getErrorMessage());
-//		}
-//		if (response.getType().equals(Folder.TYPE_NAME)) {
-//			return new RemoteFolder(response, null, this);
-//		} else if (response.getType().equals(ProcessEntry.TYPE_NAME)) {
-//			return new RemoteProcessEntry(response, null, this);
-//		} else if (response.getType().equals(IOObjectEntry.TYPE_NAME)) {
-//			return new RemoteIOObjectEntry(response, null, this);
-//		} else if (response.getType().equals(BlobEntry.TYPE_NAME)) {
-//			return new RemoteBlobEntry(response, null, this);
-//		} else {
-//			throw new RepositoryException("Unknown entry type: " + response.getType());
-//		}
 	}
 
 	@Override
@@ -327,47 +295,50 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		return getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small>";
 	}
 
-//	@Override
-//	public String toString() {
-//		return "<html>" + getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small></html>"; //super.toString();
-//	}
-
-	private PasswordAuthentication getAuthentiaction() {
+	private PasswordAuthentication getAuthentication() throws PasswortInputCanceledException {
 		if (password == null) {
 			//LogService.getRoot().info("Authentication requested for URL: " + getBaseUrl());
 			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.repository.remote.RemoteRepository.authentication_requested", getBaseUrl());
 			PasswordAuthentication passwordAuthentication;
-			if (cachedPasswordUsed) {
-				// if we have used a cached password last time, and we enter this method again,
-				// this is probably because the password was wrong, so rather force dialog than
-				// using cache again.
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(), false, false);
-				this.cachedPasswordUsed = false;
-			} else {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(), false, true);
-				this.cachedPasswordUsed = true;
+
+			try {
+				if (cachedPasswordUsed) {
+					// if we have used a cached password last time, and we enter this method again,
+					// this is probably because the password was wrong, so rather force dialog than
+					// using cache again.
+					passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(), false, false);
+
+					this.cachedPasswordUsed = false;
+				} else {
+					passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(), false, true);
+					this.cachedPasswordUsed = true;
+				}
+				if (passwordAuthentication != null) {
+					this.setPassword(passwordAuthentication.getPassword());
+					this.setUsername(passwordAuthentication.getUserName());
+					RepositoryManager.getInstance(null).save();
+				}
+				setPasswortInputCanceled(false);
+				return passwordAuthentication;
+			} catch (PasswortInputCanceledException e) {
+				setPasswortInputCanceled(true);
+				setOffline(true);
+				throw e;
 			}
-			if (passwordAuthentication != null) {
-				this.setPassword(passwordAuthentication.getPassword());
-				this.setUsername(passwordAuthentication.getUserName());
-				RepositoryManager.getInstance(null).save();
-			}
-			return passwordAuthentication;
 		} else {
 			return new PasswordAuthentication(getUsername(), password);
 		}
 	}
 
+	/**
+	 * @return the repository service. May return <code>null</code> if connection was refused.
+	 */
 	public RepositoryService getRepositoryService() throws RepositoryException {
-		// if (offline) {
-		// throw new RepositoryException("Repository "+getName()+" is offline. Connect first.");
-		// }
 		installJDBCConnectionEntries();
 		if (repositoryService == null) {
 			try {
 				RepositoryService_Service serviceService = new RepositoryService_Service(getRepositoryServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "RepositoryService"));
 				repositoryService = serviceService.getRepositoryServicePort();
-
 				setupBindingProvider((BindingProvider) repositoryService);
 
 				setOffline(false);
@@ -382,19 +353,24 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	private void setupBindingProvider(BindingProvider bp) {
-		if (password != null) {
-			bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, getUsername());
-			bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, new String(password));
-		}
+		WebServiceTools.setCredentials(bp, getUsername(), password);
 		WebServiceTools.setTimeout(bp);
-		
+
 	}
 
 	public ProcessServiceFacade getProcessService() throws RepositoryException {
 		if (processServiceFacade == null) {
 			try {
-				processServiceFacade = new ProcessServiceFacade(getRAInfoService(), getBaseUrl(), getUsername(), password);
-
+				
+				RAInfoService raInfoService = getRAInfoService();
+				
+				// throw error if user has canceled passwort input
+				if (raInfoService == null && isPasswortInputCanceled()) {
+					throw new RepositoryException("Cannot connect to server " + getName() + ". Authentication was canceled by user."); //TODO I18N
+				}
+				
+				processServiceFacade = new ProcessServiceFacade(raInfoService, getBaseUrl(), getUsername(), password);
+				setPasswortInputCanceled(false);
 				setOffline(false);
 			} catch (Exception e) {
 				setOffline(true);
@@ -416,7 +392,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				raInfoService = serviceService.getRAInfoServicePort();
 
 				setupBindingProvider((BindingProvider) raInfoService);
-
+				
+				setPasswortInputCanceled(false);
 				setOffline(false);
 			} catch (Exception e) {
 				raInfoService = null;
@@ -433,11 +410,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	@Override
 	public void refresh() throws RepositoryException {
 		setOffline(false);
+		setPasswortInputCanceled(false);
 		cachedEntries.clear();
 		super.refresh();
-		removeJDBCConnectionEntries();
-		installJDBCConnectionEntries();
-		refreshProcessExecutionQueueNames();
+		if (!isPasswortInputCanceled()) {
+			removeJDBCConnectionEntries();
+			refreshProcessExecutionQueueNames();
+		}
 	}
 
 	private void refreshProcessExecutionQueueNames() {
@@ -654,7 +633,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	// JDBC entries provided by server
-
 	private Collection<FieldConnectionEntry> fetchJDBCEntries() throws XMLException, CipherException, SAXException, IOException {
 		URL xmlURL = new URL(getBaseUrl(), "RAWS/jdbc_connections.xml");
 		Document doc = XMLTools.parse(WebServiceTools.openStreamFromURL(xmlURL));
@@ -668,7 +646,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	@Override
 	public void postInstall() {}
 
-	private void installJDBCConnectionEntries() {
+	private void installJDBCConnectionEntries() throws RepositoryException {
 		if (this.connectionEntries != null) {
 			return;
 		}
@@ -677,17 +655,15 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			for (FieldConnectionEntry entry : connectionEntries) {
 				DatabaseConnectionService.addConnectionEntry(entry);
 			}
-			//LogService.getRoot().config("Added " + connectionEntries.size() + " jdbc connections exported by " + getName() + ".");
 			LogService.getRoot().log(Level.CONFIG, "com.rapidminer.repository.remote.RemoteRepository.added_jdbc_connections_exported_by",
 					new Object[] { connectionEntries.size(), getName() });
-
 		} catch (Exception e) {
-			//LogService.getRoot().log(Level.WARNING, "Failed to fetch JDBC connection entries from server " + getName() + ".", e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
 							"com.rapidminer.repository.remote.RemoteRepository.fetching_jdbc_connections_entries_error",
 							getName()),
 					e);
+			throw new RepositoryException("Cannot connect to  server  " + getName() + ".", e); //TODO I18N
 		}
 	}
 
@@ -769,4 +745,19 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public void removeConnectionListener(ConnectionListener l) {
 		connectionListeners.remove(l);
 	}
+
+	/**
+	 * @return the passwortInputCanceled
+	 */
+	public boolean isPasswortInputCanceled() {
+		return this.passwortInputCanceled;
+	}
+
+	/**
+	 * @param passwortInputCanceled the passwortInputCanceled to set
+	 */
+	protected void setPasswortInputCanceled(boolean passwortInputCanceled) {
+		this.passwortInputCanceled = passwortInputCanceled;
+	}
+
 }

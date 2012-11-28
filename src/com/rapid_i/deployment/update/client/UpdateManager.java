@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapid_i.deployment.update.client;
 
 import java.io.BufferedReader;
@@ -38,6 +39,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -92,6 +94,7 @@ import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
+import com.rapidminer.tools.PasswortInputCanceledException;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.WebServiceTools;
@@ -153,7 +156,7 @@ public class UpdateManager {
 			}
 		}
 	}
-	
+
 	/**
 	 * method loads down the required packages and installs them
 	 * @param downloadList	list of the required Packages
@@ -165,9 +168,9 @@ public class UpdateManager {
 	public int performUpdates(List<PackageDescriptor> downloadList, ProgressListener progressListener) throws IOException, UpdateServiceException_Exception {
 		int i = 0;
 		//number of failed Downloads
-		int FaildLoads=0;
+		int FaildLoads = 0;
 		//number of all available Downloads
-		int availableLoads=downloadList.size();
+		int availableLoads = downloadList.size();
 		try {
 			for (PackageDescriptor desc : downloadList) {
 				String urlString = service.getDownloadURL(desc.getPackageId(), desc.getVersion(), desc.getPlatformName());
@@ -205,7 +208,7 @@ public class UpdateManager {
 							LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Plugin");
 							FaildLoads++;
 							//show MD5-Error to the user
-							ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true,new Object[] {desc.getName()});
+							ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] { desc.getName() });
 							dialog.setVisible(true);
 						}
 
@@ -223,23 +226,23 @@ public class UpdateManager {
 						FaildLoads++;
 						//show MD5-Error to the user
 						LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Update");
-						ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] {"RapidMiner"});
+						ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] { "RapidMiner" });
 						dialog.setVisible(true);
 					}
 				}
 				i++;
 				progressListener.setCompleted(20 + 80 * i / downloadList.size());
-				
+
 			}
 		} catch (URISyntaxException e) {
 			throw new IOException(e);
 		} finally {
 			progressListener.complete();
 		}
-		if(availableLoads==FaildLoads)
+		if (availableLoads == FaildLoads)
 			// show Message that no Update was successful
-			throw new IOException(I18N.getMessage(I18N.getGUIBundle(),"gui.dialog.error.no_update_md5.message"));
-		return availableLoads-FaildLoads;
+			throw new IOException(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.no_update_md5.message"));
+		return availableLoads - FaildLoads;
 	}
 
 	/*
@@ -262,8 +265,8 @@ public class UpdateManager {
 		outFile = new File(FileSystemService.getUserRapidMinerDir().getPath() + "\\RUinstall" + destPath);
 		return outFile;
 	}
-*/
-	
+	*/
+
 	private void updatePlugin(ManagedExtension extension, InputStream updateIn, String newVersion, String md5Adress) throws IOException {
 		File outFile = extension.getDestinationFile(newVersion);
 		OutputStream out = new FileOutputStream(outFile);
@@ -280,8 +283,9 @@ public class UpdateManager {
 		}
 
 	}
-		
-	@SuppressWarnings("resource") // stream is closed by copyStreamSynchronously
+
+	@SuppressWarnings("resource")
+	// stream is closed by copyStreamSynchronously
 	private void updateRapidMiner(InputStream openStream, String version, String md5adress) throws IOException {
 		//File updateDir = new File(FileSystemService.getRapidMinerHome(), "update");
 		File updateRootDir = new File(FileSystemService.getUserRapidMinerDir(), "update");
@@ -477,7 +481,7 @@ public class UpdateManager {
 			AccountServiceService ass = new AccountServiceService(uri.toURL(),
 					new QName("http://ws.update.deployment.rapid_i.com/", "AccountServiceService"));
 			accountService = ass.getAccountServicePort();
-			WebServiceTools.setCredentials((BindingProvider)accountService, usAccount.getUserName(), usAccount.getPassword());
+			WebServiceTools.setCredentials((BindingProvider) accountService, usAccount.getUserName(), usAccount.getPassword());
 		}
 		return accountService;
 	}
@@ -526,7 +530,7 @@ public class UpdateManager {
 	private boolean compareMD5(File toCompare, String urlString) {
 		if (urlString == null || toCompare == null || urlString.equals(""))
 			throw new IllegalArgumentException("parameter is empty");
-		
+
 		try {
 			//create MD5 hash from File on disk
 			String localMD5 = UpdateManager.getMD5hash(toCompare);
@@ -579,7 +583,7 @@ public class UpdateManager {
 				throw new IOException(con.getResponseCode() + ": " + con.getResponseMessage(), e);
 			}
 			//compare MD5 hashes
-			if (serverMD5.compareTo(localMD5)==0)
+			if (serverMD5.compareTo(localMD5) == 0)
 				return true;
 			return false;
 		} catch (Exception e) {
@@ -606,7 +610,7 @@ public class UpdateManager {
 				}
 				byte[] md5sum = digest.digest();
 				//convert array to hexString because a wrong representation in the digest return value
-				StringBuffer hex= new StringBuffer();
+				StringBuffer hex = new StringBuffer();
 				for (byte one : md5sum) {
 					//delete minus-signs and make sure that every byte has exactly two chars 
 					hex.append(Integer.toHexString((one & 0xFF) | 0x100).toLowerCase().substring(1, 3));
@@ -638,7 +642,7 @@ public class UpdateManager {
 			digest.update(toHash, 0, toHash.length);
 			byte[] md5sum = digest.digest();
 			//convert array to hexString because a wrong representation in the digest return value
-			StringBuffer hex= new StringBuffer();
+			StringBuffer hex = new StringBuffer();
 			for (byte one : md5sum) {
 				//delete minus-signs and make sure that every byte has exactly two chars 
 				hex.append(Integer.toHexString((one & 0xFF) | 0x100).toLowerCase().substring(1, 3));
@@ -665,7 +669,7 @@ public class UpdateManager {
 				}
 				byte[] md5sum = digest.digest();
 				//convert array to hexString because a wrong representation in the digest return value
-				StringBuffer hex= new StringBuffer();
+				StringBuffer hex = new StringBuffer();
 				for (byte one : md5sum) {
 					//delete minus-signs and make sure that every byte has exactly two chars 
 					hex.append(Integer.toHexString((one & 0xFF) | 0x100).toLowerCase().substring(1, 3));
@@ -825,7 +829,11 @@ public class UpdateManager {
 			if ((authentication == null) || (authentication.getPassword() == null))
 				return;
 
-			UpdateServerAccount.setPasswordAuthentication(PasswordDialog.getPasswordAuthentication(updateServerURI, false, true));
+			PasswordAuthentication passwordAuthentication = null;
+			try {
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(updateServerURI, false, true);
+			} catch (PasswortInputCanceledException e1) {}
+			UpdateServerAccount.setPasswordAuthentication(passwordAuthentication);
 
 			boolean check;
 			try {
