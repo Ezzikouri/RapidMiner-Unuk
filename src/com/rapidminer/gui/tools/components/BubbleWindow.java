@@ -60,6 +60,7 @@ import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ErrorDialog;
+import com.rapidminer.gui.tour.Step;
 import com.rapidminer.tools.I18N;
 import com.sun.awt.AWTUtilities;
 import com.vlsolutions.swing.docking.DockableState;
@@ -113,10 +114,23 @@ public class BubbleWindow extends JDialog {
 	private WindowAdapter windowListener;
 	private Window owner;
 
+	/**
+	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable
+	 * @param i18nKey of the message which should be shown
+	 * @param buttonKeyToAttach i18nKey of the Button to which this {@link BubbleWindow} should be placed relative to. 
+	 */
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, String buttonKeyToAttach) {
 		this(owner, preferedAlignment, i18nKey,buttonKeyToAttach ,true);
 	}
 
+	/**
+	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable
+	 * @param i18nKey of the message which should be shown
+	 * @param buttonKeyToAttach i18nKey of the Button to which this {@link BubbleWindow} should be placed relative to. 
+	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
+	 */
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, String buttonKeyToAttach, boolean addListener) {
 		this(owner, preferedAlignment, i18nKey, (Component) findButton(buttonKeyToAttach, RapidMinerGUI.getMainFrame()));
 		if(addListener) {
@@ -124,10 +138,23 @@ public class BubbleWindow extends JDialog {
 		}
 	}
 	
+	/**
+	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable
+	 * @param i18nKey of the message which should be shown
+	 * @param buttonToAttach {@link AbstractButton} to which this {@link BubbleWindow} should be placed relative to. 
+	 */
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, AbstractButton buttonToAttach) {
 		this(owner, preferedAlignment, i18nKey,buttonToAttach, true);
 	}
 	
+	/**
+	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param i18nKey of the message which should be shown
+	 * @param buttonToAttach {@link AbstractButton} to which this {@link BubbleWindow} should be placed relative to. 
+	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
+	 */
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, AbstractButton buttonToAttach, boolean addListener) {
 		this(owner, preferedAlignment, i18nKey, (Component) buttonToAttach);
 		if(addListener) {
@@ -136,10 +163,11 @@ public class BubbleWindow extends JDialog {
 	}
 
 	/**
-	 * 
-	 * @param owner
-	 * @param favoriatedAlignment offer for alignment but the Class will calculate by itself whether the position is usable
-	 * @param i18nKey
+	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param i18nKey of the message which should be shown
+	 * @param ToAttach {@link Component} to which this {@link BubbleWindow} should be placed relative to. 
+	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
 	 */
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, Component toAttach) {
 		super(owner);
@@ -150,7 +178,6 @@ public class BubbleWindow extends JDialog {
 		try {
 			this.alignment = this.calculateAlignment(preferedAlignment, toAttach);
 		} catch (Exception e) {
-			//TODO: handle this case!
 			fireEventCloseClicked();
 			ErrorDialog dialog = new ErrorDialog("Component_not_on_Sreen");
 			dialog.setVisible(true);
@@ -277,7 +304,7 @@ public class BubbleWindow extends JDialog {
 
 	/**
 	 * 
-	 * Adds a BubbleListener.
+	 * Adds a {@link BubbleListener}.
 	 * 
 	 * @param l The listener
 	 */
@@ -285,6 +312,10 @@ public class BubbleWindow extends JDialog {
 		listeners.add(l);
 	}
 
+	/**
+	 * removes the given {@link BubbleListener}.
+	 * @param l {@link BubbleListener} to remove.
+	 */
 	public void removeBubbleListener(BubbleListener l) {
 		listeners.remove(l);
 	}
@@ -397,21 +428,20 @@ public class BubbleWindow extends JDialog {
 		return gp.createTransformedShape(tx);
 	}
 
-	public void positionRelativeTo(Component component) {
-		this.component = component;
-
-		pointAtComponent(component);
-
-		registerMovementListener();
-	}
-
-	public void positionRelative() {
+	/**
+	 * places the {@link BubbleWindow} relative to the Component which was given.
+	 */
+	private void positionRelative() {
 		
 		pointAtComponent(this.component);
 
 		registerMovementListener();
 	}
 
+	/**
+	 * places the Bubble-speech so that it points to the Component 
+	 * @param component component to point to
+	 */
 	private void pointAtComponent(Component component) {
 		int x = (int) component.getLocationOnScreen().getX();
 		int y = (int) component.getLocationOnScreen().getY();
@@ -460,15 +490,17 @@ public class BubbleWindow extends JDialog {
 		setLocation(target);
 	}
 	
-
+	/**
+	 * method to find a dockable component on the MainFrame
+	 * @param dockableKey key of the dockable you want to find
+	 * @return the {@link Component} with the given key will be returned or an Exception will be thrown if the dockable was not found.
+	 */
 	public static Component getDockableByKey(String dockableKey) {
 		DockableState[] dockables = RapidMinerGUI.getMainFrame().getDockingDesktop().getDockables();
 		for (DockableState ds : dockables) {
 			System.out.println("Found: " + ds.getDockable().getDockKey().getKey());
 			if (ds.getDockable().getDockKey().getKey().equals(dockableKey)) {
 				return ds.getDockable().getComponent().getParent().getParent();
-//				Location location = ds.getLocation();
-//				RelativeDockablePosition position = ds.getPosition();				
 			}
 		}
 		throw new IllegalArgumentException("No such dockable: " + dockableKey);
@@ -478,7 +510,7 @@ public class BubbleWindow extends JDialog {
 	 *  In addition to that, adds an {@link ActionListener} to the button which
 	 *  closes the BubbleWindow as soon as the button is pressed and one that 
 	 *  makes sure that the pointer always points at the right position. */
-	public void attachToButton(AbstractButton button) {
+	private void attachToButton(AbstractButton button) {
 		this.button = button;
 		this.component = button;
 		listener = new ActionListener() {
@@ -494,7 +526,11 @@ public class BubbleWindow extends JDialog {
 
 	}
 
-	
+	/**
+	 * @param name i18nKey of the Button
+	 * @param searchRoot {@link Component} to search in for the Button
+	 * @return returns the {@link AbstractButton} if found or null if the Button was not found. 
+	 */
 	public static AbstractButton findButton(String name, Component searchRoot) {
 		if (searchRoot instanceof AbstractButton) {
 
@@ -519,16 +555,9 @@ public class BubbleWindow extends JDialog {
 		return null;
 	}
 
-//	public void attachToOperator(ProcessSetupListener l, Component component){
-//		positionRelativeTo(component);
-//		this.processListener = l;
-//		
-////		DockableState dockableState = RapidMinerGUI.getMainFrame().getDockingDesktop().getDockables()[0];
-////		dockableState.getDockable().getComponent();
-//		
-//		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(processListener);		
-//	}
-
+	/**
+	 * Returns the {@link Shape} of this {@link BubbleWindow}
+	 */
 	public Shape getShape() {
 		if (shape == null) {
 			shape = createShape(alignment);
@@ -596,6 +625,9 @@ public class BubbleWindow extends JDialog {
 		RapidMinerGUI.getMainFrame().removeWindowStateListener(windowListener);
 	}
 
+	/**
+	 * notifies the {@link BubbleListener}s and disposes the Bubble-speech.
+	 */
 	public void triggerFire() {
 		fireEventActionPerformed();
 		dispose();
@@ -617,7 +649,7 @@ public class BubbleWindow extends JDialog {
 		}
 	}
 
-	protected Alignment calculateAlignment(Alignment preferedAlignment, Component component) {
+	private Alignment calculateAlignment(Alignment preferedAlignment, Component component) {
 		//get Mainframe size
 		int xframe = owner.getWidth();
 		int yframe = owner.getHeight();

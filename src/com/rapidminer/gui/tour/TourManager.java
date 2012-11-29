@@ -95,17 +95,46 @@ public class TourManager {
 	}
 
 	public void setTourState(String tourKey, TourState state) {
-		properties.setProperty(tourKey, state.toString());
+		if (state == TourState.NEVER_ASK) {
+			properties.setProperty(tourKey + ".ask", state.toString());
+		} else {
+			properties.setProperty(tourKey, state.toString());
+		}
+		save();
+	}
+
+	public void setTourProgress(String tourKey, int step) {
+		String stateBefore = properties.getProperty(tourKey + ".progress");
+		if (stateBefore == null || Integer.parseInt(stateBefore) < step)
+			properties.setProperty(tourKey + ".progress", "" + step);
 		save();
 	}
 
 	public TourState getTourState(String tourKey) {
 		String stateKey = properties.getProperty(tourKey);
 		if (stateKey == null) {
-			setTourState(tourKey, TourState.NOT_COMPLETED);
-			return TourState.NOT_COMPLETED;
+			setTourState(tourKey, TourState.NEW_ONE);
+			return TourState.NEW_ONE;
 		} else {
 			return TourState.valueOf(stateKey);
+		}
+	}
+
+	public boolean getAskState(String tourKey) {
+		if (properties.getProperty(tourKey + ".ask", null) == null) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public int getProgress(String tourKey) {
+		String state = properties.getProperty(tourKey + ".progress");
+		if (state == null) {
+			setTourProgress(tourKey, 0);
+			return 0;
+		} else {
+			return Integer.parseInt(state);
 		}
 	}
 
@@ -140,10 +169,11 @@ public class TourManager {
 		return tour;
 	}
 
-	public void startTour(String tourKey) {
+	public IntroductoryTour get(String tourKey) {
+		IntroductoryTour tour = null;
 		Class<? extends IntroductoryTour> tourClass = tours.get(tourKey);
 		try {
-			tourClass.newInstance().startTour();
+			tour = tourClass.newInstance();
 		} catch (InstantiationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -151,6 +181,23 @@ public class TourManager {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return tour;
+	}
+
+	public IntroductoryTour startTour(String tourKey) {
+		IntroductoryTour tour = null;
+		Class<? extends IntroductoryTour> tourClass = tours.get(tourKey);
+		try {
+			tour = tourClass.newInstance();
+			tour.startTour();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return tour;
 	}
 
 }

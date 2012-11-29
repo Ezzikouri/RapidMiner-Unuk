@@ -277,6 +277,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 					try {
 						ProcessEmbeddingOperator embedder = OperatorService.createOperator(ProcessEmbeddingOperator.class);
 						embedder.setParameter(ProcessEmbeddingOperator.PARAMETER_PROCESS_FILE, resolvedLocation);
+						embedder.rename("Execute " + repositoryLocation.getName());
 						newOperators = Collections.<Operator>singletonList(embedder);
 					} catch (OperatorCreationException e1) {
 						//LogService.getRoot().log(Level.WARNING, "Cannot create RepositorySource: "+e1, e1);
@@ -292,6 +293,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 					try {						
 						RepositorySource source = OperatorService.createOperator(RepositorySource.class);						
 						source.setParameter(RepositorySource.PARAMETER_REPOSITORY_ENTRY, resolvedLocation);
+						source.rename("Retrieve " + repositoryLocation.getName());
 						newOperators = Collections.<Operator>singletonList(source);
 					} catch (OperatorCreationException e1) {
 						//LogService.getRoot().log(Level.WARNING, "Cannot create RepositorySource: "+e1, e1);

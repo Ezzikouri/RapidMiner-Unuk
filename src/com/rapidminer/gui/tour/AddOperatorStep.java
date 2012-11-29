@@ -36,7 +36,8 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 
 /**
- * 
+ * This subclass of {@link Step} will open a {@link BubbleWindow} which closes if the given Operator was dragged to the process and is wired.
+ *  
  * @author Philipp Kersting and Thilo Kamradt
  *
  */
@@ -51,36 +52,59 @@ public class AddOperatorStep extends Step {
 	private String i18nKey;
 	private Alignment alignment;
 	private Window owner;
-	private Class type;
+	private Class operatorClass;
 	private String targetDockKey;
 	private Operator operator = null;
 	private boolean checkForChain = true;
 	private Class<? extends OperatorChain> targetEnclosingOperatorChain = OperatorChain.class;
 	private List<AddOperatorStepListener> listeners = new LinkedList<AddOperatorStepListener>();
 	private ProcessSetupListener listener = null;
-
-	public AddOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> type, String targetDockKey) {
-		this.alignment = alignment;
+	
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass the Class or Superclass of the Operator which should be added to the Process.
+	 * @param targetDockKey the i18nKey of the dockable to which we bubble should point to.
+	 */
+	public AddOperatorStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
-		this.type = type;
+		this.operatorClass = operatorClass;
 		this.targetDockKey = targetDockKey;
 	}
 
-	public AddOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> type, String targetDockKey, boolean checkForEnclosingOperatorChain) {
-		this.alignment = alignment;
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass the Class or Superclass of the Operator which should be added to the Process.
+	 * @param targetDockKey the i18nKey of the dockable to which we bubble should point to.
+	 * @param checkForEnclosingOperatorChain indicates whether the {@link BubbleWindow} closes only if the Operator is also wired or not
+	 */
+	public AddOperatorStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey, boolean checkForEnclosingOperatorChain) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
-		this.type = type;
+		this.operatorClass = operatorClass;
 		this.targetDockKey = targetDockKey;
 		this.checkForChain = checkForEnclosingOperatorChain;
 	}
 
-	public AddOperatorStep(String i18nKey, Alignment alignment, Window owner, Class type, String targetDockKey, Class<? extends OperatorChain> targetEnclosingOperatorChain) {
+	/**
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param operatorClass the Class or Superclass of the Operator which should be added to the Process.
+	 * @param targetDockKey the i18nKey of the dockable to which we bubble should point to.
+	 * @param targetEnclosingOperatorChain target OperatorChain
+	 */
+	public AddOperatorStep(String i18nKey, Alignment preferedAlignment, Window owner, Class<? extends Operator> operatorClass, String targetDockKey, Class<? extends OperatorChain> targetEnclosingOperatorChain) {
 		this.i18nKey = i18nKey;
-		this.alignment = alignment;
+		this.alignment = preferedAlignment;
 		this.owner = owner;
-		this.type = type;
+		this.operatorClass = operatorClass;
 		this.targetDockKey = targetDockKey;
 		this.targetEnclosingOperatorChain = targetEnclosingOperatorChain;
 	}
@@ -95,7 +119,7 @@ public class AddOperatorStep extends Step {
 
 			@Override
 			public void operatorChanged(Operator operator) {
-				if (type.isInstance(operator)) {
+				if (operatorClass.isInstance(operator)) {
 					if (checkForChain) {
 						if ((targetEnclosingOperatorChain == null || targetEnclosingOperatorChain.isInstance(operator.getExecutionUnit().getEnclosingOperator())) && (operator.getOutputPorts().getNumberOfConnectedPorts() != 0)) {
 

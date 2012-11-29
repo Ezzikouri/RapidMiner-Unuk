@@ -55,8 +55,10 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * Replaced the standard Random function in the ExpressionParser with a custom one in order to involve the random seed/the RandomGenerator for the process    
 * Updated JTDS driver to version 1.2.5
 * Loop Collection Operator has new parameters: 'set iteration macro', 'macro name' and 'macro start value'
-* Execute Process Operator: inverted the default values for all boolean parameters.
-* Repository names now enforce a blacklist of invalid characters.
+* Execute Process Operator: inverted the default values for all boolean parameters
+* Repository names now enforce a blacklist of invalid characters
+* Operators "Execute Process" and "Retrieve" are now named after the files your drop into the Process window
+* Nominal to Numerical: Parameter "default coding" is now set to dummy coding per default
 * BUGFIX: Recent files are now updated on process save
 * BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases
 * BUGFIX: Editing context variables now immediately flags the process as changed
@@ -103,4 +105,6 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: Generate Aggregation operator can now handle the case of zero matching attributes
 * BUGFIX: Fixed several key shortcuts that worked in the wrong perspective. For example, it is no longer possible to delete operators while in the result perspective
 * BUGFIX: Drag&Drop of files (e.g. .csv/.xls) creates the corresponding read operator with the now correct filename parameter
+* BUGFIX: Drag&Drop of operators should no longer create operators halfway outside the process canvas
+* BUGFIX: Import wizards will no longer overwrite existing data without asking for permission first
 

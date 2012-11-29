@@ -58,6 +58,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.actions.Actions;
 import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.dnd.TransferableOperator;
 import com.rapidminer.gui.tools.ProgressThread;
@@ -304,6 +305,14 @@ public class RepositoryTree extends JTree {
         setDragEnabled(true);
         setTransferHandler(new TransferHandler() {
             private static final long serialVersionUID = 1L;
+            // Remember whether the last cut/copy action was a MOVE
+            // A move will result in the entry being deleted upon drop / paste
+            // Unfortunately there is no easy way to know this from the TransferSupport
+            // passed to importData(). It is not even known in createTransferable(), so we
+            // cannot even attach it to the Transferable
+            // This implementation implies that we can only transfer from one repository tree
+            // to the same instance since this state is not passed to other instances.
+            int latestAction = 0;
 
             @Override
             public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
@@ -341,7 +350,7 @@ public class RepositoryTree extends JTree {
                                 @Override
                                 public void run() {
                                     try {
-                                        if (ts.isDrop() && ts.getDropAction() == MOVE) {
+                                        if ( (latestAction == MOVE) || (ts.isDrop() && ts.getDropAction() == MOVE)) {
                                             RepositoryManager.getInstance(null).move(loc, (Folder)droppedOn, getProgressListener());
                                         } else {
                                             RepositoryManager.getInstance(null).copy(loc, (Folder)droppedOn, getProgressListener());
@@ -379,6 +388,15 @@ public class RepositoryTree extends JTree {
                                     e),
                                     e);
                     return false;
+                }
+            }
+            
+            @Override
+            protected void exportDone(JComponent c, Transferable data, int action) {
+            	if (action == MOVE) {
+                	latestAction = MOVE;
+                }else{
+                	latestAction = 0;
                 }
             }
 

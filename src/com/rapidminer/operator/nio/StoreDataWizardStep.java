@@ -27,15 +27,18 @@ import java.util.logging.Level;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.DataResultSet;
 import com.rapidminer.operator.nio.model.WizardState;
+import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.local.SimpleIOObjectEntry;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
@@ -63,10 +66,23 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 			final RepositoryLocation location;
 			try {
 				location = new RepositoryLocation(repositoryLocationPath);
+				Entry entry = location.locateEntry();
+				if (entry != null) {
+					if (entry instanceof SimpleIOObjectEntry) {
+						// could overwrite, ask for permission
+						if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, entry.getLocation()) == ConfirmDialog.NO_OPTION) {
+							return false;
+						}
+					} else {
+						// cannot overwrite, inform user
+						SwingTools.showSimpleErrorMessage("cannot_save_data_no_dataentry", "", entry.getName());
+						return false;
+					}
+				}
 			} catch (Exception e) {
 				SwingTools.showSimpleErrorMessage("malformed_rep_location", e, repositoryLocationPath);
 				return false;
-			}	
+			}
 			state.setSelectedLocation(location);
 			new ProgressThread("importing_data", true) {
 				@Override

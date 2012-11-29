@@ -20,9 +20,11 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
-
+import java.util.LinkedList;
+import java.util.List;
 
 /** A tour consisting of multiple {@link Step}s explaining the usage of RapidMiner
  *  or an Extension.
@@ -35,64 +37,117 @@ package com.rapidminer.gui.tour;
  *
  */
 public abstract class IntroductoryTour {
+	
+	public static interface TourListener {
+
+		/**
+		 * will be called by a {@link Step} if the Tour was closed or is finished
+		 */
+		public void tourClosed();
+
+	}
 
 	private int maxSteps;
-
-	protected Step[] sights;
-
-	protected int startSight;
-
-	protected String tourKey;
 	
-	protected boolean completeWindow;
-	
-	public IntroductoryTour(int max, String tourName) {
-		this(max, tourName, true);
+	/**
+	 * This Array has to be filled with Subclasses of {@link Step} which will guide the Tour.
+	 */
+	protected Step[] step;
+
+	private String tourKey;
+
+	private boolean completeWindow;
+
+	private List<TourListener> listeners;
+
+	/**
+	 * This Constructor will initialize the {@link Step} step[] which has to be filled in the buildTour() Method and adds automatically a {@link FinalStep} to the end of your tour.
+	 * 
+	 * @param max number of steps you want to perform (size of the Array you want to fill)
+	 * @param tourName name of the your tour (will be used as key as well)
+	 */
+	public IntroductoryTour(int steps, String tourName) {
+		this(steps, tourName, true);
 	}
 
-	public IntroductoryTour(int max, String tourName, boolean addComppleteWindow) {
+	/**
+	 * This Constructor will initialize the {@link Step} step[] which has to be filled in the buildTour() Method
+	 * 
+	 * @param steps number of Steps you will do (size of the Array you want to fill)
+	 * @param tourName name of the your tour (will be used as key as well)
+	 * @param addComppleteWindow indicates whether a {@link FinalStep} with will be added or not.
+	 */
+	public IntroductoryTour(int steps, String tourName, boolean addComppleteWindow) {
 		this.tourKey = tourName;
-		this.maxSteps = max;
 		this.completeWindow = addComppleteWindow;
+		if (addComppleteWindow) {
+			this.maxSteps = steps + 1;
+		} else {
+			this.maxSteps = steps;
+		}
+		this.listeners = new LinkedList<TourListener>();
 	}
 
-	protected void init() {
+	/**
+	 * method to initializes the needed Array of {@link Step} and the FinalStep if wanted
+	 */
+	private void init() {
 		if (completeWindow) {
-			this.maxSteps = maxSteps + 1;
-			sights = new Step[maxSteps];
-			sights[maxSteps-1] = new FinalStep("complete_Tour", tourKey);
+			step = new Step[maxSteps];
+			step[maxSteps - 1] = new FinalStep(tourKey);
 		} else {
-			sights = new Step[maxSteps];
+			step = new Step[maxSteps];
 		}
 	}
-	
+
+	/**
+	 * starts the Tour
+	 */
 	public void startTour() {
 		init();
 		buildTour();
 		placeFollowers();
-		sights[0].start();
+		step[0].start();
 	}
-	
-	
-	protected abstract void buildTour();
-	
+
 	/**
-	 * method to get the key of the tour
-	 * @return String with key of the tour
+	 * This method fills the step[] instances of subclasses of {@link Step} which will guide through the tour
+	 */
+	protected abstract void buildTour();
+
+	/**
+	 * method to get the key and name of the Tour.
+	 * @return String with key of the Tour
 	 */
 	public String getKey() {
 		return tourKey;
 	}
-	
-	/**
-	 * method to connect the single Steps
-	 */
-	protected void placeFollowers() {
-		for (int i = 0; i < (sights.length - 1); i++) {
-			sights[i].setNext(sights[i + 1]);
-		}
-		sights[maxSteps - 1].setIsFinalStep(true);
-		sights[maxSteps - 1].setTourKey(tourKey);
 
+	/**
+	 * This method connects the single steps to a queue and the the needed parameters to the steps.
+	 * After calling this method the isFinal-, tourKey-, index- and listeners-parameter of Step is set.
+	 */
+	private void placeFollowers() {
+		for (int i = 0; i < (step.length - 1); i++) {
+			step[i].setNext(step[i + 1]);
+			step[i].makeSettings(tourKey, i + 1, false, listeners);
+		}
+		step[maxSteps - 1].makeSettings(tourKey, maxSteps, true, listeners);
+	}
+
+	/**
+	 * Adds a {@link TourListener} to the IntroductoryTour and to all {@link Step}s of the Tour.
+	 * @param listener TourListener
+	 */
+	public void addListener(TourListener listener) {
+		this.listeners.add(listener);
+	}
+
+	/**
+	 * 
+	 * @return returns the size of the Tour including the {@link FinalStep} if the flag was set.
+	 */
+	public int getSize() {
+		return this.maxSteps;
 	}
 }

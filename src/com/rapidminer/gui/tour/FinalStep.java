@@ -24,7 +24,6 @@ package com.rapidminer.gui.tour;
 
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.dialogs.MessageDialog;
-import com.rapidminer.tools.I18N;
 
 
 /**
@@ -33,11 +32,16 @@ import com.rapidminer.tools.I18N;
  */
 public class FinalStep extends Step {
 
-	protected String title, text;
+	protected String key, insert;
 	
-	public FinalStep(String i18nKey, String explicitTour) {
-		this.title =I18N.getMessage(I18N.getGUIBundle(),"gui.bubble." + i18nKey + ".title");
-		this.text = I18N.getMessage(I18N.getGUIBundle(),"gui.bubble." + i18nKey + ".body",explicitTour);
+	/**
+	 * This {@link Step} calls a MessageDialog with the complete_Tour.message from GUIBundle and
+	 * quits your Tour.
+	 * @param explicitTour Name of the Tour you have designed to show in the Dialog
+	 */
+	public FinalStep(String explicitTour) {
+		this.key = "complete_Tour";
+		this.insert = explicitTour;
 	}
 	/* (non-Javadoc)
 	 * @see com.rapidminer.gui.tour.Step#createBubble()
@@ -49,8 +53,10 @@ public class FinalStep extends Step {
 
 	@Override
 	public void start() {
-		MessageDialog tourComplete = new MessageDialog(title, text);
+		MessageDialog tourComplete = new MessageDialog(key, insert);
 		tourComplete.setVisible(true);
+		this.writeStateToFile();
+		this.notifyListeners();
 	}
 	
 	@Override

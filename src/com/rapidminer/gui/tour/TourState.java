@@ -29,5 +29,6 @@ package com.rapidminer.gui.tour;
 public enum TourState {
 	NOT_COMPLETED,
 	NEVER_ASK,
-	COMPLETED;
+	COMPLETED,
+	NEW_ONE;
 }

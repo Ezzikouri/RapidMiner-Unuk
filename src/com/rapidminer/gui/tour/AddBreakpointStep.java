@@ -35,12 +35,15 @@ import com.rapidminer.operator.Operator;
 
 /**
  * 
+ * This subclass of {@link Step} will open a {@link BubbleWindow} which closes if a Breakpoint is set.
+ * 
  * @author Philipp Kersting
  *
  */
 
 public class AddBreakpointStep extends Step {
 
+	/**indicates on which position of a Breakpoint*/
 	public enum Position {
 		BEFORE, AFTER, DONT_CARE
 	}
@@ -53,8 +56,16 @@ public class AddBreakpointStep extends Step {
 	private String buttonKey;
 	private ProcessSetupListener listener = null;
 
-	public AddBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
-		this.alignment = alignment;
+	/**
+	 * The Bubble Window will be attached to the Button with the breakpoint_after key
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operator the class of the Operator at which the Breakpoint should be added.
+	 * @param position position on which the Breakpoint should be set.
+	 */
+	public AddBreakpointStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.position = position;
@@ -62,6 +73,14 @@ public class AddBreakpointStep extends Step {
 		this.buttonKey = null;
 	}
 
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operator the class of the Operator at which the Breakpoint should be added.
+	 * @param i18nButtonKey key of the Button to which the {@link BubbleWindow} should be attached to.
+	 * @param position position on which the Breakpoint should be set.
+	 */
 	public AddBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String i18nButtonKey, Position position) {
 		this.alignment = alignment;
 		this.owner = owner;

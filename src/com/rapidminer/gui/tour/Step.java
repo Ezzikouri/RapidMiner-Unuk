@@ -20,12 +20,17 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.BubbleListener;
+import com.rapidminer.gui.tour.IntroductoryTour.TourListener;
 
 /**
  * A step consisting of a {@link BubbleWindow} and a follower. This class must be inherited by other steps,
@@ -35,82 +40,132 @@ import com.rapidminer.gui.tools.components.BubbleWindow.BubbleListener;
  *
  */
 public abstract class Step {
-	
-	Step next;
-	BubbleWindow bubble;
-	protected String tourkey = "";
-	protected boolean finalStep = false;
-	
+
+	protected Step next;
+	protected BubbleWindow bubble;
+	protected String tourkey ;
+	protected boolean finalStep;
+	protected LinkedList<TourListener> listeners = new LinkedList<IntroductoryTour.TourListener>();
+	protected int index;
+
 	abstract BubbleWindow createBubble();
-	
-	public Step getNext(){
+
+	/**
+	 * Method to get the next {@link Step}.
+	 * @return the next {@link Step} which will be performed.
+	 */
+	public Step getNext() {
 		return this.next;
 	}
-	
-	public void setNext(Step next){
+
+	/**
+	 * Sets the next {@link Step}
+	 * @param next the next {@link Step} which should be performed after this {@link Step}
+	 */
+	public void setNext(Step next) {
 		this.next = next;
 	}
-	
-	public void start(){
+
+	/**
+	 * This method will start the {@link Step} and calls start() on the next Step if it is available.
+	 */
+	public void start() {
 		bubble = createBubble();
 		bubble.addBubbleListener(new BubbleListener() {
-			
+
 			@Override
 			public void bubbleClosed(BubbleWindow bw) {
 				bw.removeBubbleListener(this);
 				stepCanceled();
-				if(Step.this.isFinal()){
-					Step.this.writeCompleteToFile();
-				}
+				Step.this.writeStateToFile();
+				Step.this.notifyListeners();
 			}
-			
+
 			@Override
 			public void actionPerformed(BubbleWindow bw) {
-				if (next!=null){
+				if (next != null) {
 					new Thread() {
+
 						public void run() {
 							SwingUtilities.invokeLater(new Runnable() {
+
 								@Override
 								public void run() {
 									next.start();
-									if(next.isFinal()) {
-										next.writeCompleteToFile();
-									}
 								}
 							});
 						};
 					}.start();
+				} else {
+					Step.this.writeStateToFile();
+					Step.this.notifyListeners();
 				}
 				bw.removeBubbleListener(this);
 			}
 		});
 		bubble.setVisible(true);
 	}
-	
-	public void addBubbleListener(BubbleListener l){
+
+	/**
+	 * This method will add a {@link BubbleListener} to the {@link BubbleWindow} of this {@link Step}
+	 * @param l the {@link BubbleListener} which should be added to the {@link BubbleWindow}
+	 */
+	public void addBubbleListener(BubbleListener l) {
 		bubble.addBubbleListener(l);
 	}
-	public void removeBubbleListener(BubbleListener l){
+
+	/**
+	 * removes the given {@link BubbleListener} from the {@link BubbleWindow} of this {@link Step}. 
+	 * @param l
+	 */
+	public void removeBubbleListener(BubbleListener l) {
 		bubble.removeBubbleListener(l);
 	}
-	
-	public void setTourKey(String key) {
-		tourkey=key;
+
+	/**
+	 * places the needed parameters of the {@link Step} should be called by {@link IntroductoryTour}.
+	 * @param tourKey name and key of the Tour.
+	 * @param index index of the {@link Step} in the Tour (starts with 1).
+	 * @param isfinal indicates whether the Step is the last one or not.
+	 * @param listener List of {@link TourListener} which should be added.
+	 */
+	public void makeSettings(String tourKey, int index, boolean isfinal, List<TourListener> listener) {
+		this.tourkey = tourKey;
+		this.finalStep = isfinal;
+		if (listener != null && !listener.isEmpty())
+			this.listeners.addAll(listener);
+		this.index = index;
 	}
-	
-	public void setIsFinalStep(boolean isFinal) {
-		finalStep = isFinal;
-	}
-	
+
+	/**
+	 * returns true if this {@link Step} is the last Step which will be performed in the Tour.
+	 * @return whether the step is the final {@link Step}
+	 */
 	public boolean isFinal() {
 		return finalStep;
 	}
 
-	public void writeCompleteToFile() {
+	/**
+	 * writes the state of the Tour to the properties.
+	 * Should be called when the Tour ends or was closed.
+	 */
+	protected void writeStateToFile() {
 		TourManager tm = TourManager.getInstance();
-		tm.setTourState(tourkey, TourState.COMPLETED);
+		tm.setTourState(tourkey, (isFinal() ? TourState.COMPLETED : TourState.NOT_COMPLETED));
+		tm.setTourProgress(tourkey, index);
 	}
-	
-	/** Can be overridden by subclasses. */
+
+	/**
+	 * notifies the {@link TourListener}s that the Tour has finished or was closed.
+	 */
+	protected void notifyListeners() {
+		if(listeners == null)
+			return;
+		for (TourListener listen : listeners) {
+			listen.tourClosed();
+		}
+	}
+
+	/** Can be overridden by subclasses (e.g. to remove Listeners). */
 	protected void stepCanceled() {}
 }

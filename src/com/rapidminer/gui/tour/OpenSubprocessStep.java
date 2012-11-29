@@ -36,7 +36,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 
 /**
- * 
+ * This subclass of {@link Step} will be closed if the a Subprocess was opened.
  * 
  * @author Kersting and Thilo Kamradt
  *
@@ -52,8 +52,15 @@ public class OpenSubprocessStep extends Step {
 	private Class<? extends OperatorChain> operatorClass;
 	private ProcessEditor editor = null;
 
-	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, String attachToKey, Class<? extends OperatorChain> operator) {
-		this.alignment = alignment;
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param attachToKey i18nKey of the component to which the {@link BubbleWindow} should be placed relative to.
+	 * @param operator the class of the Operator which the user should enter.
+	 */
+	public OpenSubprocessStep(Alignment preferedAlignment, Window owner, String i18nKey, String attachToKey, Class<? extends OperatorChain> operator) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.attachToKey = attachToKey;
@@ -61,25 +68,29 @@ public class OpenSubprocessStep extends Step {
 		this.operatorClass = operator;
 	}
 
-	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, Component attachTo, Class<? extends OperatorChain> operator) {
-		this.alignment = alignment;
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param attachTo component to which the {@link BubbleWindow} should be placed relative to.
+	 * @param operator the class of the Operator which the user should enter.
+	 */
+	public OpenSubprocessStep(Alignment preferedAlignment, Window owner, String i18nKey, Component attachTo, Class<? extends OperatorChain> operator) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.attachTo = attachTo;
 		this.operatorClass = operator;
 	}
 
-	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, String attachToKey) {
-		this.alignment = alignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.attachToKey = attachToKey;
-		this.attachTo = null;
-		this.operatorClass = null;
-	}
-
-	public OpenSubprocessStep(Alignment alignment, Window owner, String i18nKey, Component attachTo) {
-		this.alignment = alignment;
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param attachTo component to which the {@link BubbleWindow} should be placed relative to.
+	 */
+	public OpenSubprocessStep(Alignment preferedAlignment, Window owner, String i18nKey, Component attachTo) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.attachTo = attachTo;
@@ -116,11 +127,12 @@ public class OpenSubprocessStep extends Step {
 
 			@Override
 			public void processUpdated(Process process) {
-
+				
 			}
 
 			@Override
 			public void processChanged(Process process) {
+
 			}
 		};
 		RapidMinerGUI.getMainFrame().addProcessEditor(editor);
