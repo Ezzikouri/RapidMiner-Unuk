@@ -758,9 +758,9 @@ public class ProcessRenderer extends JPanel {
 		((ResourceAction) mainFrame.getActions().TOGGLE_ACTIVATION_ITEM).addToActionMap(this, WHEN_FOCUSED);
 		RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
 		SELECT_ALL_ACTION.addToActionMap(this, WHEN_FOCUSED);
-		DELETE_SELECTED_CONNECTION.addToActionMap(this, "delete", WHEN_FOCUSED);
 
 		OperatorTransferHandler.addToActionMap(this);
+		DELETE_SELECTED_CONNECTION.addToActionMap(this, "delete", WHEN_FOCUSED);
 
 		new ToolTipWindow(tipProvider, this);
 
