@@ -40,7 +40,7 @@ public class BufferedFileObject extends FileObject {
 	private static final long serialVersionUID = 1L;
 
 	private byte[] buffer;
-	private File file = null;
+	private transient File file = null;
 	
 	public BufferedFileObject(byte[] buffer) {
 		super();

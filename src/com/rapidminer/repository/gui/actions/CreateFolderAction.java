@@ -45,7 +45,7 @@ public class CreateFolderAction extends AbstractRepositoryAction<Folder> {
 	public void actionPerformed(final Folder folder) {				
 		ProgressThread openProgressThread = new ProgressThread("create_folder") {
 			public void run() {			
-				String name = SwingTools.showInputDialog("repository.new_folder", "");
+				String name = SwingTools.showRepositoryEntryInputDialog("repository.new_folder", "");
 				if (name != null) {
 					try {
 						folder.createFolder(name);

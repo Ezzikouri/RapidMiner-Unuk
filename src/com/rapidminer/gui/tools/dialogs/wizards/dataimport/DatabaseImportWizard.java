@@ -154,7 +154,7 @@ public class DatabaseImportWizard extends DataImportWizard {
 //			}
 //
 //		});
-		addStep(new RepositoryLocationSelectionWizardStep(this, null) {
+		addStep(new RepositoryLocationSelectionWizardStep(this, null, true) {
 			@Override
 			protected boolean performLeavingAction(WizardStepDirection direction) {
 				return transferData(reader, getRepositoryLocation());

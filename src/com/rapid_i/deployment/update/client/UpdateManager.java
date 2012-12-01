@@ -472,7 +472,7 @@ public class UpdateManager {
 
 	public static void clearAccountSerive() {
 		accountService = null;
-		AuthCacheValue.setAuthCache(new AuthCacheImpl());
+		WebServiceTools.clearAuthCache();
 	}
 
 	public synchronized static AccountService getAccountService() throws MalformedURLException, URISyntaxException {

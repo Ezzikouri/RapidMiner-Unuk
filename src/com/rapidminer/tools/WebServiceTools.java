@@ -30,6 +30,9 @@ import java.util.Map;
 
 import javax.xml.ws.BindingProvider;
 
+import sun.net.www.protocol.http.AuthCacheImpl;
+import sun.net.www.protocol.http.AuthCacheValue;
+
 /**
  * Some utility methods for web services and url connections.
  * 
@@ -100,5 +103,10 @@ public class WebServiceTools {
 		URLConnection connection = url.openConnection();
         setURLConnectionDefaults(connection);
         return connection.getInputStream();
+	}
+
+	/** Clears all (Java-)cached credentials for Web services. */
+	public static void clearAuthCache() {
+		AuthCacheValue.setAuthCache(new AuthCacheImpl());		
 	}
 }

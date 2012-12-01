@@ -48,7 +48,9 @@ import javax.swing.text.Document;
  * 
  */
 public class AutoCompleteComboBoxAddition {
+	
 	private final class AutoCompletionDocumentListener implements DocumentListener {
+		
 		@Override
 		public void insertUpdate(DocumentEvent e) {
 			try {
@@ -64,18 +66,21 @@ public class AutoCompleteComboBoxAddition {
 				Document document = e.getDocument();
 				String documentText = document.getText(0, document.getLength());
 				final String result = checkForMatch(documentText, vectorOfStrings, caseSensitive);
-				final String newString = (result == null) ? documentText : result;
+				// don't do anything if there is no match
+				if (result == null) {
+					return;
+				}
 				final int startSelect = document.getLength();
-				final int endSelect = newString.length();
+				final int endSelect = result.length();
 				final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
 
 				if (startSelect == e.getOffset() + e.getLength()) {
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							comboBox.getModel().setSelectedItem(newString);
+							comboBox.getModel().setSelectedItem(result);
 							editorComponent.getDocument().removeDocumentListener(docListener);
-							editorComponent.setText(newString);
+							editorComponent.setText(result);
 							editorComponent.getDocument().addDocumentListener(docListener);
 							editorComponent.setCaretPosition(startSelect);
 							editorComponent.setSelectionStart(startSelect);
@@ -120,7 +125,6 @@ public class AutoCompleteComboBoxAddition {
 	/** the JComboBox to which it is attached */
 	private final JComboBox comboBox;
 	private final BasicComboBoxEditor comboBoxEditor;
-	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Adds an auto completion feature to the given JComboBox. Will set {@link JComboBox#setEditable(boolean)} to true.

@@ -229,7 +229,7 @@
 			<xsl:for-each select="tutorialProcess">
 				<p>
 					<a>
-						<xsl:attribute name="href"><xsl:value-of select="position()" /></xsl:attribute>
+						<xsl:attribute name="href">tutorial:<xsl:value-of select="position()" /></xsl:attribute>
 						<xsl:value-of select="@title" />
 					</a>
 				</p>

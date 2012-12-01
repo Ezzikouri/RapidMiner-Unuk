@@ -129,7 +129,7 @@ public class AccessImportWizard extends DataImportWizard {
 //			}
 //
 //		});
-		addStep(new RepositoryLocationSelectionWizardStep(this, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null) {
+		addStep(new RepositoryLocationSelectionWizardStep(this, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null, true) {
 			@Override
 			protected boolean performLeavingAction(WizardStepDirection direction) {
 				return transferData(reader, getRepositoryLocation());

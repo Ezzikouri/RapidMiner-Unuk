@@ -52,7 +52,7 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 	private WizardState state;
 	
 	public StoreDataWizardStep(AbstractWizard parent, WizardState state, String preselectedLocation) {
-		super(parent, preselectedLocation);
+		super(parent, preselectedLocation, true);
 		this.state = state;
 	}
 

@@ -25,14 +25,18 @@ package com.rapidminer.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -204,43 +208,31 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 
 		public void hyperlinkUpdate(HyperlinkEvent e) {
 			if (e.getEventType().equals(EventType.ACTIVATED)) {
-				// ask for confirmation before stopping the currently running process and opening another one!
-            	if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING || 
-            			RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
-            		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
-            			return;
-            		}
-            	}
-            	
-				// ask user if he wants to save his current proces because the example process will replace his current process
-				if (RapidMinerGUI.getMainFrame().isChanged()) {
-					// current process is flagged as unsaved
-					int returnVal = SwingTools.showConfirmDialog("save_before_show_tutorial_process", ConfirmDialog.YES_NO_CANCEL_OPTION);
-					if (returnVal == ConfirmDialog.CANCEL_OPTION) {
-						return;
-					} else if (returnVal == ConfirmDialog.YES_OPTION) {
-						SaveAction.save(RapidMinerGUI.getMainFrame().getProcess());
-					}
-				} else {
-					// current process is not flagged as unsaved
-					if (SwingTools.showConfirmDialog("show_tutorial_process", ConfirmDialog.OK_CANCEL_OPTION) == ConfirmDialog.CANCEL_OPTION) {
-						return;
-					}
-				}
-
-				if (e.getDescription().contains("l")) {
-					int index = Integer.parseInt(e.getDescription().substring(1));
-					Operator recent = displayedOperator;
-					ignoreSelections = true;
-					RapidMinerGUI.getMainFrame().setProcess(displayedOperator.getOperatorDescription().getOperatorDocumentation().getExamples().get(index).getProcess(), true);
-					Collection<Operator> displayedOperators = RapidMinerGUI.getMainFrame().getProcess().getAllOperators();
-					for (Operator item : displayedOperators) {
-						if (item.getClass().equals(recent.getClass())) {
-							RapidMinerGUI.getMainFrame().selectOperator(item);
-							ignoreSelections = false;
+				if(e.getDescription().startsWith("tutorial:")) {
+					// ask for confirmation before stopping the currently running process and opening another one!
+	            	if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING || 
+	            			RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
+	            		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+	            			return;
+	            		}
+	            	}
+	            	
+					// ask user if he wants to save his current process because the example process will replace his current process
+					if (RapidMinerGUI.getMainFrame().isChanged()) {
+						// current process is flagged as unsaved
+						int returnVal = SwingTools.showConfirmDialog("save_before_show_tutorial_process", ConfirmDialog.YES_NO_CANCEL_OPTION);
+						if (returnVal == ConfirmDialog.CANCEL_OPTION) {
+							return;
+						} else if (returnVal == ConfirmDialog.YES_OPTION) {
+							SaveAction.save(RapidMinerGUI.getMainFrame().getProcess());
+						}
+					} else {
+						// current process is not flagged as unsaved
+						if (SwingTools.showConfirmDialog("show_tutorial_process", ConfirmDialog.OK_CANCEL_OPTION) == ConfirmDialog.CANCEL_OPTION) {
+							return;
 						}
 					}
-				} else {
+				
 					try {
 						if (currentResourceURL == null) {
 							// should not happen, because then there would be no link in the first place
@@ -248,8 +240,10 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 						}
 						Document document = XMLTools.parse(WebServiceTools.openStreamFromURL(currentResourceURL));
 
+						int index = Integer.parseInt(e.getDescription().substring("tutorial:".length()));
+						
 						NodeList nodeList = document.getElementsByTagName("tutorialProcess");
-						Node processNode = nodeList.item(Integer.parseInt(e.getDescription()) - 1);
+						Node processNode = nodeList.item(index - 1);
 						Node process = null;
 						int i = 0;
 						while (i < processNode.getChildNodes().getLength()) {
@@ -275,14 +269,34 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 							}
 						}
 					} catch (TransformerException e1) {
-						LogService.getRoot().warning("Example process could not be created. Reason: " + e1.getLocalizedMessage());
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.ExampleProcess.creating_example_process_error", e1);
 					} catch (SAXException e1) {
-						LogService.getRoot().warning("Error parsing xml! Example process could not be created. Reason: " + e1.getLocalizedMessage());
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.ExampleProcess.parsing_xml_error", e1);
 					} catch (IOException e1) {
-						LogService.getRoot().warning("Error reading file! Example process could not be created. Reason: " + e1.getLocalizedMessage());
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.ExampleProcess.reading_file_error", e1);
 					} catch (XMLException e1) {
-						LogService.getRoot().warning("Error parsing xml! Example process could not be created. Reason: " + e1.getLocalizedMessage());
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.ExampleProcess.parsing_xml_error", e1);
 					}
+				
+				} else {
+					// open url in default browser
+					Desktop desktop = Desktop.getDesktop();
+			        if(desktop.isSupported(Desktop.Action.BROWSE)) {
+			          URI uri;
+						try {
+							uri = new java.net.URI(e.getDescription());
+							desktop.browse(uri);
+						} catch (URISyntaxException e1) {
+							LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.desktop.browse.malformed_url", e1);
+							return;
+						} catch (IOException e1) {
+							LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.desktop.browse.open_browser", e1);
+							return;
+						}
+			        } else {
+			        	LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.desktop.browse.not_supported");
+						return;
+			        }
 				}
 			}
 		}

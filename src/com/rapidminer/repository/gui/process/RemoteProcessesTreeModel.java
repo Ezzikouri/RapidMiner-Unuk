@@ -164,7 +164,7 @@ public class RemoteProcessesTreeModel implements TreeModel {
 						final ProcessList processList = processes.get(repos);
 						try {
 							if (repos.isPasswortInputCanceled()) {
-								LogService.getRoot().log(Level.INFO,
+								LogService.getRoot().log(Level.FINE,
 										I18N.getMessage(LogService.getRoot().getResourceBundle(),
 												"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.skipping_user_canceled_auth", repos.getName()));
 								continue;
@@ -176,10 +176,11 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 								@Override
 								public void run() {
-									TreeModelEvent deleteEvent = processList.trim(new HashSet<Integer>(processIds), repos);
-									//processes.put(repos, processList);
-									if (deleteEvent != null) {
-										fireDelete(deleteEvent);
+									if (processIds != null) {
+										TreeModelEvent deleteEvent = processList.trim(new HashSet<Integer>(processIds), repos);
+										if (deleteEvent != null) {
+											fireDelete(deleteEvent);
+										}
 									}
 								}
 							});

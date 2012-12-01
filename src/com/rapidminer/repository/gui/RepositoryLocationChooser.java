@@ -83,6 +83,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	private final RepositoryEntryTextField locationFieldRepositoryEntry = new RepositoryEntryTextField();
 	
 	private boolean enforceValidRepositoryEntryName;
+	private volatile boolean currentEntryValid;
 
 	private final RepositoryLocation resolveRelativeTo;
 
@@ -308,6 +309,14 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 			}
 		}
 	}
+	
+	public boolean isEntryValid() {
+		if (!enforceValidRepositoryEntryName) {
+			return hasSelection();
+		} else {
+			return currentEntryValid;
+		}
+	}
 
 	/** Same as {@link #hasSelection(boolean)} with parameter false. */
 	public boolean hasSelection() {
@@ -396,6 +405,9 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue, selectEntries, selectFolder);
 		if (forceDisableRelativeResolve) {
 			dialog.chooser.setResolveRelative(false);
+			if (dialog.chooser.resolveBox != null) {
+				dialog.chooser.resolveBox.setVisible(false);
+			}
 		}
 		dialog.chooser.setEnforceValidRepositoryEntryName(enforceValidRepositoryEntryName);
 		if (enforceValidRepositoryEntryName) {
@@ -466,6 +478,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 
 	@Override
 	public void update(Observable<Boolean> observable, Boolean arg) {
+		this.currentEntryValid = arg;
 		updateResult();
 	}
 }

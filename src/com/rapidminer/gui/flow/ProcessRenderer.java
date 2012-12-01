@@ -576,9 +576,13 @@ public class ProcessRenderer extends JPanel {
 
 							if (dest.getX() < WALL_WIDTH + OPERATOR_WIDTH) {
 								dest.setLocation(WALL_WIDTH + OPERATOR_WIDTH, dest.getY());
+							} else if (dest.getX() > getWidth() - WALL_WIDTH - OPERATOR_WIDTH) {
+								dest.setLocation(getWidth() - WALL_WIDTH - OPERATOR_WIDTH, dest.getY());
 							}
 							if (dest.getY() < MIN_OPERATOR_HEIGHT + PADDING) {
 								dest.setLocation(dest.getX(), MIN_OPERATOR_HEIGHT + PADDING);
+							} else if (dest.getY() > getHeight() - MIN_OPERATOR_HEIGHT - PADDING) {
+								dest.setLocation(dest.getX(), getHeight() - MIN_OPERATOR_HEIGHT - PADDING);
 							}
 
 							// if we drop a single Retrieve operator on an inner source of the root op,
@@ -756,7 +760,6 @@ public class ProcessRenderer extends JPanel {
 
 		((ResourceAction) mainFrame.getActions().TOGGLE_BREAKPOINT[BreakpointListener.BREAKPOINT_AFTER]).addToActionMap(this, WHEN_FOCUSED);
 		((ResourceAction) mainFrame.getActions().TOGGLE_ACTIVATION_ITEM).addToActionMap(this, WHEN_FOCUSED);
-		RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
 		SELECT_ALL_ACTION.addToActionMap(this, WHEN_FOCUSED);
 
 		OperatorTransferHandler.addToActionMap(this);
@@ -765,6 +768,13 @@ public class ProcessRenderer extends JPanel {
 		new ToolTipWindow(tipProvider, this);
 
 		init();
+	}
+	
+	@Override
+	public void addNotify() {	
+		super.addNotify();
+		// we do this here to avoid being overridden by main frame
+		RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
 	}
 
 	protected int getIndex(ExecutionUnit executionUnit) {

@@ -52,6 +52,7 @@ public class FileSelectionWizardStep extends WizardStep {
 			this.fileChooser.setSelectedFile(preselected);
 		}
 		this.fileChooser.setControlButtonsAreShown(false);
+		this.fileChooser.setAcceptAllFileFilterUsed(false);
 		if (this.fileChooser instanceof ExtendedJFileChooser) {
 			((ExtendedJFileChooser) fileChooser).addChangeListener(parent);
 		}
@@ -65,7 +66,8 @@ public class FileSelectionWizardStep extends WizardStep {
 	@Override
 	protected boolean canProceed() {
 		if (fileChooser instanceof ExtendedJFileChooser) {
-			return ((ExtendedJFileChooser) fileChooser).isFileSelected();
+			File selectedFile = getSelectedFile();
+			return selectedFile != null && selectedFile.exists();
 		}
 		return true;
 	}

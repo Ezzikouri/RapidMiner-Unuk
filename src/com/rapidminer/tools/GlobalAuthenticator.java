@@ -130,8 +130,7 @@ public class GlobalAuthenticator extends Authenticator {
 		try {
 			switch (getRequestorType()) {
 				case PROXY:
-					//LogService.getRoot().info("Authentication requested for proxy of: " + url + ". Trying these authenticators: " + proxyAuthenticators + ".");
-					LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested_proxy",
+					LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested_proxy",
 							new Object[] { url, proxyAuthenticators });
 					for (URLAuthenticator a : proxyAuthenticators) {
 						PasswordAuthentication auth = a.getAuthentication(url);
@@ -142,8 +141,7 @@ public class GlobalAuthenticator extends Authenticator {
 					// this should not be happen
 					return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
 				case SERVER:
-					//LogService.getRoot().info("Authentication requested for: " + url + ". Trying these authenticators: " + serverAuthenticators + ".");
-					LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested",
+					LogService.getRoot().log(Level.FINE, "com.rapidminer.tools.GlobalAuthenticator.authentication_requested",
 							new Object[] { url, serverAuthenticators });
 					for (URLAuthenticator a : serverAuthenticators) {
 						PasswordAuthentication auth = a.getAuthentication(url);

@@ -53,7 +53,7 @@ public class ExcelFileSelectionWizardStep extends FileSelectionWizardStep {
 			@Override
 			public String getDescription() {
 				return "Excel Spreadsheets (.xls, .xlsx)";
-			}			
+			}		
 		});
 		this.configuration = configuration;
 	}

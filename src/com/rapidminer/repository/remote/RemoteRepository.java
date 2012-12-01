@@ -297,7 +297,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	private PasswordAuthentication getAuthentication() throws PasswortInputCanceledException {
 		if (password == null) {
-			//LogService.getRoot().info("Authentication requested for URL: " + getBaseUrl());
 			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.repository.remote.RemoteRepository.authentication_requested", getBaseUrl());
 			PasswordAuthentication passwordAuthentication;
 
@@ -322,6 +321,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				return passwordAuthentication;
 			} catch (PasswortInputCanceledException e) {
 				setPasswortInputCanceled(true);
+				setPassword(null);
 				setOffline(true);
 				throw e;
 			}
@@ -663,6 +663,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 							"com.rapidminer.repository.remote.RemoteRepository.fetching_jdbc_connections_entries_error",
 							getName()),
 					e);
+			setPassword(null);
+			setOffline(true);
 			throw new RepositoryException("Cannot connect to  server  " + getName() + ".", e); //TODO I18N
 		}
 	}

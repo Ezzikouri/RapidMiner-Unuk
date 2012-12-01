@@ -59,6 +59,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * Repository names now enforce a blacklist of invalid characters
 * Operators "Execute Process" and "Retrieve" are now named after the files your drop into the Process window
 * Nominal to Numerical: Parameter "default coding" is now set to dummy coding per default
+* Changed the help menu entry "Update RapidMiner" to "RapidMiner Marketplace"
 * BUGFIX: Recent files are now updated on process save
 * BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases
 * BUGFIX: Editing context variables now immediately flags the process as changed
@@ -107,4 +108,6 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: Drag&Drop of files (e.g. .csv/.xls) creates the corresponding read operator with the now correct filename parameter
 * BUGFIX: Drag&Drop of operators should no longer create operators halfway outside the process canvas
 * BUGFIX: Import wizards will no longer overwrite existing data without asking for permission first
-
+* BUGFIX: Import wizards will no longer accept wrong file types/invalid filenames in the first step
+* BUGFIX: Read SAS operator no longer causes an internal error when the data file could not be read
+* BUGFIX: "Wiki" links in the documentation tried to open a tutorial process, now open the corresponding wiki page
