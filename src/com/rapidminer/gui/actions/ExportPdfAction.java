@@ -22,12 +22,15 @@
  */
 package com.rapidminer.gui.actions;
 
+import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.FileOutputStream;
+
+import javax.swing.JPanel;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -38,6 +41,8 @@ import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.LinkAndBrushChartPanel;
+import com.rapidminer.gui.new_plotter.gui.ChartConfigurationPanel;
 import com.rapidminer.gui.new_plotter.templates.PlotterTemplate;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
@@ -162,6 +167,36 @@ public class ExportPdfAction extends ResourceAction {
 	private void createPdfViaTemplate(Component component, Document document,PdfContentByte cb) throws DocumentException {
 		PdfTemplate tp = cb.createTemplate(500, PageSize.A4.getHeight()/2);
 		Graphics2D g2 = tp.createGraphics(500, PageSize.A4.getHeight()/2);
+		
+		// special handling for charts as we only want to export the chart but not the control panel
+		// chart cannot be scaled to size of component because otherwise we would break the chart aspect-ratio
+		if (component.getClass().isAssignableFrom(JPanel.class)) {
+			JPanel panel = (JPanel) component;
+			if (panel.getLayout().getClass().isAssignableFrom(CardLayout.class)) {
+				for (final Component comp : panel.getComponents()) {
+					if (comp.isVisible() && comp.getClass().isAssignableFrom(ChartConfigurationPanel.class)) {
+						final ChartConfigurationPanel chartConfigPanel = (ChartConfigurationPanel) comp;
+						
+						// create new LinkAndBrushChartPanel with double buffering set to false to get vector graphic export
+						// The real chart has to use double buffering for a) performance and b) zoom rectangle drawing
+						LinkAndBrushChartPanel newLaBPanel = new LinkAndBrushChartPanel(chartConfigPanel.getPlotEngine().getChartPanel().getChart(), chartConfigPanel.getPlotEngine().getChartPanel().getWidth(), chartConfigPanel.getPlotEngine().getChartPanel().getHeight(), chartConfigPanel.getPlotEngine().getChartPanel().getMinimumDrawWidth(), chartConfigPanel.getPlotEngine().getChartPanel().getMinimumDrawHeight(), false, false);
+						newLaBPanel.setSize(chartConfigPanel.getPlotEngine().getChartPanel().getSize());
+						newLaBPanel.setOverlayList(chartConfigPanel.getPlotEngine().getChartPanel().getOverlayList());
+						AffineTransform at = new AffineTransform();
+						double factor = 500d / chartConfigPanel.getPlotEngine().getChartPanel().getWidth();
+						at.scale(factor, factor);
+						g2.transform(at);
+						newLaBPanel.print(g2);
+						g2.dispose();
+						document.add(new Paragraph(componentName));
+						document.add(Image.getInstance(tp));
+						
+						return;
+					}
+				}
+			}
+		}
+		
 		AffineTransform at = new AffineTransform();
 		double factor = 500d / component.getWidth();
 		at.scale(factor, factor);

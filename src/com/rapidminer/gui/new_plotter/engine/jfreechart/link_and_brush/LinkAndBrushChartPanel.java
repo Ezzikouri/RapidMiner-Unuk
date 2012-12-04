@@ -381,6 +381,15 @@ public class LinkAndBrushChartPanel extends ChartPanel {
         setHorizontalTraceLine(null);
     }
 	
+	@SuppressWarnings("unchecked")
+	public List<Overlay> getOverlayList() {
+		return ((List<Overlay>) getChartFieldValueByName("overlays"));
+	}
+	
+	public void setOverlayList(List<Overlay> list) {
+		setChartFieldValue(getChartFieldByName("overlays"), list);
+	}
+	
 	@Override
 	public void mousePressed(MouseEvent e) {
 		// this is used to only allow left mouse button zoom / selection

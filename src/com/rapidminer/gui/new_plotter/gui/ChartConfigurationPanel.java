@@ -39,7 +39,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -273,8 +272,6 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	@Override
 	public void print(Graphics pg) {
 
-		final Dimension printSize = getSize();
-
 		JPanel printPanel = new JPanel() {
 
 			private static final long serialVersionUID = 7315234075649335574L;
@@ -282,11 +279,13 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 			@Override
 			public void paintComponent(Graphics g) {
 				Graphics2D g2 = (Graphics2D) g;
-				Rectangle2D chartArea = new Rectangle2D.Double(0.0, 0.0, printSize.width, printSize.height);
-				plotEngine.getCurrentChart().draw(g2, chartArea);
+				plotEngine.getChartPanel().print(g2);
 			}
 		};
-		printPanel.setSize(printSize);
+		Insets insets = plotEngine.getChartPanel().getInsets();
+		int w = plotEngine.getChartPanel().getWidth() - insets.left - insets.right;
+		int h = plotEngine.getChartPanel().getHeight() - insets.top - insets.bottom;
+		printPanel.setSize(new Dimension(w, h));
 
 		printPanel.print(pg);
 	}
@@ -1236,5 +1235,9 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 		// tell plotEngine that PlotInstance has changed
 		plotEngine.setPlotInstance(newPlotInstance);
+	}
+
+	public JFreeChartPlotEngine getPlotEngine() {
+		return plotEngine;
 	}
 }
