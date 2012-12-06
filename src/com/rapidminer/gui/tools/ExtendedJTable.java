@@ -50,6 +50,7 @@ import javax.swing.table.TableModel;
 
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.MoveColumnAction;
+import com.rapidminer.gui.operatortree.actions.CutCopyPasteDeleteAction;
 import com.rapidminer.gui.tools.actions.AddToSortingColumnsAction;
 import com.rapidminer.gui.tools.actions.EqualColumnWidthsAction;
 import com.rapidminer.gui.tools.actions.FitAllColumnWidthsAction;
@@ -92,7 +93,7 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     public static final int TIME_FORMAT = 1;
     public static final int DATE_TIME_FORMAT = 2;
 
-
+    private Action COPY_ACTION = CutCopyPasteDeleteAction.COPY_ACTION;
     private Action ROW_ACTION = new SelectRowAction(this, IconSize.SMALL);
     private Action COLUMN_ACTION = new SelectColumnAction(this, IconSize.SMALL);
     private Action FIT_COLUMN_ACTION = new FitColumnWidthAction(this, IconSize.SMALL);
@@ -684,6 +685,8 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     }
 
     public void populatePopupMenu(JPopupMenu menu) {
+    	menu.add(COPY_ACTION);
+    	menu.addSeparator();
         menu.add(ROW_ACTION);
         menu.add(COLUMN_ACTION);
 

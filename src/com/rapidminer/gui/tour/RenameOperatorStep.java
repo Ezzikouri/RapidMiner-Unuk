@@ -34,6 +34,7 @@ import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 
 /**
+ * This Subclass of {@link Step} will open a {@link BubbleWindow} which closes if a {@link Operator} of the given Class was renamed to the given String.
  * 
  * @author Philipp Kersting and Thilo Kamradt
  *
@@ -50,18 +51,34 @@ public class RenameOperatorStep extends Step {
 	private String attachToKey = null;
 	private ProcessSetupListener listener = null;
 	
-	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String targetName, String attachToKey) {
-		this(alignment, owner, i18nKey, operator, targetName, (Component) null);
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or Superclass of the {@link Operator} which should be renamed.
+	 * @param targetName the Name the {@link Operator} should have after this Step.
+	 * @param attachToKey i18nkey of the {@link Component} to which the {@link BubbleWindow} should point to.
+	 */
+	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetName, String attachToKey) {
+		this(alignment, owner, i18nKey, operatorClass, targetName, (Component) null);
 		this.attachToKey = attachToKey;
 	}
 	
-	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String targetName, Component attachTo) {
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or Superclass of the {@link Operator} which should be renamed.
+	 * @param targetName the Name the {@link Operator} should have after this Step.
+	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
+	 */
+	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetName, Component attachTo) {
 		super();
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.targetName = targetName;
-		this.operatorClass = operator;
+		this.operatorClass = operatorClass;
 		this.attachTo = attachTo;
 	}
 
@@ -79,7 +96,7 @@ public class RenameOperatorStep extends Step {
 
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
-				// TODO Auto-generated method stub
+				// don't care
 
 			}
 
@@ -93,13 +110,13 @@ public class RenameOperatorStep extends Step {
 
 			@Override
 			public void operatorAdded(Operator operator) {
-				// TODO Auto-generated method stub
+				// don't care
 
 			}
 
 			@Override
 			public void executionOrderChanged(ExecutionUnit unit) {
-				// TODO Auto-generated method stub
+				// don't care
 
 			}
 		};

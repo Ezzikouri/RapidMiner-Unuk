@@ -94,6 +94,8 @@ import com.rapidminer.gui.tools.ResourceMenu;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
+import com.rapidminer.gui.tour.IntroductoryTour;
+import com.rapidminer.gui.tour.OpenSubprocessStep.ProcessRendererListener;
 import com.rapidminer.io.process.ProcessXMLFilter;
 import com.rapidminer.io.process.ProcessXMLFilterRegistry;
 import com.rapidminer.operator.ExecutionUnit;
@@ -524,6 +526,9 @@ public class ProcessRenderer extends JPanel {
 	private final ReceivingOperatorTransferHandler transferHandler;
 
 	private final FlowVisualizer flowVisualizer = new FlowVisualizer(this);
+	
+	/**List of Listeners from a {@link IntroductoryTour} which waits for the moment that something is opened */
+	private LinkedList<ProcessRendererListener> listenersTour;
 
 	public ProcessRenderer(ProcessPanel processPanel, MainFrame mainFrame) {
 		new PanningManager(this);
@@ -896,6 +901,7 @@ public class ProcessRenderer extends JPanel {
 			}
 		}
 		showProcesses(processes);
+		fireNewChainDisplayed();
 	}
 
 	private void showProcesses(ExecutionUnit[] processes) {
@@ -3243,4 +3249,27 @@ public class ProcessRenderer extends JPanel {
 		return false;
 	}
 
+	public void addProcessRendererListener(ProcessRendererListener listener) {
+		if(listener != null) {
+			if(listenersTour != null) {
+				listenersTour.add(listener);
+			} else {
+				listenersTour = new LinkedList<ProcessRendererListener>();
+				listenersTour.add(listener);
+			}
+		}
+	}
+	
+	public void removeProcessRendererListener(ProcessRendererListener listener) {
+		if(listener != null && listenersTour != null)
+			listenersTour.remove(listener);
+	}
+	
+	private void fireNewChainDisplayed() {
+		if(listenersTour != null && !listenersTour.isEmpty()) {
+			for (ProcessRendererListener listener : ((LinkedList<ProcessRendererListener>) listenersTour.clone())) {
+				listener.newChainShowed(displayedChain);
+			}
+		}
+	}
 }

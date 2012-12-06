@@ -28,7 +28,6 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
-import java.awt.geom.AffineTransform;
 
 import javax.swing.JPanel;
 
@@ -37,6 +36,7 @@ import org.freehep.util.export.ExportDialog;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.LinkAndBrushChartPanel;
 import com.rapidminer.gui.new_plotter.gui.ChartConfigurationPanel;
+import com.rapidminer.gui.plotter.PlotterPanel;
 import com.rapidminer.gui.tools.ResourceAction;
 
 
@@ -86,6 +86,25 @@ public class ExportViewAction extends ResourceAction {
 							}
 						};
 						outerPanel.setSize(new Dimension(chartConfigPanel.getPlotEngine().getChartPanel().getWidth(), chartConfigPanel.getPlotEngine().getChartPanel().getHeight()));
+						
+						exportDialog.showExportDialog(RapidMinerGUI.getMainFrame(), "Export", outerPanel, componentName);
+						return;
+					} else if (comp.isVisible() && comp.getClass().isAssignableFrom(PlotterPanel.class)) {
+						// special case for PlotterPanel as the Panel itself is wider than the plotter
+						// not having a special case here results in the exported image being too wide (empty space to the left)
+						final PlotterPanel plotterPanel = (PlotterPanel) comp;
+						
+						JPanel outerPanel = new JPanel() {
+							
+							private static final long serialVersionUID = 7315234075649335574L;
+
+							@Override
+							public void paintComponent(Graphics g) {
+								Graphics2D g2 = (Graphics2D) g;
+								plotterPanel.print(g2);
+							}
+						};
+						outerPanel.setSize(plotterPanel.getPlotterComponent().getSize());
 						
 						exportDialog.showExportDialog(RapidMinerGUI.getMainFrame(), "Export", outerPanel, componentName);
 						return;

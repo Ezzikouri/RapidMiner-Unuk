@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import com.rapidminer.gui.ConditionalAction;
 import com.rapidminer.gui.RapidMinerGUI;
@@ -162,8 +163,20 @@ public abstract class ResourceAction extends ConditionalAction {
 					}
 				});
 				if (initiallyDisabled) {
-					super.setDisabledDueToFocusLost(true);
-					setEnabled(false);
+					if (SwingUtilities.isEventDispatchThread()) {
+						super.setDisabledDueToFocusLost(true);
+						setEnabled(false);
+					} else {
+						SwingUtilities.invokeLater(new Runnable() {
+
+							@Override
+							public void run() {
+								ResourceAction.super.setDisabledDueToFocusLost(true);
+								ResourceAction.this.setEnabled(false);
+							}
+							
+						});
+					}
 				}
 			}
 		}

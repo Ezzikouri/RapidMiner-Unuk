@@ -25,11 +25,9 @@ package com.rapidminer.gui.tour;
 
 import java.awt.Component;
 import java.awt.Window;
-import java.util.List;
 
-import com.rapidminer.Process;
 import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.processeditor.ProcessEditor;
+import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.operator.Operator;
@@ -43,6 +41,13 @@ import com.rapidminer.operator.OperatorChain;
  */
 
 public class OpenSubprocessStep extends Step {
+	
+	public interface ProcessRendererListener {
+
+		/** will be called when showOperatorChain(OperatorChain op) is called in {@link ProcessRenderer}.*/
+		public void newChainShowed(OperatorChain displayedChain);
+
+	}
 
 	private Alignment alignment;
 	private Window owner;
@@ -50,7 +55,7 @@ public class OpenSubprocessStep extends Step {
 	private Component attachTo;
 	private String attachToKey = null;
 	private Class<? extends OperatorChain> operatorClass;
-	private ProcessEditor editor = null;
+	private ProcessRendererListener listener = null;
 
 	/**
 	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
@@ -94,15 +99,7 @@ public class OpenSubprocessStep extends Step {
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.attachTo = attachTo;
-		this.operatorClass = null;
-	}
-
-	public void setOperator(Class<? extends OperatorChain> operator) {
-		this.operatorClass = operator;
-	}
-
-	public Class<? extends OperatorChain> getOperator() {
-		return operatorClass;
+		this.operatorClass = OperatorChain.class;
 	}
 
 	@Override
@@ -114,34 +111,25 @@ public class OpenSubprocessStep extends Step {
 		} else {
 			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
 		}
-		editor = new ProcessEditor() {
-
+		
+		listener = new ProcessRendererListener() {
+			
 			@Override
-			public void setSelection(List<Operator> selection) {
-				if (RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().getDisplayedChain().getClass().equals(OpenSubprocessStep.this.operatorClass)
-						|| OpenSubprocessStep.this.operatorClass == null) {
+			public void newChainShowed(OperatorChain displayedChain) {
+				if (displayedChain != null && (displayedChain.getClass().equals(OpenSubprocessStep.this.operatorClass)
+						|| OpenSubprocessStep.this.operatorClass == null)) {
 					bubble.triggerFire();
-					RapidMinerGUI.getMainFrame().removeProcessEditor(this);
+					RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().removeProcessRendererListener(this);
 				}
 			}
-
-			@Override
-			public void processUpdated(Process process) {
-				
-			}
-
-			@Override
-			public void processChanged(Process process) {
-
-			}
 		};
-		RapidMinerGUI.getMainFrame().addProcessEditor(editor);
+		RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().addProcessRendererListener(listener);
 		return bubble;
 	}
 
 	@Override
 	protected void stepCanceled () {
-		if(editor == null)
-			RapidMinerGUI.getMainFrame().removeProcessEditor(editor);
+		if(listener != null)
+			RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().removeProcessRendererListener(listener);
 	}
 }

@@ -30,14 +30,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 
 import com.rapidminer.tools.FileSystemService;
 
 /**
- * 
+ * This Class manages whether a Tour is new, started or finishid. Also it remembers the 
+ * number of the highest Step the user made in a Tour and whether the user wants to be asked again
+ *  by starting RapidMiner if he want to execute a Tour.
+ *  
  * @author Thilo Kamradt
  */
 public class TourManager {
@@ -49,6 +50,7 @@ public class TourManager {
 	private Properties properties;
 
 	private HashMap<String, Class<? extends IntroductoryTour>> tours;
+
 	private ArrayList<String> indexList;
 
 	private TourManager() {
@@ -59,6 +61,10 @@ public class TourManager {
 		indexList.add("RapidMiner");
 	}
 
+	/**
+	 * Method to get the instance of the TourManager. Should be called instead of Constructor !
+	 * @return returns the TourManager
+	 */
 	public static synchronized TourManager getInstance() {
 		if (INSTANCE == null) {
 			INSTANCE = new TourManager();
@@ -94,6 +100,11 @@ public class TourManager {
 		}
 	}
 
+	/**
+	 * changes the Property-file-entry to the given state
+	 * @param tourKey key/name of the Tour
+	 * @param state {@link TourState} to write to the file
+	 */
 	public void setTourState(String tourKey, TourState state) {
 		if (state == TourState.NEVER_ASK) {
 			properties.setProperty(tourKey + ".ask", state.toString());
@@ -103,6 +114,11 @@ public class TourManager {
 		save();
 	}
 
+	/**
+	 * writes the progress of the Tour to the property-file
+	 * @param tourKey key/name of the Tour
+	 * @param step index of the current {@link Step} of the Tour (counting started with 1).
+	 */
 	public void setTourProgress(String tourKey, int step) {
 		String stateBefore = properties.getProperty(tourKey + ".progress");
 		if (stateBefore == null || Integer.parseInt(stateBefore) < step)
@@ -110,6 +126,10 @@ public class TourManager {
 		save();
 	}
 
+	/**
+	 * @param tourKey key / name of the Tour
+	 * @return returns the {@link TourState} of the Tour with the given key or TourState.NEW_ONE if there was no entry in the Property-file.  
+	 */
 	public TourState getTourState(String tourKey) {
 		String stateKey = properties.getProperty(tourKey);
 		if (stateKey == null) {
@@ -120,6 +140,10 @@ public class TourManager {
 		}
 	}
 
+	/**
+	 * @param tourKey key/name of the Tour
+	 * @return true if the user wants to be asked again and false otherwise
+	 */
 	public boolean getAskState(String tourKey) {
 		if (properties.getProperty(tourKey + ".ask", null) == null) {
 			return true;
@@ -128,6 +152,11 @@ public class TourManager {
 		}
 	}
 
+	/**
+	 * @param tourKey name/key of the Tour.
+	 * @return returns the maximum number of Steps the user has begun 
+	 * (e.g. if the user once made 5 Steps and another time he made 15 Steps this Method returns 15)
+	 */
 	public int getProgress(String tourKey) {
 		String state = properties.getProperty(tourKey + ".progress");
 		if (state == null) {
@@ -138,23 +167,35 @@ public class TourManager {
 		}
 	}
 
+	/**
+	 * It's necessary to call this method in by the start of RapidMiner, to show your Tour in the Selection-Dialog for Tours.
+	 * @param tourKey name/key of your Tour
+	 * @param tourClass Class-object of your Tour
+	 */
 	public void registerTour(String tourKey, Class<? extends IntroductoryTour> tourClass) {
 		tours.put(tourKey, tourClass);
 		indexList.add(tourKey);
 	}
 
+	/**
+	 * @return returns an Array of the keys from all registered Tours
+	 */
 	public String[] getTourkeys() {
 		return tours.keySet().toArray(new String[] {});
 	}
 
-	public Set<Entry<String, Class<? extends IntroductoryTour>>> getEntries() {
-		return tours.entrySet();
-	}
-
+	/**
+	 * 
+	 * @return returns the number of registered Tours.
+	 */
 	public int size() {
 		return tours.size();
 	}
 
+	/**
+	 * @param index index of a Tour must be smaller than the value of TourManager.size().
+	 * @return return returns an instance of a subclass from {@link IntroductoryTour} which got the index by registration.
+	 */
 	public IntroductoryTour get(int index) {
 		IntroductoryTour tour = null;
 		try {
@@ -169,6 +210,10 @@ public class TourManager {
 		return tour;
 	}
 
+	/**
+	 * @param tourKey key/name of the Tour
+	 * @return returns an instance of a subclass of {@link IntroductoryTour} with the given key
+	 */
 	public IntroductoryTour get(String tourKey) {
 		IntroductoryTour tour = null;
 		Class<? extends IntroductoryTour> tourClass = tours.get(tourKey);
@@ -184,6 +229,11 @@ public class TourManager {
 		return tour;
 	}
 
+	/**
+	 * Starts the Tour with the given key and returns the running object
+	 * @param tourKey key/name of the Tour
+	 * @return returns the running object
+	 */
 	public IntroductoryTour startTour(String tourKey) {
 		IntroductoryTour tour = null;
 		Class<? extends IntroductoryTour> tourClass = tours.get(tourKey);

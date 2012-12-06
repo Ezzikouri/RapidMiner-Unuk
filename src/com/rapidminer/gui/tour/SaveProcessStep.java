@@ -31,6 +31,7 @@ import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 
 /**
+ * This Subclass of {@link Step} will open a {@link BubbleWindow} which closes if the user saves the Process.
  * 
  * @author Philipp Kersting
  *
@@ -44,22 +45,29 @@ public class SaveProcessStep extends Step {
 	private Window owner;
 	private ProcessStorageListener listener = null;
 
-	public SaveProcessStep(Alignment alignment, Window owner, String i18nKey, String buttonKey){
-		this.alignment = alignment;
+	/**
+	 * This Class will automatically point to the normal save-Button
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 */
+	public SaveProcessStep(Alignment preferedAlignment, Window owner, String i18nKey){
+		this(preferedAlignment, owner, i18nKey, "save");
+	}
+	
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param buttonKey i18nKey of the Button to which the {@link BubbleWindow} should point to.
+	 */
+	public SaveProcessStep(Alignment preferedAlignment, Window owner, String i18nKey, String buttonKey){
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.buttonKey = buttonKey;
 	}
 	
-	public SaveProcessStep(Alignment alignment, Window owner, String i18nKey){
-		this.alignment = alignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.buttonKey = "save";
-	}
-	
-	
-
 	@Override
 	BubbleWindow createBubble() {
 		if(buttonKey == null)

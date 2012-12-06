@@ -142,7 +142,7 @@ public class AddBreakpointStep extends Step {
 	
 	@Override
 	protected void stepCanceled() {
-		if(listener == null)
+		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
 	}
 }

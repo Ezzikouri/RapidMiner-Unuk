@@ -56,6 +56,7 @@ public class DataViewerTable extends ExtendedJTable {
     public DataViewerTable() { 
         setAutoResizeMode(AUTO_RESIZE_OFF);   
         setFixFirstColumnForRearranging(true);
+        installToolTip();
     }
 
     public void setExampleSet(ExampleSet exampleSet) {

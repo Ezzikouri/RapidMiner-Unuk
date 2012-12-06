@@ -27,6 +27,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.KeyListener;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -291,4 +292,15 @@ public class RepositoryEntryTextField extends JPanel implements Observable<Boole
 	public void triggerCheck() {
 		checkName();
 	}
+	
+	@Override
+	public void addKeyListener(KeyListener l) {
+		this.entryTextField.addKeyListener(l);
+	}
+	
+	@Override
+	public void removeKeyListener(KeyListener l) {
+		this.entryTextField.removeKeyListener(l);
+	}
+	
 }

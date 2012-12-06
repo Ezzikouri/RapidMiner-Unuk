@@ -68,6 +68,7 @@ public class MetaDataViewerTable extends ExtendedJTable {
     	
     	setCutOnLineBreak(false);
     	setMaximalTextLength(MAXIMAL_CONTENT_LENGTH);
+    	installToolTip();
     }
     
     public MetaDataViewerTable(ExampleSet exampleSet) {

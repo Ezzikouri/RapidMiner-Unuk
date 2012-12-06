@@ -41,6 +41,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -205,7 +206,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 				}
 			}
 		});
-		locationField.addKeyListener(new KeyListener() {
+		KeyListener keyListener = new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 			}
@@ -225,7 +226,9 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 					}
 				}
 			}
-		});
+		};
+		locationField.addKeyListener(keyListener);
+		locationFieldRepositoryEntry.addKeyListener(keyListener);
 		locationFieldRepositoryEntry.addObserver(this, true);
 
 		setLayout(new GridBagLayout());
@@ -325,7 +328,9 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	
 	/** Returns true if the user entered a valid, non-empty repository location. */
 	public boolean hasSelection(boolean allowFolders) {
-		if (!allowFolders && ((enforceValidRepositoryEntryName && locationFieldRepositoryEntry.getText().isEmpty()) || (!enforceValidRepositoryEntryName && locationField.getText().isEmpty()))) {
+		if (!allowFolders && ((enforceValidRepositoryEntryName && locationFieldRepositoryEntry.getText().isEmpty()) ||
+				(!enforceValidRepositoryEntryName && locationField.getText().isEmpty()) ||
+				(enforceValidRepositoryEntryName && !RepositoryLocation.isNameValid(locationFieldRepositoryEntry.getText())))) {
 			return false;
 		} else {
 			try {
@@ -469,11 +474,25 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		return enforceValidRepositoryEntryName;
 	}
 
-	public void setEnforceValidRepositoryEntryName(boolean enforceValidRepositoryEntryName) {
-		this.enforceValidRepositoryEntryName = enforceValidRepositoryEntryName;
-		this.locationLabel.setVisible(!enforceValidRepositoryEntryName);
-		this.locationField.setVisible(!enforceValidRepositoryEntryName);
-		this.locationFieldRepositoryEntry.setVisible(enforceValidRepositoryEntryName);
+	public void setEnforceValidRepositoryEntryName(final boolean enforceValidRepositoryEntryName) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			this.enforceValidRepositoryEntryName = enforceValidRepositoryEntryName;
+			this.locationLabel.setVisible(!enforceValidRepositoryEntryName);
+			this.locationField.setVisible(!enforceValidRepositoryEntryName);
+			this.locationFieldRepositoryEntry.setVisible(enforceValidRepositoryEntryName);
+		} else {
+			SwingUtilities.invokeLater(new Runnable() {
+
+				@Override
+				public void run() {
+					RepositoryLocationChooser.this.enforceValidRepositoryEntryName = enforceValidRepositoryEntryName;
+					RepositoryLocationChooser.this.locationLabel.setVisible(!enforceValidRepositoryEntryName);
+					RepositoryLocationChooser.this.locationField.setVisible(!enforceValidRepositoryEntryName);
+					RepositoryLocationChooser.this.locationFieldRepositoryEntry.setVisible(enforceValidRepositoryEntryName);
+				}
+				
+			});
+		}
 	}
 
 	@Override

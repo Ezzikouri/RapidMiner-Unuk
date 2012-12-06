@@ -28,6 +28,7 @@ import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 
 /**
+ * This Subclass of {@link Step} will open a {@link BubbleWindow} which closes if the given Button was pressed.
  * 
  * @author Philipp Kersting
  *
@@ -40,8 +41,14 @@ public class SimpleStep extends Step {
 	private Alignment alignment;
 	private Window owner;
 	
-	public SimpleStep(Alignment alignment, Window owner, String i18nKey, String buttonKey){
-		this.alignment = alignment;
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param buttonKey i18nKey of the Button to which the {@link Step} listens and the {@link BubbleWindow} will point to.
+	 */
+	public SimpleStep(Alignment preferedAlignment, Window owner, String i18nKey, String buttonKey){
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.buttonKey = buttonKey;

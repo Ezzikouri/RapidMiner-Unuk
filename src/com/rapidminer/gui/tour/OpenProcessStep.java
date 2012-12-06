@@ -35,6 +35,7 @@ import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 
 /**
+ * This subclass of {@link Step} will open a {@link BubbleWindow} which closes if the user has opened a process.
  * 
  * @author Philipp Kersting and Thilo Kamradt
  *
@@ -49,17 +50,30 @@ public class OpenProcessStep extends Step {
 	private String attachToKey;
 	private ProcessStorageListener listener = null;
 
-	
-	public OpenProcessStep(Alignment alignment, Window owner, String i18nKey, Component attachTo) {
-		this.alignment = alignment;
+	/**
+	 * 
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param attachTo Component to which the {@link BubbleWindow} should point to.
+	 */
+	public OpenProcessStep(Alignment preferedAlignment, Window owner, String i18nKey, Component attachTo) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.attachTo = attachTo;
 		this.attachToKey = null;
 	}
 
-	public OpenProcessStep(Alignment alignment, Window owner, String i18nKey, String attachToKey) {
-		this.alignment = alignment;
+	/**
+	 * 
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param attachToKey key of the Component to which the {@link BubbleWindow} should point to.
+	 */
+	public OpenProcessStep(Alignment preferedAlignment, Window owner, String i18nKey, String attachToKey) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.attachTo = null;
@@ -91,7 +105,7 @@ public class OpenProcessStep extends Step {
 	
 	@Override
 	protected void stepCanceled() {
-		if(listener == null)
+		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessStorageListener(listener);
 	}
 }

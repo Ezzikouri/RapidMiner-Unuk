@@ -56,6 +56,14 @@ public abstract class RegressionFunction implements TargetFunction {
 	public void setUpperArgumentBound(double upper) {
 		this.upper = upper;
 	}
+	
+	public double getLowerArgumentBound() {
+		return this.lower;
+	}
+	
+	public double getUpperArgumentBound() {
+		return this.upper;
+	}
 
 	public void setTotalNumberOfExamples(int number) {
 		numberOfExamples = number;

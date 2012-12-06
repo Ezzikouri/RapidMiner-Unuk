@@ -35,7 +35,7 @@ import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 
 /**
- * 
+ * This subclass of {@link Step} will open a {@link BubbleWindow} which closes if a breakpoint on the given {@link Operator} is removed.
  * @author Kersting
  *
  */
@@ -48,25 +48,47 @@ public class RemoveBreakpointStep extends Step {
 	private Class<? extends Operator> operatorClass;
 	private Component attachTo;
 	private String attachToKey = null;
-	private Position positionOnOperator;
+	private Position positionOnOperator = Position.DONT_CARE;
 	private ProcessSetupListener listener = null;
 	
 
-	/** the Breakpoint after will be chosen as default*/
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
-		this(alignment, owner, i18nKey, operator,(Component) null, position);
+	/** chooses the breakpoint_after-Button as default
+	 * @param alignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass the Class or Superclass of the {@link Operator} to which the breakpoint should be added.
+	 * @param position indicates whether the Step listens to a breakpoint before, after or any breakpoint which will be removed from the given operatorClass.
+	 */
+	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Position position) {
+		this(alignment, owner, i18nKey, operatorClass,(Component) null, position);
 	}
 	
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String attachToKey, Position position) {
-		this(alignment, owner, i18nKey, operator,(Component) null, position);
+	/**
+	 * @param alignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass the Class or Superclass of the {@link Operator} to which the breakpoint should be added.
+	 * @param attachToKey i18nkey of the Button to which the {@link BubbleWindow} should point to.
+	 * @param position indicates whether the Step listens to a breakpoint before, after or any breakpoint which will be removed from the given operatorClass.
+	 */
+	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, Position position) {
+		this(alignment, owner, i18nKey, operatorClass,(Component) null, position);
 		this.attachToKey = attachToKey;
 	}
 	
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Component attachTo, Position position) {
+	/**
+	 * @param alignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass the Class or Superclass of the {@link Operator} to which the breakpoint should be added.
+	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
+	 * @param position indicates whether the Step listens to a breakpoint before, after or any breakpoint which will be removed from the given operatorClass.
+	 */
+	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Component attachTo, Position position) {
 		this.alignment = alignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
-		this.operatorClass = operator;
+		this.operatorClass = operatorClass;
 		this.attachTo = attachTo;
 		this.positionOnOperator = position;
 	}
@@ -88,7 +110,7 @@ public class RemoveBreakpointStep extends Step {
 			
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
-				// TODO Auto-generated method stub
+				//don't care
 				
 			}
 			
@@ -112,14 +134,12 @@ public class RemoveBreakpointStep extends Step {
 			
 			@Override
 			public void operatorAdded(Operator operator) {
-				// TODO Auto-generated method stub
-				
+				//don't care
 			}
 			
 			@Override
 			public void executionOrderChanged(ExecutionUnit unit) {
-				// TODO Auto-generated method stub
-				
+				//don't care
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);

@@ -34,7 +34,8 @@ import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 
 /**
- * 
+ * This Subclass of {@link Step} will open a {@link BubbleWindow} which closes if an {@link Operator} of the given Class was removed.
+ *
  * @author Philipp Kersting
  *
  */
@@ -49,16 +50,30 @@ public class RemoveOperatorStep extends Step {
 	private ProcessSetupListener listener = null;
 
 	
-	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String componentKey) {
-		this(alignment, owner, i18nKey, operator, (Component) null);
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or SuperClass of the {@link Operator} which should be deleted.
+	 * @param componentKey key of the {@link Component} to which the {@link BubbleWindow} should point to. 
+	 */
+	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String componentKey) {
+		this(alignment, owner, i18nKey, operatorClass, (Component) null);
 		this.buttonKey = componentKey;
 	}
 	
-	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Component component) {
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or SuperClass of the {@link Operator} which should be deleted.
+	 * @param component {@link Component} to which the {@link BubbleWindow} should point to.
+	 */
+	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Component component) {
 		this.i18nKey = i18nKey;
 		this.owner = owner;
 		this.alignment = alignment;
-		this.operatorClass = operator;
+		this.operatorClass = operatorClass;
 		this.component = component;
 	}
 

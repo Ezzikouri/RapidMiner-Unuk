@@ -62,9 +62,6 @@ public class WelcomeTourAction extends AbstractAction {
 		super(I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.tour.label"), icon);
 		putValue(SHORT_DESCRIPTION, I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.tour.tip"));
 		tourManager = TourManager.getInstance();
-//		tourManager.registerTour("RM2", RapidMinerTour.class);
-//		tourManager.registerTour("RM3", RapidMinerTour.class);
-//		tourManager.registerTour("RM4", RapidMinerTour.class);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -86,7 +83,7 @@ public class WelcomeTourAction extends AbstractAction {
 		//start asking for the execution of the tours
 		this.startNext();
 	}
-	
+
 	/**
 	 * Starts the next Tour in the tourList
 	 */
@@ -94,12 +91,12 @@ public class WelcomeTourAction extends AbstractAction {
 		if (!newTours.isEmpty()) {
 			String currentTourKey = newTours.remove();
 			String propertyKey = "DontAskAgainTourChoosen";
+			ParameterService.setParameterValue(propertyKey, "null");
 			int returnValue = ConfirmDialog.showConfirmDialogWithOptionalCheckbox("new_tour_found", ConfirmDialog.YES_NO_OPTION, propertyKey, ConfirmDialog.NO_OPTION, true, currentTourKey);
 			// save whether we will ask again
-			if (Boolean.parseBoolean(ParameterService.getParameterValue(propertyKey))) {
+			if (!Boolean.parseBoolean(ParameterService.getParameterValue(propertyKey))) {
 				tourManager.setTourState(currentTourKey, TourState.NEVER_ASK);
-				ParameterService.setParameterValue(propertyKey, "null");
-				}
+			}
 			//handle returnValue
 			if (returnValue == ConfirmDialog.YES_OPTION) {
 				IntroductoryTour currentTour = tourManager.get(currentTourKey);
@@ -111,8 +108,8 @@ public class WelcomeTourAction extends AbstractAction {
 					}
 				});
 				currentTour.startTour();
-			} 
-			if(returnValue == ConfirmDialog.NO_OPTION) {
+			}
+			if (returnValue == ConfirmDialog.NO_OPTION) {
 				this.startNext();
 			}
 

@@ -25,7 +25,12 @@ package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.sql.SQLException;
@@ -94,13 +99,57 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 								private static final long serialVersionUID = 8857840715142145951L;
 
 								@Override
-								public void actionPerformed(ActionEvent e) {
-									Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
+								public void actionPerformed(ActionEvent event) {
+
+									JButton button = (JButton) event.getSource();
+//									Point point = button.getLocation();
+
+									final Point relativeLocation = button.getLocationOnScreen();
+
+									GraphicsEnvironment e
+									= GraphicsEnvironment.getLocalGraphicsEnvironment();
+
+									GraphicsDevice[] devices = e.getScreenDevices();
+
+									Rectangle displayBounds = null;
+//									Rectangle virtualBounds = new Rectangle();
+
+									//now get the configurations for each device
+									for (GraphicsDevice device : devices) {
+
+										GraphicsConfiguration[] configurations =
+												device.getConfigurations();
+										for (GraphicsConfiguration config : configurations) {
+											Rectangle gcBounds = config.getBounds();
+
+											if (gcBounds.contains(relativeLocation)) {
+												displayBounds = gcBounds;
+											}
+										}
+									}
+
+									Dimension screenDim;
+									if (displayBounds != null) {
+										screenDim = new Dimension((int) displayBounds.getWidth(), (int) displayBounds.getHeight());
+									}
+									else {
+										screenDim = Toolkit.getDefaultToolkit().getScreenSize();
+									}
+
 									Dimension dim = new Dimension((int) (screenDim.width * 0.9), (int) (screenDim.height * 0.9));
 									Dimension currentSize = getSize();
 									if (currentSize.getHeight() != dim.getHeight() && currentSize.getWidth() != dim.getWidth()) {
 										setSize(dim);
-										setLocationRelativeTo(null);
+
+										if (displayBounds != null) {
+											int y = displayBounds.y + ((screenDim.height - dim.height)/2);
+											int x = displayBounds.x + ((screenDim.width - dim.width)/2);
+											setLocation(x,y);
+										}
+										else {
+											setLocationRelativeTo(null);
+										}
+
 										resizeButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.shrink.label"));
 										resizeButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.shrink.tip"));
 										resizeButton.setMnemonic(I18N.getMessage(I18N.getGUIBundle(), "gui.action.text_dialog.shrink.mne").charAt(0));
@@ -148,7 +197,7 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.properties.celleditors.value.SQLQueryValueCellEditor.disconnecting_from_database_error", e2);
 					}
 				}
-			}			
+			}
 		});
 		button.setMargin(new Insets(0, 0, 0, 0));
 

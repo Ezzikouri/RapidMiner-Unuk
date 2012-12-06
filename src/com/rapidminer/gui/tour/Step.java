@@ -47,6 +47,7 @@ public abstract class Step {
 	protected boolean finalStep;
 	protected LinkedList<TourListener> listeners = new LinkedList<IntroductoryTour.TourListener>();
 	protected int index;
+	protected boolean callVisible = true;
 
 	abstract BubbleWindow createBubble();
 
@@ -103,6 +104,7 @@ public abstract class Step {
 				bw.removeBubbleListener(this);
 			}
 		});
+		if(callVisible)
 		bubble.setVisible(true);
 	}
 

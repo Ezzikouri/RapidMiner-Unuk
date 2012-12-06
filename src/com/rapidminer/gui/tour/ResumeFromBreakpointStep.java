@@ -35,6 +35,7 @@ import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
 
 /**
+ * This Subclass of {@link Step} will open a {@link BubbleWindow} when a Process reaches a breakpoint and closes if the user resume the Process.
  * 
  * @author Philipp Kersting and Thilo Kamradt
  *
@@ -55,27 +56,58 @@ public class ResumeFromBreakpointStep extends Step {
 	private String attachToKey = null;
 	private BreakpointListener listener = null;
 
-	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position, String attachTo) {
-		this(alignment, owner, i18nKey, operator, position, (Component) null);
-		this.attachToKey = attachTo;
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or Superclass of the {@link Operator} which owns the breakpoint.
+	 * @param position indicates to which position of a breakpoint the {@link Step} listens.
+	 * @param attachToKey i18nKey of the {@link Component} to which the {@link BubbleWindow} should point to.
+	 */
+	public ResumeFromBreakpointStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Position position, String attachToKey) {
+		this(preferedAlignment, owner, i18nKey, operatorClass, position, (Component) null);
+		this.attachToKey = attachToKey;
 	}
 	
-	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Component attachTo) {
-		this(alignment, owner, i18nKey, operator, Position.DONT_CARE, attachTo);
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or Superclass of the {@link Operator} which owns the breakpoint.
+	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
+	 */
+	public ResumeFromBreakpointStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Component attachTo) {
+		this(preferedAlignment, owner, i18nKey, operatorClass, Position.DONT_CARE, attachTo);
 	}
 	
-	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String attachTo) {
-		this(alignment, owner, i18nKey, operator, Position.DONT_CARE, (Component) null);
-		this.attachToKey = attachTo;
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or Superclass of the {@link Operator} which owns the breakpoint.
+	 * @param attachToKey i18nKey of the {@link Component} to which the {@link BubbleWindow} should point to.
+	 */
+	public ResumeFromBreakpointStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey) {
+		this(preferedAlignment, owner, i18nKey, operatorClass, Position.DONT_CARE, (Component) null);
+		this.attachToKey = attachToKey;
 	}
 	
-	public ResumeFromBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position, Component attachTo) {
-		this.alignment = alignment;
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or Superclass of the {@link Operator} which owns the breakpoint.
+	 * @param position indicates to which position of a breakpoint the {@link Step} listens.
+	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
+	 */
+	public ResumeFromBreakpointStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Position position, Component attachTo) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
-		this.operatorClass = operator;
+		this.operatorClass = operatorClass;
 		this.position = position;
 		this.component = attachTo;
+		this.callVisible = false;
 	}
 
 	@Override

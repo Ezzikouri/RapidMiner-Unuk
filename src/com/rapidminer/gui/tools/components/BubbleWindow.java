@@ -72,7 +72,7 @@ import com.vlsolutions.swing.docking.DockableState;
  * either if the close button was clicked, or if the corresponding button was used.
  * The keys for the title and the text must be of format gui.bubble.XXX.body or gui.bubble.XXX.title .
  * 
- * @author Philipp Kersting
+ * @author Philipp Kersting and Thilo Kamradt
  *
  */
 
@@ -635,6 +635,7 @@ public class BubbleWindow extends JDialog {
 
 	protected void fireEventCloseClicked() {
 		LinkedList<BubbleListener> listenerList = new LinkedList<BubbleWindow.BubbleListener>(listeners);
+		this.unregister();
 		for (BubbleListener l : listenerList) {
 			l.bubbleClosed(this);
 			unregisterMovementListener();

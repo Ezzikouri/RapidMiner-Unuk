@@ -44,6 +44,7 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.LinkAndBrushChartPanel;
 import com.rapidminer.gui.new_plotter.gui.ChartConfigurationPanel;
 import com.rapidminer.gui.new_plotter.templates.PlotterTemplate;
+import com.rapidminer.gui.plotter.PlotterPanel;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
@@ -187,6 +188,21 @@ public class ExportPdfAction extends ResourceAction {
 						at.scale(factor, factor);
 						g2.transform(at);
 						newLaBPanel.print(g2);
+						g2.dispose();
+						document.add(new Paragraph(componentName));
+						document.add(Image.getInstance(tp));
+						
+						return;
+					} else if (comp.isVisible() && comp.getClass().isAssignableFrom(PlotterPanel.class)) {
+						// special case for PlotterPanel as the Panel itself is wider than the plotter
+						// not having a special case here results in the exported image being too wide (empty space to the left)
+						final PlotterPanel plotterPanel = (PlotterPanel) comp;
+						
+						AffineTransform at = new AffineTransform();
+						double factor = 500d / plotterPanel.getPlotterComponent().getWidth();
+						at.scale(factor, factor);
+						g2.transform(at);
+						plotterPanel.print(g2);
 						g2.dispose();
 						document.add(new Paragraph(componentName));
 						document.add(Image.getInstance(tp));

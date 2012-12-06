@@ -24,8 +24,6 @@
 package com.rapidminer.gui.tour;
 
 import java.awt.Window;
-import java.util.LinkedList;
-import java.util.List;
 
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
@@ -36,7 +34,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 
 /**
- * This subclass of {@link Step} will open a {@link BubbleWindow} which closes if the given Operator was dragged to the process and is wired.
+ * This Subclass of {@link Step} will open a {@link BubbleWindow} which closes if the given {@link Operator} was dragged to the Process and is wired.
  *  
  * @author Philipp Kersting and Thilo Kamradt
  *
@@ -54,10 +52,8 @@ public class AddOperatorStep extends Step {
 	private Window owner;
 	private Class operatorClass;
 	private String targetDockKey;
-	private Operator operator = null;
 	private boolean checkForChain = true;
 	private Class<? extends OperatorChain> targetEnclosingOperatorChain = OperatorChain.class;
-	private List<AddOperatorStepListener> listeners = new LinkedList<AddOperatorStepListener>();
 	private ProcessSetupListener listener = null;
 	
 	/**
@@ -65,7 +61,7 @@ public class AddOperatorStep extends Step {
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass the Class or Superclass of the Operator which should be added to the Process.
-	 * @param targetDockKey the i18nKey of the dockable to which we bubble should point to.
+	 * @param targetDockKey the i18nKey of the Dockable to which we bubble should point to.
 	 */
 	public AddOperatorStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey) {
 		this.alignment = preferedAlignment;
@@ -80,7 +76,7 @@ public class AddOperatorStep extends Step {
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass the Class or Superclass of the Operator which should be added to the Process.
-	 * @param targetDockKey the i18nKey of the dockable to which we bubble should point to.
+	 * @param targetDockKey the i18nKey of the Dockable to which we bubble should point to.
 	 * @param checkForEnclosingOperatorChain indicates whether the {@link BubbleWindow} closes only if the Operator is also wired or not
 	 */
 	public AddOperatorStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey, boolean checkForEnclosingOperatorChain) {
@@ -125,22 +121,12 @@ public class AddOperatorStep extends Step {
 
 							bubble.triggerFire();
 							RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
-							AddOperatorStep.this.operator = operator;
-							List<AddOperatorStepListener> cache = new LinkedList<AddOperatorStepListener>(listeners);
-							for (AddOperatorStepListener listener : cache) {
-								listener.operatorAvailable(operator, AddOperatorStep.this);
-							}
 						}
 					} else {
 						if (operator.getOutputPorts().getNumberOfConnectedPorts() != 0) {
 
 							bubble.triggerFire();
 							RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(this);
-							AddOperatorStep.this.operator = operator;
-							List<AddOperatorStepListener> cache = new LinkedList<AddOperatorStepListener>(listeners);
-							for (AddOperatorStepListener listener : cache) {
-								listener.operatorAvailable(operator, AddOperatorStep.this);
-							}
 						}
 					}
 				}
@@ -158,27 +144,8 @@ public class AddOperatorStep extends Step {
 	
 	@Override
 	protected void stepCanceled() {
-		if(listener == null)
+		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
 	}
 
-	public Operator getOperator() {
-		return this.operator;
-	}
-
-	public Class<? extends OperatorChain> getTargetEnclosingOperatorChain() {
-		return targetEnclosingOperatorChain;
-	}
-
-	public void setTargetEnclosingOperatorChain(Class<? extends OperatorChain> targetEnclosingOperatorChain) {
-		this.targetEnclosingOperatorChain = targetEnclosingOperatorChain;
-	}
-
-	public void addListener(AddOperatorStepListener l) {
-		listeners.add(l);
-	}
-
-	public void removeListener(AddOperatorStepListener l) {
-		listeners.remove(l);
-	}
 }

@@ -53,11 +53,15 @@ public class TourChooser extends ButtonDialog {
 	private TourManager tourManager;
 	private JList list;
 
+	/**
+	 * Shows a dialog with a list of the Tours which are currently available and starts the chosen Tour.
+	 */
 	public TourChooser() {
 		super("Tour");
 		tourManager = TourManager.getInstance();
 		super.layoutDefault(makeTable(), LARGE, makeOkButton("tour.startTour"), makeCloseButton());
 		super.setSize(455, 500);
+		super.setResizable(false);
 	}
 
 	@Override

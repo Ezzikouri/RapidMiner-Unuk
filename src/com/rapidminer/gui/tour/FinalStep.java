@@ -27,6 +27,9 @@ import com.rapidminer.gui.tools.dialogs.MessageDialog;
 
 
 /**
+ * This {@link Step} calls a MessageDialog with the complete_Tour.message from GUIBundle and
+ * quits your Tour.
+ * 
  * @author Thilo Kamradt
  *
  */

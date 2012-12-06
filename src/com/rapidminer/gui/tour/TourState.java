@@ -23,7 +23,6 @@
 package com.rapidminer.gui.tour;
 
 /**
- * 
  * @author Thilo Kamradt
  */
 public enum TourState {

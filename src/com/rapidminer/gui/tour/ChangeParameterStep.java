@@ -33,7 +33,8 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.UndefinedParameterError;
 
 /**
- * 
+ *This subclass of {@link Step} will open a {@link BubbleWindow} which closes if the user changes a chosen parameter of an {@link Operator}.
+ *
  * @author Philipp Kersting
  *
  */
@@ -50,14 +51,24 @@ public class ChangeParameterStep extends Step {
 	private ProcessSetupListener listener = null;
 	
 
-	public ChangeParameterStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator>  operator, String parameter, String targetDockKey, String targetValue) {
-		this.alignment = alignment;
+	
+	/**
+	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass the class of Operator of which you want to change the parameter.
+	 * @param parameter the key of the parameter which you want to change.
+	 * @param targetDockKey the Component to which the {@link BubbleWindow} should point to.
+	 * @param targetValue the Value the user should select for the given parameter.
+	 */
+	public ChangeParameterStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue) {
+		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.targetDockKey = targetDockKey;
 		this.parameter = parameter;
 		this.targetValue = targetValue;
-		this.operatorClass = operator;
+		this.operatorClass = operatorClass;
 	}
 
 	@Override
@@ -97,7 +108,7 @@ public class ChangeParameterStep extends Step {
 
 	@Override
 	protected void stepCanceled() {
-		if(listener == null)
+		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
 	}
 

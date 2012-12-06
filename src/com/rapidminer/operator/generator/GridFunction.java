@@ -34,10 +34,6 @@ import com.rapidminer.tools.RandomGenerator;
  */
 public class GridFunction extends RegressionFunction {
 
-	private double lowerBound = -10.0d;
-
-	private double upperBound = 10.0d;
-
 	private int[] counter;
 
 	private int maxCounter;
@@ -48,7 +44,7 @@ public class GridFunction extends RegressionFunction {
 	public void init(RandomGenerator random) {
 		this.counter = new int[numberOfAttributes];
 		this.maxCounter = (int) Math.round(Math.exp(Math.log(numberOfExamples) / numberOfAttributes));
-		this.dimDistance = (upperBound - lowerBound) / this.maxCounter;
+		this.dimDistance = (getUpperArgumentBound() - getLowerArgumentBound()) / this.maxCounter;
 	}
 
 	@Override
@@ -66,7 +62,7 @@ public class GridFunction extends RegressionFunction {
 			throw new FunctionException("Grid function", "must have at least one attribute!");
 		double[] args = new double[number];
 		for (int i = 0; i < args.length; i++) {
-			args[i] = lowerBound + (dimDistance / 2.0d) + counter[i] * dimDistance;
+			args[i] = getLowerArgumentBound() + (dimDistance / 2.0d) + counter[i] * dimDistance;
 		}
 		incrementCounter(counter, 0);
 		return args;
