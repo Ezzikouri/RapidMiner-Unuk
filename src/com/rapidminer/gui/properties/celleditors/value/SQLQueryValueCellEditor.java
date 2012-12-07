@@ -41,6 +41,7 @@ import javax.swing.JButton;
 import javax.swing.JTable;
 
 import com.rapidminer.gui.properties.PropertyDialog;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.dialogs.SQLQueryBuilder;
 import com.rapidminer.operator.Operator;
@@ -49,6 +50,7 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
+import com.rapidminer.tools.jdbc.TableMetaDataCache;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
 
@@ -90,6 +92,7 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 
 						private static final long serialVersionUID = -5224113818406394872L;
 						private JButton resizeButton;
+						private JButton clearMetaDataCacheButton;
 
 						private SQLQueryPropertyDialog(boolean editOnly) {
 							super(type, "sql");
@@ -164,6 +167,25 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 							};
 
 							resizeButton = new JButton(resizeAction);
+							
+							ResourceAction clearMetaDataCacheAction = new ResourceAction("clear_db_cache") {
+
+								private static final long serialVersionUID = 8510147303889637712L;
+
+								@Override
+								public void actionPerformed(ActionEvent e) {
+									ProgressThread t = new ProgressThread("db_clear_cache") {
+
+										@Override
+										public void run() {
+											TableMetaDataCache.getInstance().clearCache();
+										}
+									};
+									t.start();
+								}
+							};
+
+							clearMetaDataCacheButton = new JButton(clearMetaDataCacheAction);
 
 							layoutDefault(queryBuilder.makeQueryBuilderPanel(editOnly), NORMAL, resizeButton, makeOkButton(), makeCancelButton());
 						}

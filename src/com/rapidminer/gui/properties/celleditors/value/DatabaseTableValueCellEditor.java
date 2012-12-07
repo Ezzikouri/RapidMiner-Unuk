@@ -23,6 +23,9 @@
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -36,13 +39,17 @@ import java.util.logging.Level;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.AbstractListModel;
+import javax.swing.Action;
 import javax.swing.ComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
 import com.rapidminer.gui.tools.ProgressThread;
+import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
@@ -63,7 +70,7 @@ import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
  *  table names, and one displaying schema names.
  * 
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Marco Boeck
  */
 public class DatabaseTableValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 
@@ -281,17 +288,56 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 	private ParameterType type;
 
 	private ConnectionProvider connectionProvider;
+	
+	private JPanel panel = new JPanel();
 
 	public DatabaseTableValueCellEditor(final ParameterTypeDatabaseSchema type) {
 		this.type = type;
 		this.mode = Mode.SCHEMA;
-		comboBox.setToolTipText(type.getDescription());		
+		setupGUI();
 	}
 	
 	public DatabaseTableValueCellEditor(final ParameterTypeDatabaseTable type) {
 		this.type = type;
 		this.mode = Mode.TABLE;
+		setupGUI();
+	}
+	
+	private void setupGUI() {
+		panel.setLayout(new GridBagLayout());
+		panel.setToolTipText(type.getDescription());
 		comboBox.setToolTipText(type.getDescription());
+
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		c.weighty = 1;
+		c.weightx = 1;
+		panel.add(comboBox, c);
+
+		final JButton button = new JButton(new ResourceAction(true, "clear_db_cache") {
+
+			private static final long serialVersionUID = 8510147303889637712L;
+			{
+				putValue(Action.NAME, "");
+			}
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				DatabaseTableValueCellEditor.this.comboBox.setSelectedItem(null);
+				ProgressThread t = new ProgressThread("db_clear_cache") {
+
+					@Override
+					public void run() {
+						TableMetaDataCache.getInstance().clearCache();
+						DatabaseTableValueCellEditor.this.model.updateModel();
+					}
+				};
+				t.start();
+			}
+		});
+		button.setMargin(new Insets(0, 0, 0, 0));
+		c.weightx = 0;
+		panel.add(button, c);
 	}
 
 	private String getValue() {
@@ -314,7 +360,7 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
 		model.updateModel();
 		comboBox.setSelectedItem(value);
-		return comboBox;
+		return panel;
 	}
 
 	@Override
@@ -326,7 +372,7 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 		model.updateModel();
 		comboBox.setSelectedItem(value);
-		return comboBox;
+		return panel;
 	}
 
 	@Override

@@ -493,7 +493,7 @@ public class OperatorDocLoader {
 	private static String loadSelectedOperatorDocuLocally(OperatorDescription opDesc) throws UnsupportedEncodingException, ParserConfigurationException, URISyntaxException,
 			IOException {
 		String namespace = opDesc.getProviderNamespace();
-		String documentationResource = "/" + RESOURCE_SUB_DIR + "/" + namespace + "/" + opDesc.getKey() + ".html";
+		String documentationResource = "/" + RESOURCE_SUB_DIR + "/" + namespace + "/" + opDesc.getKeyWithoutPrefix() + ".html";
 		InputStream resourceStream = OperatorDocLoader.class.getResourceAsStream(documentationResource);
 		if (resourceStream != null) {
 			BufferedReader input = new BufferedReader(new InputStreamReader(resourceStream));

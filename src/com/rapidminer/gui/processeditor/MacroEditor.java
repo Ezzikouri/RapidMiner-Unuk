@@ -124,6 +124,7 @@ public class MacroEditor extends JPanel {
 	private final JTable macroTable = new JTable(macroModel);
 	{
 		macroTable.setRowHeight(26);
+		macroTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 	}
 
 	public MacroEditor(boolean embedded) {

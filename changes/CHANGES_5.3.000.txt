@@ -111,3 +111,5 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: Import wizards will no longer accept wrong file types/invalid filenames in the first step
 * BUGFIX: Read SAS operator no longer causes an internal error when the data file could not be read
 * BUGFIX: "Wiki" links in the documentation tried to open a tutorial process, now open the corresponding wiki page
+* BUGFIX: Macro Editor will now remember entered values without having to press enter
+* BUGFIX: Opening the context menu on result tables will no longer deselect the currently selected cells

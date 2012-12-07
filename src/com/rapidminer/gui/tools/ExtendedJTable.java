@@ -664,8 +664,12 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
                 // NOT needed here because we are operating on the view only
 //                int column = convertColumnIndexToModel(c);
 
-                setRowSelectionInterval(row, row);
-                setColumnSelectionInterval(c, c);
+                // only set cell selection if clicked cell is outside current selection
+                if ((row != -1 && (row < getSelectedRow() || row > getSelectedRow() + getSelectedRowCount() - 1)) ||
+                		(c != -1 && (c < getSelectedColumn() || c > getSelectedColumn() + getSelectedColumnCount() - 1))) {
+                	setRowSelectionInterval(row, row);
+                	setColumnSelectionInterval(c, c);
+                }
 
                 JPopupMenu menu = createPopupMenu();
 
