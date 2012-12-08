@@ -179,6 +179,7 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 										@Override
 										public void run() {
 											TableMetaDataCache.getInstance().clearCache();
+											queryBuilder.updateAll();
 										}
 									};
 									t.start();
@@ -187,7 +188,7 @@ public class SQLQueryValueCellEditor extends AbstractCellEditor implements Prope
 
 							clearMetaDataCacheButton = new JButton(clearMetaDataCacheAction);
 
-							layoutDefault(queryBuilder.makeQueryBuilderPanel(editOnly), NORMAL, resizeButton, makeOkButton(), makeCancelButton());
+							layoutDefault(queryBuilder.makeQueryBuilderPanel(editOnly), NORMAL, clearMetaDataCacheButton, resizeButton, makeOkButton(), makeCancelButton());
 						}
 					}
 

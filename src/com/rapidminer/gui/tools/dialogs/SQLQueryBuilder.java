@@ -50,6 +50,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
+import com.rapidminer.tools.jdbc.TableMetaDataCache;
 import com.rapidminer.tools.jdbc.TableName;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 
@@ -83,10 +84,14 @@ public class SQLQueryBuilder extends ButtonDialog {
 	private final Map<TableName, List<ColumnIdentifier>> attributeNameMap = new LinkedHashMap<TableName, List<ColumnIdentifier>>();
 
 	private DatabaseHandler databaseHandler;
+	
+	private TableMetaDataCache cache;
+	
 
 	public SQLQueryBuilder(DatabaseHandler databaseHandler) {
 		super("build_sql_query", true,new Object[]{});
 		this.databaseHandler = databaseHandler;
+		this.cache = TableMetaDataCache.getInstance();
 		if (!"false".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_FETCH_DATA_BASE_TABLES_NAMES))) {
 			try {
 				retrieveTableNames();
@@ -282,7 +287,7 @@ public class SQLQueryBuilder extends ButtonDialog {
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
 					try {
-						List<ColumnIdentifier> attributeNames = databaseHandler.getAllColumnNames(tableName, databaseHandler.getConnection().getMetaData());
+						List<ColumnIdentifier> attributeNames = cache.getAllColumnNames(databaseHandler.getDatabaseUrl(), databaseHandler, tableName);
 						attributeNameMap.put(tableName, attributeNames);
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
@@ -315,7 +320,7 @@ public class SQLQueryBuilder extends ButtonDialog {
 						if (databaseHandler != null) {
 							Map<TableName, List<ColumnIdentifier>> newAttributeMap;
 							try {
-								newAttributeMap = databaseHandler.getAllTableMetaData(getProgressListener(), 10, 100, false);
+								newAttributeMap = cache.getAllTableMetaData(databaseHandler.getDatabaseUrl(), databaseHandler, getProgressListener(), 10, 100);
 								attributeNameMap.putAll(newAttributeMap);
 							} catch (SQLException e) {
 								SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e, e.getMessage());
@@ -353,6 +358,20 @@ public class SQLQueryBuilder extends ButtonDialog {
 
 	public String getQuery() {
 		return sqlQueryTextArea.getText();
+	}
+	
+	/**
+	 * This method forces the {@link SQLQueryBuilder} to update its values.
+	 */
+	public void updateAll() {
+		try {
+			retrieveTableNames();
+		} catch (SQLException e) {
+			SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e);
+			this.databaseHandler = null;
+		}
+		updateAttributeNames();
+		updateSQLQuery();
 	}
 
 }

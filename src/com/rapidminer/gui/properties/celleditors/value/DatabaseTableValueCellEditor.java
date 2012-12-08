@@ -147,7 +147,7 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 									try {
 //										tableMap = handler.getAllTableMetaData(getProgressListener(), 20, 90, false);
 										// use cached version now to reduce DB queries
-										tableMap = TableMetaDataCache.getInstance().getAllTableMetaData(handler.getDatabaseUrl(), handler, getProgressListener(), 20, 90, false);
+										tableMap = TableMetaDataCache.getInstance().getAllTableMetaData(handler.getDatabaseUrl(), handler, getProgressListener(), 20, 90);
 										for (TableName tn : tableMap.keySet()) {
 											switch (DatabaseTableValueCellEditor.this.mode) {
 											case TABLE:

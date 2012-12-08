@@ -78,6 +78,7 @@ public class UpdatePanelSearchTab extends UpdatePanelTab {
 		this.searchModel = model;
 	}
 
+	@Override
 	protected JComponent makeTopPanel() {
 		JToolBar toolBar = new ExtendedJToolBar();
 		toolBar.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));

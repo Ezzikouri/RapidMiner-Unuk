@@ -73,6 +73,7 @@ public class UpdatePanelUpdatesTab extends UpdatePanelTab {
 		super(updateModel, model, usAccount);
 	}
 
+	@Override
 	protected JComponent makeBottomPanel() {
 		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		panel.setMinimumSize(new Dimension(100,35));

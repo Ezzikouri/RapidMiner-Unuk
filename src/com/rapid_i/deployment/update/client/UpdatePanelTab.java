@@ -45,6 +45,7 @@ import java.util.logging.Level;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -52,6 +53,8 @@ import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.html.HTMLDocument;
@@ -270,18 +273,17 @@ public class UpdatePanelTab extends JPanel {
 		updateListScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		Component topPanel = makeTopPanel();
 		Component bottomPanel = makeBottomPanel();
+		
+		JPanel leftPanel = new JPanel(new BorderLayout());
+		leftPanel.add(updateListScrollPane, BorderLayout.CENTER);
+		
 		if (topPanel != null) {
-			JPanel leftPanel = new JPanel(new BorderLayout());
-			leftPanel.add(updateListScrollPane, BorderLayout.CENTER);
 			leftPanel.add(topPanel, BorderLayout.NORTH);
 			add(leftPanel, c);
-		} else if (bottomPanel != null) {
-			JPanel leftPanel = new JPanel(new BorderLayout());
-			leftPanel.add(updateListScrollPane, BorderLayout.CENTER);
+		}
+		if (bottomPanel != null) {
 			leftPanel.add(bottomPanel, BorderLayout.SOUTH);
 			add(leftPanel, c);
-		} else {
-			add(updateListScrollPane, c);
 		}
 
 		c.gridx = 1;
@@ -311,7 +313,10 @@ public class UpdatePanelTab extends JPanel {
 		extensionButtonPane.add(extensionButtonPaneRight, BorderLayout.CENTER);
 		
 		extensionButtonPane.setBackground(Color.white);
-		extensionButtonPane.setVisible(false);
+		for (Component component : extensionButtonPane.getComponents()) {
+			component.setVisible(false);
+		}
+		
 		extensionButtonPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
 		
 		descriptionPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, Color.LIGHT_GRAY));
@@ -325,7 +330,11 @@ public class UpdatePanelTab extends JPanel {
 	}
 	
 	protected Component makeBottomPanel() {
-		return null;
+		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		panel.setMinimumSize(new Dimension(100,35));
+		panel.setPreferredSize(new Dimension(100,35));
+		panel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
+		return panel;
 	}
 
 	private JList createUpdateList() {
@@ -399,6 +408,9 @@ public class UpdatePanelTab extends JPanel {
 		}
 		if (desc != null) {
 			
+			for (Component component : extensionButtonPane.getComponents()) {
+				component.setVisible(true);
+			}
 			installButton.setEnabled(true);
 			extensionButtonPane.setVisible(true);
 			StyleSheet css = new StyleSheet();//.makeDefaultStylesheet();

@@ -119,7 +119,6 @@ import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.security.PasswordManager;
 import com.rapidminer.gui.templates.SaveAsTemplateDialog;
 import com.rapidminer.gui.tools.LoggingViewer;
-import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceMenu;
 import com.rapidminer.gui.tools.SwingTools;
@@ -157,7 +156,6 @@ import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.config.ConfigurationManager;
 import com.rapidminer.tools.config.gui.ConfigurationDialog;
-import com.rapidminer.tools.jdbc.TableMetaDataCache;
 import com.rapidminer.tools.plugin.Plugin;
 import com.rapidminer.tools.usagestats.UsageStatsTransmissionDialog;
 import com.vlsolutions.swing.docking.DockGroup;
@@ -422,22 +420,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		public void actionPerformed(ActionEvent e) {
 			ManageDatabaseConnectionsDialog dialog = new ManageDatabaseConnectionsDialog();
 			dialog.setVisible(true);
-		}
-	};
-	public final transient Action CLEAR_DB_CACHE_ACTION = new ResourceAction(true, "clear_db_cache") {
-
-		private static final long serialVersionUID = 8510147303889637712L;
-
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			ProgressThread t = new ProgressThread("db_clear_cache") {
-
-				@Override
-				public void run() {
-					TableMetaDataCache.getInstance().clearCache();
-				}
-			};
-			t.start();
 		}
 	};
 	// public final transient Action ATTRIBUTE_DESCRIPTION_FILE_WIZARD = new AttributeDescriptionFileWizardAction();
@@ -807,7 +789,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		toolsMenu.addSeparator();
 		toolsMenu.add(CHECK_FOR_JDBC_DRIVERS_ACTION);
 		toolsMenu.add(MANAGE_DB_CONNECTIONS_ACTION);
-		toolsMenu.add(CLEAR_DB_CACHE_ACTION);
 		toolsMenu.add(ManageDatabaseDriversDialog.SHOW_DIALOG_ACTION);
 		toolsMenu.addSeparator();
 		toolsMenu.add(UsageStatsTransmissionDialog.SHOW_STATISTICS_ACTION);
@@ -1024,7 +1005,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 				return;
 			}
 		}
-		if (close()) {
+		if (close(false)) {
 			// process changed -> clear undo history
 			resetUndo();
 
@@ -1369,8 +1350,13 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	}
 
 	// //////////////////// File menu actions ////////////////////
-
-	public boolean close() {
+	
+	/**
+	 * Closes the current process
+	 * @param askForConfirmation if <code>true</code>, will prompt the user if he really wants to close the current process
+	 * @return
+	 */
+	public boolean close(boolean askForConfirmation) {
 		if (changed) {
 			ProcessLocation loc = process.getProcessLocation();
 			String locName;
@@ -1382,17 +1368,19 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			switch (SwingTools.showConfirmDialog("save", ConfirmDialog.YES_NO_CANCEL_OPTION, locName)) {
 				case ConfirmDialog.YES_OPTION:
 					SaveAction.save(getProcess());
-
+					
 					// it may happen that save() does not actually save the process, because the user hits cancel in the
 					// saveAs dialog or an error occurs. In this case the process won't be marked as unchanged. Thus,
 					// we return the process changed status.
 					return !isChanged();
 				case ConfirmDialog.NO_OPTION:
-					// ask for confirmation before stopping the currently running process
-					if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING ||
-							RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
-						if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
-							return false;
+					// ask for confirmation before stopping the currently running process (if askForConfirmation=true)
+					if (askForConfirmation) {
+						if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING ||
+								RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
+							if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+								return false;
+							}
 						}
 					}
 					if (getProcessState() != Process.PROCESS_STATE_STOPPED) {
@@ -1407,6 +1395,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		} else {
 			return true;
 		}
+	}
+
+	public boolean close() {
+		return close(true);
 	}
 
 	public void setOpenedProcess(Process process, boolean showInfo, final String sourceName) {

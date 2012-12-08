@@ -161,8 +161,10 @@ public class AutoCompleteComboBoxAddition {
 				@Override
 				public void focusLost(FocusEvent e) {
 					allowAutoFill = false;
-					final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
-					editorComponent.setCaretPosition(editorComponent.getCaretPosition());
+					if (!e.isTemporary()) {
+						final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
+						editorComponent.setCaretPosition(editorComponent.getCaretPosition());
+					}
 				}
 
 			});
