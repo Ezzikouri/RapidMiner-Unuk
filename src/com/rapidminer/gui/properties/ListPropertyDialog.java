@@ -67,7 +67,6 @@ public class ListPropertyDialog extends PropertyDialog {
 
 			public void actionPerformed(ActionEvent e) {
 				listPropertyTable.addRow();
-				listPropertyTable.requestFocusInWindow();
 			}
 		}), new JButton(new ResourceAction("list.remove_row") {
 
@@ -78,14 +77,13 @@ public class ListPropertyDialog extends PropertyDialog {
 			}
 		}), makeOkButton(), makeCancelButton());
 		
-		listPropertyTable.requestFocusInWindow();
-		listPropertyTable.getSelectionModel().setSelectionInterval(0, 0);
-		listPropertyTable.editCellAt(1, 1);
+		listPropertyTable.requestFocusForLastEditableCell();
 	}
 
 	@Override
 	protected void ok() {
 		ok = true;
+		listPropertyTable.stopEditing();
 		listPropertyTable.storeParameterList(parameterList);
 		dispose();
 	}

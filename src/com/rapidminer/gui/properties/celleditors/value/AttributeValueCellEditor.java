@@ -98,9 +98,9 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				// The event is only fired if the focus loss is permamently,
+				// The event is only fired if the focus loss is permanently,
 				// i.e. it is not fired if the user e.g. just switched to another window.
-				// Otherwise any changes made after switching back to rapidminer would
+				// Otherwise any changes made after switching back to RapidMiner would
 				// not be saved for the same reasons as stated above.
 				if (!e.isTemporary()) {
 					comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));

@@ -20,9 +20,9 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tools.autocomplete;
 
-import java.awt.Component;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.ArrayList;
@@ -48,9 +48,9 @@ import javax.swing.text.Document;
  * 
  */
 public class AutoCompleteComboBoxAddition {
-	
+
 	private final class AutoCompletionDocumentListener implements DocumentListener {
-		
+
 		@Override
 		public void insertUpdate(DocumentEvent e) {
 			try {
@@ -76,6 +76,7 @@ public class AutoCompleteComboBoxAddition {
 
 				if (startSelect == e.getOffset() + e.getLength()) {
 					SwingUtilities.invokeLater(new Runnable() {
+
 						@Override
 						public void run() {
 							comboBox.getModel().setSelectedItem(result);
@@ -88,8 +89,7 @@ public class AutoCompleteComboBoxAddition {
 						}
 					});
 				}
-			} catch (BadLocationException e1) {
-			}
+			} catch (BadLocationException e1) {}
 		}
 
 		@Override
@@ -144,31 +144,29 @@ public class AutoCompleteComboBoxAddition {
 		comboBox.setEditor(comboBoxEditor);
 		docListener = new AutoCompletionDocumentListener();
 		((JTextField) comboBox.getEditor().getEditorComponent()).getDocument().addDocumentListener(docListener);
+
 		// workaround for java bug #6433257
-		for (Component c : comboBox.getComponents()) {
+		comboBoxEditor.getEditorComponent().addFocusListener(new FocusAdapter() {
 
-			c.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				// if we did not prevent this, it would auto fill each time the combo box is re-created after a
+				// custom value has been entered,
+				// therefore overwriting any value which happens to be a prefix of something with the first match.
+				// this happens due to some RapidLookComboBoxEditor mechanics.
+				allowAutoFill = true;
+			}
 
-				@Override
-				public void focusGained(FocusEvent e) {
-					// if we did not prevent this, it would auto fill each time the combo box is re-created after a
-					// custom value has been entered,
-					// therefore overwriting any value which happens to be a prefix of something with the first match.
-					// this happens due to some RapidLookComboBoxEditor mechanics.
-					allowAutoFill = true;
+			@Override
+			public void focusLost(FocusEvent e) {
+				allowAutoFill = false;
+				if (!e.isTemporary()) {
+					final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
+					editorComponent.setCaretPosition(editorComponent.getCaretPosition());
 				}
+			}
 
-				@Override
-				public void focusLost(FocusEvent e) {
-					allowAutoFill = false;
-					if (!e.isTemporary()) {
-						final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
-						editorComponent.setCaretPosition(editorComponent.getCaretPosition());
-					}
-				}
-
-			});
-		}
+		});
 	}
 
 	/**

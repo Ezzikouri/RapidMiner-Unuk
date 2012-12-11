@@ -383,7 +383,7 @@ public class NominalToNumeric extends PreprocessingOperator {
 				PARAMETER_USE_COMPARISON_GROUPS,
 				"If checked, for each selected attribute in the input set a value has to be specified as comparsion group, which will not appear in the final result set. If not checked, all values of the selected attributes will result in an indicator attribute in the result example set. ",
 				false,
-				false);
+				true);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, true, DUMMY_CODING));
 		types.add(type);
 

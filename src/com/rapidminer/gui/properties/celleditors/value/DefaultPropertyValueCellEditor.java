@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -76,6 +77,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		useEditorAsRenderer = true;
 		((JComboBox) editorComponent).removeItemListener(this.delegate);
 		this.delegate = new EditorDelegate() {
+
 			private static final long serialVersionUID = -2104662561680969750L;
 
 			@Override
@@ -100,89 +102,12 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			@Override
 			public Object getCellEditorValue() {
 				return ((JComboBox) editorComponent).getSelectedItem();
-				// return Integer.valueOf(((JComboBox) editorComponent).getSelectedIndex()).toString();
 			}
 		};
 		((JComboBox) editorComponent).addItemListener(delegate);
 	}
 
-	// public DefaultPropertyValueCellEditor(final ParameterTypeStringCategory type) {
-	// super(new JComboBox(type.getValues()));
-	//
-	// final JComboBox comboBox = (JComboBox) editorComponent;
-	// final JTextComponent textField = (JTextComponent) comboBox.getEditor().getEditorComponent();
-	//
-	//
-	// useEditorAsRenderer = true;
-	// comboBox.setEditable(type.isEditable());
-	// comboBox.removeActionListener(delegate); // removing old listeners to prevent premature action event
-	// comboBox.removeItemListener(this.delegate);
-	//
-	// this.delegate = new EditorDelegate() {
-	//
-	// private static final long serialVersionUID = -5592150438626222295L;
-	//
-	// @Override
-	// public void setValue(Object x) {
-	// if (x == null) {
-	// super.setValue(null);
-	// comboBox.setSelectedItem(null);
-	// } else {
-	// String value = x.toString();
-	// super.setValue(value);
-	// comboBox.setSelectedItem(value);
-	// if (value != null) {
-	// textField.setText(value.toString());
-	// } else {
-	// textField.setText("");
-	// }
-	// }
-	// }
-	//
-	// @Override
-	// public Object getCellEditorValue() {
-	// if (type.isEditable()) {
-	// String selected = textField.getText();
-	// if ((selected != null) && (selected.trim().length() == 0))
-	// selected = null;
-	// return selected;
-	// } else {
-	// return comboBox.getSelectedItem();
-	// }
-	// }
-	//
-	// @Override
-	// public void actionPerformed(ActionEvent event) {
-	// if (event.getActionCommand().equals("comboBoxEdited"))
-	// super.actionPerformed(event);
-	// };
-	// };
-	// comboBox.addActionListener(delegate); // adding new delegate
-	// editorComponent.setToolTipText(type.getDescription());
-	//
-	// textField.addFocusListener(new FocusAdapter() {
-	// @Override
-	// public void focusLost(FocusEvent e) {
-	// comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
-	// super.focusLost(e);
-	// }
-	// });
-	//
-	// textField.addKeyListener(new KeyAdapter() {
-	// @Override
-	// public void keyPressed(KeyEvent e) {
-	// if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-	// if (!comboBox.isPopupVisible()) {
-	// comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
-	// e.consume();
-	// }
-	// }
-	// }
-	// });
-	// }
-
 	public DefaultPropertyValueCellEditor(final ParameterTypeStringCategory type) {
-		// super(new FilterableJComboBox(type.getValues()));
 		super(new JComboBox(type.getValues()));
 
 		if (type.isEditable()) {
@@ -219,10 +144,10 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 			@Override
 			public Object getCellEditorValue() {
 				if (type.isEditable()) {
-					// String selected = (String) ((JComboBox) editorComponent).getSelectedItem();
 					String selected = textField.getText();
-					if ((selected != null) && (selected.trim().length() == 0))
+					if ((selected != null) && (selected.trim().length() == 0)) {
 						selected = null;
+					}
 					return selected;
 				} else {
 					return ((JComboBox) editorComponent).getSelectedItem();
@@ -271,13 +196,13 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		super(new JTextField(TEXT_FIELD_WIDTH));
 		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
+
 			@Override
-			public void focusGained(FocusEvent e) {
-			}
+			public void focusGained(FocusEvent e) {}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(!e.isTemporary()) {
+				if (!e.isTemporary()) {
 					fireEditingStopped();
 				}
 			}
@@ -364,13 +289,13 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		super(new JTextField(TEXT_FIELD_WIDTH));
 		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
+
 			@Override
-			public void focusGained(FocusEvent e) {
-			}
+			public void focusGained(FocusEvent e) {}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(!e.isTemporary()) {
+				if (!e.isTemporary()) {
 					fireEditingStopped();
 				}
 			}
@@ -456,13 +381,13 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		super(new JPasswordField());
 		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
+
 			@Override
-			public void focusGained(FocusEvent e) {
-			}
+			public void focusGained(FocusEvent e) {}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(!e.isTemporary()) {
+				if (!e.isTemporary()) {
 					fireEditingStopped();
 				}
 			}
@@ -479,9 +404,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 				} else {
 					String value = x.toString();
 					super.setValue(value);
-					if (x != null) {
-						((JTextField) editorComponent).setText(value.toString());
-					}
+					((JTextField) editorComponent).setText(value.toString());
 				}
 			}
 
@@ -505,13 +428,13 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		super(new CharTextField());
 		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
+
 			@Override
-			public void focusGained(FocusEvent e) {
-			}
+			public void focusGained(FocusEvent e) {}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(!e.isTemporary()) {
+				if (!e.isTemporary()) {
 					fireEditingStopped();
 				}
 			}
@@ -522,13 +445,13 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		super(new JTextField(TEXT_FIELD_WIDTH));
 		setClickCountToStart(1);
 		editorComponent.addFocusListener(new FocusListener() {
+
 			@Override
-			public void focusGained(FocusEvent e) {
-			}
+			public void focusGained(FocusEvent e) {}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(!e.isTemporary()) {
+				if (!e.isTemporary()) {
 					fireEditingStopped();
 				}
 			}
@@ -574,20 +497,11 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 		} else {
 			c = super.getTableCellEditorComponent(table, value, isSelected, row, column);
 		}
-//		if (isSelected)
-//			c.setBackground(SwingTools.LIGHTEST_BLUE);
-//		else
-//			c.setBackground(Color.WHITE);
 		return c;
 	}
 
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 		delegate.setValue(value);
-		// TODO why is this commented?
-//		if (isSelected)
-//			editorComponent.setBackground(SwingTools.LIGHTEST_BLUE);
-//		else
-//			editorComponent.setBackground(Color.WHITE);
 		return editorComponent;
 	}
 
@@ -596,8 +510,7 @@ public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements
 	}
 
 	/** Does nothing. */
-	public void setOperator(Operator operator) {
-	}
+	public void setOperator(Operator operator) {}
 
 	@Override
 	public boolean rendersLabel() {

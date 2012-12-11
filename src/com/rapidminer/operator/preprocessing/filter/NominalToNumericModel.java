@@ -439,7 +439,7 @@ class NominalToNumericModel extends PreprocessingModel {
 	        	break;
 	        }
 	        builder.append("Coding Type: " +  codingTypeString + Tools.getLineSeparator());
-	        if ( codingType == NominalToNumeric.INTEGERS_CODING ) {
+	        if (!useComparisonGroups) {
 		        builder.append("Model covering " + trainAttributes.size() + " attributes:" + Tools.getLineSeparator());
 		        for (Attribute attribute: trainAttributes) {
 		            builder.append(" - " + attribute.getName() + Tools.getLineSeparator());
