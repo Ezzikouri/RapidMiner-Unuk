@@ -29,11 +29,11 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.text.JTextComponent;
 
+import com.rapidminer.gui.properties.DefaultRMCellEditor;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 
@@ -42,7 +42,7 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
  * 
  * @author Sebastian Land
  */
-public class AttributeValueCellEditor extends DefaultCellEditor implements PropertyValueCellEditor {
+public class AttributeValueCellEditor extends DefaultRMCellEditor implements PropertyValueCellEditor {
 
 	private static final long serialVersionUID = -1889899793777695100L;
 
@@ -137,11 +137,10 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 	public boolean useEditorAsRenderer() {
 		return true;
 	}
-
+	
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		Component editorComponent = getTableCellEditorComponent(table, value, isSelected, row, column);
-		return editorComponent;
+		return getTableCellEditorComponent(table, value, hasFocus, row, column);
 	}
 
 }

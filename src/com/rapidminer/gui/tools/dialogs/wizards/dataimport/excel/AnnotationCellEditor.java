@@ -26,10 +26,10 @@ import java.awt.Color;
 import java.awt.Component;
 import java.util.Vector;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 
+import com.rapidminer.gui.properties.DefaultRMCellEditor;
 import com.rapidminer.operator.Annotations;
 
 /**
@@ -39,7 +39,7 @@ import com.rapidminer.operator.Annotations;
  * @author Simon Fischer, Sebastian Land
  *
  */
-public class AnnotationCellEditor extends DefaultCellEditor {
+public class AnnotationCellEditor extends DefaultRMCellEditor {
 
 	public static final String NONE = "-";
 	public static final String NAME = Annotations.ANNOTATION_NAME;

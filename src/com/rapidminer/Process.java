@@ -626,12 +626,12 @@ public class Process extends AbstractObservable<Process> implements Cloneable {
 	// Breakpoint Handling
 	// --------------------
 	
-	/** Removes a breakpoint listener. */
+	/** Adds a breakpoint listener. */
 	public void addBreakpointListener(BreakpointListener listener) {
 		breakpointListeners.add(listener);
 	}
 	
-	/** Adds a breakpoint listener. */
+	/** Removes a breakpoint listener. */
 	public void removeBreakpointListener(BreakpointListener listener) {
 		breakpointListeners.remove(listener);
 	}

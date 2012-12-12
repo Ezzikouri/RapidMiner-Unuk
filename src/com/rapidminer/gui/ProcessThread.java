@@ -142,6 +142,9 @@ public class ProcessThread extends Thread {// implements ProcessListener {
     public void stopProcess() {
         if (process != null) {
             this.process.stop();
+            if (this.getState() == State.TIMED_WAITING) {
+            	this.interrupt();
+            }
         }
     }
 

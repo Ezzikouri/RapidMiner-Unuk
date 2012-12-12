@@ -28,7 +28,6 @@ import java.awt.Font;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -37,6 +36,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 
+import com.rapidminer.gui.properties.DefaultRMCellEditor;
 import com.rapidminer.gui.properties.PropertyTable;
 import com.rapidminer.gui.tools.CharTextField;
 import com.rapidminer.gui.tools.ExtendedJComboBox;
@@ -62,7 +62,7 @@ import com.rapidminer.tools.Tools;
  * @see OperatorValueValueCellEditor
  * @author Ingo Mierswa, Simon Fischer, Nils Woehler
  */
-public class DefaultPropertyValueCellEditor extends DefaultCellEditor implements PropertyValueCellEditor {
+public class DefaultPropertyValueCellEditor extends DefaultRMCellEditor implements PropertyValueCellEditor {
 
 	private static final long serialVersionUID = 3594466409311826645L;
 
