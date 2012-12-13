@@ -113,3 +113,4 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: "Wiki" links in the documentation tried to open a tutorial process, now open the corresponding wiki page
 * BUGFIX: Macro Editor will now remember entered values without having to press enter
 * BUGFIX: Opening the context menu on result tables will no longer deselect the currently selected cells
+* BUGFIX: Pressing "Delete" in a subprocess with the surrounding operator selected will no longer result in deletion of the whole subprocess

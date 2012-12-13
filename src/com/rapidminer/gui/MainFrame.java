@@ -768,7 +768,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		orderMenu.add(processPanel.getProcessRenderer().getFlowVisualizer().SHOW_EXECUTION_ORDER);
 		processMenu.add(orderMenu);
 		JMenu layoutMenu = new ResourceMenu("process_layout");
-		layoutMenu.add(processPanel.getProcessRenderer().ARRANGE_OPERATORS_ACTION);
+		//TODO: disabled action until RM-150 is fixed
+//		layoutMenu.add(processPanel.getProcessRenderer().ARRANGE_OPERATORS_ACTION);
 		layoutMenu.add(processPanel.getProcessRenderer().AUTO_FIT_ACTION);
 		layoutMenu.add(processPanel.getProcessRenderer().INCREASE_PROCESS_LAYOUT_WIDTH_ACTION);
 		layoutMenu.add(processPanel.getProcessRenderer().DECREASE_PROCESS_LAYOUT_WIDTH_ACTION);

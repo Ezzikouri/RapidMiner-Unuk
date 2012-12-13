@@ -349,6 +349,12 @@ public class ProcessRenderer extends JPanel {
 					repaint();
 				}
 			} else {
+				// don't delete if we have selected surrounding operator in subprocess so the whole subprocess would get deleted
+				for (Operator selectedOperator : getSelection()) {
+					if (selectedOperator.equals(getDisplayedChain())) {
+						return;
+					}
+				}
 				mainFrame.getActions().DELETE_OPERATOR_ACTION.actionPerformed(e);
 				setHoveringOperator(null);
 				updateCursor();
@@ -2295,22 +2301,23 @@ public class ProcessRenderer extends JPanel {
 				menu.add(orderMenu);
 
 				JMenu layoutMenu = new ResourceMenu("process_layout");
-				layoutMenu.add(new ResourceAction("arrange_operators") {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public void actionPerformed(ActionEvent ae) {
-						int index = getProcessIndexUnder(e.getPoint());
-						if (index == -1) {
-							for (ExecutionUnit u : processes) {
-								autoArrange(u);
-							}
-						} else {
-							autoArrange(processes[index]);
-						}
-					}
-				});
+				//TODO: disabled action until RM-150 is fixed
+//				layoutMenu.add(new ResourceAction("arrange_operators") {
+//
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					public void actionPerformed(ActionEvent ae) {
+//						int index = getProcessIndexUnder(e.getPoint());
+//						if (index == -1) {
+//							for (ExecutionUnit u : processes) {
+//								autoArrange(u);
+//							}
+//						} else {
+//							autoArrange(processes[index]);
+//						}
+//					}
+//				});
 				layoutMenu.add(AUTO_FIT_ACTION);
 				if (hoveringProcessIndex != -1) {
 					layoutMenu.add(INCREASE_PROCESS_LAYOUT_WIDTH_ACTION);
