@@ -28,9 +28,9 @@ package com.rapidminer.repository;
  *
  */
 public enum AccessFlag {
-	REJECT('-', "sign_forbidden.png"), 
-	IGNORE('%', "shape_circle.png"), 
-	GRANT('+', "ok.png");
+	IGNORE('%', "shape_circle.png"),
+	GRANT('+', "ok.png"),
+	REJECT('-', "sign_forbidden.png");
 	
 	private AccessFlag(char symbol, String icon) {
 		this.symbol = symbol;
