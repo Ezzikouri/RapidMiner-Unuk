@@ -421,7 +421,7 @@ public class OperatorDocLoader {
 				// removing firstHeading element from document
 				Element firstHeadingElement = document.getElementById("firstHeading");
 				if (firstHeadingElement != null) {
-					CURRENT_OPERATOR_NAME_READ_FROM_RAPIDWIKI = firstHeadingElement.getFirstChild().getNodeValue();
+					CURRENT_OPERATOR_NAME_READ_FROM_RAPIDWIKI = firstHeadingElement.getFirstChild().getNodeValue().replaceFirst(".*:", "");
 					firstHeadingElement.getParentNode().removeChild(firstHeadingElement);
 				}
 

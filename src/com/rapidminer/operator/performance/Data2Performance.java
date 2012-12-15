@@ -33,6 +33,7 @@ import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ValueDouble;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeString;
@@ -202,7 +203,7 @@ public class Data2Performance extends AbstractExampleSetEvaluator {
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_PERFORMANCE_TYPE, MACRO_TYPES, true, MACRO_TYPE_STATISTICS));
 		types.add(type);
 
-		type = new ParameterTypeString(PARAMETER_ATTRIBUTE_NAME, "The name of the attribute from which the data should be derived.", true);
+		type = new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "The name of the attribute from which the data should be derived.", getExampleSetInputPort(), true);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_PERFORMANCE_TYPE, MACRO_TYPES, true, MACRO_TYPE_DATA, MACRO_TYPE_STATISTICS));
 		types.add(type);
 

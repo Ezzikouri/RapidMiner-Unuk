@@ -67,4 +67,8 @@ public abstract class AbstractExampleSetEvaluator extends Operator {
 			return super.shouldAutoConnect(port);
 		}
 	}
+	
+	protected InputPort getExampleSetInputPort() {
+		return exampleSetInput;
+	}
 }

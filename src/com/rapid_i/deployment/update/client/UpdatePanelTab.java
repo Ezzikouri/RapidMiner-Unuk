@@ -312,7 +312,6 @@ public class UpdatePanelTab extends JPanel {
 		extensionButtonPaneRight.add(extensionHomepageLink);
 		extensionButtonPane.add(extensionButtonPaneRight, BorderLayout.CENTER);
 		
-		extensionButtonPane.setBackground(Color.white);
 		for (Component component : extensionButtonPane.getComponents()) {
 			component.setVisible(false);
 		}

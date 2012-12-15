@@ -63,9 +63,10 @@ public class FileOutputPortHandler {
 	public OutputStream openSelectedFile() throws OperatorException {
 		if (!fileOutputPort.isConnected()) {
 			try {
-				return new FileOutputStream(operator.getParameterAsFile(fileParameterName));
+				return new FileOutputStream(operator.getParameterAsFile(fileParameterName, true));
 			} catch (FileNotFoundException e) {
-				throw new UserError(operator, 301, operator.getParameterAsFile(fileParameterName));
+				System.out.println(e.getLocalizedMessage());
+				throw new UserError(operator, e, 303, operator.getParameterAsFile(fileParameterName), e.getMessage());
 			}
 		} else {
 			return new ByteArrayOutputStream() {
@@ -86,9 +87,10 @@ public class FileOutputPortHandler {
 	public OutputStream openSelectedFile(boolean append) throws OperatorException {
 		if (!fileOutputPort.isConnected()) {
 			try {
-				return new FileOutputStream(operator.getParameterAsFile(fileParameterName), append);
+				return new FileOutputStream(operator.getParameterAsFile(fileParameterName, true), append);
 			} catch (FileNotFoundException e) {
-				throw new UserError(operator, 301, operator.getParameterAsFile(fileParameterName));
+				System.out.println(e.getLocalizedMessage());
+				throw new UserError(operator, e, 303, operator.getParameterAsFile(fileParameterName), e.getMessage());
 			}
 		} else {
 			return new ByteArrayOutputStream() {
