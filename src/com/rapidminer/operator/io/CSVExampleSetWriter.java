@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.io;
 
 import java.io.OutputStreamWriter;
@@ -84,74 +85,85 @@ public class CSVExampleSetWriter extends AbstractStreamWriter {
 		super(description);
 	}
 
+	public static void writeCSV(ExampleSet exampleSet, PrintWriter out, String colSeparator, boolean quoteNomValues, boolean writeAttribNames, boolean formatDate) {
+		String columnSeparator = colSeparator;
+		boolean quoteNominalValues = quoteNomValues;
+
+		// write column names
+		if (writeAttribNames) {
+			Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
+			boolean first = true;
+			while (a.hasNext()) {
+				if (!first)
+					out.print(columnSeparator);
+				Attribute attribute = a.next();
+				String name = attribute.getName();
+				if (quoteNominalValues) {
+					name = name.replaceAll("\"", "'");
+					name = "\"" + name + "\"";
+				}
+				out.print(name);
+				first = false;
+			}
+			out.println();
+		}
+
+		// write data
+		for (Example example : exampleSet) {
+			Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
+			boolean first = true;
+			while (a.hasNext()) {
+				Attribute attribute = a.next();
+				if (!first)
+					out.print(columnSeparator);
+				if (!Double.isNaN(example.getValue(attribute))) {
+					if (attribute.isNominal()) {
+						String stringValue = example.getValueAsString(attribute);
+						if (quoteNominalValues) {
+							stringValue = stringValue.replaceAll("\"", "'");
+							stringValue = "\"" + stringValue + "\"";
+						}
+						out.print(stringValue);
+					} else {
+						Double value = example.getValue(attribute);
+						if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
+							if (formatDate) {
+								Date date = new Date(value.longValue());
+								String s = DateFormat.getInstance().format(date);
+								out.print(s);
+							} else {
+								out.print(value);
+							}
+						} else {
+							out.print(value);
+						}
+
+					}
+				}
+				first = false;
+			}
+			out.println();
+		}
+	}
+
 	@Override
 	public void writeStream(ExampleSet exampleSet, java.io.OutputStream outputStream) throws OperatorException {
 
 		String columnSeparator = getParameterAsString(PARAMETER_COLUMN_SEPARATOR);
 		boolean quoteNominalValues = getParameterAsBoolean(PARAMETER_QUOTE_NOMINAL_VALUES);
+		boolean writeAttribNames = getParameterAsBoolean(PARAMETER_WRITE_ATTRIBUTE_NAMES);
+		boolean formatDate = getParameterAsBoolean(PARAMETER_FORMAT_DATE);
 		PrintWriter out = null;
 		try {
 			out = new PrintWriter(new OutputStreamWriter(outputStream, Encoding.getEncoding(this)));
-			// write column names
-			if (getParameterAsBoolean(PARAMETER_WRITE_ATTRIBUTE_NAMES)) {
-				Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
-				boolean first = true;
-				while (a.hasNext()) {
-					if (!first)
-						out.print(columnSeparator);
-					Attribute attribute = a.next();
-					String name = attribute.getName();
-					if (quoteNominalValues) {
-						name = name.replaceAll("\"", "'");
-						name = "\"" + name + "\"";
-					}
-					out.print(name);
-					first = false;
-				}
-				out.println();
-			}
-
-			// write data
-			for (Example example : exampleSet) {
-				Iterator<Attribute> a = exampleSet.getAttributes().allAttributes();
-				boolean first = true;
-				while (a.hasNext()) {
-					Attribute attribute = a.next();
-					if (!first)
-						out.print(columnSeparator);
-					if (!Double.isNaN(example.getValue(attribute))) {
-						if (attribute.isNominal()) {
-							String stringValue = example.getValueAsString(attribute);
-							if (quoteNominalValues) {
-								stringValue = stringValue.replaceAll("\"", "'");
-								stringValue = "\"" + stringValue + "\"";
-							}
-							out.print(stringValue);
-						} else {
-							Double value = example.getValue(attribute);
-							if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.DATE_TIME)) {
-								if (getParameterAsBoolean(PARAMETER_FORMAT_DATE)) {
-									Date date = new Date(value.longValue());
-									String s = DateFormat.getInstance().format(date);
-									out.print(s);
-								} else {
-									out.print(value);
-								}
-							} else {
-								out.print(value);
-							}
-
-						}
-					}
-					first = false;
-				}
-				out.println();
-			}
+			writeCSV(exampleSet, out, columnSeparator, quoteNominalValues, writeAttribNames, formatDate);
+			out.flush();
 		} finally {
 			if (out != null) {
 				out.close();
 			}
 		}
+
 	}
 
 	@Override
