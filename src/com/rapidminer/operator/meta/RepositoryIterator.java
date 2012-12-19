@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.meta;
 
 import java.util.LinkedList;
@@ -57,7 +58,7 @@ public class RepositoryIterator extends AbstractRepositoryIterator {
 
 	@Override
 	protected void iterate(Object currentParent, Pattern filter,
-			boolean recursive, int type)
+							boolean recursive, int type)
 			throws OperatorException {
 
 		if (currentParent == null) {
@@ -65,8 +66,8 @@ public class RepositoryIterator extends AbstractRepositoryIterator {
 		}
 		try {
 			Entry entry;
-			if(currentParent instanceof RepositoryLocation){
-			entry = ((RepositoryLocation) currentParent).locateEntry();
+			if (currentParent instanceof RepositoryLocation) {
+				entry = ((RepositoryLocation) currentParent).locateEntry();
 			} else {
 				entry = (Entry) currentParent;
 			}
@@ -82,39 +83,45 @@ public class RepositoryIterator extends AbstractRepositoryIterator {
 				}
 
 			}
+			Folder containingFolder = entry.getContainingFolder();
 			if (entryType.equals(IOObjectEntry.TYPE_NAME)
 					&& type == IO_OBJECT) {
 				String fileName = entry.getName();
 				String fullPath = entry.getLocation().getAbsoluteLocation();
-				String parentPath = entry.getContainingFolder().getName();
-				if (matchesFilter(filter, fileName, fullPath, parentPath)) {
-					
-					IOObject data = ((IOObjectEntry)entry).retrieveData(null);					
-					data.setSource(getName());
-					data.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, entry.getLocation().toString());
-					doWorkForSingleIterationStep(fileName, fullPath,
-							parentPath, data);
+				if (containingFolder != null) {
+					String parentPath = containingFolder.getName();
+					if (matchesFilter(filter, fileName, fullPath, parentPath)) {
+
+						IOObject data = ((IOObjectEntry) entry).retrieveData(null);
+						data.setSource(getName());
+						data.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, entry.getLocation().toString());
+						doWorkForSingleIterationStep(fileName, fullPath,
+								parentPath, data);
+					}
 				}
 			}
 			if (entryType.equals(BlobEntry.TYPE_NAME)
 					&& type == BLOB) {
 				String fileName = entry.getName();
 				String fullPath = entry.getLocation().getAbsoluteLocation();
-				String parentPath = entry.getContainingFolder().getName();
-				if (matchesFilter(filter, fileName, fullPath, parentPath)) {
-					RepositoryLocation location = entry.getLocation();
-					String source = location.getAbsoluteLocation();
-					RepositoryBlobObject result2 = new RepositoryBlobObject(location);
-					result2.getAnnotations().setAnnotation(Annotations.KEY_SOURCE,
-							source);
-					result2.setSource(getName());
-					result2.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, location.toString());
-					doWorkForSingleIterationStep(fileName, fullPath,
-							parentPath, result2);
+				if (containingFolder != null) {
+
+					String parentPath = containingFolder.getName();
+					if (matchesFilter(filter, fileName, fullPath, parentPath)) {
+						RepositoryLocation location = entry.getLocation();
+						String source = location.getAbsoluteLocation();
+						RepositoryBlobObject result2 = new RepositoryBlobObject(location);
+						result2.getAnnotations().setAnnotation(Annotations.KEY_SOURCE,
+								source);
+						result2.setSource(getName());
+						result2.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, location.toString());
+						doWorkForSingleIterationStep(fileName, fullPath,
+								parentPath, result2);
+					}
 				}
 			}
 		} catch (RepositoryException e) {
-			throw new OperatorException("Error ocured during working with repository: "+e.toString(), e);
+			throw new OperatorException("Error ocured during working with repository: " + e.toString(), e);
 		}
 	}
 

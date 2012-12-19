@@ -158,11 +158,15 @@ public class LogService extends WrapperLoggingHandler {
     /** Returns the global logging. If no logging was otherwise create, this
      *  method creates the default standard out log service if no log file
      *  was defined in the property {@link RapidMiner#PROPERTY_RAPIDMINER_GLOBAL_LOG_FILE}.
-     *  Alternatively, developers can invoke the method {@link #initGlobalLogging(OutputStream, int)}. */
+     *  Alternatively, developers can invoke the method {@link #initGlobalLogging(OutputStream, int)}. 
+     *
+     *  @deprecated use {@link #getRoot()} instead 
+     */
+    @Deprecated
     public static LogService getGlobal() {
     	return GLOBAL_LOGGING;
     }
-    
+
     public static Logger getRoot() {
     	return GLOBAL_LOGGER;
     }

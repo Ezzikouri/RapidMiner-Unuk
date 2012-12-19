@@ -174,12 +174,12 @@ public class Wallet {
 		}
 		Element root = doc.createElement(CACHE_FILE_NAME);
 		doc.appendChild(root);
-		for (String i : Wallet.getInstance().getKeys()){
+		for (String key : Wallet.getInstance().getKeys()){
 			Element entryElem = doc.createElement("secret");
 			root.appendChild(entryElem);
-			XMLTools.setTagContents(entryElem, "url", i);
-			XMLTools.setTagContents(entryElem, "user", wallet.get(i).getUsername());
-			XMLTools.setTagContents(entryElem, "password", Base64.encodeBytes(new String(wallet.get(i).getPassword()).getBytes()));
+			XMLTools.setTagContents(entryElem, "url", key);
+			XMLTools.setTagContents(entryElem, "user", wallet.get(key).getUsername());
+			XMLTools.setTagContents(entryElem, "password", Base64.encodeBytes(new String(wallet.get(key).getPassword()).getBytes()));
 		}
 		File file = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
 		try {

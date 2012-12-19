@@ -516,6 +516,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 			for (int attributeNumber = 0; attributeNumber < keyAttributes.length; ++attributeNumber) {
 				if (keyAttributes[attributeNumber].isNominal()) {
 					Map<Double, Double> valueMap = new HashMap<Double, Double>();
+					// TODO: iterate over getMappint().values() rather than relying on the assumption that values appear in increasing order
 					for (int valueNumber = 0; valueNumber < keyAttributes[attributeNumber].getMapping().size(); ++valueNumber) {
 						String valueString = keyAttributes[attributeNumber].getMapping().mapIndex(valueNumber);
 						valueMap.put((double) valueNumber, (double) matchKeyAttributes[attributeNumber].getMapping().mapString(valueString));
@@ -526,6 +527,8 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		}
 
 		double[] keyValues;
+		
+		EXAMPLE_LOOP:
 		for (Example example : exampleSet) {
 			// fetch key values from example
 			keyValues = getKeyValues(example, keyAttributes);
@@ -533,6 +536,9 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 				// remap keyValues to match values of other attributes:
 				for (int i = 0; i < keyValues.length; ++i) {
 					if (keyAttributes[i].isNominal()) {
+						if(Double.isNaN(keyValues[i])) {
+							break EXAMPLE_LOOP;
+						}
 						keyValues[i] = valueMapping.get(keyAttributes[i]).get(keyValues[i]);
 					}
 				}
@@ -549,7 +555,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 				keyExamples.add(example);
 				keyMapping.put(new DoubleArrayWrapper(keyValues), keyExamples);
 			}
-		}
+		};
 		return keyMapping;
 	}
 

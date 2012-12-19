@@ -48,6 +48,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.AbstractButton;
 import javax.swing.JButton;
@@ -62,6 +63,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ErrorDialog;
 import com.rapidminer.gui.tour.Step;
 import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
 import com.sun.awt.AWTUtilities;
 import com.vlsolutions.swing.docking.DockableState;
 
@@ -121,7 +123,7 @@ public class BubbleWindow extends JDialog {
 	 * @param buttonKeyToAttach i18nKey of the Button to which this {@link BubbleWindow} should be placed relative to. 
 	 */
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, String buttonKeyToAttach) {
-		this(owner, preferedAlignment, i18nKey,buttonKeyToAttach ,true);
+		this(owner, preferedAlignment, i18nKey, buttonKeyToAttach, true);
 	}
 
 	/**
@@ -133,11 +135,11 @@ public class BubbleWindow extends JDialog {
 	 */
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, String buttonKeyToAttach, boolean addListener) {
 		this(owner, preferedAlignment, i18nKey, (Component) findButton(buttonKeyToAttach, RapidMinerGUI.getMainFrame()));
-		if(addListener) {
+		if (addListener) {
 			this.attachToButton(findButton(buttonKeyToAttach, RapidMinerGUI.getMainFrame()));
 		}
 	}
-	
+
 	/**
 	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
 	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable
@@ -145,9 +147,9 @@ public class BubbleWindow extends JDialog {
 	 * @param buttonToAttach {@link AbstractButton} to which this {@link BubbleWindow} should be placed relative to. 
 	 */
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, AbstractButton buttonToAttach) {
-		this(owner, preferedAlignment, i18nKey,buttonToAttach, true);
+		this(owner, preferedAlignment, i18nKey, buttonToAttach, true);
 	}
-	
+
 	/**
 	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
 	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
@@ -157,7 +159,7 @@ public class BubbleWindow extends JDialog {
 	 */
 	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, AbstractButton buttonToAttach, boolean addListener) {
 		this(owner, preferedAlignment, i18nKey, (Component) buttonToAttach);
-		if(addListener) {
+		if (addListener) {
 			this.attachToButton(buttonToAttach);
 		}
 	}
@@ -194,7 +196,20 @@ public class BubbleWindow extends JDialog {
 			@Override
 			public void componentResized(ComponentEvent e) {
 				shape = createShape(alignment);
-				AWTUtilities.setWindowShape(BubbleWindow.this, shape);
+
+				String version = System.getProperty("java.version").substring(0, 3).replace(".", "");
+				try {
+					Integer versionNumber = Integer.valueOf(version);
+					if (versionNumber == 16) {
+						// Java SE 6 Update 10
+						AWTUtilities.setWindowShape(BubbleWindow.this, shape);
+					} else if (versionNumber >= 17) {
+						// Java 7+
+						setShape(shape);
+					}
+				} catch (Throwable t) {
+					LogService.getRoot().log(Level.WARNING, "Could not create shaped Bubble Windows. Error: " + t.getLocalizedMessage(), t);
+				}
 			}
 		});
 
@@ -432,7 +447,7 @@ public class BubbleWindow extends JDialog {
 	 * places the {@link BubbleWindow} relative to the Component which was given.
 	 */
 	private void positionRelative() {
-		
+
 		pointAtComponent(this.component);
 
 		registerMovementListener();
@@ -489,7 +504,7 @@ public class BubbleWindow extends JDialog {
 		target = new Point((int) Math.round(targetx), (int) Math.round(targety));
 		setLocation(target);
 	}
-	
+
 	/**
 	 * method to find a dockable component on the MainFrame
 	 * @param dockableKey key of the dockable you want to find
@@ -540,8 +555,8 @@ public class BubbleWindow extends JDialog {
 				if (name.equals(id)) {
 					return b;
 				}
-			} 
-		} 
+			}
+		}
 		if (searchRoot instanceof Container) {
 			Component[] all = ((Container) searchRoot).getComponents();
 			for (Component child : all) {

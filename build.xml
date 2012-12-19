@@ -638,7 +638,7 @@
 	<!-- BEGIN Test targets -->
 	<target name="test.build" depends="test.clean">
 		<mkdir dir="${test.build}" />
-		<javac debug="${compiler.debug}" destdir="${test.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" target="1.6">
+		<javac debug="${compiler.debug}" destdir="${test.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" target="1.6" source="1.6">
 
 			<classpath refid="classpath" />
 			<src path="${src_test}" />

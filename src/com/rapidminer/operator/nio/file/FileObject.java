@@ -29,10 +29,9 @@ import java.io.InputStream;
 import java.io.ObjectStreamException;
 import java.io.WriteAbortedException;
 
-import sun.misc.IOUtils;
-
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ResultObjectAdapter;
+import com.rapidminer.tools.Tools;
 
 /**
  * 
@@ -71,7 +70,7 @@ public abstract class FileObject extends ResultObjectAdapter {
 		InputStream fileInputStream = null;
 		try {
 			fileInputStream = openStream();
-			return new BufferedFileObject(IOUtils.readFully(fileInputStream, -1, true));
+			return new BufferedFileObject(Tools.readInputStream(fileInputStream));
 		} catch (OperatorException e) {
 			throw new WriteAbortedException("Could not write FileObject", e);
 		} catch (IOException e) {

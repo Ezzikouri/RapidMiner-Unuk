@@ -44,11 +44,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JSpinner;
 import javax.swing.KeyStroke;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.text.NumberFormatter;
 
-import sun.security.krb5.internal.PAEncTSEnc;
-
-import com.rapidminer.gui.properties.celleditors.value.CronExpressionCellEditor;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;

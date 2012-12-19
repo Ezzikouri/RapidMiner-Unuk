@@ -828,7 +828,7 @@ public class Tools {
 		if (file == null || !canFileBeStoredOnCurrentFilesystem(file.getName())) {
 			throw new FileNotFoundException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", file == null ? "null" : file.getName()));
 		}
-		
+
 		FileOutputStream outStream = new FileOutputStream(file);
 		try {
 			outStream.write(text.getBytes(XMLImporter.PROCESS_FILE_CHARSET));
@@ -898,7 +898,7 @@ public class Tools {
 	}
 
 	public static void findImplementationsInJar(ClassLoader loader, JarFile jar, Class<?> superClass,
-			List<String> implementations) {
+												List<String> implementations) {
 		Enumeration<JarEntry> e = jar.entries();
 		while (e.hasMoreElements()) {
 			JarEntry entry = e.nextElement();
@@ -1187,7 +1187,7 @@ public class Tools {
 			File[] files = file.listFiles();
 			for (File child : files) {
 				success &= delete(child);
-				if (!success){
+				if (!success) {
 					return false;
 				}
 			}
@@ -1354,7 +1354,7 @@ public class Tools {
 	 * return = '"Charles says: \"Some people never go crazy, What truly horrible lives they must live\"", "1968", "US"'
 	 */
 	public static String escapeQuoteCharsInQuotes(String line, Pattern separatorPattern, char quotingChar,
-			char escapeChar, boolean showWarning) {
+													char escapeChar, boolean showWarning) {
 		// first remember quoteChar positions which should be escaped:
 		char lastChar = '0';
 		boolean openedQuote = false;
@@ -1517,18 +1517,26 @@ public class Tools {
 	}
 
 	/**
-	 * This method will return a byte array containing the raw data from the given url. If any error occurs null will be
-	 * returned. Please keep in mind that in order to load the data, the data will be stored in memory twice.
+	 * This method will return a byte array containing the raw data from the given url.
+	 * Please keep in mind that in order to load the data, the data will be stored in memory twice.
 	 */
-	public static byte[] readUrl(URL url) {
-		BufferedInputStream in = null;
+	public static byte[] readUrl(URL url) throws IOException {
+		return readInputStream(new BufferedInputStream(WebServiceTools.openStreamFromURL(url)));
+	}
+
+	/**
+	 * This method will return a byte array containing the raw data from the given input stream.
+	 * The stream will be closed afterwards in any case.
+	 */
+	public static byte[] readInputStream(InputStream in) throws IOException {
+
 		try {
 			class Part {
 
 				byte[] partData;
 				int len;
 			}
-			in = new BufferedInputStream(WebServiceTools.openStreamFromURL(url));
+
 			LinkedList<Part> parts = new LinkedList<Part>();
 			int len = 1;
 			while (len > 0) {
@@ -1553,8 +1561,6 @@ public class Tools {
 				pos += part.len;
 			}
 			return result;
-		} catch (IOException e) {
-			return null;
 		} finally {
 			if (in != null) {
 				try {
@@ -1597,7 +1603,7 @@ public class Tools {
 	 * will be returned. No more escaping is performed in the last token!
 	 */
 	public static List<String> unescape(String source, char escapeChar, char[] specialCharacters, char splitCharacter,
-			int splitLimit) {
+										int splitLimit) {
 		List<String> result = new LinkedList<String>();
 		StringBuilder b = new StringBuilder();
 		// was the last character read an escape character?
@@ -1733,7 +1739,7 @@ public class Tools {
 
 		return unmaskedStringBuilder.toString();
 	}
-	
+
 	/**
 	 * This method tests if a file with the given file name could be stored on the current filesystem
 	 * the program is working on. For example, if working on Windows the string <code>foo:bar</code> would return <code>false</code>
@@ -1754,26 +1760,26 @@ public class Tools {
 			return false;
 		}
 		try {
-		     File file = new File(System.getProperty("java.io.tmpdir") + File.separator + fileName);
-		     
-		     if (!file.exists()) {
-		          file.createNewFile();
-		          if (file.exists()) {
-		        	  file.delete();
-		        	  return true;
-		          } else {
-		        	  return false;
-		          }
-		     }
+			File file = new File(System.getProperty("java.io.tmpdir") + File.separator + fileName);
+
+			if (!file.exists()) {
+				file.createNewFile();
+				if (file.exists()) {
+					file.delete();
+					return true;
+				} else {
+					return false;
+				}
+			}
 		} catch (IOException e) {
-		     return false;
+			return false;
 		} catch (SecurityException e) {
-		     return false;
+			return false;
 		} catch (Exception e) {
-		     LogService.getRoot().log(Level.WARNING, "Failed to check filename for illegal characters.", e);
-		     return false;
+			LogService.getRoot().log(Level.WARNING, "Failed to check filename for illegal characters.", e);
+			return false;
 		}
 
-		return true; 
+		return true;
 	}
 }
