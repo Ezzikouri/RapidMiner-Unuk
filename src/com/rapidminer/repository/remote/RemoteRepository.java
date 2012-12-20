@@ -154,7 +154,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			this.setPassword(null);
 		}
 		register(this);
-		// Will cause stack overflow
+		
+		// The line below will cause a stack overflow
 		//refreshProcessExecutionQueueNames();
 	}
 
@@ -698,7 +699,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	public void setPassword(char[] password) {
-		this.password = password;
+		if(password != null && password.length == 0) {
+			this.password = null;
+		} else {
+			this.password = password;
+		}
+		WebServiceTools.clearAuthCache();
 	}
 
 	@Override

@@ -53,7 +53,7 @@ import com.rapidminer.tools.XMLException;
  *  In fact, the {@link PasswordManager} sets a new instance via {@link #setInstance(Wallet)}
  *  after editing.
  *  
- * @author Miguel B�scher
+ * @author Miguel Buescher
  *
  */
 public class Wallet {

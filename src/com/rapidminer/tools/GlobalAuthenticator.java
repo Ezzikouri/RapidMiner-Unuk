@@ -150,7 +150,7 @@ public class GlobalAuthenticator extends Authenticator {
 						}
 					}
 			}
-			return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+			return PasswordDialog.getPasswordAuthentication(url.toString(), false, true);
 		} catch (PasswortInputCanceledException e) {
 			return null;
 		}

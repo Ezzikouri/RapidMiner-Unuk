@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.xml.ws.BindingProvider;
 
@@ -107,6 +108,10 @@ public class WebServiceTools {
 
 	/** Clears all (Java-)cached credentials for Web services. */
 	public static void clearAuthCache() {
-		AuthCacheValue.setAuthCache(new AuthCacheImpl());		
+		try {
+			AuthCacheValue.setAuthCache(new AuthCacheImpl());		
+		} catch(Throwable t) {
+			LogService.getRoot().log(Level.WARNING, "Could not clear auth cache!", t);
+		}
 	}
 }

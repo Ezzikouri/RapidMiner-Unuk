@@ -112,9 +112,14 @@ public class PasswordDialog extends ButtonDialog {
 			return null;
 		}
         UserCredential authentication = Wallet.getInstance().getEntry(forUrl);
+        
         // return immediately if known and desired
         if (hideDialogIfPasswordKnown && !forceRefresh && (authentication != null) && (authentication.getPassword() != null)) {
-            //LogService.getRoot().config("Reusing cached password for "+forUrl+".");
+        	
+        	if(authentication.getPassword().length == 0) {
+        		return null;
+        	}
+        	
             LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.tools.PassworDialog.reusing_cached_password", forUrl);
             return authentication.makePasswordAuthentication();
         }

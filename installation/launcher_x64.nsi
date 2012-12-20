@@ -69,10 +69,10 @@ Pop $1
 
 IntCmp $1 64 less64 less64 more64
 less64: 
-StrCpy $1 64
-Goto after_mem_more
+	StrCpy $1 64
+	Goto after_mem_more
 more64:
-Goto after_mem_more
+	Goto after_mem_more
 
 
 after_mem_more:
@@ -91,12 +91,12 @@ is1:
   Goto done
 morethan1:
   IntOp $0 $0 - 1
-  StrCpy $R2 '-XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=$0'
+  StrCpy $R2 '-XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:ConcGCThreads=$0 -XX:ParallelGCThreads=$0'
   Goto done
 done:
 
   ; invoking RapidMiner via laucher.jar  
-  StrCpy $0 '"$R0" $R2 -Xmx$1m -XX:MaxPermSize=128m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
+  StrCpy $0 '"$R0" $R2 -Xmx$1m -XX:MaxPermSize=128m -XX:+OptimizeStringConcat -XX:+UseStringCache -XX:+UseCompressedStrings -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
   
   SetOutPath $EXEDIR
 
