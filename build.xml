@@ -146,7 +146,7 @@
 	<target name="build" depends="init, copy-resources,version.updateFiles, create-documentation, merge.changes" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<echo message="RapidMiner: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner: using Java version: ${java.version}" />
-		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false" target="1.6">
+		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false" target="1.6" source="1.6">
 			<compilerarg value="${compiler.arguments}" />
 
 			<classpath refid="classpath" />

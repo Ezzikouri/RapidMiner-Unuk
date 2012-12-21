@@ -329,7 +329,6 @@ Name "${extension.name.long}"
 
 
 	<!-- Publishing release -->
-
 	<target name="release.publish" depends="release.makeAll" description="This target builds a full release and uploads all files to source-forge.">
 		<echo message="Publishing release ${extension.longversion}..." />
 		<!-- move files to proper directory for scping them to sf-net.-->
@@ -422,7 +421,6 @@ Name "${extension.name.long}"
 	</target>
 
 	<!-- Uploading updates -->
-
 	<target name="update.publish" depends="createJar" description="This will generate a new update and upload files for all platforms (currently only platform independent). The update number will ne increased automatically.">
 		<echo message="Publishing update ${extension.longversion} using ${server.update.user}..." />
 		<echo message="...Platform Independent on update server" />
@@ -460,7 +458,6 @@ Name "${extension.name.long}"
 
 
 	<!-- Version handling -->
-
 	<target name="version.get">
 		<property name="extension.shortversion" value="${extension.version}.${extension.revision}" />
 		<property name="extension.longversion" value="${extension.version}.${extension.revision}.${extension.update}" />
@@ -496,7 +493,7 @@ Name "${extension.name.long}"
 
 	<!-- StyleChecks -->
 	<target name="check.build">
-		<javac debug="false" destdir="${rm.dir}/build" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m">
+		<javac debug="false" destdir="${rm.dir}/build" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" target="1.6" source="1.6">
 			<compilerarg value="${compiler.arguments}" />
 			<classpath refid="build.classpath" />
 			<src path="${rm.dir}/src" />
@@ -576,7 +573,6 @@ Name "${extension.name.long}"
 
 
 	<!-- JavaDoc -->
-
 	<target name="javaDoc.makeZip" depends="javaDoc.generate" description="This generates new java doc from source files a zips them for relase into the release dir.">
 		<echo message="Releasing java doc..." />
 		<zip destfile="${release.targetDir}/${release.javadoc.name}">

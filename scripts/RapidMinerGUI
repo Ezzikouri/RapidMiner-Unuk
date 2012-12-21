@@ -4,7 +4,7 @@
 #RAPIDMINER_HOME=${HOME}
 
 ## set the maximum amount of memory Java uses here or in an environment variable
-#MAX_JAVA_MEMORY=256
+#MAX_JAVA_MEMORY=1024
 
 ## set the path to the files with additional operators here or in an environment variable
 #RAPIDMINER_OPERATORS_ADDITIONAL=
@@ -34,9 +34,23 @@ if [ -z "${JAVA}" ] ; then
 	unset _jfnd
 fi
 
+# Get Java version
+JAVA_VERSION=$("$JAVA" -version 2>&1 | sed 's/java version "\(.*\)\.\(.*\)\..*"/\1\2/; 1q')
+
+# Get number of cores
+NUMBER_OF_CORES=$(grep -c ^processor /proc/cpuinfo)
+echo Number of cores: $NUMBER_OF_CORES
+
+NUMBER_OF_THREADS=1
+if [ $NUMBER_OF_CORES ]
+then
+	NUMBER_OF_THREADS=`expr $NUMBER_OF_CORES - 1`
+fi
+echo Number of GC Threads: $NUMBER_OF_THREADS
+
 if [ -z "${MAX_JAVA_MEMORY}" ] ; then
-    MAX_JAVA_MEMORY=512
-    echo "No maximum Java memory defined, using 512 Mb..."
+    MAX_JAVA_MEMORY=1024
+    echo "No maximum Java memory defined, using 1024 Mb..."
 fi
 
 if [ -z "${RAPIDMINER_JDBC_DRIVERS}" ] ; then
@@ -71,7 +85,6 @@ CLASSPATH=${RAPIDMINER_CLASSPATH}:${CLASSPATH}
 update_root=~/.RapidMiner5/update
 update_dir=${update_root}/RUinstall
 update_script=${update_root}/UPDATE
-
 
 echo "Starting RapidMiner from '${RAPIDMINER_HOME}', using classes from '${RAPIDMINER_CLASSPATH}'..."
 
@@ -129,14 +142,45 @@ do
     # Starting RapidMiner again
 	#rm -f ${RAPIDMINER_HOME}/RELAUNCH
 	LAUNCH=0
-	$JAVA \
+	ADDITIONAL_OPTIONS="-XX:ConcGCThreads=$NUMBER_OF_THREADS -XX:ParallelGCThreads=$NUMBER_OF_CORES"
+	if [ $JAVA_VERSION ]
+	then
+		echo Java version: $JAVA_VERSION
+		if [ $JAVA_VERSION -ge 17 ]
+		then
+			echo Starting with G1 garbage collector
+		    ADDITIONAL_OPTIONS="$ADDITIONAL_OPTIONS -XX:+OptimizeStringConcat -XX:+UseStringCache -XX:+AggressiveOpts -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:InitiatingHeapOccupancyPercent=0"
+		else
+			echo Starting with CMS garbage collector
+			ADDITIONAL_OPTIONS="$ADDITIONAL_OPTIONS -XX:+UseParallelGC -XX:+UseParallelOldGC"
+		fi
+	else
+		echo Unkown Java version. Starting with default garbage collector.
+	fi
+	
+	if [ $NUMBER_OF_CORES -gt 1 ]
+	then
+		echo Starting in multi-core mode
+		$JAVA $ADDITIONAL_OPTIONS \
+	    -Xmx${MAX_JAVA_MEMORY}m \
+	    -XX:MaxPermSize=128m \
+		-cp ${CLASSPATH} \
+		-Drapidminer.home=${RAPIDMINER_HOME} \
+		-Drapidminer.operators.additional=${RAPIDMINER_OPERATORS_ADDITIONAL} \
+		${RAPIDMINER_JDBC_DRIVER_PARAMETER} \
+		com.rapid_i.Launcher "$@"
+	else
+		echo Starting in single-core mode
+		$JAVA \
 	    -Xmx${MAX_JAVA_MEMORY}m \
 	    -XX:MaxPermSize=128m\
 		-cp ${CLASSPATH} \
 		-Drapidminer.home=${RAPIDMINER_HOME} \
 		-Drapidminer.operators.additional=${RAPIDMINER_OPERATORS_ADDITIONAL} \
 		${RAPIDMINER_JDBC_DRIVER_PARAMETER} \
-		com.rapid_i.Launcher $@
+		com.rapid_i.Launcher "$@"
+	fi
+
 	if [ $? -eq 2 ]
 	then
 		echo RapidMiner will now relaunch 

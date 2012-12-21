@@ -1,5 +1,7 @@
 Changes from RapidMiner 5.2.8 to 5.3.0
 --------------------------------------
+* Switched to Java 7
+* Improved Remote Repository authentication
 * Added first wave of new and improved extensive documentation (often including tutorial processes) for many operators
 * Added improved RapidAnalytics support. New run button: "Run process on RapidAnalytics".
   Can only be used if the process is stored on a RapidAnalytics repository.
