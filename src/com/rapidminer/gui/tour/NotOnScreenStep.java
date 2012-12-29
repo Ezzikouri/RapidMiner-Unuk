@@ -22,51 +22,62 @@
  */
 package com.rapidminer.gui.tour;
 
-import com.rapidminer.gui.tools.dialogs.MessageDialog;
+import java.awt.Component;
+import java.awt.Window;
+
+import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.components.BubbleWindow;
+import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 
 
 /**
- * This {@link Step} calls a MessageDialog with the complete_Tour.message from GUIBundle and
- * quits your Tour.
+ * 
  * 
  * @author Thilo Kamradt
  *
  */
-public class FinalStep extends Step {
+public class NotOnScreenStep extends Step {
 
-	protected String key, insert;
+	private boolean showMe = false;
+	private Window owner = RapidMinerGUI.getMainFrame();
+	private String dockableKey;
+	private String i18nKey;
 	
-	/**
-	 * This {@link Step} calls a MessageDialog with the complete_Tour.message from GUIBundle and
-	 * quits your Tour.
-	 * @param explicitTour Name of the Tour you have designed to show in the Dialog
-	 */
-	public FinalStep(String explicitTour) {
-		this.key = "complete_Tour";
-		this.insert = explicitTour;
+	public NotOnScreenStep(String i18nMessageKey, String dockableKey) {
+		this.i18nKey = i18nMessageKey;
+		this.dockableKey = dockableKey;
 	}
+	
 	/* (non-Javadoc)
 	 * @see com.rapidminer.gui.tour.Step#createBubble()
 	 */
 	@Override
 	boolean createBubble() {
-		return false;
+		this.showMe = BubbleWindow.isDockableOnScreen(dockableKey) == -1;
+		// TODO: delete
+		showMe = false;
+		if(showMe)
+			bubble = new BubbleWindow(owner, Alignment.MIDDLE, i18nKey, (Component) null);
+			//TODO: get dockableMenu
+			//TODO: listener adden and compare with the given dockableKey
+		return showMe;
 	}
 
-	@Override
-	public void start() {
-		MessageDialog tourComplete = new MessageDialog(key, insert);
-		tourComplete.setVisible(true);
-		this.writeStateToFile();
-		this.notifyListeners();
-	}
-	
+	/* (non-Javadoc)
+	 * @see com.rapidminer.gui.tour.Step#stepCanceled()
+	 */
 	@Override
 	protected void stepCanceled() {
-		
+		// TODO Auto-generated method stub
+
 	}
+
+	/* (non-Javadoc)
+	 * @see com.rapidminer.gui.tour.Step#checkPreconditions()
+	 */
 	@Override
 	public Step[] getPreconditions() {
 		return new Step[] {};
 	}
+
 }

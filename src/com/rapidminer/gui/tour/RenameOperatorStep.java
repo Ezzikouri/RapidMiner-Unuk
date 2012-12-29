@@ -84,7 +84,7 @@ public class RenameOperatorStep extends Step {
 
 
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 		if (attachTo == null) {
 			if(attachToKey== null)
 				throw new IllegalArgumentException("Buttonkey and Component is null. Please add any Component to attach");
@@ -121,12 +121,17 @@ public class RenameOperatorStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
-		return bubble;
+		return true;
 	}
 
 	@Override
 	protected void stepCanceled() {
 		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {new PerspectivesStep(1)};
 	}
 }

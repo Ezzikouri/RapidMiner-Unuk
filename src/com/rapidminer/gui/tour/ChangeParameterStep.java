@@ -30,6 +30,7 @@ import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.learner.tree.AbstractTreeLearner;
 import com.rapidminer.parameter.UndefinedParameterError;
 
 /**
@@ -72,7 +73,7 @@ public class ChangeParameterStep extends Step {
 	}
 
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.getDockableByKey(targetDockKey));
 		listener = new ProcessSetupListener() {
 			
@@ -103,13 +104,19 @@ public class ChangeParameterStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
-		return bubble;
+		return true;
 	}
 
 	@Override
 	protected void stepCanceled() {
 		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", AbstractTreeLearner.PARAMETER_CRITERION)};
+		
 	}
 
 }

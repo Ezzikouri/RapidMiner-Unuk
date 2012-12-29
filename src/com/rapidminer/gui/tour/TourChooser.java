@@ -101,11 +101,11 @@ public class TourChooser extends ButtonDialog {
 				renderer.setIcon(new ImageIcon(Tools.getResource("rapidminer_frame_icon_48.png"), ""));
 				String tourKey = ((IntroductoryTour) value).getKey();
 				String description = I18N.getMessage(I18N.getGUIBundle(), "gui.tour." + tourKey + ".description");
+				String relation = "<br> This Tour relates to: "+I18N.getMessage(I18N.getGUIBundle(), "gui.tour." + tourKey + ".relation");
 				String statusValue = "<br>";
 				//make numbers
 				int current = tourManager.getProgress(tourKey);
 				int max = ((IntroductoryTour) value).getSize();
-				//statusValue = statusValue + current + "/" + max + " <br>";
 				// make stars
 				for (int i = 0; i < current; i++) {
 					statusValue = statusValue + "<img src=\"" + Tools.getResource("icons/16/star_yellow.png") + "\"/>";
@@ -113,7 +113,7 @@ public class TourChooser extends ButtonDialog {
 				for (int i = 0; i < (max - current); i++) {
 					statusValue = statusValue + "<img src=\"" + Tools.getResource("icons/16/star_grey.png") + "\"/>";
 				}
-				renderer.setText("<html><div style=\"width:300px\">" + "<h3 style=\"padding-left:5px;color:" + (isSelected ? "white" : "black") + ";\">" + tourKey + "</h3><p style=\"padding-left:5px;\">" + description + "</p><p style=\"padding-left:5px;\">" + statusValue + "</p></div></html>");
+				renderer.setText("<html><div style=\"width:300px\">" + "<h3 style=\"padding-left:5px;color:" + (isSelected ? "white" : "black") + ";\">" + tourKey + "</h3><p style=\"padding-left:5px;\">" + description + "</p><p style=\"padding-left:5px;\">" + relation + "</p><p style=\"padding-left:5px;\">" + statusValue + "</p></div></html>");
 				return renderer;
 			}
 		});

@@ -28,6 +28,7 @@ import java.awt.Window;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.gui.tour.AddBreakpointStep.Position;
@@ -36,7 +37,7 @@ import com.rapidminer.operator.Operator;
 
 /**
  * This subclass of {@link Step} will open a {@link BubbleWindow} which closes if a breakpoint on the given {@link Operator} is removed.
- * @author Kersting
+ * @author Kersting and Thilo Kamradt
  *
  */
 
@@ -47,7 +48,7 @@ public class RemoveBreakpointStep extends Step {
 	private String i18nKey;
 	private Class<? extends Operator> operatorClass;
 	private Component attachTo;
-	private String attachToKey = null;
+	private String attachToKey = "breakpoint_after";
 	private Position positionOnOperator = Position.DONT_CARE;
 	private ProcessSetupListener listener = null;
 	
@@ -95,13 +96,9 @@ public class RemoveBreakpointStep extends Step {
 	
 
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 				if (attachTo == null){
-					if(attachToKey == null) {
-						bubble = new BubbleWindow(owner, alignment, i18nKey,"breakpoint_after",false);
-					} else {
 						bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey,false);
-					}
 				} else {
 					bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
 				}
@@ -143,12 +140,17 @@ public class RemoveBreakpointStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
-		return bubble;
+		return true;
 	}
 	
 	@Override
 	protected void stepCanceled() {
 		if(listener != null)
 		RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY), new NotWatchableStep(alignment, owner, attachToKey, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY)};
 	}
 }

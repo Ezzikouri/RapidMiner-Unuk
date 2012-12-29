@@ -36,20 +36,19 @@ import com.rapidminer.gui.tour.IntroductoryTour.TourListener;
  * A step consisting of a {@link BubbleWindow} and a follower. This class must be inherited by other steps,
  * which define what action has to be perform to succeed to the next step.
  * 
- * @author Philipp Kersting
+ * @author Philipp Kersting and Thilo Kamradt
  *
  */
 public abstract class Step {
 
 	protected Step next;
 	protected BubbleWindow bubble;
-	protected String tourkey ;
+	protected String tourkey;
 	protected boolean finalStep;
 	protected LinkedList<TourListener> listeners = new LinkedList<IntroductoryTour.TourListener>();
 	protected int index;
-	protected boolean callVisible = true;
 
-	abstract BubbleWindow createBubble();
+	abstract boolean createBubble();
 
 	/**
 	 * Method to get the next {@link Step}.
@@ -71,41 +70,49 @@ public abstract class Step {
 	 * This method will start the {@link Step} and calls start() on the next Step if it is available.
 	 */
 	public void start() {
-		bubble = createBubble();
-		bubble.addBubbleListener(new BubbleListener() {
-
-			@Override
-			public void bubbleClosed(BubbleWindow bw) {
-				bw.removeBubbleListener(this);
-				stepCanceled();
-				Step.this.writeStateToFile();
-				Step.this.notifyListeners();
+		boolean showMe = createBubble();
+		if (!showMe) {
+			if (getNext() != null) {
+				getNext().start();
+			} else {
+				this.writeStateToFile();
+				this.notifyListeners();
 			}
+		} else {
+			bubble.addBubbleListener(new BubbleListener() {
 
-			@Override
-			public void actionPerformed(BubbleWindow bw) {
-				if (next != null) {
-					new Thread() {
-
-						public void run() {
-							SwingUtilities.invokeLater(new Runnable() {
-
-								@Override
-								public void run() {
-									next.start();
-								}
-							});
-						};
-					}.start();
-				} else {
+				@Override
+				public void bubbleClosed(BubbleWindow bw) {
+					bw.removeBubbleListener(this);
+					stepCanceled();
 					Step.this.writeStateToFile();
 					Step.this.notifyListeners();
 				}
-				bw.removeBubbleListener(this);
-			}
-		});
-		if(callVisible)
-		bubble.setVisible(true);
+
+				@Override
+				public void actionPerformed(BubbleWindow bw) {
+					if (getNext() != null) {
+						new Thread() {
+
+							public void run() {
+								SwingUtilities.invokeLater(new Runnable() {
+
+									@Override
+									public void run() {
+										getNext().start();
+									}
+								});
+							};
+						}.start();
+					} else {
+						Step.this.writeStateToFile();
+						Step.this.notifyListeners();
+					}
+					bw.removeBubbleListener(this);
+				}
+			});
+				bubble.setVisible(true);
+		}
 	}
 
 	/**
@@ -161,7 +168,7 @@ public abstract class Step {
 	 * notifies the {@link TourListener}s that the Tour has finished or was closed.
 	 */
 	protected void notifyListeners() {
-		if(listeners == null)
+		if (listeners == null)
 			return;
 		for (TourListener listen : listeners) {
 			listen.tourClosed();
@@ -169,5 +176,9 @@ public abstract class Step {
 	}
 
 	/** Can be overridden by subclasses (e.g. to remove Listeners). */
-	protected void stepCanceled() {}
+	protected abstract void stepCanceled();
+
+	/** ensures that the Bubble can be displayed */
+	public abstract Step[] getPreconditions();
+
 }

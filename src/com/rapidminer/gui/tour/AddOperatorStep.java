@@ -27,6 +27,7 @@ import java.awt.Window;
 
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.processeditor.NewOperatorEditor;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.operator.ExecutionUnit;
@@ -106,7 +107,7 @@ public class AddOperatorStep extends Step {
 	}
 
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.getDockableByKey(targetDockKey));
 		listener = new ProcessSetupListener() {
 
@@ -139,13 +140,18 @@ public class AddOperatorStep extends Step {
 			public void executionOrderChanged(ExecutionUnit unit) {}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
-		return bubble;
+		return true;
 	}
 	
 	@Override
 	protected void stepCanceled() {
 		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", NewOperatorEditor.NEW_OPERATOR_DOCK_KEY)};
 	}
 
 }

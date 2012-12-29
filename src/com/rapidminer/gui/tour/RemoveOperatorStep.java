@@ -78,7 +78,7 @@ public class RemoveOperatorStep extends Step {
 	}
 
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 		if (component == null) {
 			if (buttonKey == null)
 				throw new IllegalArgumentException("Component is null. Please add any Component to attach to ");
@@ -116,13 +116,18 @@ public class RemoveOperatorStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
-		return bubble;
+		return true;
 	}
 
 	@Override
 	protected void stepCanceled() {
 		if(listener != null)
 		RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {new PerspectivesStep(1)};
 	}
 
 }

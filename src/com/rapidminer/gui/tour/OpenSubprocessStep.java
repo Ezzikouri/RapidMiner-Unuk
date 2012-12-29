@@ -30,7 +30,6 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
-import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
 
 /**
@@ -103,7 +102,7 @@ public class OpenSubprocessStep extends Step {
 	}
 
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 		if (attachTo == null) {
 			if(attachToKey == null)
 				throw new IllegalArgumentException("Component attachTo and Buttenkey attachToKey are null. Please add any Component to attach to ");
@@ -124,12 +123,17 @@ public class OpenSubprocessStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().addProcessRendererListener(listener);
-		return bubble;
+		return true;
 	}
 
 	@Override
 	protected void stepCanceled () {
 		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().removeProcessRendererListener(listener);
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {new PerspectivesStep(1)};
 	}
 }

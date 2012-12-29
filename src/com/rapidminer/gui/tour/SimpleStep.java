@@ -55,9 +55,19 @@ public class SimpleStep extends Step {
 	}
 	
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 		bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey, true);
-		return bubble;
+		return true;
+	}
+
+	@Override
+	protected void stepCanceled() {
+		// the BubbleWindow will do everything what is necessary
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {};
 	}
 
 }

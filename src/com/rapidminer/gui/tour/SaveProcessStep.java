@@ -69,7 +69,7 @@ public class SaveProcessStep extends Step {
 	}
 	
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 		if(buttonKey == null)
 			throw new IllegalArgumentException("NO Buttonkey to attach to. Please enter a Buttonkey or call Constructor without Buttonkey");
 		bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey, false);
@@ -88,13 +88,18 @@ public class SaveProcessStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addProcessStorageListener(listener);
-		return bubble;
+		return true;
 	}
 	
 	@Override
 	protected void stepCanceled() {
 		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessStorageListener(listener);
+	}
+
+	@Override
+	public Step [] getPreconditions() {
+		return new Step[] {};
 	}
 
 }

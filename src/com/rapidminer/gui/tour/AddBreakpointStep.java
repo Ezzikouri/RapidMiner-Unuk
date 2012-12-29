@@ -28,6 +28,7 @@ import java.awt.Window;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.operator.ExecutionUnit;
@@ -53,7 +54,7 @@ public class AddBreakpointStep extends Step {
 	private Alignment alignment;
 	private Window owner;
 	private Position position;
-	private String buttonKey;
+	private String buttonKey = "breakpoint_after";
 	private ProcessSetupListener listener = null;
 
 	/**
@@ -70,7 +71,6 @@ public class AddBreakpointStep extends Step {
 		this.i18nKey = i18nKey;
 		this.position = position;
 		this.operator = operator;
-		this.buttonKey = null;
 	}
 
 	/**
@@ -91,15 +91,9 @@ public class AddBreakpointStep extends Step {
 	}
 
 	@Override
-	BubbleWindow createBubble() {
-		if (buttonKey == null) {
-			bubble = new BubbleWindow(owner, alignment, i18nKey, "breakpoint_after", false);
-		} else {
+	boolean createBubble() {
 			bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey, false);
-		}
-
-		
-				listener = new ProcessSetupListener() {
+			listener = new ProcessSetupListener() {
 
 			@Override
 			public void operatorRemoved(Operator operator, int oldIndex, int oldIndexAmongEnabled) {
@@ -137,12 +131,17 @@ public class AddBreakpointStep extends Step {
 			}
 		};
 				RapidMinerGUI.getMainFrame().getProcess().addProcessSetupListener(listener);
-		return bubble;
+		return true;
 	}
 	
 	@Override
 	protected void stepCanceled() {
 		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessSetupListener(listener);
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY), new NotWatchableStep(alignment, owner, buttonKey, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY)};
 	}
 }

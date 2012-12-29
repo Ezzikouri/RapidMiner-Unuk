@@ -81,7 +81,7 @@ public class OpenProcessStep extends Step {
 	}
 
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 		if (attachTo == null) {
 			if (attachToKey == null)
 				throw new IllegalArgumentException("no component to attach !");
@@ -100,12 +100,17 @@ public class OpenProcessStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().addProcessStorageListener(listener);
-		return bubble;
+		return true;
 	}
 	
 	@Override
 	protected void stepCanceled() {
 		if(listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeProcessStorageListener(listener);
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {};
 	}
 }

@@ -53,6 +53,7 @@ public class RapidMinerTour extends IntroductoryTour {
 	protected void buildTour() {
 		//create Steps which will be performed
 		step[0] = new SimpleStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "start", "new");
+//		step[0] = new PerspectivesStep(1);
 		step[1] = new SimpleStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "tryrun", "run");
 		step[2] = new AddOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "adddatabase", RepositorySource.class, RepositoryBrowser.REPOSITORY_BROWSER_DOCK_KEY);
 		step[3] = new AddOperatorStep(Alignment.LEFTBOTTOM, RapidMinerGUI.getMainFrame(), "dragdrop", AbstractTreeLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
@@ -62,7 +63,8 @@ public class RapidMinerTour extends IntroductoryTour {
 		step[7] = new ResumeFromBreakpointStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "goon", AbstractTreeLearner.class, "run");
 		step[8] = new SaveProcessStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "saveas", "save_as");
 		step[9] = new OpenProcessStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "open", "open");
-		step[10] = new RemoveOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "remove", AbstractTreeLearner.class, RapidMinerGUI.getMainFrame().getProcessPanel().getComponent());
+//		step[10] = new RemoveOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "remove", AbstractTreeLearner.class, RapidMinerGUI.getMainFrame().getProcessPanel().getComponent());
+		step[10] = new RemoveOperatorStep(Alignment.CENTER, RapidMinerGUI.getMainFrame(), "remove", AbstractTreeLearner.class, RapidMinerGUI.getMainFrame().getProcessPanel().getComponent());
 		step[11] = new AddOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "restore", AbstractLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
 		step[12] = new AddBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "restorebreakpoint", AbstractLearner.class, Position.BEFORE);
 		step[13] = new RemoveBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "removebreakpoint", AbstractLearner.class, Position.DONT_CARE);

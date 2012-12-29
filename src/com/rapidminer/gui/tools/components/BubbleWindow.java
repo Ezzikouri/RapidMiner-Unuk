@@ -42,6 +42,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
@@ -91,9 +92,12 @@ public class BubbleWindow extends JDialog {
 
 	private List<BubbleListener> listeners = new LinkedList<BubbleListener>();
 
-	/** Used to define the position of the pointer of the bubble. (Describes the corner which points to the component)*/
+	/** Used to define the position of the pointer of the bubble 
+	 * (Describes the corner which points to the component).
+	 * CENTER places the Bubble inside the Component. MIDDLE places the BubbleWindow in the middle of the mainframe( won't be checked by the BubbleWindow if chosen).
+	 */
 	public enum Alignment {
-		TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT, LEFTTOP, LEFTBOTTOM, RIGHTTOP, RIGHTBOTTOM
+		TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT, LEFTTOP, LEFTBOTTOM, RIGHTTOP, RIGHTBOTTOM, CENTER, MIDDLE;
 	}
 
 	private static RenderingHints HI_QUALITY_HINTS = new RenderingHints(null);
@@ -109,12 +113,16 @@ public class BubbleWindow extends JDialog {
 	private Shape shape;
 	private Alignment alignment;
 	private ActionListener listener;
+	
+	private String title;
+	private String text;
 
 	private ComponentAdapter movementListener;
 	private AbstractButton button;
 	private Component component;
 	private WindowAdapter windowListener;
 	private Window owner;
+	private ComponentListener compListener;
 
 	/**
 	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
@@ -166,37 +174,36 @@ public class BubbleWindow extends JDialog {
 
 	/**
 	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param i18nKey of the message which should be shown
 	 * @param ToAttach {@link Component} to which this {@link BubbleWindow} should be placed relative to. 
 	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
 	 */
-	public BubbleWindow(Window owner, final Alignment preferedAlignment, String i18nKey, Component toAttach) {
+	public BubbleWindow(Window owner, final Alignment preferredAlignment, String i18nKey, Component toAttach) {
 		super(owner);
 		this.owner = owner;
 		this.component = toAttach;
-		if (toAttach == null)
+		if (toAttach == null && !preferredAlignment.equals(Alignment.MIDDLE))
 			throw new IllegalArgumentException("the given Component is null !!!");
 		try {
-			this.alignment = this.calculateAlignment(preferedAlignment, toAttach);
+			this.alignment = this.calculateAlignment(preferredAlignment, toAttach);
 		} catch (Exception e) {
 			fireEventCloseClicked();
 			ErrorDialog dialog = new ErrorDialog("Component_not_on_Sreen");
 			dialog.setVisible(true);
 		}
-		this.component = toAttach;
 		setLayout(new BorderLayout());
 		setUndecorated(true);
 
-		String title = I18N.getGUIBundle().getString("gui.bubble." + i18nKey + ".title");
-		String text = I18N.getGUIBundle().getString("gui.bubble." + i18nKey + ".body");
+		title = I18N.getGUIBundle().getString("gui.bubble." + i18nKey + ".title");
+		text = I18N.getGUIBundle().getString("gui.bubble." + i18nKey + ".body");
 
 		addComponentListener(new ComponentAdapter() {
 
 			@Override
 			public void componentResized(ComponentEvent e) {
 				shape = createShape(alignment);
-
+				
 				String version = System.getProperty("java.version").substring(0, 3).replace(".", "");
 				try {
 					Integer versionNumber = Integer.valueOf(version);
@@ -205,7 +212,7 @@ public class BubbleWindow extends JDialog {
 						AWTUtilities.setWindowShape(BubbleWindow.this, shape);
 					} else if (versionNumber >= 17) {
 						// Java 7+
-						setShape(shape);
+//						setShape(shape);
 					}
 				} catch (Throwable t) {
 					LogService.getRoot().log(Level.WARNING, "Could not create shaped Bubble Windows. Error: " + t.getLocalizedMessage(), t);
@@ -239,6 +246,7 @@ public class BubbleWindow extends JDialog {
 			case TOPLEFT:
 				insets = new Insets(CORNER_RADIUS + 15, 10, 10, 10);
 				break;
+			case CENTER:
 			case TOPRIGHT:
 				insets = new Insets(CORNER_RADIUS + 15, 10, 10, 10);
 				break;
@@ -315,6 +323,132 @@ public class BubbleWindow extends JDialog {
 		pack();
 
 		positionRelative();
+	}
+	
+	private void paintAgain() {
+		alignment = this.calculateAlignment(alignment, component);
+		shape = createShape(alignment);
+		//choose the right call for the right version
+		String version = System.getProperty("java.version").substring(0, 3).replace(".", "");
+		try {
+			Integer versionNumber = Integer.valueOf(version);
+			if (versionNumber == 16) {
+				// Java SE 6 Update 10
+				AWTUtilities.setWindowShape(this, shape);
+			} else if (versionNumber >= 17) {
+				// Java 7+
+//				setShape(shape);
+			}
+		} catch (Throwable t) {
+			LogService.getRoot().log(Level.WARNING, "Could not create shaped Bubble Windows. Error: " + t.getLocalizedMessage(), t);
+		}
+		
+		GridBagLayout gbl = new GridBagLayout();
+		JPanel bubble = new JPanel(gbl) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void paintComponent(Graphics gr) {
+				super.paintComponent(gr);
+				Graphics2D g = (Graphics2D) gr;
+				g.setColor(SwingTools.LIGHT_BROWN_FONT_COLOR);
+				g.setStroke(new BasicStroke(3));
+				g.setRenderingHints(HI_QUALITY_HINTS);
+				g.draw(AffineTransform.getTranslateInstance(-.5, -.5).createTransformedShape(getShape()));
+			}
+		};
+		bubble.setBackground(SwingTools.LIGHTEST_YELLOW);
+		bubble.setSize(getSize());
+		getContentPane().add(bubble, BorderLayout.CENTER);
+		
+		
+		GridBagConstraints c = new GridBagConstraints();
+		Insets insets = new Insets(10, 10, 10, 10);
+		Insets lInsets = new Insets(0, 10, 10, 10);
+		switch (alignment) {
+			case TOPLEFT:
+				insets = new Insets(CORNER_RADIUS + 15, 10, 10, 10);
+				break;
+			case CENTER:
+			case TOPRIGHT:
+				insets = new Insets(CORNER_RADIUS + 15, 10, 10, 10);
+				break;
+			case LEFTTOP:
+				insets = new Insets(10, CORNER_RADIUS + 15, 10, 10);
+				lInsets = new Insets(0, CORNER_RADIUS + 15, 10, 10);
+				break;
+			case LEFTBOTTOM:
+				insets = new Insets(10, CORNER_RADIUS + 15, 10, 10);
+				lInsets = new Insets(0, CORNER_RADIUS + 15, 10, 10);
+				break;
+			case BOTTOMRIGHT:
+				insets = new Insets(10, 10, 10, 10);
+				lInsets = new Insets(0, 10, CORNER_RADIUS + 15, 10);
+				break;
+			case BOTTOMLEFT:
+				insets = new Insets(10, 10, 10, 10);
+				lInsets = new Insets(0, 10, CORNER_RADIUS + 15, 10);
+				break;
+			case RIGHTTOP:
+				insets = new Insets(10, 10, 10, CORNER_RADIUS + 15);
+				lInsets = new Insets(0, 10, 10, CORNER_RADIUS + 15);
+				break;
+			case RIGHTBOTTOM:
+				insets = new Insets(10, 10, 10, CORNER_RADIUS + 15);
+				lInsets = new Insets(0, 10, 10, CORNER_RADIUS + 15);
+				break;
+			default:
+				// change nothing for MIDDLE
+		}
+		
+		c.insets = insets;
+		c.fill = GridBagConstraints.BOTH;
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.weightx = 1;
+		c.weighty = 0;
+		c.gridwidth = GridBagConstraints.RELATIVE;
+		JLabel label = new JLabel(title);
+		bubble.add(label, c);
+		label.setMinimumSize(new Dimension(WINDOW_WIDTH, 12));
+		label.setPreferredSize(new Dimension(WINDOW_WIDTH, 12));
+		label.setFont(label.getFont().deriveFont(Font.BOLD));
+
+		c.weightx = 0;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.insets = insets;
+		JButton close = new JButton("x");
+		close.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				BubbleWindow.this.dispose();
+				fireEventCloseClicked();
+				unregister();
+			}
+
+		});
+		close.setMargin(new Insets(0, 5, 0, 5));
+		bubble.add(close, c);
+
+		ExtendedHTMLJEditorPane mainText = new ExtendedHTMLJEditorPane("text/html", "<div style=\"width:" + WINDOW_WIDTH + "px\">" + text + "</div>");
+		mainText.setMargin(new Insets(0, 0, 0, 0));
+		mainText.installDefaultStylesheet();
+		mainText.setOpaque(false);
+		mainText.setEditable(false);
+		mainText.setFont(mainText.getFont().deriveFont(Font.PLAIN));
+		mainText.setMinimumSize(new Dimension(150, 20));
+		//mainText.setPreferredSize(new Dimension(200, 200));
+		mainText.setMaximumSize(new Dimension(WINDOW_WIDTH, 800));
+		c.insets = lInsets;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.weightx = 1;
+		c.weighty = 1;
+		bubble.add(mainText, c);
+
+		pack();
+		
+		pointAtComponent();
 	}
 
 	/**
@@ -426,6 +560,7 @@ public class BubbleWindow extends JDialog {
 				gp.quadTo(0, 0, 0, o);
 				gp.lineTo(0, h + o);
 				break;
+			case CENTER:
 			case RIGHTTOP:
 				gp.moveTo(o, 0);
 				gp.quadTo(0, 0, 0, o);
@@ -435,6 +570,17 @@ public class BubbleWindow extends JDialog {
 				gp.quadTo((w + o), h + (2 * o), (w + o), (h + o));
 				gp.lineTo((w + o), o);
 				gp.lineTo(w + (2 * o), 0);
+				gp.lineTo(o, 0);
+				break;
+			case MIDDLE:
+				gp.moveTo(o, 0);
+				gp.quadTo(0, 0, 0, o);
+				gp.lineTo(0, (h + o));
+				gp.quadTo(0, h + (2 * o), o, h + (2 * o));
+				gp.lineTo(w + o, h + (2*o));
+				gp.quadTo(w + (2*o), h + (2*o), w + (2*o), h + o);
+				gp.lineTo(w + (2*o), o);
+				gp.quadTo(w + (2*o), 0, w + o, 0);
 				gp.lineTo(o, 0);
 				break;
 			default:
@@ -448,7 +594,7 @@ public class BubbleWindow extends JDialog {
 	 */
 	private void positionRelative() {
 
-		pointAtComponent(this.component);
+		pointAtComponent();
 
 		registerMovementListener();
 	}
@@ -457,11 +603,11 @@ public class BubbleWindow extends JDialog {
 	 * places the Bubble-speech so that it points to the Component 
 	 * @param component component to point to
 	 */
-	private void pointAtComponent(Component component) {
-		int x = (int) component.getLocationOnScreen().getX();
-		int y = (int) component.getLocationOnScreen().getY();
-		int h = component.getHeight();
-		int w = component.getWidth();
+	private void pointAtComponent() {
+		int x = (int) this.component.getLocationOnScreen().getX();
+		int y = (int) this.component.getLocationOnScreen().getY();
+		int h = this.component.getHeight();
+		int w = this.component.getWidth();
 		double targetx = 0;
 		double targety = 0;
 		Point target = new Point(0, 0);
@@ -498,6 +644,13 @@ public class BubbleWindow extends JDialog {
 				targetx = x + 0.5 * w - getWidth();
 				targety = y - getHeight();
 				break;
+			case CENTER:
+				targetx = x + w - getWidth();
+				targety = y + 0.5*h;
+				break;
+			case MIDDLE:
+				targetx = owner.getWidth()*0.5 - getWidth()*0.5;
+				targety = owner.getHeight()*0.5 - getHeight()*0.5;
 			default:
 		}
 
@@ -518,7 +671,57 @@ public class BubbleWindow extends JDialog {
 				return ds.getDockable().getComponent().getParent().getParent();
 			}
 		}
-		throw new IllegalArgumentException("No such dockable: " + dockableKey);
+		return null;
+	}
+	
+	/**
+	 * method to get to know whether the dockable with the given key is on Screen
+	 * @param dockableKey i18nKey of the wanted Dockable
+	 * @return returns 1 if the Dockable is on the Screen, 0 if the Dockable is on Screen but the user can not see it with the current settings of the perspective and -1 if the Dockable is not on the Screen. 
+	 */
+	public static int isDockableOnScreen(String dockableKey) {
+		Component onScreen;
+		try { onScreen = BubbleWindow.getDockableByKey(dockableKey);} 
+		catch (NullPointerException e) {
+			return -1;
+		}
+		if(onScreen == null)
+			return -1;
+		int xposition = onScreen.getX();
+		int yposition = onScreen.getY();
+		if(xposition < 0 || yposition < 0)
+			return 0;
+		xposition += onScreen.getWidth();
+		yposition += onScreen.getHeight();
+		Window frame = RapidMinerGUI.getMainFrame();
+		if(xposition >= frame.getWidth() || yposition >= frame.getHeight())
+			return 0;
+		return 1;
+	}
+	
+	/**
+	 * method to get to know whether the AbstractButton with the given key is on Screen
+	 * @param dockableKey i18nKey of the wanted AbstractButton
+	 * @return returns 1 if the AbstractButton is on the Screen, 0 if the AbstractButton is on Screen but the user can not see it with the current settings of the perspective and -1 if the AbstractButton is not on the Screen. 
+	 */
+	public static int isButtonOnScreen(String buttonKey) {
+		Component onScreen; 
+		try { onScreen = BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame()); }
+		catch (NullPointerException e) {
+			return -1;
+		}
+		if(onScreen == null)
+			return -1;
+		int xposition = onScreen.getLocationOnScreen().x;
+		int yposition = onScreen.getLocationOnScreen().y;
+		if(xposition < 0 || yposition < 0)
+			return 0;
+		xposition += onScreen.getWidth();
+		yposition += onScreen.getHeight();
+		Window frame = RapidMinerGUI.getMainFrame();
+		if(xposition >= frame.getWidth() || yposition >= frame.getHeight())
+			return 0;
+		return 1;
 	}
 
 	/** Positions the window such that the pointer points to the given button. 
@@ -586,19 +789,20 @@ public class BubbleWindow extends JDialog {
 			@Override
 			public void componentMoved(ComponentEvent e) {
 				super.componentMoved(e);
-				BubbleWindow.this.pointAtComponent(BubbleWindow.this.component);
+				BubbleWindow.this.pointAtComponent();
 			}
 
 			@Override
 			public void componentResized(ComponentEvent e) {
 				super.componentResized(e);
-				BubbleWindow.this.pointAtComponent(BubbleWindow.this.component);
+				BubbleWindow.this.pointAtComponent();
+				BubbleWindow.this.setVisible(true);
 			}
 
 			@Override
 			public void componentShown(ComponentEvent e) {
 				super.componentShown(e);
-				BubbleWindow.this.pointAtComponent(BubbleWindow.this.component);
+				BubbleWindow.this.pointAtComponent();
 				BubbleWindow.this.setVisible(true);
 			}
 
@@ -621,10 +825,46 @@ public class BubbleWindow extends JDialog {
 			public void windowDeiconified(WindowEvent e) {
 				super.windowDeiconified(e);
 				BubbleWindow.this.setVisible(true);
-				BubbleWindow.this.pointAtComponent(component);
+				BubbleWindow.this.pointAtComponent();
 			}
 
 		};
+		//TODO: make it work
+		compListener = new ComponentListener() {
+			
+			@Override
+			public void componentShown(ComponentEvent e) {
+				BubbleWindow.this.pointAtComponent();
+				BubbleWindow.this.setVisible(true);
+			}
+			
+			@Override
+			public void componentResized(ComponentEvent e) {
+				if(BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment, component))) {
+					BubbleWindow.this.pointAtComponent();
+				} else {
+					BubbleWindow.this.paintAgain();
+				}
+				BubbleWindow.this.setVisible(true);
+			}
+			
+			@Override
+			public void componentMoved(ComponentEvent e) {
+				if(BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment, component))) {
+					BubbleWindow.this.pointAtComponent();
+				} else {
+					BubbleWindow.this.paintAgain();
+				}
+				BubbleWindow.this.setVisible(true);
+			}
+			
+			@Override
+			public void componentHidden(ComponentEvent e) {
+				BubbleWindow.this.setVisible(false);
+			}
+		};
+		 
+		this.component.addComponentListener(compListener);
 		RapidMinerGUI.getMainFrame().addComponentListener(movementListener);
 		RapidMinerGUI.getMainFrame().addWindowStateListener(windowListener);
 	}
@@ -634,10 +874,11 @@ public class BubbleWindow extends JDialog {
 			button.removeActionListener(listener);
 		}
 	}
-
+	
 	private void unregisterMovementListener() {
 		RapidMinerGUI.getMainFrame().removeComponentListener(movementListener);
 		RapidMinerGUI.getMainFrame().removeWindowStateListener(windowListener);
+		component.removeComponentListener(compListener);
 	}
 
 	/**
@@ -666,48 +907,133 @@ public class BubbleWindow extends JDialog {
 	}
 
 	private Alignment calculateAlignment(Alignment preferedAlignment, Component component) {
+		if(Alignment.MIDDLE == preferedAlignment) {
+			return preferedAlignment;
+		}
 		//get Mainframe size
 		int xframe = owner.getWidth();
 		int yframe = owner.getHeight();
-
+		
 		//location of Component
-		Point location = null;
-		location = component.getLocationOnScreen();
+		Point location = component.getLocationOnScreen();
 		double xloc = location.getX();
 		double yloc = location.getY();
 		//size of Component
 		int xSize = component.getWidth();
 		int ySize = component.getHeight();
-
-		if (yloc < (yframe / 2)) {
-			if (xloc < (xframe / 2)) {
-				//corner up-left
-				if (!(preferedAlignment == Alignment.TOPLEFT || preferedAlignment == Alignment.LEFTTOP) || (ySize > (yframe / 3))) {
-//					return Alignment.TOPLEFT;
-					return Alignment.LEFTTOP;
-				}
-			} else {
-				//corner up-right
-				if (!(preferedAlignment == Alignment.TOPRIGHT || preferedAlignment == Alignment.RIGHTTOP) || (ySize > (yframe / 3))) {
-//					return Alignment.TOPRIGHT;
-					return Alignment.RIGHTTOP;
-				}
+		//approximate Value of worstcase
+		double approximateValue = (WINDOW_WIDTH + CORNER_RADIUS)*1.5;
+//		double approximateValue = this.getWidth();
+		// 0 = space above the component
+		// 1 = space right of the component
+		// 2 = space below the component
+		// 3 = space left of the Component
+		double space[] = new double[4];
+		space[0] = yloc/approximateValue;
+		space[1] = (xframe-(xloc+xSize))/approximateValue;
+		space[2] = (yframe-(yloc+ySize))/approximateValue;
+		space[3] = xloc/approximateValue;
+		// check if the preferred Alignment is valid and take it if it is
+		switch(preferedAlignment) {
+			case TOPLEFT:
+				if(space[2] > 1)
+					return this.fineTuneAlignement(preferedAlignment, xframe, yframe, xloc, yloc, xSize, ySize);
+				break;
+			case TOPRIGHT:
+				if(space[2] > 1)
+					return this.fineTuneAlignement(preferedAlignment, xframe, yframe, xloc, yloc, xSize, ySize);
+				break;
+			case LEFTBOTTOM:
+				if(space[1] > 1)
+					return this.fineTuneAlignement(preferedAlignment, xframe, yframe, xloc, yloc, xSize, ySize);
+				break;
+			case LEFTTOP:
+				if(space[1] > 1)
+					return this.fineTuneAlignement(preferedAlignment, xframe, yframe, xloc, yloc, xSize, ySize);
+				break;
+			case RIGHTBOTTOM:
+				if(space[3] > 1)
+					return this.fineTuneAlignement(preferedAlignment, xframe, yframe, xloc, yloc, xSize, ySize);
+				break;
+			case RIGHTTOP:
+				if(space[3] > 1)
+					return this.fineTuneAlignement(preferedAlignment, xframe, yframe, xloc, yloc, xSize, ySize);
+				break;
+			case BOTTOMLEFT:
+				if(space[0] > 1)
+					return this.fineTuneAlignement(preferedAlignment, xframe, yframe, xloc, yloc, xSize, ySize);
+				break;
+			case BOTTOMRIGHT:
+				if(space[0] > 1)
+					return this.fineTuneAlignement(preferedAlignment, xframe, yframe, xloc, yloc, xSize, ySize);
+				break;
+			default:
+		}
+		//preferred Alignment was not valid. try to show bubble at the right side of the component
+		if(space[1] > 1)
+			return this.fineTuneAlignement(Alignment.LEFTTOP, xframe, yframe, xloc, yloc, xSize, ySize);
+		// take the best fitting place
+		int pointer=0;
+		for (int i = 0; i < space.length; i++) {
+			if(i==1)
+				i++;
+			if(space[i] > space[pointer])
+				pointer = i;
+		}
+		if(space[pointer] > 1) {
+			switch(pointer) {
+				case 0:
+					return this.fineTuneAlignement(Alignment.BOTTOMLEFT, xframe, yframe, xloc, yloc, xSize, ySize);
+				case 2:
+					return this.fineTuneAlignement(Alignment.TOPLEFT, xframe, yframe, xloc, yloc, xSize, ySize);
+				case 3:
+					return this.fineTuneAlignement(Alignment.RIGHTTOP, xframe, yframe, xloc, yloc, xSize, ySize);
+				default:
+					return null;
 			}
 		} else {
-			if (xloc < (xframe / 2)) {
-				//corner down-left
-				if (!(preferedAlignment == Alignment.BOTTOMLEFT || preferedAlignment == Alignment.LEFTBOTTOM) || (xSize > (xloc / 3))) {
-					return Alignment.BOTTOMLEFT;
-//					return Alignment.LEFTBOTTOM;
-				}
-			} else {
-				//corner down-right
-				if (!(preferedAlignment == Alignment.BOTTOMRIGHT || preferedAlignment == Alignment.RIGHTBOTTOM)) {
-//					return Alignment.RIGHTBOTTOM;
-					return Alignment.TOPRIGHT;
-				}
-			}
+			//can not place Bubble outside of the component so we take the right side of the inner of the Component.
+			return Alignment.CENTER;
 		}
-		return preferedAlignment;
+
+	}
+	
+	/** Whether we want the north-, south, west- or eastside of the {@link Component} was 
+	 * chosen before this method the decide in which direction the Bubble will expand
+	 */
+	private Alignment fineTuneAlignement(Alignment firstCompute,int xframe, int yframe, double xComp, double yComp, int compWidth, int compHeight) {
+		switch(firstCompute) {
+			case TOPLEFT:
+			case TOPRIGHT:
+				if ((xComp+(compWidth/2))> (xframe/2)) {
+					return Alignment.TOPRIGHT;
+				} else {
+					return Alignment.TOPLEFT;
+				}
+			case LEFTBOTTOM:
+			case LEFTTOP:
+				if((yComp+(compHeight/2))> (yframe/2)) {
+					return Alignment.LEFTBOTTOM;
+				} else {
+					return Alignment.LEFTTOP;
+				}
+			case RIGHTBOTTOM:
+			case RIGHTTOP:
+				if((yComp+(compHeight/2))> (yframe/2)) {
+					return Alignment.RIGHTBOTTOM;
+				} else {
+					return Alignment.RIGHTTOP;
+				}
+			case BOTTOMLEFT:
+			case BOTTOMRIGHT:
+				if ((xComp+(compWidth/2))> (xframe/2)) {
+					return Alignment.BOTTOMRIGHT;
+				} else {
+					return Alignment.BOTTOMLEFT;
+				}
+			default:
+				return Alignment.CENTER;
+		}
+		
 	}
 }

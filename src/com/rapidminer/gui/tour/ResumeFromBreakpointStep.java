@@ -107,11 +107,10 @@ public class ResumeFromBreakpointStep extends Step {
 		this.operatorClass = operatorClass;
 		this.position = position;
 		this.component = attachTo;
-		this.callVisible = false;
 	}
 
 	@Override
-	BubbleWindow createBubble() {
+	boolean createBubble() {
 		if (component == null) {
 			if (attachToKey == null)
 				throw new IllegalArgumentException("Buttonkey and Component is null. Please add any Component to attach");
@@ -147,13 +146,18 @@ public class ResumeFromBreakpointStep extends Step {
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcess().addBreakpointListener(listener);
-		return bubble;
+		return true;
 	}
 
 	@Override
 	protected void stepCanceled() {
 		if (listener != null)
 			RapidMinerGUI.getMainFrame().getProcess().removeBreakpointListener(listener);
+	}
+
+	@Override
+	public Step[] getPreconditions() {
+		return new Step[] {};
 	}
 
 }
