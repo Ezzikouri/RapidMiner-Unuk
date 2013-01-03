@@ -1,5 +1,5 @@
 Changes from RapidMiner 5.2.6 to 5.2.8
-
+--------------------------------------
 * Send Mail operator has a new behavior: Stop process and show error if mail cannot be send
 * Send Mail operator has a new parameter: 'Ignore errors'
 * Write CSV operator has a new parameter: 'Append to file'

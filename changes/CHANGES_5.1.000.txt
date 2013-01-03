@@ -1,5 +1,5 @@
 Changes from RapidMiner 5.0 to 5.1
-
+----------------------------------
  * Added RapidAnalytics connectivity
  * Added new repository type that reflects database connections
  * Added type-specific icons to repository tree

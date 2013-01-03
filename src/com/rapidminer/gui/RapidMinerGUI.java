@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -193,6 +193,8 @@ public class RapidMinerGUI extends RapidMiner {
 	private static LinkedList<ProcessLocation> recentFiles = new LinkedList<ProcessLocation>();
 
 	private static ResultHistory resultHistory = new ResultHistory();
+
+	private static SafeMode safeMode;
 
 	/**
 	 * This thread listens for System shutdown and cleans up after shutdown.
@@ -526,7 +528,7 @@ public class RapidMinerGUI extends RapidMiner {
 		}
 
         if (shouldLaunch) {
-        	SafeMode safeMode = new SafeMode();
+        	safeMode = new SafeMode();
         	safeMode.launchStarts();
             launch(args);
             safeMode.launchComplete();
@@ -548,5 +550,12 @@ public class RapidMinerGUI extends RapidMiner {
 		}
 		RapidMiner.setInputHandler(new GUIInputHandler());
 		new RapidMinerGUI().run(openLocation);        
+	}
+
+	/**
+	 * @return the safeMode
+	 */
+	public static SafeMode getSafeMode() {
+		return safeMode;
 	}
 }

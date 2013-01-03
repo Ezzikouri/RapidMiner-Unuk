@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.operator.nio.file;
 
 import java.io.File;
@@ -30,6 +29,7 @@ import java.io.InputStream;
 
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.repository.BlobEntry;
+import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.Tools;
@@ -56,13 +56,18 @@ public class RepositoryBlobObject extends FileObject {
 
 	@Override
 	public InputStream openStream() throws OperatorException {
-		BlobEntry entry;
+		BlobEntry blobEntry;
 		try {
-			if (location.locateEntry() instanceof BlobEntry) {
-				entry = (BlobEntry) location.locateEntry();
-				return entry.openInputStream();
+			Entry entry = location.locateEntry();
+			if (entry != null) {
+				if (entry instanceof BlobEntry) {
+					blobEntry = (BlobEntry) entry;
+					return blobEntry.openInputStream();
+				} else {
+					throw new OperatorException("942", null, location.getPath(), "blob", entry.getType());
+				}
 			} else {
-				throw new OperatorException("942", null, location.getPath(), "blob", location.locateEntry().getType());
+				throw new OperatorException("312", null, location.getPath(), "entry does not exist");
 			}
 		} catch (RepositoryException e) {
 			throw new OperatorException("319", e, location.getPath());

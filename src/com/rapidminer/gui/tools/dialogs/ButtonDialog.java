@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -402,7 +402,7 @@ public class ButtonDialog extends JDialog {
 
 	/** Will be default button and listen to ESCAPE. */
 	protected JButton makeCloseButton() {
-		Action Action = new ResourceAction("close") {
+		Action action = new ResourceAction("close") {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -411,8 +411,8 @@ public class ButtonDialog extends JDialog {
 			}			
 		};
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false), "CLOSE");  
-		getRootPane().getActionMap().put("CLOSE", Action);
-		JButton button = new JButton(Action);
+		getRootPane().getActionMap().put("CLOSE", action);
+		JButton button = new JButton(action);
 		getRootPane().setDefaultButton(button);
 		return button;
 	}

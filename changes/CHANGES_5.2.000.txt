@@ -1,5 +1,5 @@
 Changes from RapidMiner 5.1 to 5.2
-
+----------------------------------
 * Added "Advanced Charts" view 
 * Added "File" objects to pass to reader operators. 
   - Added operators to open files and URL connections

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
@@ -45,11 +44,11 @@ public class SafeMode {
 
 	private File lockFile;
 	private boolean safeMode = false;
-	
+
 	public SafeMode() {
 		lockFile = FileSystemService.getUserConfigFile("safeMode.lock");
 	}
-	
+
 	/** Call at the beginning of the startup phase. */
 	public void launchStarts() {
 		if (lockFile.exists()) {
@@ -64,11 +63,11 @@ public class SafeMode {
 		try {
 			lockFile.createNewFile();
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.INFO, 
+			LogService.getRoot().log(Level.INFO,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
-                    		"com.rapidminer.gui.safemode.SafeMode.cannot_create_lock", 
-                    		lockFile),
-                    e);
+							"com.rapidminer.gui.safemode.SafeMode.cannot_create_lock",
+							lockFile),
+					e);
 		}
 	}
 
@@ -79,18 +78,20 @@ public class SafeMode {
 	}
 
 	public void launchComplete() {
-		// Delete lock on end of startup
-		if (!lockFile.delete()) {
-			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.safemode.SafeMode.failed_to_delete_log_file", lockFile);
+		if (lockFile.exists()) {
+			// Delete lock on end of startup
+			if (!lockFile.delete()) {
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.safemode.SafeMode.failed_to_delete_log_file", lockFile);
+			}
 		}
 	}
-	
+
 	public boolean isSafeMode() {
 		return safeMode;
 	}
-	
+
 	private boolean askForSafeMode() {
-		int result = SwingTools.showConfirmDialog("safemode.enter_safe_mode", ConfirmDialog.YES_NO_OPTION);
+		int result = SafeModeDialog.showSafeModeDialog("safemode.enter_safe_mode", ConfirmDialog.YES_NO_OPTION);
 		return result == ConfirmDialog.YES_OPTION;
 	}
 

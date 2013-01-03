@@ -1,5 +1,5 @@
 Changes from RapidMiner 5.2.3 to 5.2.6
-
+--------------------------------------
 * Read SAS operator
 * Added timezone parameter to Date to Nominal operator
 * Excel 2007 support
