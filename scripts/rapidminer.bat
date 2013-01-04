@@ -202,7 +202,7 @@ if %JAVA_MINOR% GEQ 7 goto :startMultiCoreMode_withG1GC
 
 :startMultiCoreMode_withG1GC
 @echo Starting in multicore mode with G1 garbage collector...
-"%JAVA%" -XX:+OptimizeStringConcat -XX:+UseStringCache -XX:+AggressiveOpts -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:ConcGCThreads=%NUMBER_OF_GC_THREADS% -XX:ParallelGCThreads=%NUMBER_OF_PROCESSORS% -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% com.rapidminer.RapidMinerCommandLine %CMD_LINE_ARGS%
+"%JAVA%" -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:ConcGCThreads=%NUMBER_OF_GC_THREADS% -XX:ParallelGCThreads=%NUMBER_OF_PROCESSORS% -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% com.rapidminer.RapidMinerCommandLine %CMD_LINE_ARGS%
 :startEnd
 
 "%JAVA%" 

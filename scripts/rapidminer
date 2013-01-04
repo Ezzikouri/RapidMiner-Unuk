@@ -45,6 +45,12 @@ echo Java version: $JAVA_VERSION
 
 # Get number of cores
 NUMBER_OF_CORES=$(grep -c ^processor /proc/cpuinfo)
+
+# If number of cores is not stored in /proc/cpuinfo, we must be running on a mac 
+if [ -z "$NUMBER_OF_CORES" ] ; then
+	NUMBER_OF_CORES=$(sysctl -n hw.ncpu)
+fi
+
 echo Number of cores: $NUMBER_OF_CORES
 
 NUMBER_OF_THREADS=1
@@ -144,7 +150,7 @@ then
 	if [ $JAVA_VERSION -ge 17 ]
 	then
 		echo Starting with G1 garbage collector
-	    ADDITIONAL_OPTIONS="$ADDITIONAL_OPTIONS -XX:+OptimizeStringConcat -XX:+UseStringCache -XX:+AggressiveOpts -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:InitiatingHeapOccupancyPercent=0"
+	    ADDITIONAL_OPTIONS="$ADDITIONAL_OPTIONS -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:InitiatingHeapOccupancyPercent=0"
 	else
 		echo Starting with CMS garbage collector
 		ADDITIONAL_OPTIONS="$ADDITIONAL_OPTIONS -XX:+UseParallelGC -XX:+UseParallelOldGC"
