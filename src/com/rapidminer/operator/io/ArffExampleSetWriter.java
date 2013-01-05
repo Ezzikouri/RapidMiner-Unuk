@@ -32,6 +32,7 @@ import java.util.List;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.table.NumericalAttribute;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.parameter.ParameterType;
@@ -117,7 +118,9 @@ public class ArffExampleSetWriter extends AbstractStreamWriter {
 						out.print("?");
 					else
 						out.print("'" + example.getValueAsString(current) + "'");
-				} else {
+				}else if (current.isDateTime())					
+					out.print(example.getValueAsString(current, NumericalAttribute.UNLIMITED_NUMBER_OF_DIGITS, true));
+				else {
 					out.print(example.getValueAsString(current));
 				}
 				first = false;
@@ -143,7 +146,9 @@ public class ArffExampleSetWriter extends AbstractStreamWriter {
 			}
 			nominalValues.append("}");
 			out.print(nominalValues.toString());
-		} else {
+		} else if (attribute.isDateTime()) 
+			out.print("DATE \"dd/mm/yyyy HH:mm:ss aa zzz\"");
+		else {
 			out.print("real");
 		}
 		out.println();

@@ -56,7 +56,7 @@ public class ResourceRepository extends ResourceFolder implements Repository {
 		setRepository(this);
 	}
 	
-	protected String getResourceRooot() {
+	protected String getResourceRoot() {
 		return resourcePrefix;
 	}
 

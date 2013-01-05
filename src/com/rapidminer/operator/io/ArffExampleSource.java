@@ -33,6 +33,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -123,6 +124,11 @@ public class ArffExampleSource extends AbstractDataReader {
 
 	public ArffExampleSource(OperatorDescription description) {
 		super(description);
+		/*
+		 * There is no need to guess value types for Arff, as arff already contains the metadata
+		 * about attributes
+		 */
+		this.skipGuessingValueTypes = true;
 	}
 	
 	@Override
@@ -140,7 +146,9 @@ public class ArffExampleSource extends AbstractDataReader {
 			
 			private String[] tokens = null;
 			
-			{
+			private HashMap<Integer,String> datePattern = new HashMap<Integer, String>();
+			
+			{	
 				inputStream = filePortHandler.openSelectedFile();
 				in = new BufferedReader(new InputStreamReader(inputStream, Encoding.getEncoding(ArffExampleSource.this)));
 				tokenizer = createTokenizer(in);
@@ -189,7 +197,9 @@ public class ArffExampleSource extends AbstractDataReader {
 						} else if (tokenizer.sval.equalsIgnoreCase("string")) {
 							valueType = Ontology.STRING;
 						} else if (tokenizer.sval.equalsIgnoreCase("date")) {
-							valueType = Ontology.DATE;
+							valueType = Ontology.DATE_TIME;
+							Tools.getNextToken(tokenizer);
+							datePattern.put(attributeNamesList.indexOf(attributeName), tokenizer.sval);
 						}
 						Tools.waitForEOL(tokenizer);
 						valueSet = null;
@@ -338,7 +348,12 @@ public class ArffExampleSource extends AbstractDataReader {
 
 			@Override
 			public Date getDate(int columnIndex) {
+				String pattern = this.datePattern.get(columnIndex);
 				try {
+					if(pattern != null){
+						SimpleDateFormat format = new SimpleDateFormat(pattern);
+						return format.parse(tokens[columnIndex]);
+					}
 					return dateFormat.parse(tokens[columnIndex]);					
 				} catch (ParseException e) {
 				}

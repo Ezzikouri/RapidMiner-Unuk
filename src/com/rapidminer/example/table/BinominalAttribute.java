@@ -69,4 +69,9 @@ public class BinominalAttribute extends NominalAttribute {
 	public void setMapping(NominalMapping newMapping) {
 		this.nominalMapping = newMapping;
 	}
+
+	@Override
+	public boolean isDateTime() {
+		return false;
+	}
 }

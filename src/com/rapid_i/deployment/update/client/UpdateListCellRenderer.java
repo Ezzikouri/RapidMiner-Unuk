@@ -31,6 +31,7 @@ import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -38,6 +39,8 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
+
+import jxl.format.Border;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
@@ -136,7 +139,8 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 
 		
 		if (isSelected) {
-			panel.setBackground(SwingTools.LIGHT_BLUE);
+			panel.setBackground(SwingTools.DARKEST_BLUE);
+			panel.setBorder(BorderFactory.createLineBorder(Color.black));
 		} else {
 			if (index % 2 == 0) {
 				panel.setBackground(Color.WHITE);

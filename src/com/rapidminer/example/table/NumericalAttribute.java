@@ -118,4 +118,9 @@ public class NumericalAttribute extends AbstractAttribute {
 			}
 		}
 	}
+
+	@Override
+	public boolean isDateTime() {
+		return false;
+	}
 }

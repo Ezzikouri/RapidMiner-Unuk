@@ -114,7 +114,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 
 	private RepositoryManager() {
 		if (sampleRepository == null) {
-			sampleRepository = new ResourceRepository(SAMPLE_REPOSITORY_NAME, "/" + Tools.RESOURCE_PREFIX + "samples");
+			sampleRepository = new ResourceRepository(SAMPLE_REPOSITORY_NAME, "samples");
 		}
 		repositories.add(sampleRepository);
 		repositories.add(new DBRepository());

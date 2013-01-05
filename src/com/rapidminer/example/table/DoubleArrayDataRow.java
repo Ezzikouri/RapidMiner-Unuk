@@ -41,6 +41,15 @@ public class DoubleArrayDataRow extends DataRow {
 		this.data = data;
 	}
 	
+	public DoubleArrayDataRow(DoubleArrayDataRow dataRow) {
+		this.data = dataRow.getData();
+	}
+	
+		
+	public double[] getData() {
+		return data;
+	}
+
 	@Override
 	protected double get(int index, double defaultValue) {
 		return data[index];

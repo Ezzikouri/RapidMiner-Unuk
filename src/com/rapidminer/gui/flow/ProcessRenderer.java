@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.flow;
 
 import java.awt.BasicStroke;
@@ -484,6 +485,8 @@ public class ProcessRenderer extends JPanel {
 
 	private boolean hasDragged = false;
 
+	private int pressedMouseButton = 0;
+
 	private Rectangle2D selectionRectangle = null;
 
 	private Map<Operator, Rectangle2D> draggedOperatorsOrigins;
@@ -501,7 +504,7 @@ public class ProcessRenderer extends JPanel {
 	private Port hoveringPort = null;
 
 	/** Source port of the connection currently being created. */
-	private OutputPort connectingPortSource = null;
+	private Port connectingPortSource = null;
 
 	/** Index of the process under the mouse. */
 	private int hoveringProcessIndex = -1;
@@ -531,7 +534,7 @@ public class ProcessRenderer extends JPanel {
 	private final ReceivingOperatorTransferHandler transferHandler;
 
 	private final FlowVisualizer flowVisualizer = new FlowVisualizer(this);
-	
+
 	/**List of Listeners from a {@link IntroductoryTour} which waits for the moment that something is opened */
 	private LinkedList<ProcessRendererListener> listenersTour;
 
@@ -779,9 +782,9 @@ public class ProcessRenderer extends JPanel {
 
 		init();
 	}
-	
+
 	@Override
-	public void addNotify() {	
+	public void addNotify() {
 		super.addNotify();
 		// we do this here to avoid being overridden by main frame
 		RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
@@ -1216,7 +1219,7 @@ public class ProcessRenderer extends JPanel {
 		// render ports
 		renderPorts(processes[index].getInnerSources(), null, g, true);
 		renderPorts(processes[index].getInnerSinks(), null, g, true);
-		renderConnections(processes[index].getInnerSources(), g);
+		renderConnections(processes[index].getInnerSinks(), processes[index].getInnerSources(), g);
 
 		flowVisualizer.render(g, processes[index]);
 	}
@@ -1469,7 +1472,7 @@ public class ProcessRenderer extends JPanel {
 		}
 
 		// Ports
-		renderConnections(operator.getOutputPorts(), g);
+		renderConnections(operator.getInputPorts(), operator.getOutputPorts(), g);
 		renderPorts(operator.getInputPorts(), baseColor, g, operator.isEnabled());
 		renderPorts(operator.getOutputPorts(), baseColor, g, operator.isEnabled());
 
@@ -1577,7 +1580,14 @@ public class ProcessRenderer extends JPanel {
 		}
 	}
 
-	private void renderConnections(OutputPorts ports, Graphics2D g) {
+	private void renderConnections(InputPorts inputPorts, OutputPorts ports, Graphics2D g) {
+		if (connectingPortSource != null && mousePositionRelativeToProcess != null && connectingPortSource instanceof InputPort && inputPorts.containsPort((InputPort) connectingPortSource)) {
+			g.setColor(ACTIVE_EDGE_COLOR);
+			Point2D toLoc = getPortLocation(connectingPortSource);
+			toLoc.setLocation(toLoc.getX() - PORT_SIZE, toLoc.getY());
+			g.draw(new Line2D.Double(toLoc.getX() + PORT_SIZE / 2, toLoc.getY(), mousePositionRelativeToProcess.getX(), mousePositionRelativeToProcess.getY()));
+		}
+
 		for (int i = 0; i < ports.getNumberOfPorts(); i++) {
 			OutputPort from = ports.getPortByIndex(i);
 			Port to = from.getDestination();
@@ -1738,23 +1748,22 @@ public class ProcessRenderer extends JPanel {
 
 		@Override
 		public void mousePressed(MouseEvent e) {
+
+			// do nothing if flow visualizer is active
 			if (flowVisualizer.isActive()) {
 				return;
 			}
+
 			if (renameField != null) {
 				remove(renameField);
 			}
+
 			requestFocus();
 			pressHasSelected = false;
 			mousePositionAtDragStart = e.getPoint();
 			mousePositionAtLastEvaluation = e.getPoint();
 			hasDragged = false;
-
-			if (e.isPopupTrigger()) {
-				if (showPopupMenu(e)) {
-					return;
-				}
-			}
+			pressedMouseButton = e.getButton();
 
 			if (e.getButton() == MouseEvent.BUTTON1) {
 				if (selectedConnectionSource != hoveringConnectionSource) {
@@ -1767,7 +1776,26 @@ public class ProcessRenderer extends JPanel {
 				setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				return;
 			}
+
+			// If mouse pressed while connecting, check if connecting ports should be canceled
+			if (connectingPortSource != null) {
+
+				// cancel if right mouse button is pressed
+				if (e.getButton() == MouseEvent.BUTTON3) {
+					cancelConnectionDragging();
+					return;
+				}
+
+				// cancel if any button is pressed but not over hovering port
+				if (hoveringPort == null) {
+					cancelConnectionDragging();
+					return;
+				}
+			}
+
 			if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null) {
+
+				// Left mouse button pressed on port with alt pressed -> remove connection
 				if (e.isAltDown()) {
 					if (hoveringPort instanceof OutputPort) {
 						if (((OutputPort) hoveringPort).isConnected()) {
@@ -1780,18 +1808,26 @@ public class ProcessRenderer extends JPanel {
 					}
 					repaint();
 				} else {
+					// Left mouse button pressed on port -> start connecting ports
 					if (hoveringPort instanceof OutputPort) {
-						if (connectingPortSource == null) {
-							connectingPortSource = (OutputPort) hoveringPort;
+						if (connectingPortSource != null && connectingPortSource instanceof InputPort) {
+							connectConnectingPortSourceWithHoveringPort((InputPort) connectingPortSource, (OutputPort) hoveringPort);
 						} else {
-							connectingPortSource = null;
+							if (!e.isShiftDown()) {
+								connectingPortSource = hoveringPort;
+							}
 						}
 					} else if (hoveringPort instanceof InputPort) {
-						if (connectingPortSource != null) {
-							connectConnectingPortSourceWithHoveringPort();
+						if (connectingPortSource != null && connectingPortSource instanceof OutputPort) {
+							connectConnectingPortSourceWithHoveringPort((InputPort) hoveringPort, (OutputPort) connectingPortSource);
+						} else {
+							if (!e.isShiftDown()) {
+								connectingPortSource = hoveringPort;
+							}
 						}
 					}
 				}
+
 			} else if (getHoveringOperator() == null) {
 				// deselect unless shift is pressed
 				if (!e.isShiftDown() && !e.isControlDown()) {
@@ -1833,14 +1869,14 @@ public class ProcessRenderer extends JPanel {
 			}
 		}
 
-		private void connectConnectingPortSourceWithHoveringPort() {
+		private void connectConnectingPortSourceWithHoveringPort(InputPort input, OutputPort output) {
 			try {
-				Operator destOp = hoveringPort.getPorts().getOwner().getOperator();
+				Operator destOp = input.getPorts().getOwner().getOperator();
 				boolean hasConnections = hasConnections(destOp);
-				connect(connectingPortSource, (InputPort) hoveringPort);
+				connect(output, input);
 				// move directly after source if first connection
 				if (!hasConnections) {
-					Operator sourceOp = connectingPortSource.getPorts().getOwner().getOperator();
+					Operator sourceOp = output.getPorts().getOwner().getOperator();
 					if (destOp != displayedChain && sourceOp != displayedChain) {
 						destOp.getExecutionUnit().moveToIndex(destOp, destOp.getExecutionUnit().getOperators().indexOf(sourceOp) + 1);
 					}
@@ -1853,8 +1889,7 @@ public class ProcessRenderer extends JPanel {
 				}
 				repaint();
 			} finally {
-				repaint();
-				connectingPortSource = null;
+				cancelConnectionDragging();
 			}
 		}
 
@@ -1863,25 +1898,42 @@ public class ProcessRenderer extends JPanel {
 			if (flowVisualizer.isActive()) {
 				return;
 			}
+
 			if ((e.getModifiers() & MouseEvent.BUTTON2_MASK) != 0) {
 				setCursor(Cursor.getDefaultCursor());
 				return;
 			}
+
 			if (e.isConsumed()) {
 				return;
 			}
-			if (e.isPopupTrigger()) {
+
+			// Popup will only be triggered if mouse has been released and no dragging was done
+			if (e.isPopupTrigger() && !hasDragged) {
 				if (showPopupMenu(e)) {
 					return;
 				}
 			}
 
 			if (connectingPortSource != null) {
+
+				// cancel if right mouse button is released
 				if (e.getButton() == MouseEvent.BUTTON3) {
 					cancelConnectionDragging();
-					return;
-				} else if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null && hoveringPort instanceof InputPort && !e.isAltDown()) {
-					connectConnectingPortSourceWithHoveringPort();
+				}
+
+				// cancel if any button is released but not over hovering port
+				if (hoveringPort == null) {
+					cancelConnectionDragging();
+				}
+
+				// connect when released over hovering port
+				if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null && !e.isAltDown()) {
+					if (hoveringPort instanceof InputPort && connectingPortSource instanceof OutputPort) {
+						connectConnectingPortSourceWithHoveringPort((InputPort) hoveringPort, (OutputPort) connectingPortSource);
+					} else if (hoveringPort instanceof OutputPort && connectingPortSource instanceof InputPort) {
+						connectConnectingPortSourceWithHoveringPort((InputPort) connectingPortSource, (OutputPort) hoveringPort);
+					}
 				}
 			}
 
@@ -1943,9 +1995,11 @@ public class ProcessRenderer extends JPanel {
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			currentMousePosition = e.getPoint();
+
 			if (flowVisualizer.isActive()) {
 				return;
 			}
+
 			// Pan viewport
 			if ((e.getModifiers() & MouseEvent.BUTTON2_MASK) != 0) {
 				if (getParent() instanceof JViewport) {
@@ -1971,11 +2025,13 @@ public class ProcessRenderer extends JPanel {
 			// drag ports
 			if (connectingPortSource != null) {
 				repaint();
+
 				// We cannot drag when it is an inner sink: dragging means moving the port.
 				if (connectingPortSource.getPorts().getOwner().getOperator() == displayedChain && e.isShiftDown()) {
-					connectingPortSource = null;
+					cancelConnectionDragging();
 				}
 			}
+
 			// find process in which we are dragging
 			hoveringProcessIndex = getProcessIndexUnder(e.getPoint());
 			if (hoveringProcessIndex != -1) {
@@ -2055,35 +2111,34 @@ public class ProcessRenderer extends JPanel {
 					ensureHeight(draggingInSubprocess, (int) maxY);
 					repaint();
 				}
-			} else if (draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain && (draggedPort instanceof InputPort || e.isShiftDown() || (hasDragged && connectingPortSource == null))) {
+			} else {
 				// ports are draggeable only if they belong to the displayedChain <-> they are inner sinks our sources
+				if (draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain && 
+						// furthermore they can only be dragged with right mouse button or left mouse button + shift key pressed
+						(pressedMouseButton == MouseEvent.BUTTON3 || pressedMouseButton == MouseEvent.BUTTON1 && e.isShiftDown())) {
+					
+					double diff = e.getY() - mousePositionAtLastEvaluation.getY();
+					double shifted = shiftPortSpacing(draggedPort, diff);
+					mousePositionAtLastEvaluation.setLocation(mousePositionAtLastEvaluation.getX(), mousePositionAtLastEvaluation.getY() + shifted);
 
-				double diff = e.getY() - mousePositionAtLastEvaluation.getY();
-				// setPortSpacing(draggedPort, portSpacingAtDragStart + diff);
-				double shifted = shiftPortSpacing(draggedPort, diff);
-				mousePositionAtLastEvaluation.setLocation(mousePositionAtLastEvaluation.getX(), mousePositionAtLastEvaluation.getY() + shifted);
-
-				repaint();
-			} else if (selectionRectangle != null) {
-				selectionRectangle = getSelectionRectangle(mousePositionAtDragStart, e.getPoint());
-				repaint();
-			} else if (connectingPortSource != null) {
-				updateHoveringState(e);
+					repaint();
+				} else if (selectionRectangle != null) {
+					selectionRectangle = getSelectionRectangle(mousePositionAtDragStart, e.getPoint());
+					repaint();
+				} else if (connectingPortSource != null) {
+					updateHoveringState(e);
+				}
 			}
 		}
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
+
 			if (flowVisualizer.isActive()) {
 				return;
 			}
 			requestFocus();
-			// selectOperator(hoveringOperator, !e.isControlDown());
-			if (e.isPopupTrigger()) {
-				if (showPopupMenu(e)) {
-					return;
-				}
-			}
+
 			switch (e.getButton()) {
 				case MouseEvent.BUTTON1:
 					if (e.getClickCount() == 2) {
@@ -2118,6 +2173,7 @@ public class ProcessRenderer extends JPanel {
 						break;
 					}
 			}
+
 			repaint();
 
 		}
@@ -3256,8 +3312,8 @@ public class ProcessRenderer extends JPanel {
 	}
 
 	public void addProcessRendererListener(ProcessRendererListener listener) {
-		if(listener != null) {
-			if(listenersTour != null) {
+		if (listener != null) {
+			if (listenersTour != null) {
 				listenersTour.add(listener);
 			} else {
 				listenersTour = new LinkedList<ProcessRendererListener>();
@@ -3265,14 +3321,14 @@ public class ProcessRenderer extends JPanel {
 			}
 		}
 	}
-	
+
 	public void removeProcessRendererListener(ProcessRendererListener listener) {
-		if(listener != null && listenersTour != null)
+		if (listener != null && listenersTour != null)
 			listenersTour.remove(listener);
 	}
-	
+
 	private void fireNewChainDisplayed() {
-		if(listenersTour != null && !listenersTour.isEmpty()) {
+		if (listenersTour != null && !listenersTour.isEmpty()) {
 			for (ProcessRendererListener listener : ((LinkedList<ProcessRendererListener>) listenersTour.clone())) {
 				listener.newChainShowed(displayedChain);
 			}

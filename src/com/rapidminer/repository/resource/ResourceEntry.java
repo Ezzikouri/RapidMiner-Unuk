@@ -106,7 +106,7 @@ public abstract class ResourceEntry implements Entry {
 	}
 
 	protected String getResource() {
-		return getRepository().getResourceRooot() + getPath();
+		return getRepository().getResourceRoot() + getPath();
 	}
 	
 	protected String getPath() {

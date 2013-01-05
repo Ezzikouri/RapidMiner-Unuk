@@ -120,6 +120,7 @@ import com.rapidminer.gui.templates.SaveAsTemplateDialog;
 import com.rapidminer.gui.tools.LoggingViewer;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceMenu;
+import com.rapidminer.gui.tools.StatusBar;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.SystemMonitor;
 import com.rapidminer.gui.tools.WelcomeScreen;
@@ -1163,6 +1164,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			perspectives.showPerspective("design");
 		}
 		setTitle();
+		getStatusBar().setTrafficLight(StatusBar.TRAFFIC_LIGHT_INACTIVE);
+		getStatusBar().clearSpecialText();
 	}
 
 	/**

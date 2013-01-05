@@ -41,6 +41,7 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -367,6 +368,12 @@ public class Tools {
 	public static String formatDateTime(Date date) {
 		DATE_TIME_FORMAT.setTimeZone(getPreferredTimeZone());
 		return DATE_TIME_FORMAT.format(date);
+	}
+	
+	public static String formatDateTime(Date date,String pattern) {		
+		SimpleDateFormat format = new SimpleDateFormat(pattern);
+		format.setTimeZone(getPreferredTimeZone());
+		return format.format(date);
 	}
 
 	/** Format the given amount of milliseconds as a human readable string. */

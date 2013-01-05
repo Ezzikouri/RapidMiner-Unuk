@@ -22,6 +22,7 @@
  */
 package com.rapid_i.deployment.update.client;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -33,6 +34,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
@@ -79,12 +81,11 @@ public class UpdatePanelSearchTab extends UpdatePanelTab {
 	}
 
 	@Override
-	protected JComponent makeTopPanel() {
-		JToolBar toolBar = new ExtendedJToolBar();
-		toolBar.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
-		toolBar.setFloatable(false);
+	protected JComponent makeTopPanel() {	
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
 
-		searchField = new JTextField(12);
+		searchField = new JTextField(24);
 		searchField.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.field.update.search.tip"));
 
 		searchField.addKeyListener(new KeyAdapter() {
@@ -105,9 +106,10 @@ public class UpdatePanelSearchTab extends UpdatePanelTab {
 				searchAction.actionPerformed(null);
 			}
 		});
+		
+		panel.add(searchField, BorderLayout.WEST);
+		panel.add(searchButton, BorderLayout.EAST);
 
-		toolBar.add(searchField);
-		toolBar.add(searchButton);
-		return toolBar;
+		return panel;
 	}
 }

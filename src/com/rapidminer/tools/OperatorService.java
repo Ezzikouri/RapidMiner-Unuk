@@ -181,7 +181,7 @@ public class OperatorService {
         Plugin.registerAllPluginOperators();
 
         //LogService.getRoot().config("Number of registered operator classes: " + REGISTERED_OPERATOR_CLASSES.size() + "; number of registered operator descriptions: " + KEYS_TO_DESCRIPTIONS.size() + "; number of replacements: " + DEPRECATION_MAP.size());
-        LogService.getRoot().log(Level.CONFIG, 
+        LogService.getRoot().log(Level.INFO, 
         		"com.rapidminer.tools.OperatorService.number_of_registered_operator_classes_and_descriptions",
         		new Object[] {REGISTERED_OPERATOR_CLASSES.size(), KEYS_TO_DESCRIPTIONS.size(), DEPRECATION_MAP.size()});
     }

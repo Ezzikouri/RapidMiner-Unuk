@@ -180,8 +180,11 @@ public interface Attribute extends Cloneable, Serializable {
 	/** Returns true if the attribute is nominal. */
 	public boolean isNominal();
 
-	/** Returns true if the attribute is nominal. */
+	/** Returns true if the attribute is numerical. */
 	public boolean isNumerical();
+	
+	/** Returns true if the attribute is date_time. */
+	public boolean isDateTime();
 	
 	/** Returns a formatted string of the given value according to the attribute type. */
 	public String getAsString(double value, int digits, boolean quoteNominal);

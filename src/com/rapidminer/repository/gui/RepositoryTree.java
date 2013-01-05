@@ -58,7 +58,6 @@ import javax.swing.tree.TreeSelectionModel;
 
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.actions.Actions;
 import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.dnd.TransferableOperator;
 import com.rapidminer.gui.tools.ProgressThread;

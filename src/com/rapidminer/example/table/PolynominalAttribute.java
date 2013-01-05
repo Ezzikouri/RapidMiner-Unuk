@@ -118,4 +118,9 @@ public class PolynominalAttribute extends NominalAttribute {
 		result.append("]");
 		return result.toString();
 	}
+
+	@Override
+	public boolean isDateTime() {
+		return false;
+	}
 }

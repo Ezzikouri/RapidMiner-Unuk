@@ -504,6 +504,10 @@ public class RapidMiner {
 		// initializing networking tools
 		GlobalAuthenticator.init();
 
+		// init repositories
+		RapidMiner.splashMessage("init_repository");
+		RepositoryManager.init();
+		
 		// registering operators
 		RapidMiner.splashMessage("register_plugins");
 		Plugin.initAll();
@@ -525,9 +529,6 @@ public class RapidMiner {
 		RapidMiner.splashMessage("load_jdbc_drivers");
 		DatabaseService.init();
 		DatabaseConnectionService.init();
-
-		RapidMiner.splashMessage("init_repository");
-		RepositoryManager.init();
 
 		RapidMiner.splashMessage("init_configurables");
 		ConfigurationManager.getInstance().initialize();
