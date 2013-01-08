@@ -26,7 +26,6 @@ package com.rapidminer.repository.resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -103,18 +102,11 @@ public class ResourceFolder extends ResourceEntry implements Folder {
 			return;
 		}
 		String resourcePath = getResource() + "/CONTENTS";
-		URL resourceURL = Tools.getResource(resourcePath);
-		if (resourceURL == null) {
-			throw new RepositoryException("Cannot find contents of folder " + getResource());
-		}
 		InputStream in = null;
 		try {
-			in = resourceURL.openStream();
+			in = Tools.getResourceInputStream(resourcePath);
 		} catch (IOException e1) {
 			throw new RepositoryException("Cannot find contents of folder " + getResource(), e1);
-		}
-		if (in == null) {
-			throw new RepositoryException("Cannot find contents of folder " + getResource());
 		}
 		this.folders = new LinkedList<Folder>();
 		this.data = new LinkedList<DataEntry>();

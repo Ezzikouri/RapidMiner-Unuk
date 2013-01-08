@@ -277,6 +277,8 @@ public class RepositoryTreeModel implements TreeModel {
 							for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 								l.treeNodesInserted(insertEvent);
 							}
+							
+							pendingFolders.remove(folder);
 						}
 					});
 				}

@@ -78,7 +78,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	public Folder createFolder(String name) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(name)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
 		}
 
 		EntryResponse response = getRepository().getRepositoryService().makeFolder(getPath(), name);
@@ -98,7 +98,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(name)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
 		}
 
 		EntryResponse response = getRepository().getRepositoryService().createBlob(getPath(), name);
@@ -207,7 +207,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(name)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
 		}
 
 		RepositoryLocation loc;
@@ -233,7 +233,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(name)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
 		}
 
 		RepositoryLocation loc;

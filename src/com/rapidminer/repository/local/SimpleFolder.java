@@ -77,7 +77,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	public boolean rename(String newName) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(newName)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName, getLocation()));
 		}
 		
 		renameFile(getFile(), newName);
@@ -144,7 +144,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(name)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
 		}
 		
 		ensureLoaded();
@@ -161,7 +161,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	public Folder createFolder(String name) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(name)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
 		}
 		
 		ensureLoaded();
@@ -258,7 +258,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(name)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
 		}
 				
 		SimpleProcessEntry entry = null;
@@ -280,7 +280,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(name)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
 		}
 		
 		BlobEntry entry = new SimpleBlobEntry(name, this, getRepository());

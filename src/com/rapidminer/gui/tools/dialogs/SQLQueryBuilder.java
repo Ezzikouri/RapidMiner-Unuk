@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -62,17 +63,17 @@ import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
  * are retrieved. This avoids fetching columns of all tables, even if not necessary. Otherwise very large databases with many or
  * complex tables (and views) would slow down the hole machine.
  * 
- * @author Tobias Malbrecht, Simon Fischer, Sebastian Land
+ * @author Tobias Malbrecht, Simon Fischer, Sebastian Land, Marco Boeck
  */
 public class SQLQueryBuilder extends ButtonDialog {
 
 	private static final long serialVersionUID = 1779762368364719191L;
 
 	/** The list with all tables. */
-	private final JList tableList = new JList();
-
+	private final JList<TableName> tableList = new JList<TableName>(new DefaultListModel<TableName>());
+	
 	/** The list with all attribute names. */
-	private final JList attributeList = new JList();
+	private final JList<ColumnIdentifier> attributeList = new JList<ColumnIdentifier>(new DefaultListModel<ColumnIdentifier>());
 
 	/** The text area with the where clause. */
 	private final JTextArea whereTextArea = new JTextArea(4, 15);
@@ -136,7 +137,10 @@ public class SQLQueryBuilder extends ButtonDialog {
 				@Override
 				public void valueChanged(ListSelectionEvent e) {
 					updateAttributeNames();
-					updateSQLQuery();
+					// only update SQL Query when selection is NOT empty -> prevents SQL Query deletion when refreshing meta data
+					if (tableList.getSelectedValuesList().size() > 0) {
+						updateSQLQuery();
+					}
 				}
 			});
 			JScrollPane tablePane = new ExtendedJScrollPane(tableList);
@@ -146,7 +150,10 @@ public class SQLQueryBuilder extends ButtonDialog {
 			attributeList.addListSelectionListener(new ListSelectionListener() {
 				@Override
 				public void valueChanged(ListSelectionEvent e) {
-					updateSQLQuery();
+					// only update SQL Query when selection is NOT empty -> prevents SQL Query deletion when refreshing meta data
+					if (attributeList.getSelectedValuesList().size() > 0) {
+						updateSQLQuery();
+					}
 				}
 			});
 			JScrollPane attributePane = new ExtendedJScrollPane(attributeList);
@@ -186,9 +193,8 @@ public class SQLQueryBuilder extends ButtonDialog {
 
 	private void updateAttributeNames() {
 		List<ColumnIdentifier> allColumnIdentifiers = new LinkedList<ColumnIdentifier>();
-		Object[] selection = tableList.getSelectedValues();
-		for (Object o : selection) {
-			TableName tableName = (TableName) o;
+		List<TableName> selection = tableList.getSelectedValuesList();
+		for (TableName tableName : selection) {
 			List<ColumnIdentifier> attributeNames = this.attributeNameMap.get(tableName);
 			// check whether we already know the attributes of this table. If not: retrieve them and set them asynchronously
 			if (attributeNames == null || attributeNames.isEmpty()) {
@@ -223,21 +229,21 @@ public class SQLQueryBuilder extends ButtonDialog {
 	private void updateSQLQuery() {
 		fireStateChanged();
 
-		Object[] tableSelection = tableList.getSelectedValues();
-		if (tableSelection.length == 0) {
+		List<TableName> tableSelection = tableList.getSelectedValuesList();
+		if (tableSelection.size() == 0) {
 			sqlQueryTextArea.setText("");
 			return;
 		}
 
-		boolean singleTable = tableSelection.length == 1;
+		boolean singleTable = tableSelection.size() == 1;
 
 		// SELECT
 		StringBuffer result = new StringBuffer("SELECT ");
-		Object[] attributeSelection = attributeList.getSelectedValues();
-		if (singleTable && (attributeSelection.length == 0 || attributeSelection.length == attributeList.getModel().getSize())) {
+		List<ColumnIdentifier> attributeSelection = attributeList.getSelectedValuesList();
+		if (singleTable && (attributeSelection.size() == 0 || attributeSelection.size() == attributeList.getModel().getSize())) {
 			result.append("*");
 		} else {
-			if (attributeSelection.length == 0 || attributeSelection.length == attributeList.getModel().getSize()) {
+			if (attributeSelection.size() == 0 || attributeSelection.size() == attributeList.getModel().getSize()) {
 				boolean first = true;
 				for (int i = 0; i < attributeList.getModel().getSize(); i++) {
 					ColumnIdentifier identifier = (ColumnIdentifier) attributeList.getModel().getElementAt(i);
@@ -246,8 +252,7 @@ public class SQLQueryBuilder extends ButtonDialog {
 				}
 			} else {
 				boolean first = true;
-				for (Object o : attributeSelection) {
-					ColumnIdentifier identifier = (ColumnIdentifier) o;
+				for (ColumnIdentifier identifier : attributeSelection) {
 					appendAttributeName(result, identifier, first, singleTable);
 					first = false;
 				}
@@ -370,8 +375,19 @@ public class SQLQueryBuilder extends ButtonDialog {
 			SwingTools.showSimpleErrorMessage("db_connection_failed_simple", e);
 			this.databaseHandler = null;
 		}
-		updateAttributeNames();
-		updateSQLQuery();
+		ProgressThread retrieveTablesThread = new ProgressThread("refreshing") {
+			@Override
+			public void run() {
+				getProgressListener().setTotal(100);
+				getProgressListener().setCompleted(10);
+				try {
+					updateAttributeNames();
+				} finally {
+					getProgressListener().complete();
+				}
+			}
+		};
+		retrieveTablesThread.start();
 	}
 
 }

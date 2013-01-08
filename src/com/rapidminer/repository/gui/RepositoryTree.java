@@ -203,6 +203,7 @@ public class RepositoryTree extends JTree {
         DELETE_ACTION.addToActionMap(this, "delete", WHEN_FOCUSED);
         REFRESH_ACTION.addToActionMap(this, WHEN_FOCUSED);
 
+        setRowHeight(0);
         setRootVisible(false);
         setShowsRootHandles(true);
         setCellRenderer(new RepositoryTreeCellRenderer());
@@ -438,32 +439,6 @@ public class RepositoryTree extends JTree {
                 }
             }
         });
-
-        //        setTransferHandler(new OperatorTransferHandler() {
-        //			private static final long serialVersionUID = 1L;
-        //			@Override
-        //			protected List<Operator> getDraggedOperators() {
-        //				TreePath path = getSelectionPath();
-        //				if (path != null) {
-        //					Entry e = (Entry)path.getLastPathComponent();
-        //					if (e instanceof IOObjectEntry) {
-        //						RepositorySource source;
-        //						try {
-        //							source = OperatorService.createOperator(RepositorySource.class);
-        //							source.setParameter(RepositorySource.PARAMETER_REPOSITORY_ENTRY, e.getLocation().getAbsoluteLocation());
-        //							return Collections.<Operator>singletonList(source);
-        //						} catch (OperatorCreationException e1) {
-        //							LogService.getRoot().log(Level.WARNING, "Cannot create RepositorySource: "+e, e);
-        //							return null;
-        //						}
-        //					} else {
-        //						return null;
-        //					}
-        //				} else {
-        //					return null;
-        //				}
-        //			}
-        //        });
 
         getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
             @Override

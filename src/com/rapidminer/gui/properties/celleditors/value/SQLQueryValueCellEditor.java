@@ -54,7 +54,7 @@ import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
 import com.rapidminer.tools.jdbc.connection.ConnectionProvider;
 
 /**
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Marco Boeck
  */
 public class SQLQueryValueCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 

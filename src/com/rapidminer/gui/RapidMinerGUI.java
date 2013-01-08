@@ -54,7 +54,6 @@ import com.rapidminer.ProcessLocation;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.actions.OpenAction;
-import com.rapidminer.gui.actions.WelcomeTourAction;
 import com.rapidminer.gui.dialog.ResultHistory;
 import com.rapidminer.gui.docking.RapidDockableContainerFactory;
 import com.rapidminer.gui.look.RapidLookAndFeel;
@@ -287,8 +286,9 @@ public class RapidMinerGUI extends RapidMiner {
 		Plugin.initPluginUpdateManager();
 		UpdateManager.checkForUpdates();
 		UpdateManager.checkForPurchasedNotInstalled();
-		//TODO:
-		new WelcomeTourAction().checkTours();
+		
+		//TODO: re-enable when tour is finished
+//		new WelcomeTourAction().checkTours();
 	}
 	
 	private void setupToolTipManager() {

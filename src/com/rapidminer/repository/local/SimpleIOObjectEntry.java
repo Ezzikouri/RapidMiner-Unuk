@@ -227,7 +227,7 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	public boolean rename(String newName) throws RepositoryException {
 		// check for possible invalid name
 		if (!RepositoryLocation.isNameValid(newName)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName));
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName, getLocation()));
 		}
 
 		renameFile(getDataFile(), newName);

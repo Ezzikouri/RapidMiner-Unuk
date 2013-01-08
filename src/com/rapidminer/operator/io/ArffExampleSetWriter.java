@@ -20,11 +20,13 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.io;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,10 +34,10 @@ import java.util.List;
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
-import com.rapidminer.example.table.NumericalAttribute;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeDate;
 import com.rapidminer.tools.io.Encoding;
 
 /**
@@ -118,9 +120,10 @@ public class ArffExampleSetWriter extends AbstractStreamWriter {
 						out.print("?");
 					else
 						out.print("'" + example.getValueAsString(current) + "'");
-				}else if (current.isDateTime())					
-					out.print(example.getValueAsString(current, NumericalAttribute.UNLIMITED_NUMBER_OF_DIGITS, true));
-				else {
+				} else if (current.isDateTime()) {
+					Date dateValue = example.getDateValue(current);
+					out.print("\"" + ParameterTypeDate.DATE_FORMAT.format(dateValue)+ "\"");
+				} else {
 					out.print(example.getValueAsString(current));
 				}
 				first = false;
@@ -146,8 +149,8 @@ public class ArffExampleSetWriter extends AbstractStreamWriter {
 			}
 			nominalValues.append("}");
 			out.print(nominalValues.toString());
-		} else if (attribute.isDateTime()) 
-			out.print("DATE \"dd/mm/yyyy HH:mm:ss aa zzz\"");
+		} else if (attribute.isDateTime())
+			out.print("DATE \"" + ParameterTypeDate.DATE_FORMAT.toPattern() + "\"");
 		else {
 			out.print("real");
 		}

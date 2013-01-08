@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.tools;
 
 import java.io.BufferedInputStream;
@@ -81,6 +82,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.io.Encoding;
 import com.rapidminer.tools.plugin.Plugin;
 
@@ -756,6 +758,23 @@ public class Tools {
 		}
 	}
 
+	/**
+	 * Return an input stream of the desired resource. Tries first to find a resource in the core RapidMiner resources directory. If no
+	 * resource with the given name is found, it is tried to load with help of the ResourceSource which might have been
+	 * added by plugins. Please note that resource names are only allowed to use '/' as separator instead of
+	 * File.separator!
+	 * 
+	 * @throws IOException if stream cannot be opened
+	 * @throws RepositoryException if resource cannot be found
+	 */
+	public static InputStream getResourceInputStream(String name) throws IOException, RepositoryException {
+		URL resourceURL = Tools.getResource(name);
+		if (resourceURL == null) {
+			throw new RepositoryException("Missing resource " + name);
+		}
+		return resourceURL.openStream();
+	}
+
 	public static String readTextFile(InputStream in) throws IOException {
 		return readTextFile(new InputStreamReader(in, "UTF-8"));
 	}
@@ -837,7 +856,9 @@ public class Tools {
 
 		FileOutputStream outStream = new FileOutputStream(file);
 		try {
-			outStream.write(text.getBytes(XMLImporter.PROCESS_FILE_CHARSET));
+			if(text != null) {
+				outStream.write(text.getBytes(XMLImporter.PROCESS_FILE_CHARSET));
+			}
 		} finally {
 			outStream.close();
 		}
