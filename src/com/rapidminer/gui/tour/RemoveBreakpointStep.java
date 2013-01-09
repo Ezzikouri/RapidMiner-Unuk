@@ -151,6 +151,6 @@ public class RemoveBreakpointStep extends Step {
 
 	@Override
 	public Step[] getPreconditions() {
-		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY), new NotWatchableStep(alignment, owner, attachToKey, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY)};
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY), new NotViewableStep(alignment, owner, attachToKey, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY)};
 	}
 }

@@ -37,7 +37,7 @@ import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
  * @author Thilo Kamradt
  *
  */
-public class NotWatchableStep extends Step {
+public class NotViewableStep extends Step {
 	
 	
 	private Alignment alignment;
@@ -50,14 +50,14 @@ public class NotWatchableStep extends Step {
 	private boolean showMe;
 	
 	
-	public NotWatchableStep(Alignment preferredAlignment, Window owner, String shouldBeViewable, Component attachTo) {
+	public NotViewableStep(Alignment preferredAlignment, Window owner, String shouldBeViewable, Component attachTo) {
 		this.owner = owner;
 		this.alignment = preferredAlignment;
 		this.watch = shouldBeViewable;
 		this.attachTo = attachTo;
 	}
 	
-	public NotWatchableStep(Alignment preferredAlignment, Window owner, String shouldBeViewable, String attachToKey) {
+	public NotViewableStep(Alignment preferredAlignment, Window owner, String shouldBeViewable, String attachToKey) {
 		this.owner = owner;
 		this.alignment = preferredAlignment;
 		this.watch = shouldBeViewable;

@@ -182,7 +182,7 @@ public class BubbleWindow extends JDialog {
 		super(owner);
 		this.owner = owner;
 		this.component = toAttach;
-		if (toAttach == null && !preferredAlignment.equals(Alignment.MIDDLE))
+		if (toAttach == null &&  !(Alignment.MIDDLE == preferredAlignment))
 			throw new IllegalArgumentException("the given Component is null !!!");
 		try {
 			this.alignment = this.calculateAlignment(preferredAlignment, toAttach);
@@ -211,7 +211,7 @@ public class BubbleWindow extends JDialog {
 						AWTUtilities.setWindowShape(BubbleWindow.this, shape);
 					} else if (versionNumber >= 17) {
 						// Java 7+
-//						setShape(shape);
+						setShape(shape);
 					}
 				} catch (Throwable t) {
 					LogService.getRoot().log(Level.WARNING, "Could not create shaped Bubble Windows. Error: " + t.getLocalizedMessage(), t);
@@ -245,7 +245,6 @@ public class BubbleWindow extends JDialog {
 			case TOPLEFT:
 				insets = new Insets(CORNER_RADIUS + 15, 10, 10, 10);
 				break;
-			case CENTER:
 			case TOPRIGHT:
 				insets = new Insets(CORNER_RADIUS + 15, 10, 10, 10);
 				break;
@@ -265,6 +264,7 @@ public class BubbleWindow extends JDialog {
 				insets = new Insets(10, 10, 10, 10);
 				lInsets = new Insets(0, 10, CORNER_RADIUS + 15, 10);
 				break;
+			case CENTER:
 			case RIGHTTOP:
 				insets = new Insets(10, 10, 10, CORNER_RADIUS + 15);
 				lInsets = new Insets(0, 10, 10, CORNER_RADIUS + 15);
@@ -336,7 +336,7 @@ public class BubbleWindow extends JDialog {
 				AWTUtilities.setWindowShape(this, shape);
 			} else if (versionNumber >= 17) {
 				// Java 7+
-//				setShape(shape);
+				setShape(shape);
 			}
 		} catch (Throwable t) {
 			LogService.getRoot().log(Level.WARNING, "Could not create shaped Bubble Windows. Error: " + t.getLocalizedMessage(), t);
@@ -704,6 +704,7 @@ public class BubbleWindow extends JDialog {
 	 * @return returns 1 if the AbstractButton is on the Screen, 0 if the AbstractButton is on Screen but the user can not see it with the current settings of the perspective and -1 if the AbstractButton is not on the Screen. 
 	 */
 	public static int isButtonOnScreen(String buttonKey) {
+		// find the Button and return -1 if we can not find it
 		Component onScreen; 
 		try { onScreen = BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame()); }
 		catch (NullPointerException e) {
@@ -711,16 +712,17 @@ public class BubbleWindow extends JDialog {
 		}
 		if(onScreen == null)
 			return -1;
+		// detect whether the Button is viewable
 		int xposition = onScreen.getLocationOnScreen().x;
 		int yposition = onScreen.getLocationOnScreen().y;
-		if(xposition < 0 || yposition < 0)
-			return 0;
-		xposition += onScreen.getWidth();
-		yposition += onScreen.getHeight();
+		int otherXposition = xposition + onScreen.getWidth();
+		int otherYposition = yposition + onScreen.getHeight();
 		Window frame = RapidMinerGUI.getMainFrame();
-		if(xposition >= frame.getWidth() || yposition >= frame.getHeight())
+		if(otherXposition <= frame.getWidth() && otherYposition <= frame.getHeight() && xposition > 0 && yposition > 0) {
+			return 1;
+		} else {
 			return 0;
-		return 1;
+		}
 	}
 
 	/** Positions the window such that the pointer points to the given button. 
@@ -787,27 +789,24 @@ public class BubbleWindow extends JDialog {
 
 			@Override
 			public void componentMoved(ComponentEvent e) {
-				super.componentMoved(e);
 				BubbleWindow.this.pointAtComponent();
+				BubbleWindow.this.setVisible(true);
 			}
 
 			@Override
 			public void componentResized(ComponentEvent e) {
-				super.componentResized(e);
 				BubbleWindow.this.pointAtComponent();
 				BubbleWindow.this.setVisible(true);
 			}
 
 			@Override
 			public void componentShown(ComponentEvent e) {
-				super.componentShown(e);
 				BubbleWindow.this.pointAtComponent();
 				BubbleWindow.this.setVisible(true);
 			}
 
 			@Override
 			public void componentHidden(ComponentEvent e) {
-				super.componentHidden(e);
 				BubbleWindow.this.setVisible(false);
 			}
 
@@ -823,8 +822,8 @@ public class BubbleWindow extends JDialog {
 			@Override
 			public void windowDeiconified(WindowEvent e) {
 				super.windowDeiconified(e);
-				BubbleWindow.this.setVisible(true);
 				BubbleWindow.this.pointAtComponent();
+				BubbleWindow.this.setVisible(true);
 			}
 
 		};
@@ -862,8 +861,8 @@ public class BubbleWindow extends JDialog {
 				BubbleWindow.this.setVisible(false);
 			}
 		};
-		 
-		this.component.addComponentListener(compListener);
+		if(BubbleWindow.this.component != null) 
+			BubbleWindow.this.component.addComponentListener(compListener);
 		RapidMinerGUI.getMainFrame().addComponentListener(movementListener);
 		RapidMinerGUI.getMainFrame().addWindowStateListener(windowListener);
 	}
@@ -877,7 +876,8 @@ public class BubbleWindow extends JDialog {
 	private void unregisterMovementListener() {
 		RapidMinerGUI.getMainFrame().removeComponentListener(movementListener);
 		RapidMinerGUI.getMainFrame().removeWindowStateListener(windowListener);
-		component.removeComponentListener(compListener);
+		if(component != null)
+			component.removeComponentListener(compListener);
 	}
 
 	/**
@@ -906,7 +906,7 @@ public class BubbleWindow extends JDialog {
 	}
 
 	private Alignment calculateAlignment(Alignment preferedAlignment, Component component) {
-		if(Alignment.MIDDLE == preferedAlignment) {
+		if(Alignment.MIDDLE == preferedAlignment || Alignment.CENTER == preferedAlignment) {
 			return preferedAlignment;
 		}
 		//get Mainframe size

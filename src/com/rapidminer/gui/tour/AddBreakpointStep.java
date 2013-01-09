@@ -141,6 +141,6 @@ public class AddBreakpointStep extends Step {
 
 	@Override
 	public Step[] getPreconditions() {
-		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY), new NotWatchableStep(alignment, owner, buttonKey, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY)};
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY), new NotViewableStep(alignment, owner, buttonKey, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY)};
 	}
 }
