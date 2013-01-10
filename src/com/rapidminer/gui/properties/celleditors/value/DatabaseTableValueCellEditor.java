@@ -168,6 +168,10 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 											}
 											
 										}
+										// after list has been changed, check if selected item still exists
+										if (!list.contains(selected)) {
+											setSelectedItem(getElementAt(0));
+										}
 										//list.addAll(tableMap.keySet());
 										getProgressListener().setCompleted(90);
 									} catch (SQLException e) {
@@ -323,12 +327,12 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DatabaseTableValueCellEditor.this.comboBox.setSelectedItem(null);
 				ProgressThread t = new ProgressThread("db_clear_cache") {
 
 					@Override
 					public void run() {
 						TableMetaDataCache.getInstance().clearCache();
+						DatabaseTableValueCellEditor.this.model.lastURL = null;
 						DatabaseTableValueCellEditor.this.model.updateModel();
 					}
 				};

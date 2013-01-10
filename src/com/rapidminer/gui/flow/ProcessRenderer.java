@@ -1765,6 +1765,13 @@ public class ProcessRenderer extends JPanel {
 			hasDragged = false;
 			pressedMouseButton = e.getButton();
 
+			// Popup will only be triggered if mouse has been released and no dragging was done
+			if (e.isPopupTrigger() && (draggedPort == null)) {
+				if (showPopupMenu(e)) {
+					return;
+				}
+			}
+
 			if (e.getButton() == MouseEvent.BUTTON1) {
 				if (selectedConnectionSource != hoveringConnectionSource) {
 					selectedConnectionSource = hoveringConnectionSource;
@@ -1909,7 +1916,7 @@ public class ProcessRenderer extends JPanel {
 			}
 
 			// Popup will only be triggered if mouse has been released and no dragging was done
-			if (e.isPopupTrigger() && !hasDragged) {
+			if (e.isPopupTrigger() && (draggedPort == null)) {
 				if (showPopupMenu(e)) {
 					return;
 				}

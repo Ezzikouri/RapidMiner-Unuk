@@ -39,7 +39,7 @@ import com.rapidminer.tools.Tools;
  * Simple implementation of a {@link FileObject} backed by a
  * {@link RepositoryLocation}. The repository entry has to be of type 'blob'.
  * 
- * @author Nils Woehler
+ * @author Nils Woehler, Marius Helf
  * 
  */
 public class RepositoryBlobObject extends FileObject {
@@ -64,13 +64,13 @@ public class RepositoryBlobObject extends FileObject {
 					blobEntry = (BlobEntry) entry;
 					return blobEntry.openInputStream();
 				} else {
-					throw new OperatorException("942", null, location.getPath(), "blob", entry.getType());
+					throw new OperatorException("942", null, location.getAbsoluteLocation(), "blob", entry.getType());
 				}
 			} else {
-				throw new OperatorException("312", null, location.getPath(), "entry does not exist");
+				throw new OperatorException("312", null, location.getAbsoluteLocation(), "entry does not exist");
 			}
 		} catch (RepositoryException e) {
-			throw new OperatorException("319", e, location.getPath());
+			throw new OperatorException("319", e, location.getAbsoluteLocation());
 		}
 
 	}
@@ -81,15 +81,20 @@ public class RepositoryBlobObject extends FileObject {
 			try {
 				file = File.createTempFile("rm_file_", ".dump");
 				FileOutputStream fos = new FileOutputStream(file);
-				BlobEntry entry;
+				BlobEntry blobEntry;
 				try {
-					if (location.locateEntry() instanceof BlobEntry) {
-						entry = (BlobEntry) location.locateEntry();
+					Entry entry = location.locateEntry();
+					if (entry != null) {
+						if (entry instanceof BlobEntry) {
+							blobEntry = (BlobEntry) entry;
+						} else {
+							throw new OperatorException("942", null, location.getAbsoluteLocation(), "blob", entry.getType());
+						}
 					} else {
-						throw new OperatorException("942", null, location.getPath(), "blob", location.locateEntry().getType());
+						throw new OperatorException("312", null, location.getAbsoluteLocation(), "entry does not exist");
 					}
 
-					InputStream in = entry.openInputStream();
+					InputStream in = blobEntry.openInputStream();
 					try {
 						Tools.copyStreamSynchronously(in, fos, true);
 						file.deleteOnExit();
@@ -98,17 +103,14 @@ public class RepositoryBlobObject extends FileObject {
 					}
 				} finally {
 					fos.close();
-
 				}
 			} catch (IOException e) {
 				throw new OperatorException("303", e, file, e.getMessage());
 			} catch (RepositoryException e) {
-				throw new OperatorException("319", e, location.getPath());
+				throw new OperatorException("319", e, location.getAbsoluteLocation());
 			}
-			return file;
-		} else {
-			return file;
 		}
+		return file;
 	}
 
 	@Override
