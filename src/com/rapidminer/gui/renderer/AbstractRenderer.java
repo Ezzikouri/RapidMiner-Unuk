@@ -145,6 +145,29 @@ public abstract class AbstractRenderer implements Renderer {
 			throw new UndefinedParameterError(key, "Expected integer but found '"+value+"'.");
 		}		
 	}
+	
+	 /** Returns a single named parameter and casts it to long. */
+    @Override
+    public long getParameterAsLong(String key) throws UndefinedParameterError {
+        ParameterType type = this.getParameters().getParameterType(key);
+        String value = getParameter(key);
+        if (type != null) {
+            if (type instanceof ParameterTypeCategory) {
+                String parameterValue = value;
+                try {
+                    return Long.valueOf(parameterValue);
+                } catch (NumberFormatException e) {
+                    ParameterTypeCategory categoryType = (ParameterTypeCategory)type;
+                    return categoryType.getIndex(parameterValue);
+                }
+            }
+        }
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new UndefinedParameterError(key, "Expected integer but found '"+value+"'.");
+        }
+    }
 
 	public double[][] getParameterAsMatrix(String key) throws UndefinedParameterError {
 		String matrixLine = getParameter(key);

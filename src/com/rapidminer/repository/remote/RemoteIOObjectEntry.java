@@ -62,13 +62,13 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 		if (l != null) {
 			l.setTotal(100);
 		}
+		InputStream in = null;
 		try {
 			HttpURLConnection connection = getRepository().getResourceHTTPConnection(getLocation().getPath(), EntryStreamType.IOOBJECT, false);
 			WebServiceTools.setURLConnectionDefaults(connection);
 			connection.setDoInput(true);
 			connection.setDoOutput(false);
 			connection.setRequestMethod("GET");
-			InputStream in;
 			try {
 				in = connection.getInputStream();
 			} catch (IOException e) {
@@ -80,11 +80,18 @@ public class RemoteIOObjectEntry extends RemoteDataEntry implements IOObjectEntr
 			} else {
 				throw new RepositoryException("Server did not send I/O-Object, but instance of " + result.getClass());
 			}
+		} catch(RepositoryException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new RepositoryException("Cannot parse I/O-Object: " + e, e);
 		} finally {
 			if (l != null) {
 				l.complete();
+			}
+			if(in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {}
 			}
 		}
 	}

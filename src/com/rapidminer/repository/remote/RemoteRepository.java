@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.remote;
 
 import java.awt.Desktop;
@@ -63,6 +64,7 @@ import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryListener;
+import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.gui.RemoteRepositoryPanel;
 import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
@@ -153,7 +155,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			this.setPassword(null);
 		}
 		register(this);
-		
+
 		// The line below will cause a stack overflow
 		//refreshProcessExecutionQueueNames();
 	}
@@ -361,14 +363,14 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public ProcessServiceFacade getProcessService() throws RepositoryException {
 		if (processServiceFacade == null) {
 			try {
-				
+
 				RAInfoService raInfoService = getRAInfoService();
-				
+
 				// throw error if user has canceled passwort input
 				if (raInfoService == null && isPasswortInputCanceled()) {
 					throw new RepositoryException("Cannot connect to server " + getName() + ". Authentication was canceled by user."); //TODO I18N
 				}
-				
+
 				processServiceFacade = new ProcessServiceFacade(raInfoService, getBaseUrl(), getUsername(), password);
 				setPasswortInputCanceled(false);
 				setOffline(false);
@@ -392,7 +394,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				raInfoService = serviceService.getRAInfoServicePort();
 
 				setupBindingProvider((BindingProvider) raInfoService);
-				
+
 				setPasswortInputCanceled(false);
 				setOffline(false);
 			} catch (Exception e) {
@@ -460,17 +462,49 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		for (String fraction : split) {
 			if (!fraction.isEmpty()) { // only for non empty to prevent double //
 				encoded.append('/');
-				encoded.append(URLEncoder.encode(fraction, "UTF-8"));
+
+				// Do not encode the fraction of the location. This will be done in the #getHTTPConnection() method.
+				// Furthermore URLEncoder is the wrong class to encode URLs. It is only used to encode URL parameters.
+				encoded.append(fraction);
+				//encoded.append(URLEncoder.encode(fraction, "UTF-8"));
 			}
 		}
+		String query = null;
 		if (type == EntryStreamType.METADATA) {
-			encoded.append("?format=binmeta");
+			query = "?format="+URLEncoder.encode("binmeta", "UTF-8");
 		}
-		return getHTTPConnection(encoded.toString(), preAuthHeader);
+		return getHTTPConnection(encoded.toString(), query, preAuthHeader);
 	}
 
+	/** 
+	 * Use this function only if there are no query parameters. Use {@link #getHTTPConnection(String, String, boolean)} otherwise.
+	 * 
+	 * @param pathInfo should look like 'RAWS/...' without a '/' in front. Furthermore the pathInfo should NOT be encoded. This will be done by this function. 
+	 */
 	public HttpURLConnection getHTTPConnection(String pathInfo, boolean preAuthHeader) throws IOException {
-		final HttpURLConnection conn = (HttpURLConnection) new URL(getBaseUrl(), pathInfo).openConnection();
+		return getHTTPConnection(pathInfo, null, preAuthHeader);
+	}
+
+	/** 
+	 * @param pathInfo should look like 'RAWS/...' without a '/' in front. Furthermore the pathInfo should NOT be encoded. This will be done by this function. 
+	 * @param query should look like this '?format=PARAM1'. The query parameters should be encoded with URLEncoder before passing them to this function <br/>(e.g. String query = "?format="+URLEncoder.encode("binmeta", "UTF-8");).
+	 */
+	public HttpURLConnection getHTTPConnection(String pathInfo, String query, boolean preAuthHeader) throws IOException {
+		pathInfo = RepositoryLocation.SEPARATOR + pathInfo;
+		URI uri;
+		try {
+			uri = new URI(getBaseUrl().getProtocol(), null, getBaseUrl().getHost(), getBaseUrl().getPort(), pathInfo, null, null);
+		} catch (URISyntaxException e) {
+			throw new IOException("Cannot connect to " + getBaseUrl() + RepositoryLocation.SEPARATOR + pathInfo + ". Location is malformed!", e);
+		}
+		URL url;
+		if (query != null) {
+			url = new URL(uri.toASCIIString() + query);
+		} else {
+			url = new URL(uri.toASCIIString());
+		}
+
+		final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 		WebServiceTools.setURLConnectionDefaults(conn);
 		conn.setRequestProperty("Accept-Charset", "UTF-8");
 		if (preAuthHeader && (username != null) && (password != null)) {
@@ -698,7 +732,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	public void setPassword(char[] password) {
-		if(password != null && password.length == 0) {
+		if (password != null && password.length == 0) {
 			this.password = null;
 		} else {
 			this.password = password;

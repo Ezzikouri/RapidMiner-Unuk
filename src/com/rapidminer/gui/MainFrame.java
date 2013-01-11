@@ -815,7 +815,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
 		// help menu
 		helpMenu = new ResourceMenu("help");
-		helpMenu.add(TOUR_ACTION);
+//		helpMenu.add(TOUR_ACTION); //TODO reenable when tour is complete
 		helpMenu.add(TUTORIAL_ACTION);
 		// TODO: Re-add updated manual
 		// helpMenu.add(new ResourceAction("gui_manual") {

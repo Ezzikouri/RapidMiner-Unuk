@@ -486,6 +486,8 @@ public class ProcessRenderer extends JPanel {
 	private boolean hasDragged = false;
 
 	private int pressedMouseButton = 0;
+	
+	private boolean connectionDraggingCanceled = false;
 
 	private Rectangle2D selectionRectangle = null;
 
@@ -1764,9 +1766,12 @@ public class ProcessRenderer extends JPanel {
 			mousePositionAtLastEvaluation = e.getPoint();
 			hasDragged = false;
 			pressedMouseButton = e.getButton();
+			connectionDraggingCanceled = false;
 
 			// Popup will only be triggered if mouse has been released and no dragging was done
-			if (e.isPopupTrigger() && (draggedPort == null)) {
+			// CAUTION: Mac&Linux / Windows do different popup trigger handling. Because of this the popup trigger has to be checked
+			// in mousePressed AND mouseReleased
+			if (e.isPopupTrigger() && (draggedPort == null) && (connectingPortSource == null)) {
 				if (showPopupMenu(e)) {
 					return;
 				}
@@ -1916,7 +1921,9 @@ public class ProcessRenderer extends JPanel {
 			}
 
 			// Popup will only be triggered if mouse has been released and no dragging was done
-			if (e.isPopupTrigger() && (draggedPort == null)) {
+			// CAUTION: Mac&Linux / Windows do different popup trigger handling. Because of this the popup trigger has to be checked
+			// in mousePressed AND mouseReleased
+			if (e.isPopupTrigger() && (draggedPort == null) && (connectingPortSource == null) && !connectionDraggingCanceled) {
 				if (showPopupMenu(e)) {
 					return;
 				}
@@ -2120,10 +2127,10 @@ public class ProcessRenderer extends JPanel {
 				}
 			} else {
 				// ports are draggeable only if they belong to the displayedChain <-> they are inner sinks our sources
-				if (draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain && 
+				if (draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain &&
 						// furthermore they can only be dragged with right mouse button or left mouse button + shift key pressed
 						(pressedMouseButton == MouseEvent.BUTTON3 || pressedMouseButton == MouseEvent.BUTTON1 && e.isShiftDown())) {
-					
+
 					double diff = e.getY() - mousePositionAtLastEvaluation.getY();
 					double shifted = shiftPortSpacing(draggedPort, diff);
 					mousePositionAtLastEvaluation.setLocation(mousePositionAtLastEvaluation.getX(), mousePositionAtLastEvaluation.getY() + shifted);
@@ -2186,6 +2193,7 @@ public class ProcessRenderer extends JPanel {
 		}
 
 		private void cancelConnectionDragging() {
+			connectionDraggingCanceled = true;
 			connectingPortSource = null;
 			repaint();
 		}

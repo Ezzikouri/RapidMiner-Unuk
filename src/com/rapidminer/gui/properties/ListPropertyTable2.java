@@ -41,7 +41,7 @@ import com.rapidminer.parameter.ParameterTypeEnumeration;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 
-/** Parameter table for list and enumeration types.
+/** Parameter table for list and enumeration types (GUI class).
  * 
  *  Note: This class uses a dedicated renderer/editor for each row. Actually, this is unnecessary.
  *  The only reason is that if we re-use the editors/renderers, one has to click into the cell

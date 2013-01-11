@@ -53,6 +53,7 @@ import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
 import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
 
 /**
+ * Displays a combobox with all database connections configured in RapidMiner.
  * 
  * @author Simon Fischer, Tobias Malbrecht
  */

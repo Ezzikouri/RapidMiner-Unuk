@@ -79,6 +79,9 @@ public interface ParameterHandler {
 
 	/** Returns a single named parameter and casts it to double. */
 	public double getParameterAsDouble(String key) throws UndefinedParameterError;
+	
+	/** Returns a single named parameter and casts it to long. */
+	public long getParameterAsLong(String key) throws UndefinedParameterError;
 
 	/**
 	 * Returns a single named parameter and casts it to boolean. This method

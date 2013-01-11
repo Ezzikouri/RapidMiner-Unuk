@@ -83,6 +83,7 @@ public class EnumerationPropertyDialog extends PropertyDialog {
 	@Override
 	protected void ok() {
 		ok = true;
+		enumerationPropertyTable.stopEditing();
 		enumerationPropertyTable.storeParameterEnumeration(parameterList);
 		dispose();
 	}

@@ -85,7 +85,7 @@ public class UpdatePanelSearchTab extends UpdatePanelTab {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
 
-		searchField = new JTextField(24);
+		searchField = new JTextField(12);
 		searchField.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.field.update.search.tip"));
 
 		searchField.addKeyListener(new KeyAdapter() {
@@ -107,7 +107,7 @@ public class UpdatePanelSearchTab extends UpdatePanelTab {
 			}
 		});
 		
-		panel.add(searchField, BorderLayout.WEST);
+		panel.add(searchField, BorderLayout.CENTER);
 		panel.add(searchButton, BorderLayout.EAST);
 
 		return panel;

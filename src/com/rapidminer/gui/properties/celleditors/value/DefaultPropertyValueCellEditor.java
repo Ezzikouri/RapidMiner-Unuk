@@ -52,8 +52,8 @@ import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.tools.Tools;
 
 /**
- * Editor for parameter values string, int, double, category, and boolean. This can be used in all {@link PropertyTable}
- * s to show or editing the properties / parameters. For more special parameter types other solutions exist.
+ * Editor for parameter values string, int, double, category, and boolean. This can be used in all {@link PropertyTable}s 
+ * to show or editing the properties / parameters. For more special parameter types other solutions exist.
  * 
  * @see FileValueCellEditor
  * @see ListValueCellEditor
