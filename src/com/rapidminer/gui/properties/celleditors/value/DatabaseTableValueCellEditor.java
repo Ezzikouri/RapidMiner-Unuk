@@ -51,6 +51,7 @@ import javax.swing.event.PopupMenuListener;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.autocomplete.AutoCompleteComboBoxAddition;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeDatabaseSchema;
@@ -298,12 +299,14 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 	public DatabaseTableValueCellEditor(final ParameterTypeDatabaseSchema type) {
 		this.type = type;
 		this.mode = Mode.SCHEMA;
+		AutoCompleteComboBoxAddition add = new AutoCompleteComboBoxAddition(comboBox);
 		setupGUI();
 	}
 	
 	public DatabaseTableValueCellEditor(final ParameterTypeDatabaseTable type) {
 		this.type = type;
 		this.mode = Mode.TABLE;
+		AutoCompleteComboBoxAddition add = new AutoCompleteComboBoxAddition(comboBox);
 		setupGUI();
 	}
 	

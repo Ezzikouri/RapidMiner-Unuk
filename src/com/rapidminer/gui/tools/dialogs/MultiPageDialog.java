@@ -157,4 +157,8 @@ public abstract class MultiPageDialog extends ButtonDialog implements ChangeList
 	public void stateChanged(ChangeEvent e) {
 		updateButtons();
 	}
+	
+	protected JButton getFinishButton() {
+		return finish;
+	}
 }

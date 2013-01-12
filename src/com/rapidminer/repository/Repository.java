@@ -22,6 +22,8 @@
  */
 package com.rapidminer.repository;
 
+import javax.swing.JButton;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -60,5 +62,6 @@ public interface Repository extends Folder {
     /** Returns true if the repository is configurable. In that case,*/
     public boolean isConfigurable();
 
+    /** Creates a configuration panel.*/
     public RepositoryConfigurationPanel makeConfigurationPanel();
 }

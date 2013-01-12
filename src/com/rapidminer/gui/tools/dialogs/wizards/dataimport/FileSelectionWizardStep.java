@@ -43,6 +43,7 @@ public class FileSelectionWizardStep extends WizardStep {
 	
 	public FileSelectionWizardStep(AbstractWizard parent, FileFilter ... fileFilters) {
 		this(parent, (File)null, fileFilters);
+		setDefaultFileFilter(fileChooser, fileFilters);
 	}
 	
 	public FileSelectionWizardStep(AbstractWizard parent, File preselected, FileFilter ... fileFilters) {
@@ -52,9 +53,17 @@ public class FileSelectionWizardStep extends WizardStep {
 			this.fileChooser.setSelectedFile(preselected);
 		}
 		this.fileChooser.setControlButtonsAreShown(false);
-		this.fileChooser.setAcceptAllFileFilterUsed(false);
+		setDefaultFileFilter(fileChooser, fileFilters);
 		if (this.fileChooser instanceof ExtendedJFileChooser) {
 			((ExtendedJFileChooser) fileChooser).addChangeListener(parent);
+		}
+	}
+	
+	private void setDefaultFileFilter(JFileChooser fileChooser, FileFilter... fileFilters) {
+		if (fileFilters!=null && fileFilters.length==1) {
+			// Select single file filter as default
+			fileChooser.setFileFilter(fileFilters[0]);
+			fileChooser.setAcceptAllFileFilterUsed(true);
 		}
 	}
 	

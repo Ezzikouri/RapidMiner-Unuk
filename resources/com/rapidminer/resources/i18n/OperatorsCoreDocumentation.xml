@@ -8451,13 +8451,13 @@ Thomas Breuel, Faisal Shafait. The Learning Workshop, Cliff Lodge, Snowbird, Uta
    </operator>
    
    <operator>
-	   <name>Create Zip File</name>
-	   <key>create_zip_file</key>
+	   <name>Create Archive File</name>
+	   <key>create_archive_file</key>
    </operator>
      
    <operator>
-	   <name>Add Entry to Zip File</name>
-	   <key>add_entry_to_zip_file</key>
+	   <name>Add Entry to Archive File</name>
+	   <key>add_entry_to_archive_file</key>
    </operator>
      
 </operatorHelp>

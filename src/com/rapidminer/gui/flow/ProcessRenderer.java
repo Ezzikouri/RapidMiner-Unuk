@@ -39,6 +39,8 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
@@ -66,6 +68,7 @@ import java.util.logging.Level;
 
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -74,6 +77,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.w3c.dom.Element;
@@ -123,7 +127,6 @@ import com.rapidminer.operator.ports.metadata.MetaDataError;
 import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.operator.ports.quickfix.QuickFix;
 import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.repository.gui.RepositoryLocationChooser;
 import com.rapidminer.tools.ClassColorMap;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
@@ -486,7 +489,7 @@ public class ProcessRenderer extends JPanel {
 	private boolean hasDragged = false;
 
 	private int pressedMouseButton = 0;
-	
+
 	private boolean connectionDraggingCanceled = false;
 
 	private Rectangle2D selectionRectangle = null;
@@ -589,17 +592,6 @@ public class ProcessRenderer extends JPanel {
 							Operator firstOperator = newOperators.get(0);
 							Point dest = toProcessSpace(loc, processIndex);
 
-							if (dest.getX() < WALL_WIDTH + OPERATOR_WIDTH) {
-								dest.setLocation(WALL_WIDTH + OPERATOR_WIDTH, dest.getY());
-							} else if (dest.getX() > getWidth() - WALL_WIDTH - OPERATOR_WIDTH) {
-								dest.setLocation(getWidth() - WALL_WIDTH - OPERATOR_WIDTH, dest.getY());
-							}
-							if (dest.getY() < MIN_OPERATOR_HEIGHT + PADDING) {
-								dest.setLocation(dest.getX(), MIN_OPERATOR_HEIGHT + PADDING);
-							} else if (dest.getY() > getHeight() - MIN_OPERATOR_HEIGHT - PADDING) {
-								dest.setLocation(dest.getX(), getHeight() - MIN_OPERATOR_HEIGHT - PADDING);
-							}
-
 							// if we drop a single Retrieve operator on an inner source of the root op,
 							// we immediately attach the repository location to the port.
 							boolean isRoot = displayedChain instanceof ProcessRootOperator;
@@ -613,7 +605,29 @@ public class ProcessRenderer extends JPanel {
 								}
 							}
 
-							operatorRects.put(firstOperator, new Rectangle2D.Double(dest.getX() - OPERATOR_WIDTH / 2, dest.getY() - MIN_OPERATOR_HEIGHT / 2, OPERATOR_WIDTH, MIN_OPERATOR_HEIGHT));
+							// calculate operator position
+							Point opPosition = new Point((int) dest.getX() - OPERATOR_WIDTH / 2, (int) dest.getY() - MIN_OPERATOR_HEIGHT / 2);
+
+							// snap to grid
+							if (isSnapToGrid()) {
+								opPosition = snap(opPosition);
+							}
+
+							// check if operator overlaps bottom process corner
+							int lowestPosition = getHeight() - GRID_AUTOARRANGE_HEIGHT;
+							if (opPosition.getY() > lowestPosition) {
+								opPosition.setLocation(opPosition.getX(), lowestPosition);
+							}
+
+							// check if operator overlaps right process corner
+							int rightestPositon = getWidth() - GRID_AUTOARRANGE_WIDTH - PADDING;
+							if (opPosition.getX() > rightestPositon) {
+								opPosition.setLocation(rightestPositon, opPosition.getY());
+							}
+
+							Rectangle2D.Double opPositionDouble = new Rectangle2D.Double(opPosition.getX(), opPosition.getY(), OPERATOR_WIDTH, MIN_OPERATOR_HEIGHT);
+
+							operatorRects.put(firstOperator, opPositionDouble);
 
 							// index at which the first operator is inserted
 							int firstInsertionIndex;
@@ -728,6 +742,17 @@ public class ProcessRenderer extends JPanel {
 			}
 
 			@Override
+			public boolean canImport(TransferSupport ts) {
+				if(ts.isDrop()) {
+					int pid = ProcessRenderer.this.getProcessIndexUnder(ts.getDropLocation().getDropPoint());
+					if (pid < 0) {
+						return false;
+					}
+				}
+				return super.canImport(ts);
+			}
+
+			@Override
 			protected void dropEnds() {}
 
 			@Override
@@ -773,6 +798,25 @@ public class ProcessRenderer extends JPanel {
 			}
 		});
 
+		addComponentListener(new ComponentListener() {
+			
+			@Override
+			public void componentShown(ComponentEvent e) {
+			}
+			
+			@Override
+			public void componentResized(ComponentEvent e) {
+				showUsageHint();
+			}
+			
+			@Override
+			public void componentMoved(ComponentEvent e) {
+				showUsageHint();
+			}
+			@Override
+			public void componentHidden(ComponentEvent e) {	}
+		});
+		
 		((ResourceAction) mainFrame.getActions().TOGGLE_BREAKPOINT[BreakpointListener.BREAKPOINT_AFTER]).addToActionMap(this, WHEN_FOCUSED);
 		((ResourceAction) mainFrame.getActions().TOGGLE_ACTIVATION_ITEM).addToActionMap(this, WHEN_FOCUSED);
 		SELECT_ALL_ACTION.addToActionMap(this, WHEN_FOCUSED);
@@ -911,7 +955,26 @@ public class ProcessRenderer extends JPanel {
 			}
 		}
 		showProcesses(processes);
+		
+		showUsageHint();
 		fireNewChainDisplayed();
+	}
+
+	/** Shows (or hides) the usage hint iff the displayed operator chain is the root operator and has no children. */
+	private void showUsageHint() {
+		if ((displayedChain instanceof ProcessRootOperator) && (displayedChain .getSubprocess(0).getNumberOfOperators() == 0)) {
+			usageHintPane.setOpaque(false);
+			usageHintPane.setEditable(false);
+			usageHintPane.setEnabled(false);
+			usageHintPane.setText("<html><body style=\"font-family:sans;font-size:12px;font-weight:bold;color:#aaaaaa;\"><ol><li>Drop operators (from the <em>Operators</em> tab) or data (from the <em>Repositories</em> tab) here.</li><li>Connect operator ports.</li><li>Press run! <img src=\""+SwingTools.getIconPath("16/media_play.png")+"\"/></li></ol></body></html>");
+			int width = 450;
+			int height = 100;
+			usageHintPane.setLocation(getWidth() / 2 - width / 2, getHeight() / 2 - height / 2);
+			usageHintPane.setSize(width, height);
+			add(usageHintPane);
+		} else {
+			remove(usageHintPane);
+		}
 	}
 
 	private void showProcesses(ExecutionUnit[] processes) {
@@ -1725,9 +1788,9 @@ public class ProcessRenderer extends JPanel {
 							setHoveringOperator(op);
 							updateCursor();
 							if (getHoveringOperator() instanceof OperatorChain) {
-								showStatus("Double-click to zoom, drag to move.");
+								showStatus(I18N.getGUILabel("processRenderer.displayChain.hover"));
 							} else {
-								showStatus("Drag to move.");
+								showStatus(I18N.getGUILabel("processRenderer.operator.hover"));
 							}
 							repaint();
 						}
@@ -1745,7 +1808,11 @@ public class ProcessRenderer extends JPanel {
 				updateCursor();
 				repaint();
 			}
-			clearStatus();
+			if (hoveringConnectionSource != null) {
+				showStatus(I18N.getGUILabel("processRenderer.connection.hover"));
+			} else {
+				clearStatus();
+			}
 		}
 
 		@Override
@@ -1771,7 +1838,7 @@ public class ProcessRenderer extends JPanel {
 			// Popup will only be triggered if mouse has been released and no dragging was done
 			// CAUTION: Mac&Linux / Windows do different popup trigger handling. Because of this the popup trigger has to be checked
 			// in mousePressed AND mouseReleased
-			if (e.isPopupTrigger() && (draggedPort == null) && (connectingPortSource == null)) {
+			if (e.isPopupTrigger()) {
 				if (showPopupMenu(e)) {
 					return;
 				}
@@ -1787,6 +1854,11 @@ public class ProcessRenderer extends JPanel {
 			if (e.getButton() == MouseEvent.BUTTON2) {
 				setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 				return;
+			}
+
+			// disconnect when clicking with alt + left mouse on connection
+			if (hoveringConnectionSource != null && e.getButton() == MouseEvent.BUTTON1 && e.isAltDown()) {
+				hoveringConnectionSource.disconnect();
 			}
 
 			// If mouse pressed while connecting, check if connecting ports should be canceled
@@ -1923,7 +1995,7 @@ public class ProcessRenderer extends JPanel {
 			// Popup will only be triggered if mouse has been released and no dragging was done
 			// CAUTION: Mac&Linux / Windows do different popup trigger handling. Because of this the popup trigger has to be checked
 			// in mousePressed AND mouseReleased
-			if (e.isPopupTrigger() && (draggedPort == null) && (connectingPortSource == null) && !connectionDraggingCanceled) {
+			if (e.isPopupTrigger()) {
 				if (showPopupMenu(e)) {
 					return;
 				}
@@ -2078,9 +2150,11 @@ public class ProcessRenderer extends JPanel {
 					if (targetX < 0) {
 						targetX = 0;
 					}
+
 					if (targetY < 0) {
 						targetY = 0;
 					}
+
 					// use only hovering operator for snapping
 					if (isSnapToGrid()) {
 						Point snapped = snap(new Point2D.Double(targetX, targetY));
@@ -2127,9 +2201,9 @@ public class ProcessRenderer extends JPanel {
 				}
 			} else {
 				// ports are draggeable only if they belong to the displayedChain <-> they are inner sinks our sources
-				if (draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain &&
-						// furthermore they can only be dragged with right mouse button or left mouse button + shift key pressed
-						(pressedMouseButton == MouseEvent.BUTTON3 || pressedMouseButton == MouseEvent.BUTTON1 && e.isShiftDown())) {
+				if (isDisplayChainPortDragged() &&
+						// furthermore they can only be dragged with left mouse button + shift key pressed
+						(pressedMouseButton == MouseEvent.BUTTON1 && e.isShiftDown())) {
 
 					double diff = e.getY() - mousePositionAtLastEvaluation.getY();
 					double shifted = shiftPortSpacing(draggedPort, diff);
@@ -2145,6 +2219,10 @@ public class ProcessRenderer extends JPanel {
 			}
 		}
 
+		private boolean isDisplayChainPortDragged() {
+			return draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain;
+		}
+
 		@Override
 		public void mouseClicked(MouseEvent e) {
 
@@ -2156,23 +2234,7 @@ public class ProcessRenderer extends JPanel {
 			switch (e.getButton()) {
 				case MouseEvent.BUTTON1:
 					if (e.getClickCount() == 2) {
-						if (hoveringPort != null && hoveringPort.getPorts().getOwner().getOperator() instanceof ProcessRootOperator) {
-							RepositoryLocation procLoc = displayedChain.getProcess().getRepositoryLocation();
-							RepositoryLocation resolveRelativeTo = null;
-							if (procLoc != null) {
-								resolveRelativeTo = procLoc.parent();
-							}
-							String loc = RepositoryLocationChooser.selectLocation(resolveRelativeTo, ProcessRenderer.this);
-							if (loc != null) {
-								int index = hoveringPort.getPorts().getAllPorts().indexOf(hoveringPort);
-								// This looks weird, but it is correct: The input ports are OutputPorts!
-								if (hoveringPort instanceof OutputPort) {
-									displayedChain.getProcess().getContext().setInputRepositoryLocation(index, loc);
-								} else {
-									displayedChain.getProcess().getContext().setOutputRepositoryLocation(index, loc);
-								}
-							}
-						} else if (getHoveringOperator() != null) {
+						if (getHoveringOperator() != null) {
 							if (getHoveringOperator() instanceof OperatorChain) {
 								processPanel.showOperatorChain((OperatorChain) getHoveringOperator());
 								ProcessRenderer.this.mainFrame.addViewSwitchToUndo();
@@ -2293,7 +2355,7 @@ public class ProcessRenderer extends JPanel {
 	}
 
 	private boolean showPopupMenu(final MouseEvent e) {
-		if (connectingPortSource != null) {
+		if (connectingPortSource != null || connectionDraggingCanceled) {
 			return false;
 		}
 		JPopupMenu menu = new JPopupMenu();
@@ -2371,23 +2433,23 @@ public class ProcessRenderer extends JPanel {
 				menu.add(orderMenu);
 
 				JMenu layoutMenu = new ResourceMenu("process_layout");
-				//TODO: disabled action until RM-150 is fixed
-//				layoutMenu.add(new ResourceAction("arrange_operators") {
-//
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public void actionPerformed(ActionEvent ae) {
-//						int index = getProcessIndexUnder(e.getPoint());
-//						if (index == -1) {
-//							for (ExecutionUnit u : processes) {
-//								autoArrange(u);
-//							}
-//						} else {
-//							autoArrange(processes[index]);
-//						}
-//					}
-//				});
+
+				layoutMenu.add(new ResourceAction("arrange_operators") {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void actionPerformed(ActionEvent ae) {
+						int index = getProcessIndexUnder(e.getPoint());
+						if (index == -1) {
+							for (ExecutionUnit u : processes) {
+								autoArrange(u);
+							}
+						} else {
+							autoArrange(processes[index]);
+						}
+					}
+				});
 				layoutMenu.add(AUTO_FIT_ACTION);
 				if (hoveringProcessIndex != -1) {
 					layoutMenu.add(INCREASE_PROCESS_LAYOUT_WIDTH_ACTION);
@@ -2449,6 +2511,8 @@ public class ProcessRenderer extends JPanel {
 	private final OverviewPanel overviewPanel = new OverviewPanel(this);
 
 	private JTextField renameField = null;
+	
+	private JEditorPane usageHintPane = new JEditorPane("text/html", "1. 2. 3.");
 
 	private Shape createConnector(Port fromPort, Port toPort) {
 		Point2D from = getPortLocation(fromPort);
@@ -2916,6 +2980,7 @@ public class ProcessRenderer extends JPanel {
 		if (displayedChain.getNumberOfSubprocesses() != processes.length) {
 			showOperatorChain(displayedChain);
 		}
+		showUsageHint();
 		repaint();
 	}
 
@@ -3307,14 +3372,10 @@ public class ProcessRenderer extends JPanel {
 			if (dx * dx + dy * dy < 3 * PORT_SIZE * PORT_SIZE / 2) {
 				if (hoveringPort != port) {
 					hoveringPort = port;
-					if (hoveringPort instanceof OutputPort) {
-						if (hoveringPort.getPorts().getOwner().getOperator() == displayedChain) {
-							showStatus("Click or drag to connect, ALT to disconnect, SHIFT + drag to move.");
-						} else {
-							showStatus("Click or drag to connect, ALT to disconnect.");
-						}
-					} else if (hoveringPort instanceof InputPort && hoveringPort.getPorts().getOwner().getOperator() == displayedChain) {
-						showStatus("Drag to move.");
+					if (hoveringPort.getPorts().getOwner().getOperator() == displayedChain) {
+						showStatus(I18N.getGUILabel("processRenderer.displayChain.port.hover"));
+					} else {
+						showStatus(I18N.getGUILabel("processRenderer.operator.port.hover"));
 					}
 					setHoveringOperator(null);
 					updateCursor();

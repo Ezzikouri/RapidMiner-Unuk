@@ -45,7 +45,7 @@ public class NewRepositoryDialog extends MultiPageDialog {
 	private static final long serialVersionUID = 1L;
 
 	private final RemoteRepositoryPanel remoteRepositoryPanel = new RemoteRepositoryPanel();
-	private final LocalRepositoryPanel localRepositoryPanel = new LocalRepositoryPanel();
+	private final LocalRepositoryPanel localRepositoryPanel = new LocalRepositoryPanel(getFinishButton());
 
 	private final JRadioButton localButton;
 

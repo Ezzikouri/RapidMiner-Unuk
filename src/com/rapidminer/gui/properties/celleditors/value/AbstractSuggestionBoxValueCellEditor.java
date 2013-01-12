@@ -195,7 +195,11 @@ public abstract class AbstractSuggestionBoxValueCellEditor extends AbstractCellE
 							JList list = popup.getList();
 							Dimension preferred = list.getPreferredSize();
 							preferred.width += 25;
-							int rowHeight = preferred.height / comboBox.getItemCount();
+							int itemCount = comboBox.getItemCount();
+							int rowHeight = 10;
+							if(itemCount > 0) {
+								rowHeight = preferred.height / itemCount;
+							} 
 							int maxHeight = comboBox.getMaximumRowCount() * rowHeight;
 							preferred.height = Math.min(preferred.height, maxHeight);
 

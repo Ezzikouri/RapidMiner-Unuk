@@ -25,6 +25,7 @@ package com.rapidminer.repository.local;
 import java.io.File;
 import java.util.logging.Level;
 
+import javax.swing.JButton;
 import javax.swing.event.EventListenerList;
 
 import org.w3c.dom.Document;
@@ -41,6 +42,7 @@ import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.gui.LocalRepositoryPanel;
 import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
+import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
@@ -75,9 +77,16 @@ public class LocalRepository extends SimpleFolder implements Repository {
 		}
 	}
 
+	/** Creates a file-based repository in a default location.
+	 * 
+	 * @see #getDefaultRepositoryFolder(String) */
+	public LocalRepository(String name) throws RepositoryException {
+		this(name, getDefaultRepositoryFolder(name));
+	}
+	
+	/** Creates a file-based repository in the given location. */
 	public LocalRepository(String name, File root) throws RepositoryException {
-		super(name, null, null);		
-		setRepository(this);
+		super(name, null, null);
 		this.root = root;
 		try {
 			mkdir();
@@ -89,8 +98,15 @@ public class LocalRepository extends SimpleFolder implements Repository {
 							e),
 							e);
 //			throw new RepositoryException(e.getMessage());
-
+			
 		}
+		if (!root.isDirectory()) {
+			throw new RepositoryException("Folder '"+root+"' is not a directory.");
+		}
+		if (!root.canWrite()) {
+			throw new RepositoryException("Folder '"+root+"' is not writable.");
+		}
+		setRepository(this);
 	}
 
 	public File getRoot() {
@@ -226,7 +242,19 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public RepositoryConfigurationPanel makeConfigurationPanel() {
-		return new LocalRepositoryPanel();
+		return new LocalRepositoryPanel(null);
+	}
+	
+	/** Returns the folder which, by default, contains RM repositories, e.g. .RapidMiner5/repositories */
+	private static File getDefaultRepositoryContainerFolder() {
+		File dir = FileSystemService.getUserConfigFile("repositories");
+		dir.mkdir();
+		return dir;
+	}
+	
+	/** Returns the default folder in which a repository with this alias would be stored. */
+	public static final File getDefaultRepositoryFolder(String forAlias) {
+		return new File(getDefaultRepositoryContainerFolder(), forAlias);
 	}
 
 }

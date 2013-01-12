@@ -303,6 +303,7 @@ public class Actions implements ProcessEditor {
 			currentStates[ConditionalAction.PROCESS_PAUSED] = processState == Process.PROCESS_STATE_PAUSED;
 			currentStates[ConditionalAction.PROCESS_RUNNING] = processState == Process.PROCESS_STATE_RUNNING;
 			currentStates[ConditionalAction.EDIT_IN_PROGRESS] = EditBlockingProgressThread.isEditing();
+			currentStates[ConditionalAction.PROCESS_SAVED] = process.hasSaveDestination();
 			ConditionalAction.updateAll(currentStates);
 			updateCheckboxStates();
 		}

@@ -45,6 +45,12 @@
 	<!-- Location of changes files -->
 	<property name="changes.dir" location="changes" />
 	<property name="changes.current" value="${changes.dir}/CHANGES_${rapidminer.longversion}.txt" />
+	
+	<!--  Amazon S3 settings -->
+	<property name="amazon.s3.access_key" value="abc" />
+	<property name="amazon.s3.secret_key" value="abc" />
+	<property name="amazon.s3.bucket" value="123" />
+	<property name="amazon.s3.destination" value="dest" />
 
 	<property name="makensis" value="makensis" />
 	<!-- Assume this is on the PATH -->
@@ -465,6 +471,46 @@
 			</fileset>
 		</move>
 		<delete dir="${release}/scp" />
+	</target>
+
+	<!-- Amazon S3 -->
+	<target name="amazon.s3.setup">
+		<taskdef name="s3put" classpath="aws-ant-task-1.2" classname="it.corley.ant.S3PutTask" />
+		<typedef name="contenttype.mapping" classname="it.corley.ant.ContentTypeMapping" />
+		<typedef name="cachecontrol.mapping" classname="it.corley.ant.CacheControlMapping" />
+		<typedef name="contentencoding.mapping" classname="it.corley.ant.ContentEncodingMapping" />
+	</target>
+
+	<target name="release.publishToAmazonS3" depends="release.makeAll, amazon.s3.setup"
+		description="This target builds a full release and uploads all files to amazon s3.">
+		<echo message="Publishing release ${rapidminer.longversion}..." />
+		<!-- move files to proper directory for scping them to sf-net. -->
+		<move todir="${release}/s3/1. RapidMiner/${rapidminer.shortversion}">
+			<fileset dir="${release}">
+				<include name="*.zip" />
+				<include name="*.exe" />
+				<exclude name="update*.*" />
+			</fileset>
+		</move>
+
+		<!-- upload to s3 -->
+		<s3put key="${amazon.s3.access_key}" secret="${amazon.s3.secret_key}"
+			bucket="${amazon.s3.bucket}" dest="${amazon.s3.destination}"
+			publicread="true" cacheControl="3600" contentType="application/x-readme">
+			<fileset dir="${release}/s3" includes="**/*.*" />
+			<contenttypemapping extension="md" contenttype="text/plain" />
+			<cachecontrolmapping extension="md" maxage="7200" />
+			<contentencodingmapping extension="md"
+				encoding="UTF-8" />
+		</s3put>
+
+		<!-- move back and delete dir -->
+		<move todir="${release}">
+			<fileset dir="${release}/s3/1. RapidMiner/${rapidminer.shortversion}">
+				<include name="**/*.*" />
+			</fileset>
+		</move>
+		<delete dir="${release}/s3" />
 	</target>
 
 	<target name="release.publishToRapidShare" depends="release.makeAll" description="Copies the created jar file into Rapid-I's internal file share.">

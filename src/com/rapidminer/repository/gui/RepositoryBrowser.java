@@ -105,22 +105,8 @@ public class RepositoryBrowser extends JPanel implements Dockable {
 		toolBar.add(tree.OPEN_ACTION);
 		toolBar.add(tree.REFRESH_ACTION);
 		toolBar.add(tree.CREATE_FOLDER_ACTION);
-		ResourceAction linkAction = new ResourceActionAdapter(true, "link") {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (RapidMinerGUI.getMainFrame().getProcess() != null) {
-					RepositoryLocation repoLoc = RapidMinerGUI.getMainFrame().getProcess().getRepositoryLocation();
-					if (repoLoc != null) {
-						RepositoryBrowser.this.tree.expandIfExists(repoLoc.parent(), "");
-						RepositoryBrowser.this.tree.scrollPathToVisible(RepositoryBrowser.this.tree.getSelectionPath());
-					}
-				}
-			}
+		toolBar.add(tree.SHOW_PROCESS_IN_REPOSITORY_ACTION);
 
-		};
-		toolBar.add(linkAction);
 		add(toolBar, BorderLayout.NORTH);
 		JScrollPane scrollPane = new ExtendedJScrollPane(tree);
 		scrollPane.setBorder(null);
@@ -144,5 +130,12 @@ public class RepositoryBrowser extends JPanel implements Dockable {
 	@Override
 	public DockKey getDockKey() {
 		return DOCK_KEY;
+	}
+
+	/**
+	 * @param storedRepositoryLocation
+	 */
+	public void expandToRepositoryLocation(RepositoryLocation storedRepositoryLocation) {
+		tree.expandAndSelectIfExists(storedRepositoryLocation);
 	}
 }

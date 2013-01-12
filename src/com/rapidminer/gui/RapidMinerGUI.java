@@ -165,7 +165,7 @@ public class RapidMinerGUI extends RapidMiner {
 		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SNAP_TO_GRID, "If checked, operators snap to the grid.", true));
 		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_INPUT, "If checked, operator's inputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
 		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_AUTOWIRE_OUTPUT, "If checked, operator's outputs are wired automatically when added. Can be checked also in the \"Operators\" tree.", true));
-		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_CLOSE_RESULTS_BEFORE_RUN, "Close active result tabs when new process starts?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_CLOSE_RESULTS_BEFORE_RUN, "Close active result tabs when new process starts?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.TRUE));
 		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RUN_REMOTE_NOW, "Execute the process on RapidAnalytics now?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
 		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_CLOSE_ALL_RESULTS_NOW, "Close all results on button pressed?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
 

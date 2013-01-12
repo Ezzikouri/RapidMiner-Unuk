@@ -22,6 +22,7 @@
  */
 package com.rapidminer.repository.gui;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
 
 import com.rapidminer.repository.Repository;
@@ -46,5 +47,8 @@ public interface RepositoryConfigurationPanel {
 	
 	/** Returns the actual component. */
 	public JComponent getComponent();
+
+	/** This button should be disabled when invalid values are entered. */
+	public void setOkButton(JButton okButton);
 
 }

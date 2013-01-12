@@ -52,9 +52,10 @@ public class CSVFileSelectionWizardStep extends FileSelectionWizardStep {
 			}
 			@Override
 			public String getDescription() {
-				return "Delimiter separated files";
+				return "Delimiter separated files (.csv, .tsv)";
 			}		
 		});
+		this.fileChooser.setAcceptAllFileFilterUsed(true);
 		this.configuration = configuration;
 	}
 

@@ -61,6 +61,7 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.dnd.TransferableOperator;
 import com.rapidminer.gui.tools.ProgressThread;
+import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
@@ -87,6 +88,7 @@ import com.rapidminer.repository.gui.actions.PasteEntryRepositoryAction;
 import com.rapidminer.repository.gui.actions.RefreshRepositoryEntryAction;
 import com.rapidminer.repository.gui.actions.RenameRepositoryEntryAction;
 import com.rapidminer.repository.gui.actions.RunRemoteNowProcessAction;
+import com.rapidminer.repository.gui.actions.ShowProcessInRepositoryAction;
 import com.rapidminer.repository.gui.actions.StoreProcessAction;
 import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.repository.remote.RemoteProcessEntry;
@@ -152,6 +154,8 @@ public class RepositoryTree extends JTree {
     public final AbstractRepositoryAction<Folder> REFRESH_ACTION = new RefreshRepositoryEntryAction(this);
 
     public final AbstractRepositoryAction<Folder> CREATE_FOLDER_ACTION = new CreateFolderAction(this);
+    
+    public final ResourceActionAdapter SHOW_PROCESS_IN_REPOSITORY_ACTION = new ShowProcessInRepositoryAction(this);
 
     private List<AbstractRepositoryAction> listToEnable = new LinkedList<AbstractRepositoryAction>();
 
@@ -561,6 +565,15 @@ public class RepositoryTree extends JTree {
         }
         return false;
         //loc = loc.parent();
+    }
+    
+    /**
+     * Expands the tree to select the given entry if it exists.
+     */
+    public void expandAndSelectIfExists(RepositoryLocation location) {
+		expandIfExists(location.parent(), location.getName());
+		scrollPathToVisible(getSelectionPath());
+		expandIfExists(location.parent(), location.getName());
     }
 
     private void showPopup(MouseEvent e) {

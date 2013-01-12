@@ -22,21 +22,18 @@
  */
 package com.rapidminer.operator.nio.file.compression;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.file.FileObject;
 import com.rapidminer.tools.Tools;
 
@@ -44,98 +41,49 @@ import com.rapidminer.tools.Tools;
  * @author Marius Helf
  * 
  */
-public class ZipFileObject extends FileObject {
-	public enum BufferType {
-		MEMORY, FILE
-	};
-
-	private static final long serialVersionUID = 1L;
-
+public class ZipFileObject extends ArchiveFileObject {
+	/**
+	 * The data stream which compresses all data which is written
+	 * to it.
+	 * 
+	 * The compressed data is then piped to the {@link #archiveDataStream}.
+	 */
 	private ZipOutputStream zipOutputStream;
-	private OutputStream compressedData;
-	private int compressionLevel = Deflater.DEFAULT_COMPRESSION;
-	private final BufferType bufferType;
-
-	private File tmpFile;
-
+	private boolean finished = false;
+	
 	public ZipFileObject() throws OperatorException {
-		bufferType = BufferType.FILE;
-		init();
+		super();
+		zipOutputStream = new ZipOutputStream(getArchiveDataStream());
 	}
 
 	public ZipFileObject(BufferType bufferType) throws OperatorException {
-		super();
-		this.bufferType = bufferType;
-		init();
+		super(bufferType);
+		zipOutputStream = new ZipOutputStream(getArchiveDataStream());
 	}
 
-	private void init() throws OperatorException {
-		switch (bufferType) {
-		case FILE:
-			try {
-				tmpFile = File.createTempFile("rm_zipfile_", ".dump");
-				tmpFile.deleteOnExit();
-				compressedData = new FileOutputStream(tmpFile);
-			} catch (IOException e) {
-				throw new OperatorException("303", e, tmpFile, e.getMessage());
-			}
-			break;
-		case MEMORY:
-			compressedData = new ByteArrayOutputStream();
-			break;
-
-		}
-		zipOutputStream = new ZipOutputStream(compressedData);
-	}
-
-	@Override
-	public InputStream openStream() throws OperatorException {
-
-		try {
-			zipOutputStream.flush();
-			zipOutputStream.finish();
-			compressedData.flush();
-		} catch (IOException e) {
-			throw new OperatorException("zipfile.stream_error", e, new Object[0]);
-		}
-
-		switch (bufferType) {
-		case FILE:
-			try {
-				return new FileInputStream(tmpFile);
-			} catch (FileNotFoundException e) {
-				throw new OperatorException("301", e, tmpFile);
-			}
-		case MEMORY:
-			return new ByteArrayInputStream(((ByteArrayOutputStream) compressedData).toByteArray());
-		default:
-			throw new RuntimeException("bufferType should never be null");
-		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.rapidminer.operator.nio.file.FileObject#getFile()
+	/**
+	 * Flushes all output buffers.
 	 */
 	@Override
-	public File getFile() throws OperatorException {
-		if (tmpFile == null) {
-			try {
-				tmpFile = File.createTempFile("rm_zipfile_", ".dump");
-				FileOutputStream fos = new FileOutputStream(tmpFile);
-				InputStream in = openStream();
-				Tools.copyStreamSynchronously(in, fos, true);
-				tmpFile.deleteOnExit();
-			} catch (IOException e) {
-				throw new OperatorException("303", e, tmpFile, e.getMessage());
-			}
-		}
-		return tmpFile;
+	protected void flush() throws IOException {
+		zipOutputStream.flush();
+		zipOutputStream.finish();
+		finished = true;
+		super.flush();
 	}
-
-	public void addEntry(FileObject fileObject, String directory) throws OperatorException {
-		addEntry(fileObject, directory, compressionLevel);
+	
+	private int getZipCompressionLevel(FuzzyCompressionLevel compressionLevel) {
+		switch (compressionLevel) {
+			case BEST:
+				return Deflater.BEST_COMPRESSION;
+			case FASTEST:
+				return Deflater.BEST_SPEED;
+			case NONE:
+				return Deflater.NO_COMPRESSION;
+			case DEFAULT:
+			default:
+				return Deflater.DEFAULT_COMPRESSION;
+		}
 	}
 
 	/**
@@ -144,7 +92,16 @@ public class ZipFileObject extends FileObject {
 	 * @throws IOException
 	 * @throws OperatorException
 	 */
-	public void addEntry(FileObject fileObject, String directory, int compressionLevel) throws OperatorException {
+	@Override
+	public void addEntry(FileObject fileObject, String directory, FuzzyCompressionLevel localCompressionLevel) throws OperatorException {
+		addEntry(fileObject, directory, getZipCompressionLevel(localCompressionLevel));
+	}
+	
+	private void addEntry(FileObject fileObject, String directory, int zipCompressionLevel) throws OperatorException {
+		if (finished) {
+			throw new UserError(null, "zip_file_object.cannot_add_entry_after_finish");
+		}
+		
 		if (directory == null) {
 			directory = "";
 		}
@@ -160,16 +117,18 @@ public class ZipFileObject extends FileObject {
 			filename = directory + "/" + filename;
 		}
 
-		zipOutputStream.setLevel(compressionLevel);
-
+		zipOutputStream.setLevel(zipCompressionLevel);
+		
 		InputStream fileStream = fileObject.openStream();
 		try {
 			try {
 				zipOutputStream.putNextEntry(new ZipEntry(filename));
 				Tools.copyStreamSynchronously(fileStream, zipOutputStream, false);
 				zipOutputStream.closeEntry();
+			} catch (ZipException e) {
+				throw new UserError(null, "zip_file_object.zip_error_while_adding", e.getLocalizedMessage());
 			} catch (IOException e) {
-				throw new OperatorException("zipfile.stream_error", e, new Object[0]);
+				throw new OperatorException("archive_file.stream_error", e, new Object[0]);
 			}
 		} finally {
 			try {
@@ -179,46 +138,27 @@ public class ZipFileObject extends FileObject {
 			}
 		}
 	}
-
+	
 	@Override
 	public String getName() {
 		return "Zip File";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Object#toString()
+
+	/* (non-Javadoc)
+	 * @see com.rapidminer.operator.nio.file.compression.ArchiveFileObject#getSupportedCompressionLevels()
 	 */
 	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		switch (bufferType) {
-		case FILE:
-			builder.append("File");
-			break;
-		case MEMORY:
-			builder.append("Memory");
-			break;
-		}
-		builder.append(" buffered zip file");
-
-		return builder.toString();
+	public Set<FuzzyCompressionLevel> getSupportedCompressionLevels() {
+		HashSet<FuzzyCompressionLevel> supportedLevels = new HashSet<FuzzyCompressionLevel>(); 
+		supportedLevels.add(FuzzyCompressionLevel.BEST);
+		supportedLevels.add(FuzzyCompressionLevel.FASTEST);
+		supportedLevels.add(FuzzyCompressionLevel.NONE);
+		supportedLevels.add(FuzzyCompressionLevel.DEFAULT);
+		return supportedLevels;
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		if (tmpFile != null) {
-			tmpFile.delete();
-		}
-		super.finalize();
-	}
-
-	public int getCompressionLevel() {
-		return compressionLevel;
-	}
-
-	public void setCompressionLevel(int compressionLevel) {
-		this.compressionLevel = compressionLevel;
+	public boolean supportsComppressionLevel(FuzzyCompressionLevel compressionLevel) {
+		return getSupportedCompressionLevels().contains(compressionLevel);
 	}
 }

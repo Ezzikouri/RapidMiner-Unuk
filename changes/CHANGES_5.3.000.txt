@@ -1,13 +1,12 @@
 Changes from RapidMiner 5.2.8 to 5.3.0
 --------------------------------------
 * Development JDK was switched to Java 7
-* Input sinks and output sinks of processes/subprocess now can be moved up/down either by dragging them with the right mouse key or by dragging them with the left mouse key while shift is pressed
-* Connecting ports in reverse order is possible now (Input port -> output port)
-* Improved Remote Repository authentication
 * Added first wave of new and improved extensive documentation (often including tutorial processes) for many operators
 * Added improved RapidAnalytics support. New run button: "Run process on RapidAnalytics".
   Can only be used if the process is stored on a RapidAnalytics repository.
   Instantly runs the process on the RapidAnalytics server the process is stored on
+* Input sinks and output sinks of processes/subprocess now can be moved up/down either by dragging them with the right mouse key or by dragging them with the left mouse key while shift is pressed
+* Connecting ports in reverse order is possible now (Input port -> output port)
 * Run on RapidAnalytics-Dialog can choose execution queue
 * New operator: Performance to Data
 * New operator: Throw Exception
@@ -64,6 +63,9 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * Operators "Execute Process" and "Retrieve" are now named after the files your drop into the Process window
 * Nominal to Numerical: Parameter "default coding" is now set to dummy coding per default
 * Changed the help menu entry "Update RapidMiner" to "RapidMiner Marketplace"
+* Improved Remote Repository authentication
+* Improved data import wizards
+* Added default dialog options when running a process
 * BUGFIX: Recent files are now updated on process save
 * BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases
 * BUGFIX: Editing context variables now immediately flags the process as changed

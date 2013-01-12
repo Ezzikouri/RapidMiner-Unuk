@@ -754,6 +754,15 @@
     </ioobject>
     
     <ioobject
+        name="Archive File"
+        class="com.rapidminer.operator.nio.file.compression.ArchiveFileObject"
+        reportable="true"
+        icon="box.png">
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
+    </ioobject>
+    
+    <ioobject
         name="Zip File"
         class="com.rapidminer.operator.nio.file.compression.ZipFileObject"
         reportable="true"

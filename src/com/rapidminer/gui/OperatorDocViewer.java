@@ -269,19 +269,14 @@ public class OperatorDocViewer extends JPanel implements Dockable, ProcessEditor
 
 		buf.append("</td><td style=\"padding-left:4px;\">");
 		buf.append("<h2>" + descr.getName());
-		String wikiName;
-		try {
-			wikiName = URLEncoder.encode(descr.getName(), "UTF-8");
-			buf.append(" <small><a href=\"http://rapid-i.com/wiki/index.php?title=").append(wikiName).append("\">(Wiki)</a></small>");
-		} catch (UnsupportedEncodingException e) {
-			//LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
-			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.gui.OperatorDocViewer.url_encode_operator_error", 
-					descr.getName(), e),
-					e);
-
+		
+		if (descr.getProvider() != null) {
+			String operatorPluginName = descr.getProvider().getName();
+			if (operatorPluginName != null && operatorPluginName.length() > 0) {
+				buf.append("<small style=\"font-size:70%;color:#5F5F5F;font-weight:normal;\"> (" + operatorPluginName + ")</small>");
+			}
 		}
+		
 		buf.append("</h2>");
 		buf.append("</td></tr></table>");
 		buf.append("<hr noshade=\"true\"/><br/>");

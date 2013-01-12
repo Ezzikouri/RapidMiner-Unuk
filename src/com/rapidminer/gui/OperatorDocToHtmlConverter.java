@@ -360,6 +360,19 @@ public class OperatorDocToHtmlConverter {
 			return null;
 		}
 	}
+	
+	public static String getPluginNameForOperator(String operatorKey) {
+		OperatorDescription operatorDescription;
+		int index = operatorKey.indexOf(".");
+		if (index == -1) {
+			operatorDescription= OperatorService.getOperatorDescription(operatorKey);
+		} else {
+			operatorKey = operatorKey.substring(index + 1);
+			operatorDescription = OperatorService.getOperatorDescription(operatorKey);
+		}
+		
+		return operatorDescription.getProviderName();
+	}
 
 	/**
 	 * 

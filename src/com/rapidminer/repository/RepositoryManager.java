@@ -50,7 +50,6 @@ import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.repository.db.DBRepository;
-import com.rapidminer.repository.gui.NewRepositoryDialog;
 import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.repository.resource.ResourceRepository;
@@ -264,8 +263,18 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			}
 		}
 		if (empty) {
-			SwingTools.showMessageDialog("please_create_repository");
-			NewRepositoryDialog.createNew();
+//			SwingTools.showMessageDialog("please_create_repository");
+//			NewRepositoryDialog.createNew();
+			try {
+				LocalRepository defaultRepo = new LocalRepository("Local Repository");
+				RepositoryManager.getInstance(null).addRepository(defaultRepo);
+				RepositoryManager.getInstance(null).copy(new RepositoryLocation("//Samples/data"), defaultRepo, null);
+				defaultRepo.createFolder("processes");
+			} catch (RepositoryException e) {
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.repository.RepositoryManager.failed_to_create_default", e);
+			} catch (MalformedRepositoryLocationException e) {
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.repository.RepositoryManager.failed_to_create_default", e);
+			}
 		}
 	}
 

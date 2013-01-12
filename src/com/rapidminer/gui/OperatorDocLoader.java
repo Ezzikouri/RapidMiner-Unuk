@@ -113,6 +113,7 @@ public class OperatorDocLoader {
 	private static final Logger logger = Logger.getLogger(OperatorDocLoader.class.getName());
 	private static String CORRECT_HTML_STRING_DIRTY = "<html xmlns=\"http://www.w3.org/1999/xhtml\" dir=\"ltr\" lang=\"en\">";
 	private static String CURRENT_OPERATOR_NAME_READ_FROM_RAPIDWIKI;
+	private static String CURRENT_OPERATOR_PLUGIN_NAME;
 	private static String ERROR_TEXT_FOR_WIKI;
 	private static String ERROR_TEXT_FOR_LOCAL;
 
@@ -177,10 +178,20 @@ public class OperatorDocLoader {
 				"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">");
 
 		// customize operator-name
-		HTMLString = HTMLString.replaceFirst(CORRECT_HTML_STRING_DIRTY, "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" dir=\"ltr\">" + "<head>"
+		
+		String newHtmlString = "<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\" dir=\"ltr\">" + "<head>"
 				+ "<table cellpadding=0 cellspacing=0>" + "<tr><td>" + "<img src=\"" + operatorIconPath + "\" /></td>" + "<td width=\"5\">" + "</td>" + "<td>"
-				+ "<h2 class=\"firstHeading\" id=\"firstHeading\">" + CURRENT_OPERATOR_NAME_READ_FROM_RAPIDWIKI + "</h2>" + "</td></tr>" + "</table>" + "<hr noshade=\"true\">"
-				+ "</head>");
+				+ "<h2 class=\"firstHeading\" id=\"firstHeading\">" + CURRENT_OPERATOR_NAME_READ_FROM_RAPIDWIKI;
+		
+		if (CURRENT_OPERATOR_PLUGIN_NAME != null && CURRENT_OPERATOR_PLUGIN_NAME.length() > 0) {
+			newHtmlString += "<small style=\"font-size:70%;color:#5F5F5F;font-weight:normal;\"> (" + CURRENT_OPERATOR_PLUGIN_NAME + ")</small>";
+		}
+		
+		newHtmlString += "</h2>" + "</td></tr>"
+					+ "</table>" + "<hr noshade=\"true\">"
+					+ "</head>";
+		
+		HTMLString = HTMLString.replaceFirst(CORRECT_HTML_STRING_DIRTY, newHtmlString);
 
 		// customize all headlines
 		HTMLString = HTMLString.replaceAll("<h2>", "<h4>");
@@ -424,6 +435,11 @@ public class OperatorDocLoader {
 					CURRENT_OPERATOR_NAME_READ_FROM_RAPIDWIKI = firstHeadingElement.getFirstChild().getNodeValue().replaceFirst(".*:", "");
 					firstHeadingElement.getParentNode().removeChild(firstHeadingElement);
 				}
+				
+				// setting operator plugin name
+				if (opDesc != null && opDesc.getProvider() != null) {
+					CURRENT_OPERATOR_PLUGIN_NAME = opDesc.getProvider().getName();
+				}
 
 				// removing sitesub element from document
 				Element siteSubElement = document.getElementById("siteSub");
@@ -568,15 +584,11 @@ public class OperatorDocLoader {
 
 		buf.append("</td><td style=\"padding-left:4px;\">");
 		buf.append("<h2>" + descr.getName());
-		String wikiName;
-		try {
-			wikiName = URLEncoder.encode(descr.getName(), "UTF-8");
-			buf.append(" <small><a href=\"http://rapid-i.com/wiki/index.php?title=").append(wikiName).append("\">(Wiki)</a></small>");
-		} catch (UnsupportedEncodingException e) {
-			//LogService.getRoot().log(Level.WARNING, "Failed to URL-encode operator name: " + descr.getName() + ": " + e, e);
-			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.gui.OperatorDocLoader.url_encoding_operator_name_error", descr.getName(), e), e);
+		
+		if (CURRENT_OPERATOR_PLUGIN_NAME != null && CURRENT_OPERATOR_PLUGIN_NAME.length() > 0) {
+			buf.append("<small style=\"font-size:70%;color:#5F5F5F;font-weight:normal;\"> (" + CURRENT_OPERATOR_PLUGIN_NAME + ")</small>");
 		}
+		
 		buf.append("</h2>");
 		buf.append("</td></tr></table>");
 		buf.append("<hr noshade=\"true\"/><br/>");

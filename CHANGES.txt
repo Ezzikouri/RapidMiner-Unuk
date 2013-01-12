@@ -10,9 +10,9 @@ Changes from RapidMiner 5.2.8 to 5.3.0
   Can only be used if the process is stored on a RapidAnalytics repository.
   Instantly runs the process on the RapidAnalytics server the process is stored on
 * Run on RapidAnalytics-Dialog can choose execution queue
+* New operators: Create Archive File and Add Entry to Archive File allow to create zip files
 * New operator: Performance to Data
 * New operator: Throw Exception
-* New operators: Create Zip File and Add Entry to Zip File
 * New file system operators: Copy File, Move File, Delete File, Rename File, Create Directory
 * Aggregate: new aggregation functions: sum (fractional), count (fractional), count (percentage) and string concatenation
 * Execute Program operator has File Object ports for stdin, stdout, stderr

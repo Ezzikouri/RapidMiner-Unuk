@@ -44,11 +44,15 @@
 					
 					</td>
 					<td valign="middle" align="center">
-						<h2><xsl:value-of select="title" /></h2>
+						<h2><xsl:value-of select="title" />
+							<xsl:if test="boolean(rmdoc:getPluginNameForOperator($operatorKey))">
+  								<small style="font-weight:normal;font-size:70%;color:#5F5F5F;"> (<xsl:value-of select="rmdoc:getPluginNameForOperator($operatorKey)" />)</small>
+							</xsl:if>
+						</h2>
 					</td>
 				</tr>
 			</table>
-			<hr />
+			<hr noshade="true" />
 			<xsl:apply-templates />
 		</xsl:template>
 	<xsl:template match="synopsis">

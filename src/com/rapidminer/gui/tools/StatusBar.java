@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tools;
 
 import java.awt.Color;
@@ -54,7 +55,6 @@ import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.Tools;
 
-
 /**
  * The status bar shows the currently applied operator and the time it needed so
  * far. In addition, the number of times the operator was already applied is
@@ -68,21 +68,25 @@ import com.rapidminer.tools.Tools;
 public class StatusBar extends JPanel implements ProcessEditor {
 
 	private final ProcessListener processListener = new ProcessListener() {
+
 		public void processStarts(com.rapidminer.Process process) {
 			rootOperator = null;
 			specialText = null;
 			SwingUtilities.invokeLater(new Runnable() {
+
 				public void run() {
-					operatorLabel.setText("");				
+					operatorLabel.setText("");
 					trafficLightLabel.setIcon(RUNNING_ICON);
-				}});
+				}
+			});
 		}
-		public void processStartedOperator(final com.rapidminer.Process process, final Operator op) {		
+
+		public void processStartedOperator(final com.rapidminer.Process process, final Operator op) {
 			if (rootOperator == null) {
 				rootOperator = new OperatorEntry(op);
 			} else {
 				rootOperator.addOperator(op);
-			}		
+			}
 		}
 
 		public void processFinishedOperator(com.rapidminer.Process process, final Operator op) {
@@ -95,14 +99,17 @@ public class StatusBar extends JPanel implements ProcessEditor {
 			rootOperator = null;
 			specialText = null;
 			SwingUtilities.invokeLater(new Runnable() {
+
 				public void run() {
 					operatorLabel.setText("");
 					trafficLightLabel.setIcon(INACTIVE_ICON);
-				}});
-		}		
+				}
+			});
+		}
 	};
-	
+
 	private final BreakpointListener breakpointListener = new BreakpointListener() {
+
 		@Override
 		public void resume() {
 			breakpoint = -1;
@@ -118,9 +125,9 @@ public class StatusBar extends JPanel implements ProcessEditor {
 			breakpoint = location;
 			operatorLabel.setText("[" + op.getApplyCount() + "] " + op.getName() + ": breakpoint reached " + BreakpointListener.BREAKPOINT_POS_NAME[breakpoint] + " operator, press resume...");
 			trafficLightLabel.setIcon(STOPPED_ICON);
-		}		
+		}
 	};
-	
+
 	private static class OperatorEntry {
 
 		private final Collection<OperatorEntry> children = new LinkedList<OperatorEntry>();
@@ -184,21 +191,20 @@ public class StatusBar extends JPanel implements ProcessEditor {
 		}
 	}
 
-
 	private static final String INACTIVE_ICON_NAME = "24/bullet_ball_glass_grey.png";
-	private static final String RUNNING_ICON_NAME  = "24/bullet_ball_glass_green.png";
-	private static final String STOPPED_ICON_NAME  = "24/bullet_ball_glass_red.png";
-	private static final String PENDING_ICON_NAME  = "24/bullet_ball_glass_yellow.png";
+	private static final String RUNNING_ICON_NAME = "24/bullet_ball_glass_green.png";
+	private static final String STOPPED_ICON_NAME = "24/bullet_ball_glass_red.png";
+	private static final String PENDING_ICON_NAME = "24/bullet_ball_glass_yellow.png";
 
 	private static final Icon INACTIVE_ICON = SwingTools.createIcon(INACTIVE_ICON_NAME);
-	private static final Icon RUNNING_ICON  = SwingTools.createIcon(RUNNING_ICON_NAME);
-	private static final Icon STOPPED_ICON  = SwingTools.createIcon(STOPPED_ICON_NAME); 
-	private static final Icon PENDING_ICON  = SwingTools.createIcon(PENDING_ICON_NAME); 
+	private static final Icon RUNNING_ICON = SwingTools.createIcon(RUNNING_ICON_NAME);
+	private static final Icon STOPPED_ICON = SwingTools.createIcon(STOPPED_ICON_NAME);
+	private static final Icon PENDING_ICON = SwingTools.createIcon(PENDING_ICON_NAME);
 
 	public static final int TRAFFIC_LIGHT_INACTIVE = 0;
-	public static final int TRAFFIC_LIGHT_RUNNING  = 1;
-	public static final int TRAFFIC_LIGHT_STOPPED  = 2;
-	public static final int TRAFFIC_LIGHT_PENDING  = 3;
+	public static final int TRAFFIC_LIGHT_RUNNING = 1;
+	public static final int TRAFFIC_LIGHT_STOPPED = 2;
+	public static final int TRAFFIC_LIGHT_PENDING = 3;
 
 	private static final long serialVersionUID = 1189363377612273467L;
 
@@ -211,7 +217,7 @@ public class StatusBar extends JPanel implements ProcessEditor {
 	private final JLabel trafficLightLabel = new JLabel();
 
 	private final JProgressBar progressBar = new JProgressBar();
-	
+
 	private int breakpoint = -1;
 
 	private String specialText = null;
@@ -239,16 +245,16 @@ public class StatusBar extends JPanel implements ProcessEditor {
 		constraints.gridwidth = 1;
 		layout.setConstraints(operatorLabel, constraints);
 		add(operatorLabel);
-		
-		
+
 		constraints.weightx = 0;
-		constraints.fill = GridBagConstraints.NONE;		
+		constraints.fill = GridBagConstraints.NONE;
 		constraints.gridwidth = GridBagConstraints.RELATIVE;
 		if (showProgressBar) {
 			progressBar.setStringPainted(true);
 			progressBar.setEnabled(false);
 			progressBar.setFont(progressBar.getFont().deriveFont(8.5f));
 			progressBar.addMouseListener(new MouseAdapter() {
+
 				@Override
 				public void mouseClicked(MouseEvent e) {
 					if (e.getClickCount() == 2) {
@@ -258,7 +264,7 @@ public class StatusBar extends JPanel implements ProcessEditor {
 					}
 				}
 			});
-			
+
 			layout.setConstraints(progressBar, constraints);
 			add(progressBar);
 		}
@@ -274,14 +280,15 @@ public class StatusBar extends JPanel implements ProcessEditor {
 
 	public void startClockThread() {
 		new Timer(1000, new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				clockLabel.setText(getTime());								
+				clockLabel.setText(getTime());
 				if ((specialText != null) && (specialText.trim().length() > 0)) {
 					setText(specialText);
 				} else {
 					setText();
-				}								
+				}
 			}
 		}).start();
 	}
@@ -329,19 +336,19 @@ public class StatusBar extends JPanel implements ProcessEditor {
 
 	public void setTrafficLight(int trafficLightState) {
 		switch (trafficLightState) {
-		case TRAFFIC_LIGHT_RUNNING:
-			trafficLightLabel.setIcon(RUNNING_ICON);
-			break;
-		case TRAFFIC_LIGHT_STOPPED:
-			trafficLightLabel.setIcon(STOPPED_ICON);
-			break;
-		case TRAFFIC_LIGHT_PENDING:
-			trafficLightLabel.setIcon(PENDING_ICON);
-			break;
-		case TRAFFIC_LIGHT_INACTIVE:
-		default:
-			trafficLightLabel.setIcon(INACTIVE_ICON);
-			break;
+			case TRAFFIC_LIGHT_RUNNING:
+				trafficLightLabel.setIcon(RUNNING_ICON);
+				break;
+			case TRAFFIC_LIGHT_STOPPED:
+				trafficLightLabel.setIcon(STOPPED_ICON);
+				break;
+			case TRAFFIC_LIGHT_PENDING:
+				trafficLightLabel.setIcon(PENDING_ICON);
+				break;
+			case TRAFFIC_LIGHT_INACTIVE:
+			default:
+				trafficLightLabel.setIcon(INACTIVE_ICON);
+				break;
 		}
 	}
 
@@ -359,9 +366,9 @@ public class StatusBar extends JPanel implements ProcessEditor {
 		operatorLabel.setText(text);
 	}
 
-	private void setText() {		
+	private void setText() {
 		if (rootOperator != null) {
-			setText(rootOperator.toString(rootOperator, System.currentTimeMillis()));			
+			setText(rootOperator.toString(rootOperator, System.currentTimeMillis()));
 		} else {
 			setText("");
 		}
@@ -370,14 +377,15 @@ public class StatusBar extends JPanel implements ProcessEditor {
 	/** Sets the progress in the status bar. Executed on EDT. */
 	public void setProgress(final String label, final int completed, final int total) {
 		SwingUtilities.invokeLater(new Runnable() {
+
 			@Override
-			public void run() {				
+			public void run() {
 				if (completed < total) {
 					if (!progressBar.isEnabled()) {
-						progressBar.setEnabled(true);						
+						progressBar.setEnabled(true);
 					}
 					progressBar.setString(label);
-					progressBar.setMaximum(total);				
+					progressBar.setMaximum(total);
 					progressBar.setValue(completed);
 				} else {
 					progressBar.setString("");
@@ -385,12 +393,13 @@ public class StatusBar extends JPanel implements ProcessEditor {
 					progressBar.setEnabled(false);
 				}
 				progressBar.repaint();
-			}		
+			}
 		});
 	}
 
 	/** Only needed to keep track where we added ourselves as listeners. */
 	private Process process;
+
 	@Override
 	public void processChanged(Process process) {
 		if (this.process != process) {
@@ -400,15 +409,15 @@ public class StatusBar extends JPanel implements ProcessEditor {
 			}
 			this.process = process;
 			if (this.process != null) {
-				this.process.addBreakpointListener(breakpointListener );
+				this.process.addBreakpointListener(breakpointListener);
 				this.process.getRootOperator().addProcessListener(processListener);
-			}			
-		}				
+			}
+		}
 	}
 
 	@Override
-	public void processUpdated(Process process) { }
+	public void processUpdated(Process process) {}
 
 	@Override
-	public void setSelection(List<Operator> selection) { }
+	public void setSelection(List<Operator> selection) {}
 }

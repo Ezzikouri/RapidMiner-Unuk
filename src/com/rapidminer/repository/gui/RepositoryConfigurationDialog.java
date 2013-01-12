@@ -22,6 +22,8 @@
  */
 package com.rapidminer.repository.gui;
 
+import javax.swing.JButton;
+
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.repository.Repository;
 
@@ -40,10 +42,12 @@ public class RepositoryConfigurationDialog extends ButtonDialog {
 	public RepositoryConfigurationDialog(Repository repository) {
 		super("repositoryconfigdialog", true,new Object[]{});
 		this.repository = repository;
+		JButton okButton = makeOkButton();
 		configurationPanel = repository.makeConfigurationPanel();
+		configurationPanel.setOkButton(okButton);
 		configurationPanel.configureUIElementsFrom(repository);
 
-		layoutDefault(configurationPanel.getComponent(), DEFAULT_SIZE, makeCancelButton(), makeOkButton());
+		layoutDefault(configurationPanel.getComponent(), DEFAULT_SIZE, makeCancelButton(), okButton);
 	}
 
 	@Override

@@ -67,7 +67,7 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	protected void mkdir() throws RepositoryException {
 		File file = getFile();
 		if (!file.exists()) {
-			if (!file.mkdir()) {
+			if (!file.mkdirs()) {
 				throw new RepositoryException("Cannot create repository folder at '" + file + "'.");
 			}
 		}

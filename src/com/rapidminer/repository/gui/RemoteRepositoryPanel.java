@@ -28,6 +28,7 @@ import java.awt.Insets;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -188,4 +189,10 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 	public JComponent getComponent() {
 		return this;
 	}
+	
+	@Override
+	public void setOkButton(JButton okButton) {
+		// NOOP
+	}
+
 }

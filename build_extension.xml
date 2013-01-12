@@ -290,6 +290,7 @@
 				<include name=".project" />
 				<include name=".classpath" />
 				<include name="licenses/README*" />
+				<include name="src_3rdparty/**/*" />
 			</zipfileset>
 			<zipfileset refid="build.sources" prefix="${extension.name.long}/src" />
 			<zipfileset file="${release.targetDir}/${release.name}" />

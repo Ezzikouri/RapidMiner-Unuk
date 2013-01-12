@@ -23,11 +23,10 @@
 package com.rapidminer.gui;
 
 import com.rapidminer.gui.flow.ErrorTable;
-import com.rapidminer.gui.flow.OverviewPanel;
 import com.rapidminer.gui.flow.ProcessPanel;
 import com.rapidminer.gui.processeditor.CommentEditor;
 import com.rapidminer.gui.processeditor.NewOperatorEditor;
-import com.rapidminer.gui.processeditor.XMLEditor;
+import com.rapidminer.gui.processeditor.ProcessContextProcessEditor;
 import com.rapidminer.gui.processeditor.results.ResultDisplay;
 import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.tools.LoggingViewer;
@@ -68,12 +67,12 @@ public class Perspectives extends ApplicationPerspectives {
 		WSDockKey repositoryKey = new WSDockKey(RepositoryBrowser.REPOSITORY_BROWSER_DOCK_KEY);
 		WSDockKey newOperatorEditorKey = new WSDockKey(NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
 		WSDockKey errorTableKey = new WSDockKey(ErrorTable.ERROR_TABLE_DOCK_KEY);
-		WSDockKey xmlEditorKey = new WSDockKey(XMLEditor.XML_EDITOR_DOCK_KEY);
+		//WSDockKey xmlEditorKey = new WSDockKey(XMLEditor.XML_EDITOR_DOCK_KEY);
 		WSDockKey commentEditorKey = new WSDockKey(CommentEditor.COMMENT_EDITOR_DOCK_KEY);
 		WSDockKey operatorHelpKey = new WSDockKey(OperatorDocViewer.OPERATOR_HELP_DOCK_KEY);
-		//WSDockKey processContextEditorKey = new WSDockKey(processContextEditor.getDockKey().getKey());
+		WSDockKey processContextEditorKey = new WSDockKey(ProcessContextProcessEditor.PROCESS_CONTEXT_DOCKKEY);
 		WSDockKey welcomeKey = new WSDockKey(WelcomeScreen.WELCOME_SCREEN_DOCK_KEY);
-		WSDockKey overviewKey = new WSDockKey(OverviewPanel.OVERVIEW_DOCK_KEY);
+		//WSDockKey overviewKey = new WSDockKey(OverviewPanel.OVERVIEW_DOCK_KEY);
 
 		if ("design".equals(perspectiveName)) {
 			Perspective designPerspective = getPerspective("design");
@@ -82,16 +81,22 @@ public class Perspectives extends ApplicationPerspectives {
 			designDesktop.addDockable(processPanelKey);		
 			designDesktop.split(processPanelKey, propertyTableKey, DockingConstants.SPLIT_RIGHT, 0.8);				
 			designDesktop.split(propertyTableKey, operatorHelpKey, DockingConstants.SPLIT_BOTTOM, .66);
+			designDesktop.createTab(propertyTableKey, processContextEditorKey, 1);
+			
 			designDesktop.createTab(operatorHelpKey, commentEditorKey, 1);
 
-			designDesktop.split(processPanelKey, overviewKey, DockingConstants.SPLIT_LEFT, 0.25);
-			designDesktop.split(overviewKey, newOperatorEditorKey, DockingConstants.SPLIT_BOTTOM, 0.2);
-			designDesktop.createTab(newOperatorEditorKey, repositoryKey, 1);
+//			designDesktop.split(processPanelKey, overviewKey, DockingConstants.SPLIT_LEFT, 0.25);
+//			designDesktop.split(overviewKey, newOperatorEditorKey, DockingConstants.SPLIT_BOTTOM, 0.2);
+//			designDesktop.createTab(newOperatorEditorKey, repositoryKey, 1);
+			
+			designDesktop.split(processPanelKey, newOperatorEditorKey, DockingConstants.SPLIT_LEFT, 0.25);
+			designDesktop.split(newOperatorEditorKey, repositoryKey, DockingConstants.SPLIT_BOTTOM, 0.5);
+			//designDesktop.createTab(newOperatorEditorKey, repositoryKey, 1);
 
 			designDesktop.split(processPanelKey, errorTableKey, DockingConstants.SPLIT_BOTTOM, 0.8);
 			designDesktop.createTab(errorTableKey, messageViewerKey, 1);
 
-			designDesktop.createTab(processPanelKey, xmlEditorKey, 1);
+			//designDesktop.createTab(processPanelKey, xmlEditorKey, 1);
 		} else if ("result".equals(perspectiveName)) {
 			Perspective resultPerspective = getPerspective("result");
 			WSDesktop resultsDesktop = resultPerspective.getWorkspace().getDesktop(0);

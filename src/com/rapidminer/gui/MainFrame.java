@@ -271,9 +271,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_ERRORS, "The color for errors in the message viewer.", new java.awt.Color(255, 51, 204)));
 		ParameterService.registerParameter(new ParameterTypeColor(PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_LOGSERVICE, "The color for the logging service indicator in the message viewer.", new java.awt.Color(184, 184, 184)));
 		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW, "Shows process info screen after loading?", true));
-		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN, "Save process before running process?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN, "Save process before running process?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.FALSE));
 		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION, "Save process when creating them?", false));
-		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW, "Automatically switch to results perspective when results are created?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.ASK));
+		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW, "Automatically switch to results perspective when results are created?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.TRUE));
 		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE, "Determines the result display style.", ResultDisplayTools.TYPE_NAMES, 0));
 		ParameterService.registerParameter(new ParameterTypeCategory(PROPERTY_RAPIDMINER_GUI_LOG_LEVEL, "Minimum level of messages that are logged in the GUIs log view.", LoggingViewer.SELECTABLE_LEVEL_NAMES, LoggingViewer.DEFAULT_LEVEL_INDEX));
 	}
@@ -1735,6 +1735,10 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
 	public ProcessContextProcessEditor getProcessContextEditor() {
 		return processContextEditor;
+	}
+	
+	public RepositoryBrowser getRepositoryBrowser() {
+		return repositoryBrowser;
 	}
 
 	public Component getXMLEditor() {
