@@ -85,7 +85,7 @@ public class Tutorial extends ButtonDialog implements WindowListener {
 		"01_Learner/18_SimpleCostSensitiveLearning",
 		"04_Attributes/03_PrincipalComponents",
 		"04_Attributes/10_ForwardSelection",
-		"04_Attributes/18_MultiobjectiveSelection",
+		//"04_Attributes/18_MultiobjectiveSelection", (Uses Weka)
 		"03_Validation/12_WrapperValidation",
 		"04_Attributes/19_YAGGA",
 		"04_Attributes/20_YAGGAResultAttributeSetting",

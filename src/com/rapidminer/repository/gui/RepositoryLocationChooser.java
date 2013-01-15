@@ -108,10 +108,10 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		private final JButton okButton;
 		private final JButton cancelButton;
 				
-		public RepositoryLocationChooserDialog(RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders) {
+		public RepositoryLocationChooserDialog(RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders, final boolean onlyWriteableRepositories) {
 			super("repository_chooser", true, new Object[]{});
 			okButton = makeOkButton();
-			chooser = new RepositoryLocationChooser(this, resolveRelativeTo, initialValue, allowEntries, allowFolders);
+			chooser = new RepositoryLocationChooser(this, resolveRelativeTo, initialValue, allowEntries, allowFolders,false,onlyWriteableRepositories);
 			chooser.tree.addRepositorySelectionListener(new RepositorySelectionListener() {
 				@Override
 				public void repositoryLocationSelected(RepositorySelectionEvent e) {
@@ -132,6 +132,10 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 			okButton.setEnabled(chooser.hasSelection(allowFolders) && (allowFolders || !chooser.folderSelected));
 			cancelButton = makeCancelButton();
 			layoutDefault(chooser, NORMAL, okButton, cancelButton);
+		}
+		
+		public RepositoryLocationChooserDialog(RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders) {
+			this(resolveRelativeTo, initialValue, allowEntries, allowFolders, false);
 		}
 
 		@Override
@@ -162,8 +166,12 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders) {
 		this(owner, resolveRelativeTo, initialValue, allowEntries, allowFolders, false);
 	}
+	
+	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, boolean allowEntries, boolean allowFolders, boolean enforceValidRepositoryEntryName) {
+		this(owner, resolveRelativeTo, initialValue, allowEntries, allowFolders, enforceValidRepositoryEntryName,false);
+	}
 
-	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders, boolean enforceValidRepositoryEntryName) {
+	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders, boolean enforceValidRepositoryEntryName, final boolean onlyWriteableRepositories) {
 		if (initialValue != null) {
 			try {
 				RepositoryLocation repositoryLocation;
@@ -180,7 +188,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		}
 		this.resolveRelativeTo = resolveRelativeTo;
 		this.enforceValidRepositoryEntryName = enforceValidRepositoryEntryName;
-		tree = new RepositoryTree(owner, !allowEntries);
+		tree = new RepositoryTree(owner, !allowEntries,onlyWriteableRepositories);
 
 		if (initialValue != null) {
 			if (tree.expandIfExists(resolveRelativeTo, initialValue)) {
@@ -287,6 +295,8 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 			});
 		}
 	}
+
+
 
 	public String getRepositoryLocation() throws MalformedRepositoryLocationException {
 		if (tree.getSelectionPath() != null) {
@@ -405,9 +415,13 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder, final boolean forceDisableRelativeResolve) {
 		return selectLocation(resolveRelativeTo, initialValue, c, selectEntries, selectFolder, forceDisableRelativeResolve, false);
 	}
-
+	
 	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder, final boolean forceDisableRelativeResolve, final boolean enforceValidRepositoryEntryName) {
-		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue, selectEntries, selectFolder);
+		return selectLocation(resolveRelativeTo, initialValue, c, selectEntries, selectFolder, forceDisableRelativeResolve, enforceValidRepositoryEntryName,false);
+	}
+
+	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder, final boolean forceDisableRelativeResolve, final boolean enforceValidRepositoryEntryName, final boolean onlyWriteableRepositories) {
+		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue, selectEntries, selectFolder,onlyWriteableRepositories);
 		if (forceDisableRelativeResolve) {
 			dialog.chooser.setResolveRelative(false);
 			if (dialog.chooser.resolveBox != null) {

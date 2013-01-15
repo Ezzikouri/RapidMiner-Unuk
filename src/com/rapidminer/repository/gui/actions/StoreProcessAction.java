@@ -85,17 +85,19 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 			ProgressThread storeProgressThread = new ProgressThread("store_process") {
 				public void run() {
 					getProgressListener().setTotal(100);
+					Process process = RapidMinerGUI.getMainFrame().getProcess();
+					RepositoryProcessLocation processLocation = null; 
 					try {
+						processLocation = new RepositoryProcessLocation(new RepositoryLocation(folder.getLocation(), name));
 						getProgressListener().setCompleted(10);
-						Process process = RapidMinerGUI.getMainFrame().getProcess();
 						Process.checkIfSavable(process);
 						folder.createProcessEntry(name, process.getRootOperator().getXML(false));
-						process.setProcessLocation(new RepositoryProcessLocation(new RepositoryLocation(folder.getLocation(), name)));
+						process.setProcessLocation(processLocation);
 						tree.expandPath(tree.getSelectionPath());
 						RapidMinerGUI.addToRecentFiles(process.getProcessLocation());
 						RapidMinerGUI.getMainFrame().processHasBeenSaved();
 					} catch (Exception e) {
-						SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e, name);
+						SwingTools.showSimpleErrorMessage("cannot_save_process", e, processLocation, e.getMessage());
 						RapidMinerGUI.getMainFrame().getProcess().setProcessLocation(null);
 					} finally {
 						getProgressListener().setCompleted(10);

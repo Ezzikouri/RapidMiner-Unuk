@@ -152,7 +152,7 @@ public class WriteFileOperator extends Operator {
 		parameterTypes.add(parameterTypeFile);
 
 		ParameterTypeRepositoryLocation parameterTypeRepositoryLocation = new ParameterTypeRepositoryLocation(
-				PARAMETER_REPOSITORY_LOCATION, "Repository entry to open. This must point to a blob.", true, false, false, false, true);
+				PARAMETER_REPOSITORY_LOCATION, "Repository entry to open. This must point to a blob.", true, false, false, true, true);
 		parameterTypeRepositoryLocation.setExpert(false);
 		parameterTypeRepositoryLocation.registerDependencyCondition(new EqualTypeCondition(
 				this, PARAMETER_DESTINATION_TYPE, DESTINATION_TYPES, true,
@@ -163,7 +163,7 @@ public class WriteFileOperator extends Operator {
 				MIME_TYPES, MIME_TYPE_OCTESTSTREAM);
 		mimeType.setExpert(true);
 		mimeType.registerDependencyCondition(new EqualTypeCondition(
-				this, PARAMETER_DESTINATION_TYPE, DESTINATION_TYPES, true,
+				this, PARAMETER_DESTINATION_TYPE, DESTINATION_TYPES, false,
 				DESTINATION_TYPE_REPOSITORY));
 		parameterTypes.add(mimeType);
 

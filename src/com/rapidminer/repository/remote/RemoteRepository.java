@@ -27,9 +27,11 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -263,10 +265,13 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	/** Connection entries fetched from server. */
 	private Collection<FieldConnectionEntry> connectionEntries;
+
 	private boolean cachedPasswordUsed = false;
 
 	/** Process queue names fetched from server */
 	private List<String> processExecutionQueueNames;
+	private int protocollExceptionCount;
+	private ProtocolException protocolException;
 
 	protected void register(RemoteEntry entry) {
 		cachedEntries.put(entry.getPath(), entry);
@@ -274,6 +279,10 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public Entry locate(String string) throws RepositoryException {
+		// check if connection is okay. If user has canceled the password dialog, return null
+		if (!checkConnection()) {
+			return null;
+		}
 		return RepositoryManager.getInstance(null).locate(this, string, false);
 	}
 
@@ -297,24 +306,78 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		return getAlias() + "<br/><small style=\"color:gray\">(" + getBaseUrl() + ")</small>";
 	}
 
+	/** This function will check if it is possible to connect to RapidAnalytics. If the user is not yet logged in, a password dialog will be shown.
+	 *  If the user has canceled the password dialog <code>false</code> will be returned. The function calling this method should just return then without throwing an error itself.
+	 *  If the connection can be established <code>true</code> will be returned. If there was a problem connecting to RapidAnalytics a {@link IOException} is thrown.
+	 */
+	protected synchronized boolean checkConnectionWithIOExpcetion() throws IOException {
+
+		boolean checkingConnection = true;
+		boolean passwortInputNotCanceled = !isPasswordInputCanceled();
+
+		// Check if WSDL is reachable
+		while (checkingConnection && passwortInputNotCanceled) {
+			try {
+
+				// this line will throw exceptions if the WSDL cannot be received
+				getRepositoryServiceWSDLUrl().openConnection().getInputStream();
+
+				// this line can only be reached if the WSDL can be reached. This is only the case if the user is logged in.
+				checkingConnection = false;
+
+			} catch (ProtocolException e) {
+				setOffline(true);
+
+				// protocol exception means that probably the username and/or the password were wrong. Reset password and show the authentication dialog again
+				setProtocollExceptionCount(getProtocollExceptionCount() + 1);
+				protocolException = e;
+				setPassword(null);
+			} catch (IOException e) {
+				setOffline(true);
+
+				// only throw a repository exception if the user has not canceled the password input
+				if (!isPasswordInputCanceled()) {
+					throw e;
+				}
+			}
+			passwortInputNotCanceled = !isPasswordInputCanceled();
+		}
+
+		setProtocollExceptionCount(0);
+
+		return passwortInputNotCanceled;
+	}
+
+	/** This function will check if it is possible to connect to RapidAnalytics. If the user is not yet logged in, a password dialog will be shown.
+	 *  If the user has canceled the password dialog <code>false</code> will be returned. The function calling this method should just return then without throwing an error itself.
+	 *  If the connection can be established <code>true</code> will be returned. If there was a problem connecting to RapidAnalytics a RepositoryException is thrown.
+	 */
+	protected synchronized boolean checkConnection() throws RepositoryException {
+		try {
+			return checkConnectionWithIOExpcetion();
+		} catch (ConnectException e) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.connection_exception", getName(), getBaseUrl()), e);
+		} catch (IOException e) {
+
+			// only throw a repository exception if the user has not canceled the password input
+			if (!isPasswordInputCanceled()) {
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.cannot_be_reached", getName()), e);
+			}
+
+			return false;
+		}
+
+	}
+
 	private PasswordAuthentication getAuthentication() throws PasswortInputCanceledException {
 		if (password == null) {
 			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.repository.remote.RemoteRepository.authentication_requested", getBaseUrl());
 			PasswordAuthentication passwordAuthentication;
 
 			try {
-				if (cachedPasswordUsed) {
-					// if we have used a cached password last time, and we enter this method again,
-					// this is probably because the password was wrong, so rather force dialog than
-					// using cache again.
-					passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(), false, false);
-
-					this.cachedPasswordUsed = false;
-				} else {
-					passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(), false, true);
-					this.cachedPasswordUsed = true;
-				}
-				if (passwordAuthentication != null) {
+				passwordAuthentication = getPasswordAuthentication();
+				if (passwordAuthentication != null && passwordAuthentication.getUserName() != null && passwordAuthentication.getUserName().length() != 0
+						&& passwordAuthentication.getPassword() != null && passwordAuthentication.getPassword().length != 0) {
 					this.setPassword(passwordAuthentication.getPassword());
 					this.setUsername(passwordAuthentication.getUserName());
 					RepositoryManager.getInstance(null).save();
@@ -333,9 +396,50 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	}
 
 	/**
+	 * @return
+	 * @throws PasswortInputCanceledException
+	 */
+	private PasswordAuthentication getPasswordAuthentication() throws PasswortInputCanceledException {
+		PasswordAuthentication passwordAuthentication;
+		if (cachedPasswordUsed) {
+			// if we have used a cached password last time, and we enter this method again,
+			// this is probably because the password was wrong, so rather force dialog than
+			// using cache again.
+			if (getProtocollExceptionCount() > 3) {
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+						false, false, "authentication.ra.wrong.credentials.protocol.error", getName(), protocolException.getLocalizedMessage());
+			} else if (getProtocollExceptionCount() > 0) {
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+						false, false, "authentication.ra.wrong.credentials", getName());
+			} else {
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+						false, false, "authentication.ra", getName());
+			}
+			this.cachedPasswordUsed = false;
+		} else {
+			if (getProtocollExceptionCount() > 3) {
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+						false, false, "authentication.ra.wrong.credentials.protocol.error", getName(), protocolException.getLocalizedMessage());
+			} else if (getProtocollExceptionCount() > 0) {
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+						false, false, "authentication.ra.wrong.credentials", getName());
+			} else {
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+						false, true, "authentication.ra", getName());
+			}
+			this.cachedPasswordUsed = true;
+		}
+		return passwordAuthentication;
+	}
+
+	/**
 	 * @return the repository service. May return <code>null</code> if connection was refused.
 	 */
 	public RepositoryService getRepositoryService() throws RepositoryException {
+		// check if connection is okay. If user has canceled the password dialog, just return
+		if (!checkConnection()) {
+			return null;
+		}
 		installJDBCConnectionEntries();
 		if (repositoryService == null) {
 			try {
@@ -357,18 +461,25 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	private void setupBindingProvider(BindingProvider bp) {
 		WebServiceTools.setCredentials(bp, getUsername(), password);
 		WebServiceTools.setTimeout(bp);
-
 	}
 
+	/**
+	 * 
+	 * @return can return <code>null</code> if connection was refused
+	 */
 	public ProcessServiceFacade getProcessService() throws RepositoryException {
+		// check if connection is okay. If user has canceled the password dialog, just return
+		if (!checkConnection()) {
+			return null;
+		}
 		if (processServiceFacade == null) {
 			try {
 
 				RAInfoService raInfoService = getRAInfoService();
 
 				// throw error if user has canceled passwort input
-				if (raInfoService == null && isPasswortInputCanceled()) {
-					throw new RepositoryException("Cannot connect to server " + getName() + ". Authentication was canceled by user."); //TODO I18N
+				if (raInfoService == null && isPasswordInputCanceled()) {
+					throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.login_canceled", getName()));
 				}
 
 				processServiceFacade = new ProcessServiceFacade(raInfoService, getBaseUrl(), getUsername(), password);
@@ -390,6 +501,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	public RAInfoService getRAInfoService() {
 		if (raInfoService == null) {
 			try {
+				checkConnection();
 				RAInfoService_Service serviceService = new RAInfoService_Service(getRAInfoServiceWSDLUrl(), new QName("http://service.web.rapidanalytics.de/", "RAInfoService"));  //TODO how to set the namespace uri? 
 				raInfoService = serviceService.getRAInfoServicePort();
 
@@ -398,6 +510,10 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				setPasswortInputCanceled(false);
 				setOffline(false);
 			} catch (Exception e) {
+				LogService.getRoot().log(Level.INFO,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.tools.repository.remote.RemoteRepository.cannot_fetch_info_service"),
+						e);
 				raInfoService = null;
 			}
 		}
@@ -411,11 +527,17 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	@Override
 	public void refresh() throws RepositoryException {
-		setOffline(false);
 		setPasswortInputCanceled(false);
+		setProtocollExceptionCount(0);
+
+		// check if connection is okay. If user has canceled the password dialog, just return
+		if (!checkConnection()) {
+			return;
+		}
+
 		cachedEntries.clear();
 		super.refresh();
-		if (!isPasswortInputCanceled()) {
+		if (!isPasswordInputCanceled()) {
 			removeJDBCConnectionEntries();
 			refreshProcessExecutionQueueNames();
 		}
@@ -445,7 +567,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			try {
 				ProcessServiceFacade processService = getProcessService();
 				refreshProcessQueueNames(processService);
-			} catch (RepositoryException e) {}
+			} catch (RepositoryException e) {
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.tools.repository.remote.RemoteRepository.error_fetching_process_queue_names"),
+						e);
+			}
 		}
 
 		return processExecutionQueueNames == null ? null : new LinkedList<String>(processExecutionQueueNames);
@@ -471,7 +598,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 		String query = null;
 		if (type == EntryStreamType.METADATA) {
-			query = "?format="+URLEncoder.encode("binmeta", "UTF-8");
+			query = "?format=" + URLEncoder.encode("binmeta", "UTF-8");
 		}
 		return getHTTPConnection(encoded.toString(), query, preAuthHeader);
 	}
@@ -488,6 +615,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	/** 
 	 * @param pathInfo should look like 'RAWS/...' without a '/' in front. Furthermore the pathInfo should NOT be encoded. This will be done by this function. 
 	 * @param query should look like this '?format=PARAM1'. The query parameters should be encoded with URLEncoder before passing them to this function <br/>(e.g. String query = "?format="+URLEncoder.encode("binmeta", "UTF-8");).
+	 *
+	 * @return can return <code>null</code> if user cancels the password dialog
 	 */
 	public HttpURLConnection getHTTPConnection(String pathInfo, String query, boolean preAuthHeader) throws IOException {
 		pathInfo = RepositoryLocation.SEPARATOR + pathInfo;
@@ -502,6 +631,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			url = new URL(uri.toASCIIString() + query);
 		} else {
 			url = new URL(uri.toASCIIString());
+		}
+
+		if (!preAuthHeader) {
+			if (!checkConnectionWithIOExpcetion()) {
+				return null;
+			}
 		}
 
 		final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -699,7 +834,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 					e);
 			setPassword(null);
 			setOffline(true);
-			throw new RepositoryException("Cannot connect to  server  " + getName() + ".", e); //TODO I18N
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.cannot_be_reached", getName()), e);
 		}
 	}
 
@@ -790,15 +925,29 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	/**
 	 * @return the passwortInputCanceled
 	 */
-	public boolean isPasswortInputCanceled() {
+	public boolean isPasswordInputCanceled() {
 		return this.passwortInputCanceled;
 	}
 
 	/**
 	 * @param passwortInputCanceled the passwortInputCanceled to set
 	 */
-	protected void setPasswortInputCanceled(boolean passwortInputCanceled) {
+	public void setPasswortInputCanceled(boolean passwortInputCanceled) {
 		this.passwortInputCanceled = passwortInputCanceled;
+	}
+
+	/**
+	 * @return the protocollExceptionCount
+	 */
+	public int getProtocollExceptionCount() {
+		return this.protocollExceptionCount;
+	}
+
+	/**
+	 * @param protocollExceptionCount the protocollExceptionCount to set
+	 */
+	public void setProtocollExceptionCount(int protocollExceptionCount) {
+		this.protocollExceptionCount = protocollExceptionCount;
 	}
 
 }

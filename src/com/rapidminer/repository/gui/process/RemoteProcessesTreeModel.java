@@ -162,7 +162,7 @@ public class RemoteProcessesTreeModel implements TreeModel {
 					if (observedRepositories.contains(repos)) {
 						final ProcessList processList = processes.get(repos);
 						try {
-							if (repos.isPasswortInputCanceled()) {
+							if (repos.isPasswordInputCanceled()) {
 								LogService.getRoot().log(Level.FINE,
 										I18N.getMessage(LogService.getRoot().getResourceBundle(),
 												"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.skipping_user_canceled_auth", repos.getName()));

@@ -98,7 +98,7 @@ public class UpdateServerAccount extends Observable {
 						boolean clickedOk = true;
 						PasswordAuthentication pa = null;
 						try {
-							pa = PasswordDialog.getPasswordAuthentication(UpdateManager.getUpdateServerURI("").toString(), false, false);
+							pa = PasswordDialog.getPasswordAuthentication(UpdateManager.getUpdateServerURI("").toString(), false, false, "authentication.marketplace");
 						} catch (PasswortInputCanceledException e1) {
 							clickedOk = false;
 						}

@@ -45,7 +45,6 @@ import java.util.logging.Level;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -53,8 +52,6 @@ import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.text.html.HTMLDocument;
@@ -402,8 +399,11 @@ public class UpdatePanelTab extends JPanel {
 		if (selectedValue instanceof PackageDescriptor) {
 			desc = (PackageDescriptor) selectedValue;
 			lastSelected = desc;
-		} else if (lastSelected != null) {
-			desc = lastSelected;
+		} else {
+			packageList.clearSelection();
+			if (lastSelected != null) {
+				desc = lastSelected;
+			}
 		}
 		if (desc != null) {
 			

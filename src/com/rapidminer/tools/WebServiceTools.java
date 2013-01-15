@@ -41,10 +41,12 @@ import sun.net.www.protocol.http.AuthCacheValue;
  *
  */
 public class WebServiceTools {
-
-	private static final int TIMEOUT = 20000;
 	
-	private static final int TIMEOUT_URL_CONNECTION = 20000;
+	public static final String WEB_SERVICE_TIMEOUT = "connection.timeout";
+
+	private static final int TIMEOUT = Integer.parseInt(ParameterService.getParameterValue(WEB_SERVICE_TIMEOUT));
+	
+	private static final int TIMEOUT_URL_CONNECTION = Integer.parseInt(ParameterService.getParameterValue(WEB_SERVICE_TIMEOUT));
 
 	public static void setTimeout(BindingProvider port) {
 		setTimeout(port, TIMEOUT);
@@ -70,7 +72,7 @@ public class WebServiceTools {
 	
 	/** Pre-authenticates the Web service if password is not null. */
 	public static void setCredentials(BindingProvider bp, String username, char[] password) {
-		if (password != null) {	
+		if (password != null && password.length > 0) {	
 			bp.getRequestContext().put(BindingProvider.USERNAME_PROPERTY, username);
 			bp.getRequestContext().put(BindingProvider.PASSWORD_PROPERTY, new String(password));
 		}

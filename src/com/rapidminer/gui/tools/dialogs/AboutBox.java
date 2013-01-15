@@ -57,7 +57,6 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
-import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.plugin.Plugin;
 
 /**
@@ -293,9 +292,12 @@ public class AboutBox extends JDialog {
 	private static Properties createProperties(String productVersion) {
 		Properties properties = new Properties();
 		try {
-			InputStream in = WebServiceTools.openStreamFromURL(Tools.getResource(PROPERTY_FILE));
-			properties.load(in);
-			in.close();
+			URL propUrl = Tools.getResource(PROPERTY_FILE);
+			if (propUrl != null) {
+				InputStream in = propUrl.openStream();
+				properties.load(in);
+				in.close();
+			}
 		} catch (Exception e) {
 			//LogService.getGlobal().logError("Cannot read splash screen infos: " + e.getMessage());
 			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.tools.dialogs.AboutBox.reading_splash_screen_error",  e.getMessage());

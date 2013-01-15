@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.gui;
 
 import java.awt.GridBagConstraints;
@@ -41,6 +42,7 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.remote.RemoteRepository;
 
@@ -52,11 +54,11 @@ import com.rapidminer.repository.remote.RemoteRepository;
 public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigurationPanel {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private final JTextField urlField = new JTextField("http://localhost:8080/", 30);
 	private final JTextField aliasField = new JTextField("NewRepository", 30);
 	private final JTextField userField = new JTextField(System.getProperty("user.name"), 20);
-	private final JPasswordField passwordField = new JPasswordField(20); 
+	private final JPasswordField passwordField = new JPasswordField(20);
 
 	public RemoteRepositoryPanel() {
 		GridBagLayout gbl = new GridBagLayout();
@@ -69,10 +71,10 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 
 		// ALIAS
 		c.gridwidth = GridBagConstraints.RELATIVE;
-		JLabel label = new ResourceLabel("repositorydialog.alias");		
+		JLabel label = new ResourceLabel("repositorydialog.alias");
 		label.setLabelFor(aliasField);
 		gbl.setConstraints(label, c);
-		add(label);		
+		add(label);
 
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		gbl.setConstraints(aliasField, c);
@@ -117,14 +119,14 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		urlField.selectAll();
 		userField.selectAll();
 	}
-	
+
 	@Override
 	public void makeRepository() {
 		final URL url;
 		try {
 			url = new URL(urlField.getText());
 		} catch (MalformedURLException e) {
-			SwingTools.showSimpleErrorMessage("illegal_url",e);
+			SwingTools.showSimpleErrorMessage("illegal_url", e);
 			return;
 		}
 		String alias = aliasField.getText().trim();
@@ -133,16 +135,15 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		}
 		final String finalAlias = alias;
 
-		ProgressThread pt = new ProgressThread("add_repository") {		
+		ProgressThread pt = new ProgressThread("add_repository") {
+
 			@Override
 			public void run() {
 				getProgressListener().setTotal(100);
 				getProgressListener().setCompleted(10);
 				Repository repository = new RemoteRepository(url, finalAlias, userField.getText(), passwordField.getPassword(), false);
 				getProgressListener().setCompleted(90);
-				if (repository != null) {
 					RepositoryManager.getInstance(null).addRepository(repository);
-				}
 				getProgressListener().setCompleted(100);
 				getProgressListener().complete();
 			}
@@ -167,29 +168,36 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		try {
 			url = new URL(urlField.getText());
 		} catch (MalformedURLException e) {
-			SwingTools.showSimpleErrorMessage("illegal_url",e);
+			SwingTools.showSimpleErrorMessage("illegal_url", e);
 			return false;
 		}
-		((RemoteRepository) repository).setBaseUrl(url);
-		if ((passwordField.getPassword() != null) && (passwordField.getPassword().length > 0)) {
-			((RemoteRepository) repository).setPassword(passwordField.getPassword());
-		}
-		((RemoteRepository) repository).setUsername(userField.getText());
+
+		String userName = userField.getText();
+		char[] password = passwordField.getPassword();
+
 		((RemoteRepository) repository).rename(aliasField.getText());
-		
-		UserCredential authenticationCredentials = new UserCredential(urlField.getText(), userField.getText(), passwordField.getPassword());
+		((RemoteRepository) repository).setBaseUrl(url);
+		((RemoteRepository) repository).setUsername(userName);
+		((RemoteRepository) repository).setPassword(password);
+
+		UserCredential authenticationCredentials = new UserCredential(urlField.getText(), userName, password);
 		Wallet.getInstance().registerCredentials(authenticationCredentials);
 		Wallet.getInstance().saveCache();
 		
+		try {
+			((RemoteRepository) repository).refresh();
+		} catch (RepositoryException e) {
+			((RemoteRepository) repository).setPasswortInputCanceled(false);
+		}
+
 		return true;
 	}
-	
 
 	@Override
 	public JComponent getComponent() {
 		return this;
 	}
-	
+
 	@Override
 	public void setOkButton(JButton okButton) {
 		// NOOP

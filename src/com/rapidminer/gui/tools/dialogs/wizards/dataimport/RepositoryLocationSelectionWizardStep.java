@@ -61,7 +61,7 @@ public class RepositoryLocationSelectionWizardStep extends WizardStep {
 	 */
 	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue, boolean storeWizard) {
 		super("select_repository_location");
-		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue);
+		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue,true,false,false,true);
 		this.locationChooser.addChangeListener(parent);
 		if (storeWizard) {
 			this.locationChooser.setEnforceValidRepositoryEntryName(true);

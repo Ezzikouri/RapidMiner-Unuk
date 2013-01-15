@@ -55,9 +55,9 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * RapidMiner enters safe mode (not loading plugins) when startup was interrupted
 * Added new 'Export as PDF' action to the 'Print results or export' dropdown button
 * Deleted tooltips for the operator list of the OptimizeParameters (Grid) operator
-* UpdateDialog: Swiched the positions of the install button and the link to the extension homepage
+* UpdateDialog: Switched the positions of the install button and the link to the extension homepage
 * UpdateDialog: Checks if the user purchased the extension when returning to the dialog after hitting the "purchase" button
-* Replaced the standard Random funcion in the ExpressionParser with a custom one in order to involve the random seed/the RandomGenerator for the process    
+* Replaced the standard Random function in the ExpressionParser with a custom one in order to involve the random seed/the RandomGenerator for the process    
 * Updated JTDS driver to version 1.2.5
 * BUGFIX: Recent files are now updated on process save
 * BUGFIX: The condition on performance check at the Loop Until Operator now works properly if the performance decreases
@@ -103,7 +103,8 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * BUGFIX: Fixed several repository problems when trying to overwrite entries with themselves
 * BUGFIX: UpdateDialog: Purchase link now changes to "install" after logging in and the purchase button now redirects to the extension website
 * BUGFIX: Generate Aggregation operator can now handle the case of zero matching attributes
- 
+* BUGFIX: Fixed wrong warning about missing parameter value in Write File
+
 
 Changes from RapidMiner 5.2.6 to 5.2.8
 --------------------------------------

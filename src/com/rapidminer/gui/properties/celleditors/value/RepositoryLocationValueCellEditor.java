@@ -100,7 +100,8 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 						type.isAllowEntries(), 
 						type.isAllowFolders(),
 						false,
-						type.isEnforceValidRepositoryEntryName());
+						type.isEnforceValidRepositoryEntryName(),
+						type.isOnlyWriteableLocations());
 //				if (locationName != null) {
 //					if ((operator != null) && (operator.getProcess() != null)) {
 //						try {

@@ -407,7 +407,7 @@ public class ProcessRenderer extends JPanel {
 	private static int GRID_Y_OFFSET = MIN_OPERATOR_HEIGHT / 2;
 	private static int GRID_AUTOARRANGE_WIDTH = OPERATOR_WIDTH * 3 / 2;
 	private static int GRID_AUTOARRANGE_HEIGHT = MIN_OPERATOR_HEIGHT * 3 / 2;
-
+	
 	private static RenderingHints HI_QUALITY_HINTS = new RenderingHints(null);
 	private static RenderingHints LOW_QUALITY_HINTS = new RenderingHints(null);
 
@@ -466,7 +466,11 @@ public class ProcessRenderer extends JPanel {
 	private static final Color FRAME_COLOR_SELECTED = SwingTools.RAPID_I_ORANGE;
 	private static final Color FRAME_COLOR_NORMAL = LINE_COLOR;
 
-	// private static int PROCESS_HEIGHT = 400;
+	/** Width of {@link #usageHintPane}. */
+	private static final int USAGE_HINT_WIDTH = 400;
+	/** Height of {@link #usageHintPane}. */
+	private static final int USAGE_HINT_HEIGHT= 100;
+
 
 	/** The widths of the individual subprocesses. */
 	private transient final Map<ExecutionUnit, Dimension> processSizes = new WeakHashMap<ExecutionUnit, Dimension>();
@@ -797,25 +801,6 @@ public class ProcessRenderer extends JPanel {
 				}
 			}
 		});
-
-		addComponentListener(new ComponentListener() {
-			
-			@Override
-			public void componentShown(ComponentEvent e) {
-			}
-			
-			@Override
-			public void componentResized(ComponentEvent e) {
-				showUsageHint();
-			}
-			
-			@Override
-			public void componentMoved(ComponentEvent e) {
-				showUsageHint();
-			}
-			@Override
-			public void componentHidden(ComponentEvent e) {	}
-		});
 		
 		((ResourceAction) mainFrame.getActions().TOGGLE_BREAKPOINT[BreakpointListener.BREAKPOINT_AFTER]).addToActionMap(this, WHEN_FOCUSED);
 		((ResourceAction) mainFrame.getActions().TOGGLE_ACTIVATION_ITEM).addToActionMap(this, WHEN_FOCUSED);
@@ -826,6 +811,7 @@ public class ProcessRenderer extends JPanel {
 
 		new ToolTipWindow(tipProvider, this);
 
+		createUsageHint();
 		init();
 	}
 
@@ -956,25 +942,22 @@ public class ProcessRenderer extends JPanel {
 		}
 		showProcesses(processes);
 		
-		showUsageHint();
 		fireNewChainDisplayed();
 	}
 
 	/** Shows (or hides) the usage hint iff the displayed operator chain is the root operator and has no children. */
-	private void showUsageHint() {
-		if ((displayedChain instanceof ProcessRootOperator) && (displayedChain .getSubprocess(0).getNumberOfOperators() == 0)) {
+	private void createUsageHint() {
+		//if ((displayedChain instanceof ProcessRootOperator) && (displayedChain .getSubprocess(0).getNumberOfOperators() == 0)) {
 			usageHintPane.setOpaque(false);
 			usageHintPane.setEditable(false);
-			usageHintPane.setEnabled(false);
-			usageHintPane.setText("<html><body style=\"font-family:sans;font-size:12px;font-weight:bold;color:#aaaaaa;\"><ol><li>Drop operators (from the <em>Operators</em> tab) or data (from the <em>Repositories</em> tab) here.</li><li>Connect operator ports.</li><li>Press run! <img src=\""+SwingTools.getIconPath("16/media_play.png")+"\"/></li></ol></body></html>");
-			int width = 450;
-			int height = 100;
-			usageHintPane.setLocation(getWidth() / 2 - width / 2, getHeight() / 2 - height / 2);
-			usageHintPane.setSize(width, height);
-			add(usageHintPane);
-		} else {
-			remove(usageHintPane);
-		}
+			//usageHintPane.setEnabled(false);
+			usageHintPane.setText("<html><body style=\"font-family:sans;font-size:12px;font-weight:bold;color:#aaaaaa;max-width:"+USAGE_HINT_WIDTH+"px;width:"+USAGE_HINT_WIDTH+"px;\"><ol><li>Drop operators (from the <em>Operators</em> tab) or data (from the <em>Repositories</em> tab) here.</li><li>Connect operator ports.</li><li>Press run! <img src=\""+SwingTools.getIconPath("16/media_play.png")+"\"/></li></ol></body></html>");
+			//usageHintPane.setLocation(getWidth() / 2 - USAGE_HINT_HEIGHT / 2, getHeight() / 2 - height / 2);
+			usageHintPane.setSize(USAGE_HINT_WIDTH, USAGE_HINT_HEIGHT);
+//			add(usageHintPane);
+//		} else {
+//			remove(usageHintPane);
+//		}
 	}
 
 	private void showProcesses(ExecutionUnit[] processes) {
@@ -1056,6 +1039,13 @@ public class ProcessRenderer extends JPanel {
 			((Graphics2D) graphics).setRenderingHints(HI_QUALITY_HINTS);
 		}
 		render((Graphics2D) graphics);
+		
+		if ((displayedChain instanceof ProcessRootOperator) && (displayedChain .getSubprocess(0).getNumberOfOperators() == 0)) {
+			Graphics2D translated = (Graphics2D) graphics.create();
+			translated.translate(getWidth() / 2 - USAGE_HINT_WIDTH / 2, getHeight() / 2 - USAGE_HINT_HEIGHT / 2);
+			usageHintPane.paint(translated);
+			translated.dispose();
+		}
 	}
 
 	/**
@@ -2980,7 +2970,6 @@ public class ProcessRenderer extends JPanel {
 		if (displayedChain.getNumberOfSubprocesses() != processes.length) {
 			showOperatorChain(displayedChain);
 		}
-		showUsageHint();
 		repaint();
 	}
 

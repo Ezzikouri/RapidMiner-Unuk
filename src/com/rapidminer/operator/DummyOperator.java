@@ -139,6 +139,9 @@ public class DummyOperator extends Operator {
 			} else {
 				String latest = service.getLatestVersion(extensionId, "ANY");
 				PackageDescriptor desc = service.getPackageInfo(extensionId, latest, "ANY");
+				if(desc == null) {
+					return getRequiredPluginPrefix();
+				}
 				return desc.getName();
 			}
 		} catch (Exception e) {

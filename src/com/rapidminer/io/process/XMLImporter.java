@@ -86,7 +86,6 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.ProgressListener;
-import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.container.Pair;
 import com.rapidminer.tools.plugin.Plugin;
@@ -147,7 +146,7 @@ public class XMLImporter {
             //LogService.getRoot().config("Reading parse rules from " + rulesResource);
             LogService.getRoot().log(Level.CONFIG, "com.rapidminer.io.process.XMLImporter.reading_parse_rules", rulesResource);
             try {
-                Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(WebServiceTools.openStreamFromURL(rulesResource));
+                Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(rulesResource.openStream());
                 if (!doc.getDocumentElement().getTagName().equals("parserules")) {
                     //LogService.getRoot().log(Level.SEVERE, "XML document " + rulesResource + " does not start with <parserules>");
                     LogService.getRoot().log(Level.SEVERE, "com.rapidminer.io.process.XMLImporter.xml_document_start_error", rulesResource);

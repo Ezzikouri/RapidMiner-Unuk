@@ -527,20 +527,25 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 
 		double[] keyValues;
 		
-		EXAMPLE_LOOP:
 		for (Example example : exampleSet) {
+			boolean continueIteration = false;
 			// fetch key values from example
 			keyValues = getKeyValues(example, keyAttributes);
 			if (valueMapping != null) {
 				// remap keyValues to match values of other attributes:
 				for (int i = 0; i < keyValues.length; ++i) {
-					if (keyAttributes[i].isNominal()) {
-						if(Double.isNaN(keyValues[i])) {
-							break EXAMPLE_LOOP;
-						}
-						keyValues[i] = valueMapping.get(keyAttributes[i]).get(keyValues[i]);
+					if(Double.isNaN(keyValues[i])) {
+						continueIteration = true;
+						break;
 					}
+					if (keyAttributes[i].isNominal()) {
+						keyValues[i] = valueMapping.get(keyAttributes[i]).get(keyValues[i]);
+					} 
 				}
+				if (continueIteration) {
+					continue;
+				}
+				
 			}
 
 			// check if this key is in keyMapping. If not, add:

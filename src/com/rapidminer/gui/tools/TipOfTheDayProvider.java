@@ -32,7 +32,6 @@ import java.util.logging.Level;
 
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
-import com.rapidminer.tools.WebServiceTools;
 
 /**
  * This class loads all available tips and provides them as string. Each invocation of 
@@ -56,7 +55,7 @@ public class TipOfTheDayProvider {
             if (totdURL != null) {
               BufferedReader in = null;
               try {
-                  in = new BufferedReader(new InputStreamReader(WebServiceTools.openStreamFromURL(totdURL)));
+                  in = new BufferedReader(new InputStreamReader(totdURL.openStream()));
             	  String line = null;
             	  while ((line = in.readLine()) != null) {
             		  line = line.trim();

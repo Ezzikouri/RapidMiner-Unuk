@@ -68,9 +68,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import sun.net.www.protocol.http.AuthCacheImpl;
-import sun.net.www.protocol.http.AuthCacheValue;
-
 import com.rapid_i.Launcher;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RapidMiner.ExecutionMode;
@@ -830,7 +827,7 @@ public class UpdateManager {
 
 			PasswordAuthentication passwordAuthentication = null;
 			try {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(updateServerURI, false, true);
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(updateServerURI, false, true, "authentication.marketplace");
 			} catch (PasswortInputCanceledException e1) {}
 			UpdateServerAccount.setPasswordAuthentication(passwordAuthentication);
 

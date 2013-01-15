@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.gui;
 
 import java.util.HashSet;
@@ -119,7 +120,7 @@ public class RepositoryTreeModel implements TreeModel {
 					if (nextSelectionIndex < subfolders.size()) {
 						savedPath = savedPath.pathByAddingChild(subfolders.get(nextSelectionIndex));
 					} else {
-						savedPath= savedPath.pathByAddingChild(dataEntries.get(nextSelectionIndex-subfolders.size()));
+						savedPath = savedPath.pathByAddingChild(dataEntries.get(nextSelectionIndex - subfolders.size()));
 					}
 				}
 			}
@@ -153,13 +154,16 @@ public class RepositoryTreeModel implements TreeModel {
 
 	private boolean onlyFolders = false;
 
+	private boolean onlyWriteableRepositories = false;
+
 	public RepositoryTreeModel(final RepositoryManager root) {
-		this(root, false);
+		this(root, false, false);
 	}
 
-	public RepositoryTreeModel(final RepositoryManager root, final boolean onlyFolders) {
+	public RepositoryTreeModel(final RepositoryManager root, final boolean onlyFolders, final boolean onlyWritableRepositories) {
 		this.root = root;
 		this.onlyFolders = onlyFolders;
+		this.onlyWriteableRepositories = onlyWritableRepositories;
 		for (Repository repository : root.getRepositories()) {
 			repository.addRepositoryListener(repositoryListener);
 		}
@@ -168,8 +172,10 @@ public class RepositoryTreeModel implements TreeModel {
 			@Override
 			public void update(Observable<Repository> observable, Repository arg) {
 				for (Repository repository : root.getRepositories()) {
-					repository.removeRepositoryListener(repositoryListener);
-					repository.addRepositoryListener(repositoryListener);
+					if (onlyWritableRepositories) {
+						repository.removeRepositoryListener(repositoryListener);
+						repository.addRepositoryListener(repositoryListener);
+					}
 				}
 				TreeModelEvent e = new TreeModelEvent(this, new TreePath(root));
 				for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
@@ -207,6 +213,9 @@ public class RepositoryTreeModel implements TreeModel {
 	@Override
 	public Object getChild(Object parent, int index) {
 		if (parent instanceof RepositoryManager) {
+			if (onlyWriteableRepositories) {
+				return getWritableRepositories(((RepositoryManager) parent)).get(index);
+			}
 			return ((RepositoryManager) parent).getRepositories().get(index);
 		} else if (parent instanceof Folder) {
 			Folder folder = (Folder) parent;
@@ -226,9 +235,9 @@ public class RepositoryTreeModel implements TreeModel {
 				} catch (RepositoryException e) {
 					//LogService.getRoot().log(Level.WARNING, "Cannot get children of "+folder.getName()+": "+e, e);
 					LogService.getRoot().log(Level.WARNING,
-							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-							"com.rapidminer.repository.gui.RepositoryTreeModel.getting_children_of_folder_error", 
-							folder.getName(), e),
+							I18N.getMessage(LogService.getRoot().getResourceBundle(),
+									"com.rapidminer.repository.gui.RepositoryTreeModel.getting_children_of_folder_error",
+									folder.getName(), e),
 							e);
 					return null;
 				}
@@ -255,7 +264,8 @@ public class RepositoryTreeModel implements TreeModel {
 
 				final List<Entry> children = new LinkedList<Entry>();
 				try {
-					children.addAll(folder.getSubfolders()); // this may take some time				
+					List<Folder> subfolders = folder.getSubfolders();
+					children.addAll(subfolders); // this may take some time				
 					children.addAll(folder.getDataEntries()); // this may take some time
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_fetching_folder_contents_from_server", e);
@@ -273,11 +283,13 @@ public class RepositoryTreeModel implements TreeModel {
 								index[i] = i;
 							}
 							Object[] childArray = children.toArray();
-							TreeModelEvent insertEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), index, childArray);
-							for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
-								l.treeNodesInserted(insertEvent);
+							if (childArray.length > 0) {
+								TreeModelEvent insertEvent = new TreeModelEvent(RepositoryTreeModel.this, getPathTo(folder), index, childArray);
+								for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+									l.treeNodesInserted(insertEvent);
+								}
 							}
-							
+
 							pendingFolders.remove(folder);
 						}
 					});
@@ -290,6 +302,9 @@ public class RepositoryTreeModel implements TreeModel {
 	@Override
 	public int getChildCount(Object parent) {
 		if (parent instanceof RepositoryManager) {
+			if (onlyWriteableRepositories) {
+				return getWritableRepositories(((RepositoryManager) parent)).size();
+			}
 			return ((RepositoryManager) parent).getRepositories().size();
 		} else if (parent instanceof Folder) {
 			Folder folder = (Folder) parent;
@@ -306,9 +321,9 @@ public class RepositoryTreeModel implements TreeModel {
 				} catch (RepositoryException e) {
 					//LogService.getRoot().log(Level.WARNING, "Cannot get child count for "+folder.getName()+": "+e, e);
 					LogService.getRoot().log(Level.WARNING,
-							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-							"com.rapidminer.repository.gui.RepositoryTreeModel.getting_children_count_of_folder_error", 
-							folder.getName(), e),
+							I18N.getMessage(LogService.getRoot().getResourceBundle(),
+									"com.rapidminer.repository.gui.RepositoryTreeModel.getting_children_count_of_folder_error",
+									folder.getName(), e),
 							e);
 					return 0;
 				}
@@ -321,6 +336,9 @@ public class RepositoryTreeModel implements TreeModel {
 	@Override
 	public int getIndexOfChild(Object parent, Object child) {
 		if (parent instanceof RepositoryManager) {
+			if (onlyWriteableRepositories) {
+				return getWritableRepositories(((RepositoryManager) parent)).indexOf(child);
+			}
 			return ((RepositoryManager) parent).getRepositories().indexOf(child);
 		} else if (parent instanceof Folder) {
 			Folder folder = (Folder) parent;
@@ -333,11 +351,11 @@ public class RepositoryTreeModel implements TreeModel {
 					return -1;
 				}
 			} catch (RepositoryException e) {
-			//LogService.getRoot().log(Level.WARNING, "Cannot get child index for "+folder.getName()+": "+e, e);
+				//LogService.getRoot().log(Level.WARNING, "Cannot get child index for "+folder.getName()+": "+e, e);
 				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.repository.gui.RepositoryTreeModel.getting_child_index_of_folder_error", 
-						folder.getName(), e),
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.repository.gui.RepositoryTreeModel.getting_child_index_of_folder_error",
+								folder.getName(), e),
 						e);
 				return -1;
 			}
@@ -363,5 +381,16 @@ public class RepositoryTreeModel implements TreeModel {
 		} catch (Exception e) {
 			SwingTools.showSimpleErrorMessage("error_rename", e, e.toString());
 		}
+	}
+
+	private List<Repository> getWritableRepositories(RepositoryManager manager) {
+		List<Repository> repositories = manager.getRepositories();
+		List<Repository> writeableRepositories = new LinkedList<Repository>();
+		for (Repository repository : repositories) {
+			if (!repository.isReadOnly()) {
+				writeableRepositories.add(repository);
+			}
+		}
+		return writeableRepositories;
 	}
 }

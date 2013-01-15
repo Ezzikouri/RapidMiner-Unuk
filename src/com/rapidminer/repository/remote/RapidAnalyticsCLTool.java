@@ -39,9 +39,11 @@ import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
 import com.rapid_i.repository.wsimport.RepositoryService;
 import com.rapid_i.repository.wsimport.mgt.ManagementService;
 import com.rapid_i.repository.wsimport.mgt.ManagementServiceService;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 
 /** This class can be used to access a RapidAnalytics installation from a remote machine.
@@ -375,6 +377,8 @@ public class RapidAnalyticsCLTool {
 	}
 
 	public static void main(String[] args) {
+		RapidMiner.class.getName();
+		ParameterService.init();
 		try {
 			new RapidAnalyticsCLTool(args).run();
 		} catch (IllegalArgumentException e) {

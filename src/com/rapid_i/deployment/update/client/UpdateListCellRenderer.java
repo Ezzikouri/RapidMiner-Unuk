@@ -24,10 +24,12 @@ package com.rapid_i.deployment.update.client;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.beans.Transient;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,8 +41,6 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
-
-import jxl.format.Border;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
@@ -126,7 +126,24 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 	
 	@Override
 	public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-		JPanel panel = new JPanel();
+		JPanel panel = new JPanel() {
+			private static final long serialVersionUID = 6409307403021306689L;
+			@Override
+			@Transient
+			/*
+			 * Overriding this method causes the correct computation
+			 * of the width with no overlapping if the scrollbar
+			 * is displayed.
+			 */
+			public Dimension getPreferredSize() {
+				Dimension d = super.getPreferredSize();
+				if (d==null) {
+					return d;
+				}
+				d.width = 10;
+				return d;
+			}
+		};
 		JLabel selectedLabel = new JLabel();
 		JLabel label = new JLabel();
 		
@@ -137,8 +154,7 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 		panel.add(label);		
 		panel.setOpaque(true);
 
-		
-		if (isSelected) {
+		if (isSelected && (value instanceof PackageDescriptor)) {
 			panel.setBackground(SwingTools.DARKEST_BLUE);
 			panel.setBorder(BorderFactory.createLineBorder(Color.black));
 		} else {
@@ -154,7 +170,7 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 			boolean selectedForInstallation = updateModel != null ? updateModel.isSelectedForInstallation(desc) : true;
 			Icon packageIcon = getResizedIcon(getIcon(desc));
 			
-			text = "<html><body style='width: " + (packageIcon != null ? (310 - packageIcon.getIconWidth()) : 314) + ";" + 
+			text = "<html><body style='width: " + (packageIcon != null ? (300 - packageIcon.getIconWidth()) : 314) + ";" + 
 					(packageIcon == null ? "margin-left:40px;" : "") + "'><strong>"+desc.getName()+"</strong> "+desc.getVersion()+"<br />";
 			text += getFirstSentence(desc.getDescription()) +"<br />";
 			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
