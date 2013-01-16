@@ -63,6 +63,8 @@ public class PerformanceLoader extends AbstractReader<PerformanceVector> {
 					return getParameterAsInputStream(PARAMETER_PERFORMANCE_FILE);
 				} catch (UndefinedParameterError e) {
 					throw new IOException(e);
+				} catch (UserError e) {
+					throw new IOException(e);
 				}
 			}
 		};

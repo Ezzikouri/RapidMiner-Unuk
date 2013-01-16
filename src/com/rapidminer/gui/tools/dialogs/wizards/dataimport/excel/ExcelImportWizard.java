@@ -44,6 +44,7 @@ import com.rapidminer.gui.wizards.AbstractConfigurationWizardCreator;
 import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorCreationException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.io.ExcelExampleSource;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeList;
@@ -86,6 +87,8 @@ public class ExcelImportWizard extends DataImportWizard {
 			try {
 				oldFile = reader.getParameterAsFile(ExcelExampleSource.PARAMETER_EXCEL_FILE);
 			} catch (UndefinedParameterError e) {
+				oldFile = null;
+			}catch (UserError e){
 				oldFile = null;
 			}
 			if (oldFile == null || !oldFile.equals(file)) {

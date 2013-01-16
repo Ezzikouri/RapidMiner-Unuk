@@ -42,7 +42,6 @@ import com.rapidminer.parameter.conditions.PortConnectedCondition;
 /**
  * Provides methods for creating and working with a file InputPort. Used by reading operators.
  * @author Dominik Halfkann
- *
  */
 public class FileOutputPortHandler {
 
@@ -65,7 +64,6 @@ public class FileOutputPortHandler {
 			try {
 				return new FileOutputStream(operator.getParameterAsFile(fileParameterName, true));
 			} catch (FileNotFoundException e) {
-				System.out.println(e.getLocalizedMessage());
 				throw new UserError(operator, e, 303, operator.getParameterAsFile(fileParameterName), e.getMessage());
 			}
 		} else {
@@ -89,7 +87,6 @@ public class FileOutputPortHandler {
 			try {
 				return new FileOutputStream(operator.getParameterAsFile(fileParameterName, true), append);
 			} catch (FileNotFoundException e) {
-				System.out.println(e.getLocalizedMessage());
 				throw new UserError(operator, e, 303, operator.getParameterAsFile(fileParameterName), e.getMessage());
 			}
 		} else {

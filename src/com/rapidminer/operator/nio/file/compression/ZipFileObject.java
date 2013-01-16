@@ -109,9 +109,10 @@ public class ZipFileObject extends ArchiveFileObject {
 		directory = directory.replaceAll("\\\\", "/");
 		directory = directory.replaceAll("[\\\\|/]+$", "");
 		
-		String source = fileObject.getAnnotations().getAnnotation(Annotations.KEY_SOURCE);
-		String filename = source.replaceAll(".*[/\\\\]([^/\\\\\\?]*).*", "$1");
-		
+		String filename = fileObject.getFilename();
+		if (filename == null) {
+			throw new UserError(null, "archive_file.undefined_filename");
+		}
 		
 		if (!directory.isEmpty()) {
 			filename = directory + "/" + filename;
@@ -150,7 +151,7 @@ public class ZipFileObject extends ArchiveFileObject {
 	 */
 	@Override
 	public Set<FuzzyCompressionLevel> getSupportedCompressionLevels() {
-		HashSet<FuzzyCompressionLevel> supportedLevels = new HashSet<FuzzyCompressionLevel>(); 
+		HashSet<FuzzyCompressionLevel> supportedLevels = new HashSet<>(); 
 		supportedLevels.add(FuzzyCompressionLevel.BEST);
 		supportedLevels.add(FuzzyCompressionLevel.FASTEST);
 		supportedLevels.add(FuzzyCompressionLevel.NONE);

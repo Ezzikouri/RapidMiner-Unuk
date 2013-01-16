@@ -64,7 +64,7 @@ public class UpdatePanel extends JPanel {
 	private UpdateServerAccount usAccount = null;
 	
 	private UpdatePackagesModel updateModel;
-	
+
 	public UpdatePanel(UpdateDialog dialog, List<PackageDescriptor> descriptors, String[] preselectedExtensions, final UpdateServerAccount usAccount, UpdatePackagesModel updateModel) {
 
 		this.usAccount = usAccount;
@@ -92,7 +92,7 @@ public class UpdatePanel extends JPanel {
 		setPreferredSize(new Dimension(800, 320));
 		setMinimumSize(new Dimension(800, 320));
 
-		updatesTabbedPane.addTabI18N("search", createSerchListPanel());
+		updatesTabbedPane.addTabI18N("search", createSearchListPanel());
 		updatesTabbedPane.addTabI18N("updates", createUpdatesListPanel());
 		updatesTabbedPane.addTabI18N("top_downloads", createUpdateListPanel(new TopDownloadsPackageListModel(packageDescriptorCache)));
 		updatesTabbedPane.addTabI18N("top_rated", createUpdateListPanel(new TopRatedPackageListModel(packageDescriptorCache)));
@@ -142,7 +142,7 @@ public class UpdatePanel extends JPanel {
 		return new UpdatePanelTab(updateModel, listModel, usAccount);
 	}
 
-	private JPanel createSerchListPanel() {
+	private JPanel createSearchListPanel() {
 		return new UpdatePanelSearchTab(updateModel, packageDescriptorCache, usAccount);
 	}
 
@@ -155,5 +155,8 @@ public class UpdatePanel extends JPanel {
 		updateDialog.startUpdate(downloadList);
 	}
 	
+	public void selectUpdatesTab() {
+		updatesTabbedPane.setSelectedIndex(1);
+	}
 
 }

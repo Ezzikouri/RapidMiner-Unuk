@@ -69,6 +69,8 @@ public class ModelLoader extends AbstractModelLoader {
 					return getParameterAsInputStream(PARAMETER_MODEL_FILE);
 				} catch (UndefinedParameterError e) {
 					throw new IOException(e);
+				} catch (UserError e) {
+					throw new IOException(e);
 				}
 			}
 		};			

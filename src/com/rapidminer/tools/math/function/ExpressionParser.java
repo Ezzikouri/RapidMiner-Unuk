@@ -471,7 +471,7 @@ public class ExpressionParser {
 		List<FunctionDescription> processFunctions = new LinkedList<FunctionDescription>();
 		processFunctions.add(new FunctionDescription("param()", "Parameter",
 				"Delivers the specified parameter of the specified operator; example: param(\"Read Excel\", \"file\")", 2));
-		processFunctions.add(new FunctionDescription("macro()", "Macro", "Delivers the macro of the given argument; example: macro(\"x\")", -1));
+		processFunctions.add(new FunctionDescription("macro()", "Macro", "Delivers the value of the macro with the name specified by the first argument as string; example: macro(\"myMacro\"). Optionally a default value can be specified, which is delivered if the macro is not defined: macro(\"myMacro\", \"default value\")", -1));
 		FUNCTIONS.put(FUNCTION_GROUPS[6], processFunctions);
 
 		// miscellaneous functions

@@ -29,6 +29,7 @@ import java.util.List;
 import com.rapidminer.Process;
 import com.rapidminer.gui.renderer.Renderer;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.UserError;
 
 /**
  * This interface defines that instance are able to handle parameters. In RapidMiner,
@@ -117,8 +118,10 @@ public interface ParameterHandler {
 	 * was not set this method returns null. Operators should always use this
 	 * method instead of directly using the method
 	 * {@link Process#resolveFileName(String)}.
+	 * @throws DirectoryCreationError 
+	 * @throws UserError 
 	 */
-	public InputStream getParameterAsInputStream(String key) throws UndefinedParameterError, IOException;
+	public InputStream getParameterAsInputStream(String key) throws  IOException, UserError;
 
 	/**
 	 * Returns a single named parameter and casts it to File. This file is
@@ -128,8 +131,10 @@ public interface ParameterHandler {
 	 * was not set this method returns null. Operators should always use this
 	 * method instead of directly using the method
 	 * {@link Process#resolveFileName(String)}.
+	 * @throws DirectoryCreationError 
+	 * @throws UserError 
 	 */
-	public java.io.File getParameterAsFile(String key) throws UndefinedParameterError;
+	public java.io.File getParameterAsFile(String key) throws  UserError;
 
 	/**
 	 * Returns a single named parameter and casts it to File. This file is
@@ -139,8 +144,10 @@ public interface ParameterHandler {
 	 * was not set this method returns null. Operators should always use this
 	 * method instead of directly using the method
 	 * {@link Process#resolveFileName(String)}.
+	 * @throws DirectoryCreationError 
+	 * @throws UserError 
 	 */
-	public java.io.File getParameterAsFile(String key, boolean createMissingDirectories) throws UndefinedParameterError;
+	public java.io.File getParameterAsFile(String key, boolean createMissingDirectories) throws UserError;
 
 	/** Returns a single named parameter and casts it to a double matrix. */
 	public double[][] getParameterAsMatrix(String key) throws UndefinedParameterError;

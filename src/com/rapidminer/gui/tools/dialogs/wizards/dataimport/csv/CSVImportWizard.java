@@ -38,6 +38,7 @@ import com.rapidminer.gui.wizards.AbstractConfigurationWizardCreator;
 import com.rapidminer.gui.wizards.ConfigurationListener;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.io.CSVDataReader;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.Parameters;
@@ -100,6 +101,8 @@ public class CSVImportWizard extends DataImportWizard {
 				try {
 					oldFile = reader.getParameterAsFile(CSVDataReader.PARAMETER_CSV_FILE);
 				} catch (UndefinedParameterError e) {
+					oldFile = null;
+				} catch (UserError e){
 					oldFile = null;
 				}
 				if (oldFile == null || !oldFile.equals(file)) {

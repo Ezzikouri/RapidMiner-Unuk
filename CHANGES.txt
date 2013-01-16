@@ -14,6 +14,7 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * New operator: Performance to Data
 * New operator: Throw Exception
 * New file system operators: Copy File, Move File, Delete File, Rename File, Create Directory
+* New operators for handling annotations: Annotate, Annotations to Data, Data to Annotations, Extract Macro from Annotation
 * Aggregate: new aggregation functions: sum (fractional), count (fractional), count (percentage) and string concatenation
 * Execute Program operator has File Object ports for stdin, stdout, stderr
 * Loop Attributes: new output port which collects the data from all iterations 

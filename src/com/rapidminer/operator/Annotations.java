@@ -55,6 +55,8 @@ public class Annotations implements Serializable, Map<String,String> {
 	/** Source, e.g. URI, or SQL query of data. */
 	public static final String KEY_SOURCE    = "Source";
 	
+	public static final String KEY_FILENAME  = "Filename";
+	
 	/** User defined comment. */
 	public static final String KEY_COMMENT   = "Comment";
 
@@ -106,7 +108,7 @@ public class Annotations implements Serializable, Map<String,String> {
 		KEY_DC_SOURCE,
 		KEY_DC_RELATION,
 		KEY_DC_AUDIENCE,
-		KEY_DC_INSTRUCTIONAL_METHOD
+		KEY_DC_INSTRUCTIONAL_METHOD,
 	};
 	
 	/** All keys that are supposed to be used with {@link IOObject}s. */
@@ -128,7 +130,9 @@ public class Annotations implements Serializable, Map<String,String> {
 		KEY_DC_SOURCE,
 		KEY_DC_RELATION,
 		KEY_DC_AUDIENCE,
-		KEY_DC_INSTRUCTIONAL_METHOD
+		KEY_DC_INSTRUCTIONAL_METHOD,
+		
+		KEY_FILENAME,
 	};
 	
 	/** Keys that can be assigned to {@link Attribute}s. 
@@ -138,7 +142,7 @@ public class Annotations implements Serializable, Map<String,String> {
 		KEY_UNIT
 	};
 	
-	private LinkedHashMap<String,String> keyValueMap = new LinkedHashMap<String,String>();
+	private LinkedHashMap<String,String> keyValueMap = new LinkedHashMap<>();
 
 	/** Pseudo-annotation to be used for attribute names. */
 	public static final String ANNOTATION_NAME = "Name";
@@ -149,7 +153,7 @@ public class Annotations implements Serializable, Map<String,String> {
 	/** Clone constructor.
 	 */
 	public Annotations(Annotations annotations) {
-		this.keyValueMap = new LinkedHashMap<String, String>(annotations.keyValueMap);
+		this.keyValueMap = new LinkedHashMap<>(annotations.keyValueMap);
 	}
 
 
@@ -162,7 +166,7 @@ public class Annotations implements Serializable, Map<String,String> {
 	}
 
 	public List<String> getKeys() {
-		return new ArrayList<String>(keyValueMap.keySet());
+		return new ArrayList<>(keyValueMap.keySet());
 	}
 
 	public void removeAnnotation(String key) {
@@ -284,7 +288,7 @@ public class Annotations implements Serializable, Map<String,String> {
 	}
 
 	public List<String> getDefinedAnnotationNames() {
-		List<String> result = new LinkedList<String>();
+		List<String> result = new LinkedList<>();
 		result.addAll(keySet());
 		return result;
 	}

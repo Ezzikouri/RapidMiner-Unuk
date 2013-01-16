@@ -38,7 +38,7 @@ public class TopRatedPackageListModel extends AbstractPackageListModel {
 	private static final long serialVersionUID = 1L;
 
 	public TopRatedPackageListModel(PackageDescriptorCache cache) {
-		super(cache, "gui.dialog.update.tab.no_bookmarks");
+		super(cache, "gui.dialog.update.tab.no_packages");
 	}
 	
 	@Override

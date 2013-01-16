@@ -219,6 +219,9 @@ public class UpdateDialog extends ButtonDialog {
 		return buttonPanel;
 	}
 
+	/**
+	 * Opens the marketplace dialog and selects the update tab.
+	 */
 	public static void showUpdateDialog(final String... preselectedExtensions) {
 		final UpdateService service;
 		try {
@@ -229,7 +232,13 @@ public class UpdateDialog extends ButtonDialog {
 		}
 
 		final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
-		new UpdateDialog(service, descriptors, preselectedExtensions).setVisible(true);
+		UpdateDialog updateDialog = new UpdateDialog(service, descriptors, preselectedExtensions);
+		updateDialog.showUpdateTab();
+		updateDialog.setVisible(true);
+	}
+
+	private void showUpdateTab() {
+		ulp.selectUpdatesTab();
 	}
 
 	public void startUpdate(final List<PackageDescriptor> downloadList) {

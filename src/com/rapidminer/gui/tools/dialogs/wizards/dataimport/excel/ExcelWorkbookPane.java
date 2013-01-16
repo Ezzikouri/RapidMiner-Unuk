@@ -52,6 +52,7 @@ import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.io.ExcelExampleSource;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.I18N;
@@ -240,6 +241,8 @@ public class ExcelWorkbookPane extends JPanel {
 		try {
 			file = reader.getParameterAsFile(ExcelExampleSource.PARAMETER_EXCEL_FILE);
 		} catch (UndefinedParameterError e1) {
+			throw new RuntimeException("Error during loading workbook: ", e1);
+		}catch (UserError e1){
 			throw new RuntimeException("Error during loading workbook: ", e1);
 		}
 

@@ -90,6 +90,8 @@ public class IOObjectReader extends AbstractReader<IOObject> {
 					return getParameterAsInputStream(PARAMETER_OBJECT_FILE);
 				} catch (UndefinedParameterError e) {
 					throw new IOException(e);
+				} catch (UserError e) {
+					throw new IOException(e);
 				}
 			}
 		};			

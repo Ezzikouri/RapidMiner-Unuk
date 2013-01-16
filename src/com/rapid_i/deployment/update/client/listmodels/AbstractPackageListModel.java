@@ -36,7 +36,7 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.ProgressListener;
 
 /**
- * Abstract Class for PackageListModels as used in the Rapidminer Update Dialog.
+ * Abstract Class for PackageListModels as used in the RapidMiner Update Dialog.
  * @author Dominik Halfkann
  *
  */
