@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapid_i.deployment.update.client;
 
 import java.io.BufferedReader;
@@ -36,6 +37,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
@@ -60,7 +62,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-import javax.xml.datatype.XMLGregorianCalendar;
+import javax.swing.SwingUtilities;
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 
@@ -68,7 +70,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import com.rapid_i.Launcher;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.deployment.client.wsimport.AccountService;
@@ -83,6 +84,7 @@ import com.rapidminer.gui.security.Wallet;
 import com.rapidminer.gui.tools.PasswordDialog;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.ExtendedErrorDialog;
 import com.rapidminer.io.process.XMLTools;
@@ -101,6 +103,39 @@ import com.rapidminer.tools.WebServiceTools;
  * @author Simon Fischer
  */
 public class UpdateManager {
+
+	/** The platform architecture as specified in the manifest. */	
+	public static final String TARGET_PLATFORM;
+
+	/** If true, the {@link #TARGET_PLATFORM} was not correctly identified in the manifest, so we
+	 *  are probably using a development version which means we cannot update RapidMiner itself. */
+	public static final boolean DEVELOPMENT_BUILD;
+
+	static {
+		String implementationVersion = UpdateManager.class.getPackage().getImplementationVersion();
+		if (implementationVersion == null) {
+			LogService.getRoot().log(Level.WARNING, "com.rapid_i.deployment.update.client.UpdateManager.error_development_build");
+			TARGET_PLATFORM = "ANY";
+			DEVELOPMENT_BUILD = true;
+		} else {
+			int dashPos = implementationVersion.lastIndexOf("-");
+			if (dashPos != -1) {
+				String suffix = implementationVersion.substring(dashPos).trim();
+				if (!suffix.isEmpty()) {
+					TARGET_PLATFORM = suffix;
+					DEVELOPMENT_BUILD = false;
+				} else {
+					LogService.getRoot().log(Level.WARNING, "com.rapid_i.deployment.update.client.UpdateManager.illegal_implementation_version", implementationVersion);
+					TARGET_PLATFORM ="ANY";
+					DEVELOPMENT_BUILD = true;
+				}
+			} else {
+				LogService.getRoot().log(Level.WARNING, "com.rapid_i.deployment.update.client.UpdateManager.illegal_implementation_version", implementationVersion);
+				TARGET_PLATFORM = "ANY";
+				DEVELOPMENT_BUILD = true;
+			}
+		}
+	}
 
 	public static final String PARAMETER_UPDATE_INCREMENTALLY = "rapidminer.update.incremental";
 	public static final String PARAMETER_UPDATE_URL = "rapidminer.update.url";
@@ -147,7 +182,7 @@ public class UpdateManager {
 						I18N.getMessage(LogService.getRoot().getResourceBundle(),
 								"com.rapid_i.deployment.update.client.UpdateManager.sending_illegal_content_length_error",
 								lengthStr),
-						e);
+								e);
 				return urlIn;
 			}
 		}
@@ -162,13 +197,21 @@ public class UpdateManager {
 	 * @throws UpdateServiceException_Exception
 	 */
 	public int performUpdates(List<PackageDescriptor> downloadList, ProgressListener progressListener) throws IOException, UpdateServiceException_Exception {
+		for (Iterator<PackageDescriptor> iterator = downloadList.iterator(); iterator.hasNext();) {
+			PackageDescriptor desc = iterator.next();
+			if ("rapidminer".equals(desc.getPackageId()) && DEVELOPMENT_BUILD) {
+				SwingTools.showVerySimpleErrorMessageAndWait("update_error_development_build");
+				iterator.remove();
+				continue;
+			}
+		}
 		int i = 0;
 		//number of failed Downloads
-		int FaildLoads = 0;
+		int failedLoads = 0;
 		//number of all available Downloads
 		int availableLoads = downloadList.size();
 		try {
-			for (PackageDescriptor desc : downloadList) {
+			for (final PackageDescriptor desc : downloadList) {
 				String urlString = service.getDownloadURL(desc.getPackageId(), desc.getVersion(), desc.getPlatformName());
 
 				int minProgress = 20 + 80 * i / downloadList.size();
@@ -200,17 +243,32 @@ public class UpdateManager {
 						LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.updating_package_id", desc.getPackageId());
 						try {
 							updatePlugin(extension, openStream(url, progressListener, minProgress, maxProgress), desc.getVersion(), urlString + "?md5");
-						} catch (IOException e) {
+						} catch (final IOException e) {
 							LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Plugin");
-							FaildLoads++;
+							failedLoads++;
 							//show MD5-Error to the user
-							ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] { desc.getName() });
-							dialog.setVisible(true);
+							try {
+								SwingUtilities.invokeAndWait(new Runnable() {
+									@Override
+									public void run() {
+										ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] { desc.getName() });
+										dialog.setModal(true);
+										dialog.setVisible(true);
+									}								
+								});
+							} catch (InvocationTargetException e1) {
+								LogService.getRoot().log(Level.WARNING, "Error showing error message: "+e, e);								
+							} catch (InterruptedException e1) {	}
 						}
 
 					}
 					extension.addAndSelectVersion(desc.getVersion());
-				} else {
+				} else if ("STAND_ALONE".equals(desc.getPackageTypeName()) && ("rapidminer".equals(desc.getPackageId()))) {
+					if (DEVELOPMENT_BUILD) {
+						SwingTools.showVerySimpleErrorMessageAndWait("update_error_development_build");
+						continue;
+					}
+
 					URL url = UpdateManager.getUpdateServerURI(urlString +
 							(incremental ? "?baseVersion=" + URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") : "")).toURL();
 					//LogService.getRoot().info("Updating RapidMiner core.");
@@ -219,12 +277,14 @@ public class UpdateManager {
 					try {
 						updateRapidMiner(openStream(url, progressListener, minProgress, maxProgress), desc.getVersion(), urlString + (incremental ? "?baseVersion=" + URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") + "&md5" : "?md5"));
 					} catch (IOException e) {
-						FaildLoads++;
+						failedLoads++;
 						//show MD5-Error to the user
 						LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Update");
 						ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] { "RapidMiner" });
 						dialog.setVisible(true);
 					}
+				} else {
+					SwingTools.showVerySimpleErrorMessageAndWait("updatemanager.unknown_package_type", desc.getName(), desc.getPackageTypeName());
 				}
 				i++;
 				progressListener.setCompleted(20 + 80 * i / downloadList.size());
@@ -235,16 +295,16 @@ public class UpdateManager {
 		} finally {
 			progressListener.complete();
 		}
-		if (availableLoads == FaildLoads)
+		if ((availableLoads == failedLoads) && (availableLoads > 0))
 			// show Message that no Update was successful
 			throw new IOException(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.no_update_md5.message"));
-		return availableLoads - FaildLoads;
+		return availableLoads - failedLoads;
 	}
 
 	/*
 	 * Creates a path to the directory of the User-directory instead of the program files-directory.
 	 * so that there is no io excetption because of the userlevel
-	 
+
 	private File getDestinationPluginFile(ManagedExtension extension, String newVersion) throws IOException {
 		File outFile = extension.getDestinationFile(newVersion);
 		String destPath = outFile.getPath();
@@ -261,7 +321,7 @@ public class UpdateManager {
 		outFile = new File(FileSystemService.getUserRapidMinerDir().getPath() + "\\RUinstall" + destPath);
 		return outFile;
 	}
-	*/
+	 */
 
 	private void updatePlugin(ManagedExtension extension, InputStream updateIn, String newVersion, String md5Adress) throws IOException {
 		File outFile = extension.getDestinationFile(newVersion);
@@ -280,9 +340,11 @@ public class UpdateManager {
 
 	}
 
-	@SuppressWarnings("resource")
-	// stream is closed by copyStreamSynchronously
+	@SuppressWarnings("resource") // stream is closed by copyStreamSynchronously
 	private void updateRapidMiner(InputStream openStream, String version, String md5adress) throws IOException {
+		if (DEVELOPMENT_BUILD) {
+			SwingTools.showVerySimpleErrorMessage("update_error_development_build");
+		}
 		//File updateDir = new File(FileSystemService.getRapidMinerHome(), "update");
 		File updateRootDir = new File(FileSystemService.getUserRapidMinerDir(), "update");
 		if (!updateRootDir.exists()) {
@@ -498,10 +560,10 @@ public class UpdateManager {
 	}
 
 	/**
-	* method to get the MD5 hash from the server
-	* @param md5Stream Inputstream from server user with md5hash of the download
-	* @return returns a hexString to be compatible to the local MD5-hash-method
-	*/
+	 * method to get the MD5 hash from the server
+	 * @param md5Stream Inputstream from server user with md5hash of the download
+	 * @return returns a hexString to be compatible to the local MD5-hash-method
+	 */
 	private String getServerMD5(InputStream md5Stream) throws IOException {
 		byte[] md5Hash = {};
 		try {
@@ -703,7 +765,7 @@ public class UpdateManager {
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
 							"com.rapid_i.deployment.update.client.UpdateManager.reading_update_check_error"),
-					e);
+							e);
 			return null;
 		} finally {
 			if (in != null) {
@@ -721,11 +783,11 @@ public class UpdateManager {
 	public static void checkForUpdates() {
 		String updateProperty = ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK);
 		if (Tools.booleanValue(updateProperty, true)) {
-			if (Launcher.isDevelopmentBuild()) {
-				//LogService.getRoot().config("This is a development build. Ignoring update check.");
-				LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.UpdateManager.ignoring_update_check_development_build");
-				return;
-			}
+//			if (Launcher.isDevelopmentBuild()) {
+//				//LogService.getRoot().config("This is a development build. Ignoring update check.");
+//				LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.UpdateManager.ignoring_update_check_development_build");
+//				return;
+//			}
 			if (RapidMiner.getExecutionMode() == ExecutionMode.WEBSTART) {
 				//LogService.getRoot().config("Ignoring update check in Webstart mode.");
 				LogService.getRoot().config("com.rapid_i.deployment.update.client.UpdateManager.ignoring_update_check_webstart_mode");
@@ -750,47 +812,29 @@ public class UpdateManager {
 
 					@Override
 					public void run() {
-						//LogService.getRoot().info("Checking for updates.");
 						LogService.getRoot().info("com.rapid_i.deployment.update.client.UpdateManager.update_checking");
-						XMLGregorianCalendar xmlGregorianCalendar;
-						if (lastCheckDate != null) {
-							try {
-								xmlGregorianCalendar = XMLTools.getXMLGregorianCalendar(lastCheckDate);
-							} catch (Exception e) {
-								//LogService.getRoot().log(Level.WARNING, "Error checking for updates: "+e, e);
-								LogService.getRoot().log(Level.WARNING,
-										I18N.getMessage(LogService.getRoot().getResourceBundle(),
-												"com.rapid_i.deployment.update.client.UpdateManager.checking_for_updates_error",
-												e),
-										e);
 
-								return;
-							}
-						} else {
-							xmlGregorianCalendar = null;
-						}
-						boolean updatesExist;
+						boolean updatesExist = false;
 						try {
-							updatesExist = getService().anyUpdatesSince(xmlGregorianCalendar);
+							updatesExist = !RapidMiner.getVersion().isAtLeast(new VersionNumber(getService().getLatestVersion("rapidminer", TARGET_PLATFORM)));
 						} catch (Exception e) {
 							//LogService.getRoot().log(Level.WARNING, "Error checking for updates: "+e, e);
 							LogService.getRoot().log(Level.WARNING,
 									I18N.getMessage(LogService.getRoot().getResourceBundle(),
 											"com.rapid_i.deployment.update.client.UpdateManager.checking_for_updates_error",
 											e),
-									e);
+											e);
 							return;
 						}
+
+						saveLastUpdateCheckDate();
 						if (updatesExist) {
 							if (SwingTools.showConfirmDialog("updates_exist", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.YES_OPTION) {
-								UpdateDialog.showUpdateDialog();
-							} else {
-								saveLastUpdateCheckDate();
-							}
+								UpdateDialog.showUpdateDialog(true);
+							} 
 						} else {
 							//LogService.getRoot().info("No updates since "+lastCheckDate+".");
 							LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.no_updates_aviable", lastCheckDate);
-							saveLastUpdateCheckDate();
 						}
 					}
 				}.start();
@@ -816,7 +860,7 @@ public class UpdateManager {
 						I18N.getMessage(LogService.getRoot().getResourceBundle(),
 								"com.rapid_i.deployment.update.client.UpdateManager.malformed_update_server_uri",
 								e),
-						e);
+								e);
 				return;
 			}
 
@@ -871,7 +915,7 @@ public class UpdateManager {
 									I18N.getMessage(LogService.getRoot().getResourceBundle(),
 											"com.rapid_i.deployment.update.client.UpdateManager.checking_for_purchased_extensions_error",
 											e),
-									e);
+											e);
 							return;
 						}
 						if (updatesExist) {
@@ -903,7 +947,7 @@ public class UpdateManager {
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
 							"com.rapid_i.deployment.update.client.PurchasedNotInstalledDialog.creating_xml_document_error",
 							e),
-					e);
+							e);
 			return new ArrayList<String>();
 		}
 

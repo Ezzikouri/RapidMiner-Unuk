@@ -39,6 +39,7 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
@@ -77,7 +78,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.w3c.dom.Element;
@@ -554,6 +554,17 @@ public class ProcessRenderer extends JPanel {
 		this.processPanel = processPanel;
 		setLayout(null); // for absolute positioning of tipPane
 
+		if (processPanel != null) {
+			processPanel.addComponentListener(new ComponentAdapter() {
+
+				@Override
+				public void componentResized(ComponentEvent e) {
+					super.componentResized(e);
+					autoFit();
+				}
+			});
+		}
+		
 		transferHandler = new ReceivingOperatorTransferHandler() {
 
 			private static final long serialVersionUID = 7526109471182298215L;
@@ -943,6 +954,7 @@ public class ProcessRenderer extends JPanel {
 		showProcesses(processes);
 		
 		fireNewChainDisplayed();
+		autoFit();
 	}
 
 	/** Shows (or hides) the usage hint iff the displayed operator chain is the root operator and has no children. */
@@ -2966,6 +2978,10 @@ public class ProcessRenderer extends JPanel {
 				Math.abs(dragStart.getY() - e.getY()));
 	}
 
+	public void processChanged() {
+		autoFit();
+	}
+	
 	public void processUpdated() {
 		if (displayedChain.getNumberOfSubprocesses() != processes.length) {
 			showOperatorChain(displayedChain);

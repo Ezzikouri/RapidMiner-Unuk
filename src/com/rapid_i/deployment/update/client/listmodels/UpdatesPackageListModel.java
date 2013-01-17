@@ -28,7 +28,9 @@ import java.util.List;
 
 import com.rapid_i.deployment.update.client.ManagedExtension;
 import com.rapid_i.deployment.update.client.PackageDescriptorCache;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
+import com.rapidminer.gui.tools.VersionNumber;
 
 
 /**
@@ -43,10 +45,11 @@ public class UpdatesPackageListModel extends AbstractPackageListModel {
 	public UpdatesPackageListModel(PackageDescriptorCache cache) {
 		super(cache, "gui.dialog.update.tab.no_updates");
 	}
-	
+
 	@Override
 	public List<String> fetchPackageNames() {
 		List<String> packageNames = new ArrayList<String>();
+		packageNames.add("rapidminer");
 		for (ManagedExtension me : ManagedExtension.getAll()) {
 			packageNames.add(me.getPackageId());
 		}
@@ -55,17 +58,24 @@ public class UpdatesPackageListModel extends AbstractPackageListModel {
 
 	@Override
 	public void modifyPackageList() {
-		
+
 		Iterator<String> i = packageNames.iterator();
 		while(i.hasNext()) {
 			String packageName = i.next();
-			PackageDescriptor desc = cache.getPackageInfo(packageName, "ANY");
+			PackageDescriptor desc = cache.getPackageInfo(packageName);			
 			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
-			String installed = ext.getLatestInstalledVersion();
-			if (installed != null) {
-				boolean upToDate = installed.compareTo(desc.getVersion()) >= 0;
-				if (upToDate) {
+			if ("rapidminer".equals(packageName)) {
+				if (RapidMiner.getVersion().toString().compareTo(desc.getVersion()) >= 0) {
 					i.remove();
+				}
+			} else {
+				String installedVersionString = ext.getLatestInstalledVersion();
+				if (installedVersionString != null) {
+					VersionNumber installed = new VersionNumber(installedVersionString);				
+					boolean upToDate = installed.isAtLeast(new VersionNumber(desc.getVersion()));
+					if (upToDate) {
+						i.remove();
+					}
 				}
 			}
 		}

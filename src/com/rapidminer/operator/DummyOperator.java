@@ -94,7 +94,7 @@ public class DummyOperator extends Operator {
 			installFix = new AbstractQuickFix(10, true, "install_extension", getExtensionName()) {
 				@Override
 				public void apply() {
-					UpdateDialog.showUpdateDialog(getExtensionId());
+					UpdateDialog.showUpdateDialog(false, getExtensionId());
 				}
 			};
 		} else {

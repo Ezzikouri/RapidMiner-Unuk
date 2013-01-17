@@ -322,6 +322,7 @@ public class Example2AttributePivoting extends ExampleSetTransformationOperator 
             result.getAttributes().setWeight(newWeightAttribute);
         }
         result.recalculateAllAttributeStatistics();
+        result.getAnnotations().addAll(exampleSet.getAnnotations());
         return result;
     }
 

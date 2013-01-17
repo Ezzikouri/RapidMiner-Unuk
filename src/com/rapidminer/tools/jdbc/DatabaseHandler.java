@@ -283,9 +283,13 @@ public class DatabaseHandler {
 		//    		if ((pooled != null) && !pooled.connection.isClosed()) {
 		//    			return pooled;
 		//    		} else {
-		if (password == null) {
-			password = RapidMiner.getInputHandler().inputPassword("Password for user '" + username + "' required");
-		}
+		
+		// We should not force a password here. 
+		// E.G. for MS SQL Server with Windows authentication, both user and password can be null.
+		// If we really need it, we should do it in connect, if user is not null
+//		if (password == null) {
+//			password = RapidMiner.getInputHandler().inputPassword("Password for user '" + username + "' required");
+//		}
 		DatabaseHandler databaseHandler = new DatabaseHandler(databaseURL, username);
 		databaseHandler.connect(password.toCharArray(), new Properties(), autoCommit);
 		//    			POOL.put(id, databaseHandler);
@@ -1365,7 +1369,13 @@ public class DatabaseHandler {
 
 			// fill statements with attribute values
 			for (Attribute att : attList) {
-				if (att.isNumerical()) {
+				double value = ex.getValue(att);
+				// Simon's fix for missing values in the next four lines
+				if (Double.isNaN(value)) {
+					int sqlType = statementCreator.getSQLTypeForRMValueType(att.getValueType()).getDataType();
+					prepUpdateStatement.setNull(attList.indexOf(att) + 1, sqlType);
+					prepInsertStatement.setNull(attList.indexOf(att) + 1, sqlType);
+				} else if (att.isNumerical()) {
 					prepUpdateStatement.setDouble(attList.indexOf(att) + 1, ex.getValue(att));
 					prepInsertStatement.setDouble(allAttList.indexOf(att) + 1, ex.getValue(att));
 				} else if (att.isNominal()) {

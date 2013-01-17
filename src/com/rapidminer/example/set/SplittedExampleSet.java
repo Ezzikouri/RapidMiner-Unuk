@@ -32,6 +32,7 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.tools.Tools;
@@ -280,6 +281,12 @@ public class SplittedExampleSet extends AbstractExampleSet {
     public Attributes getAttributes() {
         return this.parent.getAttributes();
     }
+    
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
+	}
+
 
     // -------------------- Factory methods --------------------
 

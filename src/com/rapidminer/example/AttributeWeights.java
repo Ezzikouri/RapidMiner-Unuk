@@ -139,6 +139,7 @@ public class AttributeWeights extends AverageVector {
             String name = (String) i.next();
             this.setWeight(name, weights.getWeight(name));
         }
+        cloneAnnotationsFrom(weights);
     }
 
     /** Returns the name of this AverageVector. */

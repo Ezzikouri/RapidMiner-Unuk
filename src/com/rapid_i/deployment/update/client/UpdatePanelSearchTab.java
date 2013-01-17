@@ -36,10 +36,8 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.JToolBar;
 
 import com.rapid_i.deployment.update.client.listmodels.SearchPackageListModel;
-import com.rapidminer.gui.tools.ExtendedJToolBar;
 import com.rapidminer.tools.I18N;
 
 /**

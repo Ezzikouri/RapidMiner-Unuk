@@ -152,6 +152,7 @@ public class ExampleSetTranspose extends AbstractExampleSetProcessing {
 
         // create and deliver example set
         ExampleSet result = table.createExampleSet(null, null, newIdAttribute);
+        result.getAnnotations().addAll(exampleSet.getAnnotations());
         return result;
     }
 

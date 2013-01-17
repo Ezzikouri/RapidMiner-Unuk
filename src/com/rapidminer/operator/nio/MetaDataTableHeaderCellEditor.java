@@ -62,6 +62,8 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 	private JCheckBox selectCheckBox = new JCheckBox();
 	private JTextField nameField = new JTextField();
 	private JComboBox roleBox = new JComboBox(Attributes.KNOWN_ATTRIBUTE_TYPES);
+	
+	private MetaDataValidator validator;
 
 	public MetaDataTableHeaderCellEditor() {
 		super(new GridLayout(4, 1));
@@ -69,7 +71,7 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 		
 		add(selectCheckBox);
 		add(nameField);
-		add(valueTypeBox);				
+		add(valueTypeBox);
 		add(roleBox);
 
 		valueTypeBox.addActionListener(new ActionListener() {
@@ -92,6 +94,7 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 						nameField.setText(value.getOriginalAttributeName());
 						value.setUserDefinedAttributeName(value.getOriginalAttributeName());
 					}
+					if (validator != null) validator.validate();
 				}
 			}
 			
@@ -113,9 +116,15 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 			public void actionPerformed(ActionEvent e) {
 				if (value != null) {
 					value.setRole(roleBox.getSelectedItem().toString());
+					if (validator != null) validator.validate();
 				}
 			}
 		});
+	}
+
+	public MetaDataTableHeaderCellEditor(MetaDataValidator headerValidator) {
+		this();
+		validator = headerValidator;
 	}
 
 	@Override

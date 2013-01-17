@@ -31,7 +31,6 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.SimpleAttributes;
 import com.rapidminer.example.table.ViewAttribute;
-import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.preprocessing.normalization.DenormalizationOperator.LinearTransformation;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.Tools;
@@ -40,7 +39,7 @@ import com.rapidminer.tools.Tools;
  * This Model can invert each possible linear transformation given by a normalization model.
  * @author Sebastian Land
  */
-public class DenormalizationModel extends AbstractNormalizationModel implements IOObject {
+public class DenormalizationModel extends AbstractNormalizationModel {
 
     private static final long serialVersionUID = 1370670246351357686L;
 

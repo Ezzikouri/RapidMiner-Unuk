@@ -318,6 +318,7 @@ public class Attribute2ExamplePivoting extends ExampleSetTransformationOperator 
 		// create and deliver example set
 		ExampleSet result = table.createExampleSet();
 		result.recalculateAllAttributeStatistics();
+		result.getAnnotations().addAll(exampleSet.getAnnotations());
 		return result;
 	}
 

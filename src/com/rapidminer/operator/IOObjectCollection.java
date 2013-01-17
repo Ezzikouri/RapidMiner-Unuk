@@ -66,12 +66,14 @@ public class IOObjectCollection<T extends IOObject> extends ResultObjectAdapter 
 	/** Copies the children. */
 	@Override
 	@SuppressWarnings("unchecked")
-	public IOObjectCollection<T> copy() {
-		List<T> copy = new ArrayList<T>(objects.size());
+	public IOObjectCollection<T > copy() {
+		List<T> copiedElements = new ArrayList<T>(objects.size());
 		for (T ioo : objects) {
-			copy.add((T)ioo.copy());
+			copiedElements.add((T)ioo.copy());
 		}
-		return new IOObjectCollection<T>(copy);
+		IOObjectCollection<T> copy = new IOObjectCollection<T>(copiedElements);
+		copy.cloneAnnotationsFrom(this);
+		return copy;
 	}
 	
 	@Override

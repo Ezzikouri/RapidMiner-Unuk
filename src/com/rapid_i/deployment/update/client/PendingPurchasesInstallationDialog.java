@@ -222,9 +222,11 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
-						int result = um.performUpdates(acceptedList, getProgressListener());
-						if (SwingTools.showConfirmDialog((result == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
-							RapidMinerGUI.getMainFrame().exit(true);
+						int numUpdates = um.performUpdates(acceptedList, getProgressListener());
+						if (numUpdates > 0) {
+							if (SwingTools.showConfirmDialog((numUpdates == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, numUpdates) == ConfirmDialog.YES_OPTION) {
+								RapidMinerGUI.getMainFrame().exit(true);
+							}
 						}
 					} else {
 						getProgressListener().complete();

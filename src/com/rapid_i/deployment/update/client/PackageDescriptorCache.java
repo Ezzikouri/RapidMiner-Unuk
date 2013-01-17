@@ -44,13 +44,13 @@ public class PackageDescriptorCache {
 
 	private UpdateService updateService = null;
 
-	public PackageDescriptor getPackageInfo(String packageId, String targetPlatform) {
+	public PackageDescriptor getPackageInfo(String packageId) {
 		if (descriptors.containsKey(packageId)) {
 			//in Cache
 			return descriptors.get(packageId);
 		} else {
 			//need to fetch Info
-			fetchPackageInfo(packageId, targetPlatform);
+			fetchPackageInfo(packageId);
 			if (descriptors.containsKey(packageId)) {
 				return descriptors.get(packageId);
 			} else {
@@ -58,14 +58,14 @@ public class PackageDescriptorCache {
 			}
 		}
 	}
-	
+
 	public String getPackageChanges(String packageId) {
 		if (packageChanges.containsKey(packageId)) {
 			//in Cache
 			return packageChanges.get(packageId);
 		} else {
 			//need to fetch Info
-			
+
 			try {
 				ManagedExtension ext = ManagedExtension.get(packageId);
 				String installedVersion = ext != null ? ext.getLatestInstalledVersion() : null;
@@ -75,8 +75,8 @@ public class PackageDescriptorCache {
 				} else {
 					changesURI = UpdateManager.getUpdateServerURI("/download/changes/"+packageId);
 				}
-				
-				
+
+
 				String changes = Tools.readTextFile(changesURI.toURL().openStream());
 				packageChanges.put(packageId, changes);
 				return changes;
@@ -87,11 +87,15 @@ public class PackageDescriptorCache {
 			}
 		}
 	}
-	
-	public void fetchPackageInfo(String packageId, String targetPlatform) {
+
+	public void fetchPackageInfo(String packageId) {
 		initUpdateService();
 		if (updateService != null) {
 			try {
+				String targetPlatform = UpdateManager.TARGET_PLATFORM;
+				if (!"rapidminer".equals(packageId)) {
+					targetPlatform = "ANY";
+				}
 				PackageDescriptor descriptor = updateService.getPackageInfo(packageId, updateService.getLatestVersion(packageId, targetPlatform), targetPlatform);
 				descriptors.put(packageId, descriptor);
 			} catch (Exception e) {
@@ -109,7 +113,7 @@ public class PackageDescriptorCache {
 			}
 		}
 	}
-	
+
 	public UpdateService getUpdateService() {
 		initUpdateService();
 		return updateService;

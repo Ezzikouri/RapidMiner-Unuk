@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.tools.plugin;
 
 import java.awt.Frame;
@@ -67,8 +68,10 @@ import com.rapid_i.deployment.update.client.ManagedExtension;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.renderer.RendererService;
+import com.rapidminer.gui.safemode.SafeMode;
 import com.rapidminer.gui.templates.BuildingBlock;
 import com.rapidminer.gui.tools.SplashScreen;
 import com.rapidminer.gui.tools.VersionNumber;
@@ -692,7 +695,7 @@ public class Plugin {
 			}
 		}
 		for (Plugin newPlugin : newPlugins) {
-			LogService.getRoot().log(Level.INFO, "Register plugin: "+ newPlugin.getName());
+			LogService.getRoot().log(Level.INFO, "Register plugin: " + newPlugin.getName());
 			Plugin oldPlugin = getPluginByExtensionId(newPlugin.getExtensionId(), allPlugins);
 			if (oldPlugin == null) {
 				allPlugins.add(newPlugin);
@@ -937,7 +940,12 @@ public class Plugin {
 
 		String loadPluginsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS);
 		boolean loadPlugins = Tools.booleanValue(loadPluginsString, true);
-		if (loadPlugins) {
+		SafeMode safeMode = RapidMinerGUI.getSafeMode();
+		boolean isSafeMode = false;
+		if(safeMode != null) {
+			isSafeMode = safeMode.isSafeMode();
+		}
+		if (loadPlugins && !isSafeMode) {
 			File webstartPluginDir;
 			if (RapidMiner.getExecutionMode() == ExecutionMode.WEBSTART) {
 				webstartPluginDir = updateWebstartPluginsCache();
@@ -955,7 +963,6 @@ public class Plugin {
 				try {
 					pluginDir = getPluginLocation();
 				} catch (IOException e) {
-					//LogService.getRoot().warning("None of the properties " + RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS + " and " + Launcher.PROPERTY_RAPIDMINER_HOME + " is set. No globally installed plugins will be loaded.");
 					LogService.getRoot().log(
 							Level.WARNING,
 							"com.rapidminer.tools.plugin.Plugin.no_properties_set",
@@ -975,8 +982,7 @@ public class Plugin {
 			finalizePluginLoading();
 			initPlugins();
 		} else {
-			//LogService.getRoot().config("Plugins skipped.");
-			LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.plugin.Plugin.plugins_skipped");
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.plugin.Plugin.plugins_skipped");
 		}
 	}
 

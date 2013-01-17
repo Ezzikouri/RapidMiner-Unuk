@@ -30,7 +30,6 @@ import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.plugin.Plugin;
 
 /** Safe mode for RapidMiner. When {@link #launchStarts()} is called, a lock file is created.
  *  This lock file is deleted in {@link #launchComplete()}. If RapidMiner starts, and the lock
@@ -55,8 +54,8 @@ public class SafeMode {
 			// Lock file not deleted? Crashed during last startup 
 			LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.safemode.SafeMode.lock_left_behind", lockFile);
 			safeMode = askForSafeMode();
-			if (safeMode) {
-				applySafeMode();
+			if(safeMode) {
+				LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.safemode.SafeMode.entering_safe_mode");
 			}
 		}
 		// Create file on startup
@@ -69,12 +68,6 @@ public class SafeMode {
 							lockFile),
 					e);
 		}
-	}
-
-	/** Call at the end of the startup phase. */
-	private void applySafeMode() {
-		LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.safemode.SafeMode.entering_safe_mode");
-		Plugin.setInitPlugins(false);
 	}
 
 	public void launchComplete() {

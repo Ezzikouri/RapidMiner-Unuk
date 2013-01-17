@@ -138,6 +138,7 @@ public class SimpleExampleSet extends AbstractExampleSet {
 	 *  
 	 *  Don't use this method directly but use the clone method instead. */
 	public SimpleExampleSet(SimpleExampleSet exampleSet) {
+		cloneAnnotationsFrom(exampleSet);
 		this.exampleTable = exampleSet.exampleTable;
 		this.attributes = (Attributes)exampleSet.getAttributes().clone();
 	}

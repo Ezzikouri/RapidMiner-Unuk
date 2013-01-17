@@ -286,6 +286,7 @@ public class ExampleSetMerge extends Operator {
         }
         // create result example set
         ExampleSet resultSet = exampleTable.createExampleSet(specialAttributesMap);
+        resultSet.getAnnotations().addAll(firstSet.getAnnotations());
         return resultSet;
     }
 

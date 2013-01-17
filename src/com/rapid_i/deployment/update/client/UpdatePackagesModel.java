@@ -194,7 +194,7 @@ public class UpdatePackagesModel extends Observable {
 	
 	public void markAllPackages(List<String> packageNames, PackageDescriptorCache cache) {
 		for (String packageName : packageNames) {
-			PackageDescriptor pd = cache.getPackageInfo(packageName, "ANY");
+			PackageDescriptor pd = cache.getPackageInfo(packageName);
 			if (!isSelectedForInstallation(pd) && (!usAccount.isLoggedIn() || !pd.isRestricted() || isPurchased(pd))) {
 				toggleSelesctionForInstallation(pd);
 			}

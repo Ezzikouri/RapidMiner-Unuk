@@ -73,7 +73,7 @@ public class SearchPackageListModel extends AbstractPackageListModel {
 		if (packageNames.size() == 0) {
 			return searched ? I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.tab.no_search_results") : "";
 		}
-		return cache.getPackageInfo(packageNames.get(index), "ANY");
+		return cache.getPackageInfo(packageNames.get(index));
 	}
 	
 	@Override

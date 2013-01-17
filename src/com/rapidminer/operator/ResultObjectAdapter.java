@@ -56,6 +56,10 @@ public abstract class ResultObjectAdapter extends AbstractIOObject implements Re
     	}
 	}
 	
+	protected void cloneAnnotationsFrom(IOObject other) {
+		this.annotations = other.getAnnotations().clone();
+	}
+	
 	/** The default implementation returns the classname without package. */
 	public String getName() {
 		return this.getClass().getSimpleName();

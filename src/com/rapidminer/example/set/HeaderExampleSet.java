@@ -44,11 +44,13 @@ public class HeaderExampleSet extends AbstractExampleSet {
     private Attributes attributes;
     
     public HeaderExampleSet(ExampleSet parent) {
+    	cloneAnnotationsFrom(parent);
         this.attributes = (Attributes)parent.getAttributes().clone();
     }
     
     /** Header example set clone constructor. */
     public HeaderExampleSet(HeaderExampleSet other) {
+    	cloneAnnotationsFrom(other);
         this.attributes = (Attributes)other.attributes.clone();
     }
     

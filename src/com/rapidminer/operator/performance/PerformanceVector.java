@@ -148,6 +148,7 @@ public class PerformanceVector extends AverageVector {
 			Averagable avg = getAveragable(i);
 			av.addAveragable((Averagable) (avg).clone());
 		}
+		av.cloneAnnotationsFrom(this);
 		return av;
 	}
 

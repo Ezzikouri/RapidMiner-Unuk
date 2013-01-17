@@ -35,6 +35,7 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.tools.Ontology;
 
 /**
@@ -204,11 +205,13 @@ public class SortedExampleSet extends AbstractExampleSet {
 	}
 
 	/** Returns a {@link SortedExampleReader}. */
+	@Override
 	public Iterator<Example> iterator() {
 		return new SortedExampleReader(this);
 	}
 
 	/** Returns the i-th example in the mapping. */
+	@Override
 	public Example getExample(int index) {
 		if ((index < 0) || (index >= this.mapping.length)) {
 			throw new RuntimeException("Given index '" + index + "' does not fit the mapped ExampleSet!");
@@ -218,14 +221,22 @@ public class SortedExampleSet extends AbstractExampleSet {
 	}
 
 	/** Counts the number of examples. */
+	@Override
 	public int size() {
 		return mapping.length;
 	}
 
+	@Override
 	public Attributes getAttributes() {
 		return this.parent.getAttributes();
 	}
 
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
+	}
+
+	@Override
 	public ExampleTable getExampleTable() {
 		return this.parent.getExampleTable();
 	}

@@ -159,6 +159,7 @@ public class ProcessPanel extends JPanel implements Dockable, ProcessEditor {
 	@Override
 	public void processChanged(Process process) {
 		processButtonBar.clearHistory();
+		renderer.processChanged();
 	}
 
 	@Override

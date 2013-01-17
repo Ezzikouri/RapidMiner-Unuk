@@ -31,7 +31,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipOutputStream;
 
-import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.file.FileObject;
@@ -151,7 +150,7 @@ public class ZipFileObject extends ArchiveFileObject {
 	 */
 	@Override
 	public Set<FuzzyCompressionLevel> getSupportedCompressionLevels() {
-		HashSet<FuzzyCompressionLevel> supportedLevels = new HashSet<>(); 
+		HashSet<FuzzyCompressionLevel> supportedLevels = new HashSet<FuzzyCompressionLevel>(); 
 		supportedLevels.add(FuzzyCompressionLevel.BEST);
 		supportedLevels.add(FuzzyCompressionLevel.FASTEST);
 		supportedLevels.add(FuzzyCompressionLevel.NONE);

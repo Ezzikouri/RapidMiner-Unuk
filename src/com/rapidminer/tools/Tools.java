@@ -371,8 +371,8 @@ public class Tools {
 		DATE_TIME_FORMAT.setTimeZone(getPreferredTimeZone());
 		return DATE_TIME_FORMAT.format(date);
 	}
-	
-	public static String formatDateTime(Date date,String pattern) {		
+
+	public static String formatDateTime(Date date, String pattern) {
 		SimpleDateFormat format = new SimpleDateFormat(pattern);
 		format.setTimeZone(getPreferredTimeZone());
 		return format.format(date);
@@ -819,16 +819,28 @@ public class Tools {
 		}
 
 		InputStreamReader reader = null;
-		inStream = new FileInputStream(file);
-		if (useFallback) {
-			// default reader (as in old versions)
-			reader = new InputStreamReader(inStream);
-		} else {
-			// utf8 reader
-			reader = new InputStreamReader(inStream, XMLImporter.PROCESS_FILE_CHARSET);
-		}
 
-		return readTextFile(reader);
+		try {
+			inStream = new FileInputStream(file);
+			if (useFallback) {
+				// default reader (as in old versions)
+				reader = new InputStreamReader(inStream);
+			} else {
+				// utf8 reader
+				reader = new InputStreamReader(inStream, XMLImporter.PROCESS_FILE_CHARSET);
+			}
+
+			return readTextFile(reader);
+		} finally {
+			try {
+				inStream.close();
+			} catch (IOException e) {}
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {}
+			}
+		}
 	}
 
 	public static String readTextFile(Reader r) throws IOException {
@@ -856,7 +868,7 @@ public class Tools {
 
 		FileOutputStream outStream = new FileOutputStream(file);
 		try {
-			if(text != null) {
+			if (text != null) {
 				outStream.write(text.getBytes(XMLImporter.PROCESS_FILE_CHARSET));
 			}
 		} finally {

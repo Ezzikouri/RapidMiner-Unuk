@@ -128,6 +128,7 @@ public class MaterializeDataInMemory extends AbstractDataProcessing {
 
 		// create and return result
 		ExampleSet createdSet = table.createExampleSet(specialAttributes);
+		createdSet.getAnnotations().addAll(exampleSet.getAnnotations());
 		return createdSet;
 	}
 	

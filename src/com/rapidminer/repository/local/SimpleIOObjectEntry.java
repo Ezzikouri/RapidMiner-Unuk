@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.local;
 
 import java.io.BufferedInputStream;
@@ -55,25 +56,25 @@ import com.rapidminer.tools.ProgressListener;
  *
  */
 public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntry {
-	
+
 	private static final String MD_SUFFIX = ".md";
 	private static final String IOO_SUFFIX = ".ioo";
 
 	private static final String PROPERTY_IOOBJECT_CLASS = "ioobject-class";
-	
-	private SoftReference<MetaData> metaData = null;	
+
+	private SoftReference<MetaData> metaData = null;
 	private Class<? extends IOObject> dataObjectClass = null;
-	
+
 	SimpleIOObjectEntry(String name, SimpleFolder containingFolder, LocalRepository repository) {
 		super(name, containingFolder, repository);
 	}
-	
+
 	private File getDataFile() {
-		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+IOO_SUFFIX);
+		return new File(((SimpleFolder) getContainingFolder()).getFile(), getName() + IOO_SUFFIX);
 	}
 
 	protected File getMetaDataFile() {
-		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+MD_SUFFIX);
+		return new File(((SimpleFolder) getContainingFolder()).getFile(), getName() + MD_SUFFIX);
 	}
 
 	@Override
@@ -81,17 +82,25 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 		if (l != null) {
 			l.setTotal(100);
 			l.setCompleted(10);
-		}		
+		}
 		File dataFile = getDataFile();
 		if (dataFile.exists()) {
+			BufferedInputStream in = null;
 			try {
-				return (IOObject)IOObjectSerializer.getInstance().deserialize(new BufferedInputStream(new FileInputStream(dataFile)));
+				in = new BufferedInputStream(new FileInputStream(dataFile));
+				return (IOObject) IOObjectSerializer.getInstance().deserialize(in);
 			} catch (Exception e) {
-				throw new RepositoryException("Cannot load data from '"+dataFile+"': "+e, e);
+				throw new RepositoryException("Cannot load data from '" + dataFile + "': " + e, e);
+			} finally {
+				if (in != null) {
+					try {
+						in.close();
+					} catch (IOException e) {}
+				}
 			}
 		} else {
-			throw new RepositoryException("File '"+dataFile+" does not exist'.");
-		}		
+			throw new RepositoryException("File '" + dataFile + " does not exist'.");
+		}
 	}
 
 	@Override
@@ -109,31 +118,30 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 			ObjectInputStream objectIn = null;
 			try {
 				objectIn = new RMObjectInputStream(new FileInputStream(metaDataFile));
-				readObject = (MetaData)objectIn.readObject();
+				readObject = (MetaData) objectIn.readObject();
 				this.metaData = new SoftReference<MetaData>(readObject);
 				if (readObject instanceof ExampleSetMetaData) {
-					for (AttributeMetaData amd : ((ExampleSetMetaData)readObject).getAllAttributes()) {
+					for (AttributeMetaData amd : ((ExampleSetMetaData) readObject).getAllAttributes()) {
 						if (amd.isNominal()) {
 							amd.shrinkValueSet();
 						}
 					}
 				}
-				objectIn.close();
 			} catch (Exception e) {
-				throw new RepositoryException("Cannot load meta data from '"+metaDataFile+"': "+e, e);
+				throw new RepositoryException("Cannot load meta data from '" + metaDataFile + "': " + e, e);
 			} finally {
 				if (objectIn != null) {
 					try {
 						objectIn.close();
-					} catch (IOException e) { }
+					} catch (IOException e) {}
 				}
 			}
 		} else {
-			throw new RepositoryException("Meta data file '"+metaDataFile+" does not exist'.");
+			throw new RepositoryException("Meta data file '" + metaDataFile + " does not exist'.");
 		}
 		return readObject;
 	}
-	
+
 	@Override
 	public void storeData(IOObject data, Operator callingOperator, ProgressListener l) throws RepositoryException {
 		if (l != null) {
@@ -142,22 +150,22 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 		}
 		MetaData md = MetaData.forIOObject(data);
 		// Serialize Non-ExampleSets as IOO
-		OutputStream out = null;		
+		OutputStream out = null;
 		try {
 			out = new BufferedOutputStream(new FileOutputStream(getDataFile()));
-			IOObjectSerializer.getInstance().serialize(out, data);			
+			IOObjectSerializer.getInstance().serialize(out, data);
 			if (l != null) {
 				l.setCompleted(75);
 			}
 		} catch (Exception e) {
-			throw new RepositoryException("Cannot store data at '"+getDataFile()+"': "+e, e);
+			throw new RepositoryException("Cannot store data at '" + getDataFile() + "': " + e, e);
 		} finally {
 			if (out != null) {
 				try {
 					out.close();
-				} catch (IOException e) { }
+				} catch (IOException e) {}
 			}
-		}	
+		}
 		// Save MetaData
 		ObjectOutputStream mdOut = null;
 		try {
@@ -168,18 +176,18 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 				l.setCompleted(90);
 			}
 		} catch (Exception e) {
-			throw new RepositoryException("Cannot store data at '"+getMetaDataFile()+"': "+e, e);
+			throw new RepositoryException("Cannot store data at '" + getMetaDataFile() + "': " + e, e);
 		} finally {
 			if (mdOut != null) {
 				try {
 					mdOut.close();
-				} catch (IOException e) { }
+				} catch (IOException e) {}
 			}
 			if (l != null) {
 				l.setCompleted(100);
 				l.complete();
 			}
-		}		
+		}
 		this.metaData = new SoftReference<MetaData>(md);
 		putProperty(PROPERTY_IOOBJECT_CLASS, data.getClass().getName());
 	}
@@ -194,10 +202,10 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 		if (metaData != null) {
 			MetaData md = metaData.get();
 			if (md != null) {
-				return md.getDescription();	
+				return md.getDescription();
 			} else {
 				return "Simple entry.";
-			}			
+			}
 		} else {
 			return "Simple entry.";
 		}
@@ -211,18 +219,18 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 			return 0;
 		}
 	}
-	
+
 	@Override
 	public void delete() throws RepositoryException {
 		if (getDataFile().exists()) {
 			getDataFile().delete();
-		}		
+		}
 		if (getMetaDataFile().exists()) {
 			getMetaDataFile().delete();
 		}
 		super.delete();
 	}
-	
+
 	@Override
 	public boolean rename(String newName) throws RepositoryException {
 		// check for possible invalid name
@@ -234,18 +242,18 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 		renameFile(getMetaDataFile(), newName);
 		return super.rename(newName);
 	}
-	
+
 	@Override
-	public boolean move(Folder newParent) {	
-		moveFile(getDataFile(), ((SimpleFolder)newParent).getFile());
-		moveFile(getMetaDataFile(), ((SimpleFolder)newParent).getFile());
+	public boolean move(Folder newParent) {
+		moveFile(getDataFile(), ((SimpleFolder) newParent).getFile());
+		moveFile(getMetaDataFile(), ((SimpleFolder) newParent).getFile());
 		return super.move(newParent);
 	}
-	
+
 	@Override
-	public boolean move(Folder newParent, String newName) {	
-		moveFile(getDataFile(), ((SimpleFolder)newParent).getFile(), newName, IOO_SUFFIX);
-		moveFile(getMetaDataFile(), ((SimpleFolder)newParent).getFile(), newName, MD_SUFFIX);
+	public boolean move(Folder newParent, String newName) {
+		moveFile(getDataFile(), ((SimpleFolder) newParent).getFile(), newName, IOO_SUFFIX);
+		moveFile(getMetaDataFile(), ((SimpleFolder) newParent).getFile(), newName, MD_SUFFIX);
 		return super.move(newParent, newName);
 	}
 
@@ -253,7 +261,7 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	public long getDate() {
 		return getDataFile().lastModified();
 	}
-	
+
 	@Override
 	public boolean willBlock() {
 		return (metaData == null) || (metaData.get() == null);

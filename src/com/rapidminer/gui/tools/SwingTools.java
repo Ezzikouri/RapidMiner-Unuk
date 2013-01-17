@@ -29,6 +29,7 @@ import java.awt.GradientPaint;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Collections;
@@ -605,18 +606,40 @@ public class SwingTools {
     public static void showVerySimpleErrorMessage(final String key, final Object... arguments) {
         if (SwingUtilities.isEventDispatchThread()) {
             ErrorDialog dialog = new ErrorDialog(key, arguments);
+            dialog.setModal(true);
             dialog.setVisible(true);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
                     ErrorDialog dialog = new ErrorDialog(key, arguments);
+                    dialog.setModal(true);
                     dialog.setVisible(true);
                 }
             });
         }
     }
 
+    public static void showVerySimpleErrorMessageAndWait(final String key, final Object... arguments) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            ErrorDialog dialog = new ErrorDialog(key, arguments);
+            dialog.setModal(true);
+            dialog.setVisible(true);
+        } else {
+            try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+				    @Override
+				    public void run() {
+				        ErrorDialog dialog = new ErrorDialog(key, arguments);
+				        dialog.setModal(true);
+				        dialog.setVisible(true);
+				    }
+				});
+			} catch (InvocationTargetException e) {
+				LogService.getRoot().log(Level.WARNING, "Error showing error message: "+e, e);
+			} catch (InterruptedException e) {}
+        }
+    }
     /**
      * This is the normal method which could be used by GUI classes for errors caused by
      * some exception (e.g. IO issues). Of course these error message methods should never be

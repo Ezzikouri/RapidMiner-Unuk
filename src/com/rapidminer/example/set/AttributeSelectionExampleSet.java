@@ -67,6 +67,7 @@ public class AttributeSelectionExampleSet extends AbstractExampleSet {
 
     /** Clone constructor. */
     public AttributeSelectionExampleSet(AttributeSelectionExampleSet exampleSet) {
+    	cloneAnnotationsFrom(exampleSet);
     	this.parent = (ExampleSet)exampleSet.parent.clone();
     }
 

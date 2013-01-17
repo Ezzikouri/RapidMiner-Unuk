@@ -1,6 +1,15 @@
 <ioobjects>
+	<!--  Plain IOObject -->
+    <ioobject
+        name="IOObject"
+        class="com.rapidminer.operator.IOObject"
+        reportable="false"
+        >
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>     
+    </ioobject>
 
-<!--  Collections -->
+
+	<!--  Collections -->
     <ioobject
         name="Collection"
         class="com.rapidminer.operator.IOObjectCollection"

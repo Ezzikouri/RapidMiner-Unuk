@@ -34,6 +34,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 
 
 /**
@@ -180,5 +181,13 @@ public class MappedExampleSet extends AbstractExampleSet {
             mapping[i] = index;
         }
         return mapping;
+    }
+    
+    /* (non-Javadoc)
+     * @see com.rapidminer.operator.ResultObjectAdapter#getAnnotations()
+     */
+    @Override
+    public Annotations getAnnotations() {
+    	return parent.getAnnotations();
     }
 }

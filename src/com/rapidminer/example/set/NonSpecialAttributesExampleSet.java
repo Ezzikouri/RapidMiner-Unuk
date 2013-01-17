@@ -29,6 +29,7 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 
 
 /**
@@ -80,5 +81,13 @@ public class NonSpecialAttributesExampleSet extends AbstractExampleSet {
     
 	public int size() {
 		return parent.size();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.rapidminer.operator.ResultObjectAdapter#getAnnotations()
+	 */
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
 	}
 }

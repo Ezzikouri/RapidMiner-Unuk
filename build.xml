@@ -31,6 +31,8 @@
 
 	<!-- compiler options -->
 	<property name="compiler.version" value="modern" />
+	<property name="compiler.source" value="1.6" />
+	<property name="compiler.target" value="1.6" />
 	<property name="compiler.debug" value="true" />
 	<property name="compiler.arguments" value="-Xlint:deprecation,finally,unchecked,path,serial" />
 	<property name="compiler.deprecation" value="yes" />
@@ -45,12 +47,6 @@
 	<!-- Location of changes files -->
 	<property name="changes.dir" location="changes" />
 	<property name="changes.current" value="${changes.dir}/CHANGES_${rapidminer.longversion}.txt" />
-	
-	<!--  Amazon S3 settings -->
-	<property name="amazon.s3.access_key" value="abc" />
-	<property name="amazon.s3.secret_key" value="abc" />
-	<property name="amazon.s3.bucket" value="123" />
-	<property name="amazon.s3.destination" value="dest" />
 
 	<property name="makensis" value="makensis" />
 	<!-- Assume this is on the PATH -->
@@ -152,7 +148,7 @@
 	<target name="build" depends="init, copy-resources,version.updateFiles, create-documentation, merge.changes" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<echo message="RapidMiner: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner: using Java version: ${java.version}" />
-		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false" target="1.7" source="1.7">
+		<javac debug="${compiler.debug}" destdir="${build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false" target="${compiler.target}" source="${compiler.source}">
 			<compilerarg value="${compiler.arguments}" />
 
 			<classpath refid="classpath" />
@@ -483,34 +479,22 @@
 
 	<target name="release.publishToAmazonS3" depends="release.makeAll, amazon.s3.setup"
 		description="This target builds a full release and uploads all files to amazon s3.">
-		<echo message="Publishing release ${rapidminer.longversion}..." />
-		<!-- move files to proper directory for scping them to sf-net. -->
-		<move todir="${release}/s3/1. RapidMiner/${rapidminer.shortversion}">
-			<fileset dir="${release}">
-				<include name="*.zip" />
-				<include name="*.exe" />
-				<exclude name="update*.*" />
-			</fileset>
-		</move>
+		<echo message="Publishing release ${rapidminer.longversion}... to Amazon S3" />
 
 		<!-- upload to s3 -->
-		<s3put key="${amazon.s3.access_key}" secret="${amazon.s3.secret_key}"
-			bucket="${amazon.s3.bucket}" dest="${amazon.s3.destination}"
-			publicread="true" cacheControl="3600" contentType="application/x-readme">
-			<fileset dir="${release}/s3" includes="**/*.*" />
-			<contenttypemapping extension="md" contenttype="text/plain" />
+		<s3put key="${server.amazon_s3.access_key}" secret="${server.amazon_s3.secret_key}"
+			bucket="${server.amazon_s3.bucket}" dest="${server.amazon_s3.destination}/${rapidminer.longversion}"
+			publicread="true" cacheControl="3600" contentType="application/octet-stream">
+			<fileset dir="${release}">
+				<include name="rapidminer-${rapidminer.longversion}x32-install.exe" />
+				<include name="rapidminer-${rapidminer.longversion}x64-install.exe" />
+				<include name="rapidminer-${rapidminer.longversion}.zip" />
+			</fileset>
+			<contenttypemapping extension="zip" contenttype="application/zip" />
 			<cachecontrolmapping extension="md" maxage="7200" />
 			<contentencodingmapping extension="md"
 				encoding="UTF-8" />
 		</s3put>
-
-		<!-- move back and delete dir -->
-		<move todir="${release}">
-			<fileset dir="${release}/s3/1. RapidMiner/${rapidminer.shortversion}">
-				<include name="**/*.*" />
-			</fileset>
-		</move>
-		<delete dir="${release}/s3" />
 	</target>
 
 	<target name="release.publishToRapidShare" depends="release.makeAll" description="Copies the created jar file into Rapid-I's internal file share.">
@@ -650,14 +634,6 @@
 	<!-- Uploading updates -->
 
 	<target name="update.publish" depends="init" description="This will generate a new update and upload files for all platforms.">
-		<echo message="Publishing update ${rapidminer.longversion} using ${server.update.user} to update server..." />
-		<echo message="...Platform Independent" />
-		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/ANY" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.update.user}" password="${server.update.password}" />
-		<echo message="...Windows 32" />
-		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/WIN32" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x32.zip" username="${server.update.user}" password="${server.update.password}" />
-		<echo message="...Windows 64" />
-		<put targetUrl="${server.update.url}/rapidminer/${rapidminer.longversion}/WIN64" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x64.zip" username="${server.update.user}" password="${server.update.password}" />
-
 		<echo message="Publishing update ${rapidminer.longversion} using ${server.marketplace.user} to Marketplace..." />
 		<echo message="...Platform Independent" />
 		<put targetUrl="${server.marketplace.url}/admin/upload/rapidminer/${rapidminer.longversion}/ANY" uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip" username="${server.marketplace.user}" password="${server.marketplace.password}" />
@@ -684,7 +660,7 @@
 	<!-- BEGIN Test targets -->
 	<target name="test.build" depends="test.clean">
 		<mkdir dir="${test.build}" />
-		<javac debug="${compiler.debug}" destdir="${test.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" target="1.6" source="1.6">
+		<javac debug="${compiler.debug}" destdir="${test.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" nowarn="true" fork="true" memorymaximumsize="400m" target="${compiler.target}" source="${compiler.source}">
 
 			<classpath refid="classpath" />
 			<src path="${src_test}" />

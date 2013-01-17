@@ -30,6 +30,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -159,12 +160,16 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
     private ErrorTableModel errorTableModel = new ErrorTableModel();
     private RowFilteringTableModel filteredModel;
     private JLabel errorLabel = new JLabel();
+    
+    private boolean canProceed = true;
+    private MetaDataValidator headerValidator;
 
     public MetaDataDeclarationWizardStep(WizardState state) {
         super("importwizard.metadata");
         limitedPreviewBox.setSelected(true);
 
         this.state = state;
+        this.headerValidator = new MetaDataValidator(this, state.getTranslationConfiguration());
         dateFormatField.setEditable(true);
         dateFormatField.addActionListener(new ActionListener() {
             @Override
@@ -249,6 +254,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
                 try {
                     final DataResultSet previewResultSet = state.getDataResultSetFactory().makeDataResultSet(state.getOperator());
                     state.getTranslationConfiguration().reconfigure(previewResultSet);
+                    previewResultSet.close();
                 } catch (OperatorException e1) {
                     ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e1.toString(), e1);
                     return;
@@ -278,15 +284,28 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
         return true;
     }
 
-    private void updateErrors() {
-        final int size = state.getTranslator().getErrors().size();
+    
+    
+    
+    public void updateErrors() {
+    	List<ParsingError> errorList = new ArrayList<ParsingError>();
+    	
+    	canProceed = true;
+    	if (headerValidator.getErrors().size() > 0) {
+    		errorList.addAll(headerValidator.getErrors());
+    		canProceed = false;
+    	}
+    	errorList.addAll(state.getTranslator().getErrors());
+    			
+        final int size = errorList.size();
         errorLabel.setText(size + " errors.");
         if (size == 0) {
             errorLabel.setIcon(SwingTools.createIcon("16/ok.png"));
         } else {
             errorLabel.setIcon(SwingTools.createIcon("16/error.png"));
         }
-        errorTableModel.setErrors(state.getTranslator().getErrors());
+        errorTableModel.setErrors(errorList);
+        fireStateChanged();
     }
 
     private void updateTableModel(ExampleSet exampleSet) {
@@ -319,7 +338,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
         // header editors and renderers and values
         MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
         for (int i = 0; i < previewTable.getColumnCount(); i++) {
-        	MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor();
+        	MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor(headerValidator);
             EditableTableHeaderColumn col = (EditableTableHeaderColumn) previewTable.getColumnModel().getColumn(i);
             col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
             col.setHeaderRenderer(headerRenderer);
@@ -372,7 +391,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 
     @Override
     protected boolean canProceed() {
-        return true;
+        return canProceed;
     }
 
     @Override

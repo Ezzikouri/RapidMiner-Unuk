@@ -44,7 +44,7 @@ import com.rapidminer.gui.viewer.MetaDataViewerTableModel;
  * @author Simon Fischer
  *
  */
-public class Annotations implements Serializable, Map<String,String> {
+public class Annotations implements Serializable, Map<String,String>, Cloneable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -142,7 +142,7 @@ public class Annotations implements Serializable, Map<String,String> {
 		KEY_UNIT
 	};
 	
-	private LinkedHashMap<String,String> keyValueMap = new LinkedHashMap<>();
+	private LinkedHashMap<String,String> keyValueMap = new LinkedHashMap<String,String>();
 
 	/** Pseudo-annotation to be used for attribute names. */
 	public static final String ANNOTATION_NAME = "Name";
@@ -153,7 +153,7 @@ public class Annotations implements Serializable, Map<String,String> {
 	/** Clone constructor.
 	 */
 	public Annotations(Annotations annotations) {
-		this.keyValueMap = new LinkedHashMap<>(annotations.keyValueMap);
+		this.keyValueMap = new LinkedHashMap<String, String>(annotations.keyValueMap);
 	}
 
 
@@ -166,7 +166,7 @@ public class Annotations implements Serializable, Map<String,String> {
 	}
 
 	public List<String> getKeys() {
-		return new ArrayList<>(keyValueMap.keySet());
+		return new ArrayList<String>(keyValueMap.keySet());
 	}
 
 	public void removeAnnotation(String key) {
@@ -288,8 +288,27 @@ public class Annotations implements Serializable, Map<String,String> {
 	}
 
 	public List<String> getDefinedAnnotationNames() {
-		List<String> result = new LinkedList<>();
+		List<String> result = new LinkedList<String>();
 		result.addAll(keySet());
 		return result;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	protected Annotations clone() {
+		return new Annotations(this);
+	}
+
+	/**
+	 * Copies all annotations from the input argument to this Annotations object.
+	 * Existing entries will be overwritten.
+	 * 
+	 */
+	public void addAll(Annotations annotations) {
+		if (annotations != null) {
+			this.keyValueMap.putAll(annotations);
+		}
 	}
 }

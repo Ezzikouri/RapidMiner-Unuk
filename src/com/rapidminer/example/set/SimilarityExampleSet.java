@@ -33,6 +33,7 @@ import com.rapidminer.example.table.AttributeFactory;
 import com.rapidminer.example.table.DoubleArrayDataRow;
 import com.rapidminer.example.table.ExampleTable;
 import com.rapidminer.example.table.NominalMapping;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.similarity.ExampleSet2SimilarityExampleSet;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.math.similarity.DistanceMeasure;
@@ -138,10 +139,17 @@ public class SimilarityExampleSet extends AbstractExampleSet {
         return super.hashCode() ^ this.measure.getClass().hashCode();
     }
     
+    @Override
 	public Attributes getAttributes() {
 		return this.attributes;
 	}
+	
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
+	}
 
+	@Override
 	public Example getExample(int index) {
 		int firstIndex = index / this.parent.size();
 		int secondIndex = index % this.parent.size();
@@ -161,14 +169,17 @@ public class SimilarityExampleSet extends AbstractExampleSet {
 		return new Example(new DoubleArrayDataRow(data), this);
 	}
 
+	@Override
 	public Iterator<Example> iterator() {
 		return new IndexExampleReader(this);
 	}
 	
+	@Override
 	public ExampleTable getExampleTable() {
 		return null;//this.parent.getExampleTable();
 	}
 	
+	@Override
 	public int size() {
 		return this.parent.size() * this.parent.size();
 	}

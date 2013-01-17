@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapid_i.deployment.update.client;
 
 import java.awt.BorderLayout;
@@ -40,6 +41,7 @@ import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
@@ -73,15 +75,16 @@ public class UpdateDialog extends ButtonDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			showUpdateDialog();
+			showUpdateDialog(false);
 		}
 	};
 
 	private WindowListener windowListener = new WindowListener() {
+
 		public void windowActivated(WindowEvent e) {
 			UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
 			account.updatePurchasedPackages(updateModel);
-	    }
+		}
 
 		@Override
 		public void windowOpened(WindowEvent e) {}
@@ -101,11 +104,9 @@ public class UpdateDialog extends ButtonDialog {
 		@Override
 		public void windowDeactivated(WindowEvent e) {}
 	};
-	
-	private final UpdateService service;
 
 	private final UpdatePanel ulp;
-	
+
 	private static UpdatePackagesModel updateModel;
 
 	private static class USAcountInfoButton extends LinkButton implements Observer {
@@ -147,34 +148,42 @@ public class UpdateDialog extends ButtonDialog {
 			}
 		}
 	}
-	
+
 	private class InstallButton extends JButton implements Observer {
+
 		private static final long serialVersionUID = 1L;
 
 		InstallButton(Action a) {
 			super(a);
+			updateButton();
 		}
-		
+
 		@Override
 		public void update(Observable o, Object arg) {
 			if (o instanceof UpdatePackagesModel) {
-				UpdatePackagesModel currentModel = (UpdatePackagesModel)o;
-				if (currentModel.getInstallationList() != null && currentModel.getInstallationList().size() > 0) {
-					this.setEnabled(true);
-				} else {
-					this.setEnabled(false);
-				}
+				//UpdatePackagesModel currentModel = (UpdatePackagesModel)o;
+				updateButton();
 			}
 		}
-		
+
+		private void updateButton() {
+			UpdatePackagesModel currentModel = updateModel;
+			if (currentModel.getInstallationList() != null && currentModel.getInstallationList().size() > 0) {
+				this.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.install.label", currentModel.getInstallationList().size()));
+				this.setEnabled(true);
+			} else {
+				this.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.install.label", 0));
+				this.setEnabled(false);
+			}
+		}
+
 	}
 
 	private USAcountInfoButton accountInfoButton = new USAcountInfoButton();
 
-	public UpdateDialog(UpdateService service, List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
+	public UpdateDialog(List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
 		super("update");
 		setModal(true);
-		this.service = service;
 		UpdateServerAccount usAccount = UpdateManager.getUpdateServerAccount();
 		usAccount.addObserver(accountInfoButton);
 		updateModel = new UpdatePackagesModel(descriptors, usAccount);
@@ -185,14 +194,16 @@ public class UpdateDialog extends ButtonDialog {
 
 	@Override
 	protected JButton makeOkButton(String i18nKey) {
-		
+
 		Action okAction = new ResourceAction(i18nKey) {
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				wasConfirmed = true;
 				ok();
-			}			
+			}
 		};
 		InstallButton button = new InstallButton(okAction);
 		getRootPane().setDefaultButton(button);
@@ -201,7 +212,7 @@ public class UpdateDialog extends ButtonDialog {
 		updateModel.addObserver(button);
 		return button;
 	}
-	
+
 	@Override
 	/** Overriding makeButtonPanel in order to display account information. **/
 	protected JPanel makeButtonPanel(AbstractButton... buttons) {
@@ -222,19 +233,39 @@ public class UpdateDialog extends ButtonDialog {
 	/**
 	 * Opens the marketplace dialog and selects the update tab.
 	 */
-	public static void showUpdateDialog(final String... preselectedExtensions) {
-		final UpdateService service;
-		try {
-			service = UpdateManager.getService();
-		} catch (Exception e) {
-			SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
-			return;
-		}
+	public static void showUpdateDialog(final boolean selectUpdateTab, final String... preselectedExtensions) {
 
-		final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
-		UpdateDialog updateDialog = new UpdateDialog(service, descriptors, preselectedExtensions);
-		updateDialog.showUpdateTab();
-		updateDialog.setVisible(true);
+		new ProgressThread("open_marketplace_dialog", true) {
+
+			@Override
+			public void run() {
+
+				
+				getProgressListener().setTotal(100);
+				getProgressListener().setCompleted(33);
+				try {
+					UpdateManager.getService();
+				} catch (Exception e) {
+					SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
+					return;
+				}
+				getProgressListener().setCompleted(100);
+				
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
+						UpdateDialog updateDialog = new UpdateDialog(descriptors, preselectedExtensions);
+						if (selectUpdateTab) {
+							updateDialog.showUpdateTab();
+						}
+						updateDialog.setVisible(true);
+					}
+				});
+
+			}
+		}.start();
 	}
 
 	private void showUpdateTab() {
@@ -249,6 +280,7 @@ public class UpdateDialog extends ButtonDialog {
 				try {
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
+					UpdateService service = UpdateManager.getService();
 
 					// Download licenses
 					Map<String, String> licenses = new HashMap<String, String>();
@@ -271,15 +303,17 @@ public class UpdateDialog extends ButtonDialog {
 
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
-						int result = um.performUpdates(acceptedList, getProgressListener());
+						int numUpdates = um.performUpdates(acceptedList, getProgressListener());
 						UpdateDialog.this.dispose();
-						if (SwingTools.showConfirmDialog((result == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, result) == ConfirmDialog.YES_OPTION) {
-							RapidMinerGUI.getMainFrame().exit(true);
+						if (numUpdates > 0) {
+							if (SwingTools.showConfirmDialog((numUpdates == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, numUpdates) == ConfirmDialog.YES_OPTION) {
+								RapidMinerGUI.getMainFrame().exit(true);
+							}
 						}
 					}
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
-				} finally {					
+				} finally {
 					getProgressListener().complete();
 				}
 			}

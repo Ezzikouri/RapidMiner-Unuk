@@ -30,6 +30,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.DataRow;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 
 
 /**
@@ -55,10 +56,12 @@ public class SingleExampleExampleSet extends AbstractExampleSet {
             this.exampleSet = exampleSet;
         }
         
+        @Override
         public boolean hasNext() {
             return !nextCalled;
         }
 
+        @Override
         public Example next() {
             if (!nextCalled) {
                 nextCalled = true;
@@ -84,10 +87,12 @@ public class SingleExampleExampleSet extends AbstractExampleSet {
         this.example = exampleSet.example;
     }
     
+    @Override
     public Iterator<Example> iterator() {
         return new SingleExampleIterator(example.getDataRow(), this);
     }
 
+    @Override
     public Example getExample(int index) {
         if (index == 0)
             return new Example(example.getDataRow(), this);
@@ -95,6 +100,7 @@ public class SingleExampleExampleSet extends AbstractExampleSet {
             return null;
     }
 
+    @Override
     public int size() {
         return 1;
     }
@@ -113,10 +119,18 @@ public class SingleExampleExampleSet extends AbstractExampleSet {
         }
     }
 
+    @Override
 	public Attributes getAttributes() {
 		return parent.getAttributes();
 	}
+    
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
+	}
 
+
+	@Override
 	public ExampleTable getExampleTable() {
 		return parent.getExampleTable();
 	}

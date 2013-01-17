@@ -27,8 +27,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -129,14 +127,6 @@ public class FilterTextField extends JTextField {
 
 			@Override
 			public void keyTyped(KeyEvent e) {
-			}
-		});
-		addMouseListener(new MouseAdapter() {
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				super.mouseReleased(e);
-				selectAll();
 			}
 		});
 		addFocusListener(new FocusListener() {

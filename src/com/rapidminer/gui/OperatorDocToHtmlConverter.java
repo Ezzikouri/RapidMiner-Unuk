@@ -297,21 +297,21 @@ public class OperatorDocToHtmlConverter {
 	 */
 	@SuppressWarnings("unchecked")
 	public static String getTypeNameForType(String type) {
-		String iconName;
+		String typeName = null;
 		if ((type == null) || type.isEmpty()) {
-			iconName = "";
+			typeName = "";
 		} else {
 			Class<? extends IOObject> typeClass;
 			try {
 				typeClass = (Class<? extends IOObject>) Class.forName(type);
 
-				iconName = " (" + RendererService.getName(typeClass) + ")";
+				typeName = " (" + RendererService.getName(typeClass) + ")";
 			} catch (ClassNotFoundException e) {
 				LogService.getRoot().finer("Failed to lookup class '" + type + "'. Reason: " + e.getLocalizedMessage());
-				iconName = "";
+				typeName = "";
 			}
 		}
-		return iconName;
+		return typeName;
 	}
 
 	/**

@@ -22,6 +22,7 @@
  */
 package com.rapid_i.deployment.update.client.listmodels;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import com.rapid_i.deployment.update.client.PackageDescriptorCache;
@@ -44,6 +45,10 @@ public class TopDownloadsPackageListModel extends AbstractPackageListModel {
 	@Override
 	public List<String> fetchPackageNames() {
 		UpdateService updateService = cache.getUpdateService();
-		return updateService.getTopDownloads();
+		if(updateService != null) {
+			return updateService.getTopDownloads();
+		} else {
+			return new LinkedList<String>();
+		}
 	}
 }
