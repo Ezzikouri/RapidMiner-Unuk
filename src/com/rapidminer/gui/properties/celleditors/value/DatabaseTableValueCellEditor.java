@@ -50,7 +50,6 @@ import javax.swing.event.PopupMenuListener;
 
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.autocomplete.AutoCompleteComboBoxAddition;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterType;
@@ -130,14 +129,12 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 								try {
 									handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
 								} catch (SQLException e1) {
-									//LogService.getRoot().log(Level.WARNING, "Failed to fetch database tables: "+e1, e1);
 									LogService.getRoot().log(Level.WARNING,
 											I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 											"com.rapidminer.gui.properties.celleditors.value.DatabaseTableValueCellEditor.fetching_database_tables_error", 
 											e1),
 											e1);
 
-									SwingTools.showSimpleErrorMessage("failed_to_fetch_database_tables", e1, entry.getName(), e1.getMessage());
 									return;
 								}
 
@@ -176,14 +173,12 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 										//list.addAll(tableMap.keySet());
 										getProgressListener().setCompleted(90);
 									} catch (SQLException e) {
-										//LogService.getRoot().log(Level.WARNING, "Failed to fetch database tables: "+e, e);
 										LogService.getRoot().log(Level.WARNING,
 												I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 												"com.rapidminer.gui.properties.celleditors.value.DatabaseTableValueCellEditor.fetching_database_tables_error", 
 												e),
 												e);
 
-										SwingTools.showSimpleErrorMessage("failed_to_fetch_database_tables", e, entry.getName(), e.getMessage());
 										return;
 									}
 									try {

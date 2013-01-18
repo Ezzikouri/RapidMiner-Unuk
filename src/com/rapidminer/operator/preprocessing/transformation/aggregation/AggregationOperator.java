@@ -411,14 +411,14 @@ public class AggregationOperator extends AbstractDataProcessing {
 
         // postprocessing for remaining compatibility: Old versions automatically added group "all". Must remain this way for old operator
         // version
-        ExampleSet resultSet = table.createExampleSet();
-        resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
 		if (getCompatibilityLevel().isAtMost(VERSION_5_1_6)) {
             if (groupAttributes.length == 0) {
                 Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL);
                 table.addAttribute(resultGroupAttribute);
                 table.getDataRow(0).set(resultGroupAttribute, resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME));
 
+                ExampleSet resultSet = table.createExampleSet();
+                resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
                 for (Attribute attribute : newAttributes) {
                     resultSet.getAttributes().remove(attribute);
                     resultSet.getAttributes().addRegular(attribute);
@@ -426,6 +426,8 @@ public class AggregationOperator extends AbstractDataProcessing {
                 return resultSet;
             } else {
                 // make attributes nominal
+                ExampleSet resultSet = table.createExampleSet();
+                resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
                 try {
                     NumericToNominal toNominalOperator = OperatorService.createOperator(NumericToPolynominal.class);
                     toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
@@ -440,6 +442,8 @@ public class AggregationOperator extends AbstractDataProcessing {
         }
         
         // for recent version table is correct: Deliver example set
+        ExampleSet resultSet = table.createExampleSet();
+        resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
         return resultSet;
     }
 

@@ -443,6 +443,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	private final LoggingViewer messageViewer = new LoggingViewer();
 	private final SystemMonitor systemMonitor = new SystemMonitor();
 
+	private final EventListenerList processEditors = new EventListenerList();
+	private List<Operator> selectedOperators = Collections.emptyList();
+	
 	// replaced by OperatorDocumentationBrowser
 //    private final OperatorDocViewer operatorDocViewer = OperatorDocViewer.instantiate();
 	// TODO: Enable as soon as documentation is ready
@@ -461,8 +464,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
 	private final Perspectives perspectives = new Perspectives(dockingContext);
 
-	private final EventListenerList processEditors = new EventListenerList();
-	private List<Operator> selectedOperators = Collections.emptyList();
 
 	private boolean changed = false;
 	private boolean tutorialMode = false;

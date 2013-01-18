@@ -34,6 +34,7 @@ import com.rapidminer.operator.ports.DummyPortPairExtender;
 import com.rapidminer.operator.ports.PortPairExtender;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.ObjectVisualizerService;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
 import com.rapidminer.tools.jdbc.connection.ConnectionEntry;
@@ -74,7 +75,14 @@ public class DatabaseExampleVisualizationOperator extends Operator implements Co
 		String password = null;
 		switch (getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_CONNECTION)) {
 		case DatabaseHandler.CONNECTION_MODE_PREDEFINED:
-			ConnectionEntry entry = DatabaseConnectionService.getConnectionEntry(getParameterAsString(DatabaseHandler.PARAMETER_CONNECTION));
+			String repositoryName = null;
+			if (getProcess() != null) {
+				RepositoryLocation repositoryLocation = getProcess().getRepositoryLocation();
+				if (repositoryLocation != null) {
+					repositoryName = repositoryLocation.getRepositoryName();
+				}
+			}
+			ConnectionEntry entry = DatabaseConnectionService.getConnectionEntry(getParameterAsString(DatabaseHandler.PARAMETER_CONNECTION), repositoryName);
 			if (entry == null) {
 				throw new UserError(this, 318, getParameterAsString(DatabaseHandler.PARAMETER_CONNECTION));
 			}

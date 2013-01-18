@@ -181,6 +181,8 @@ public class UpdateDialog extends ButtonDialog {
 
 	private USAcountInfoButton accountInfoButton = new USAcountInfoButton();
 
+	private InstallButton installButton;
+
 	public UpdateDialog(List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
 		super("update");
 		setModal(true);
@@ -205,12 +207,12 @@ public class UpdateDialog extends ButtonDialog {
 				ok();
 			}
 		};
-		InstallButton button = new InstallButton(okAction);
-		getRootPane().setDefaultButton(button);
+		installButton = new InstallButton(okAction);
+		getRootPane().setDefaultButton(installButton);
 
-		button.setEnabled(false);
-		updateModel.addObserver(button);
-		return button;
+		installButton.setEnabled(false);
+		updateModel.addObserver(installButton);
+		return installButton;
 	}
 
 	@Override
@@ -278,6 +280,7 @@ public class UpdateDialog extends ButtonDialog {
 			@Override
 			public void run() {
 				try {
+					installButton.setEnabled(false);
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
 					UpdateService service = UpdateManager.getService();
@@ -300,13 +303,18 @@ public class UpdateDialog extends ButtonDialog {
 							acceptedList.add(desc);
 						}
 					}
-
+					
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
-						int numUpdates = um.performUpdates(acceptedList, getProgressListener());
-						UpdateDialog.this.dispose();
-						if (numUpdates > 0) {
-							if (SwingTools.showConfirmDialog((numUpdates == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, numUpdates) == ConfirmDialog.YES_OPTION) {
+						List<PackageDescriptor> installedPackages = um.performUpdates(acceptedList, getProgressListener());
+						
+						updateModel.clearFromSelectionMap(installedPackages);
+						ulp.validate();
+						ulp.repaint();
+						
+						if (installedPackages.size() > 0) {
+							if (SwingTools.showConfirmDialog((installedPackages.size() == 1 ? "update.complete_restart" : "update.complete_restart1"), 
+									ConfirmDialog.YES_NO_OPTION, installedPackages.size()) == ConfirmDialog.YES_OPTION) {
 								RapidMinerGUI.getMainFrame().exit(true);
 							}
 						}
@@ -315,6 +323,7 @@ public class UpdateDialog extends ButtonDialog {
 					SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
 				} finally {
 					getProgressListener().complete();
+					installButton.setEnabled(true);
 				}
 			}
 		}.start();

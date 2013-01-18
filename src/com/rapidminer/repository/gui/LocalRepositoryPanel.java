@@ -29,7 +29,10 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
+import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -281,5 +284,10 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 	@Override
 	public void setOkButton(JButton okButton) {
 		this.finishButton = okButton;		
+	}
+
+	@Override
+	public List<AbstractButton> getAdditionalButtons() {
+		return new LinkedList<AbstractButton>();
 	}
 }

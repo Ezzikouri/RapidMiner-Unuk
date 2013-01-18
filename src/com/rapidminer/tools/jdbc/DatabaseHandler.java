@@ -77,6 +77,7 @@ import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.LoggingHandler;
@@ -1016,7 +1017,14 @@ public class DatabaseHandler {
 	public static DatabaseHandler getConnectedDatabaseHandler(Operator operator) throws OperatorException, SQLException {
 		switch (operator.getParameterAsInt(PARAMETER_DEFINE_CONNECTION)) {
 			case CONNECTION_MODE_PREDEFINED:
-				ConnectionEntry entry = DatabaseConnectionService.getConnectionEntry(operator.getParameterAsString(PARAMETER_CONNECTION));
+				String repositoryName = null;
+				if (operator.getProcess() != null) {
+					RepositoryLocation repositoryLocation = operator.getProcess().getRepositoryLocation();
+					if (repositoryLocation != null) {
+						repositoryName = repositoryLocation.getRepositoryName();
+					}
+				}
+				ConnectionEntry entry = DatabaseConnectionService.getConnectionEntry(operator.getParameterAsString(PARAMETER_CONNECTION), repositoryName);
 				if (entry == null) {
 					throw new UserError(operator, 318, operator.getParameterAsString(PARAMETER_CONNECTION));
 				}
@@ -1049,17 +1057,30 @@ public class DatabaseHandler {
 		}
 	}
 
-	public static ConnectionEntry getConnectionEntry(ParameterHandler operator) {
+	public static ConnectionEntry getConnectionEntry(Operator operator) {
+		RepositoryLocation repositoryLocation = operator.getProcess().getRepositoryLocation();
+		String repositoryName = null;
+		if (repositoryLocation != null) {
+			repositoryName = repositoryLocation.getRepositoryName();
+		}
+		return getConnectionEntry(operator, repositoryName);
+	}
+	
+	public static ConnectionEntry getConnectionEntry(ParameterHandler parameterHandler) {
+		return (getConnectionEntry(parameterHandler, null));
+	}
+	
+	public static ConnectionEntry getConnectionEntry(ParameterHandler parameterHandler, String repositoryName) {
 		try {
-			final int connectionMode = operator.getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_CONNECTION);
+			final int connectionMode = parameterHandler.getParameterAsInt(DatabaseHandler.PARAMETER_DEFINE_CONNECTION);
 			switch (connectionMode) {
 				case DatabaseHandler.CONNECTION_MODE_PREDEFINED:
-					return DatabaseConnectionService.getConnectionEntry(operator.getParameterAsString(DatabaseHandler.PARAMETER_CONNECTION));
+					return DatabaseConnectionService.getConnectionEntry(parameterHandler.getParameterAsString(DatabaseHandler.PARAMETER_CONNECTION), repositoryName);
 				case DatabaseHandler.CONNECTION_MODE_URL:
-					final String connectionUrl = operator.getParameterAsString(DatabaseHandler.PARAMETER_DATABASE_URL);
-					final String connectionUsername = operator.getParameterAsString(DatabaseHandler.PARAMETER_USERNAME);
-					final char[] connectionPassword = operator.getParameterAsString(DatabaseHandler.PARAMETER_PASSWORD).toCharArray();
-					return new ConnectionEntry("urlConnection", DatabaseService.getJDBCProperties().get(operator.getParameterAsInt(DatabaseHandler.PARAMETER_DATABASE_SYSTEM))) {
+					final String connectionUrl = parameterHandler.getParameterAsString(DatabaseHandler.PARAMETER_DATABASE_URL);
+					final String connectionUsername = parameterHandler.getParameterAsString(DatabaseHandler.PARAMETER_USERNAME);
+					final char[] connectionPassword = parameterHandler.getParameterAsString(DatabaseHandler.PARAMETER_PASSWORD).toCharArray();
+					return new ConnectionEntry("urlConnection", DatabaseService.getJDBCProperties().get(parameterHandler.getParameterAsInt(DatabaseHandler.PARAMETER_DATABASE_SYSTEM))) {
 
 						@Override
 						public String getURL() {
@@ -1083,7 +1104,7 @@ public class DatabaseHandler {
 		} catch (UndefinedParameterError e) {}
 		return null;
 	}
-
+	
 	public static List<ParameterType> getConnectionParameterTypes(ParameterHandler handler) {
 		List<ParameterType> types = new LinkedList<ParameterType>();
 		ParameterType type = new ParameterTypeCategory(PARAMETER_DEFINE_CONNECTION, "Indicates how the database connection should be specified.", CONNECTION_MODES, CONNECTION_MODE_PREDEFINED);
@@ -1155,6 +1176,8 @@ public class DatabaseHandler {
 		type = new ParameterTypeDatabaseTable(PARAMETER_TABLE_NAME, "A database table.");
 		if (!tableOnly) {
 			type.registerDependencyCondition(new EqualTypeCondition(handler, PARAMETER_DEFINE_QUERY, QUERY_MODES, true, QUERY_TABLE));
+		} else {
+			type.setOptional(false);
 		}
 		type.setExpert(false);
 		types.add(type);

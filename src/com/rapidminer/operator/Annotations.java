@@ -41,7 +41,7 @@ import com.rapidminer.gui.viewer.MetaDataViewerTableModel;
 
 /** Instances of this class can be used to annotate {@link IOObject}s, {@link Attribute}s, etc. 
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Marius Helf
  *
  */
 public class Annotations implements Serializable, Map<String,String>, Cloneable {
@@ -310,5 +310,19 @@ public class Annotations implements Serializable, Map<String,String>, Cloneable 
 		if (annotations != null) {
 			this.keyValueMap.putAll(annotations);
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof Annotations)) {
+			return false;
+		}
+		return keyValueMap.equals(((Annotations)obj).keyValueMap);
 	}
 }

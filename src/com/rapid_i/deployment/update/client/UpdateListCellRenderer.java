@@ -46,6 +46,7 @@ import javax.swing.SwingConstants;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.tools.I18N;
 
 /**
  * Renders a cell of the update list. This contains icons for the type of extension or update.
@@ -174,7 +175,18 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 			Icon packageIcon = getResizedIcon(getIcon(desc));
 
 			text = "<html><body style='width: " + (packageIcon != null ? (300 - packageIcon.getIconWidth()) : 314) + ";" +
-					(packageIcon == null ? "margin-left:40px;" : "") + "'><div><strong>" + desc.getName() + "</strong> " + desc.getVersion() + "</div>";
+					(packageIcon == null ? "margin-left:40px;" : "") + "'>";
+
+			// add name and version
+			text += "<div><strong>" + desc.getName() + "</strong> " + desc.getVersion();
+
+			if (desc.isRestricted()) {
+				text += "&nbsp;&nbsp;<img src='icon:///16/currency_euro.png' style='vertical-align:middle;'/>";
+			}
+
+			text += "</div>";
+
+			// add description
 			text += "<div>" + getFirstSentence(desc.getDescription()) + "</div>";
 			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 			boolean upToDate = false;
@@ -222,10 +234,8 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 			label.setIcon(packageIcon);
 			label.setVerticalTextPosition(SwingConstants.TOP);
 			label.setForeground(Color.BLACK);
-		} else if (value instanceof String) {
-			text = (String) value;
 		} else {
-			text = value.toString();
+			text = "<html><div style=\"width:250px;\">" + value.toString() + "</div></html>";
 		}
 		label.setText(text);
 
@@ -233,26 +243,26 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 	}
 
 	private String getMarkedForInstallationHtml() {
-		return "<div style='" + getActionStyle(MARKED_FOR_INSTALL_COLOR) + "'><img src='icon:///16/nav_down_blue.png'/>&nbsp;Marked for installation</div>";
+		return "<div style='" + getActionStyle(MARKED_FOR_INSTALL_COLOR) + "'><img src='icon:///16/nav_down_blue.png'/>&nbsp;" + I18N.getGUILabel("marked.for.installation") + "</div>";
 	}
 
 	private String getUpToDateHtml() {
-		return "<div style='" + getActionStyle(UP_TO_DATE_COLOR) + "'><img src=\"icon:///16/nav_plain_green.png\"/>&nbsp;This package is up to date</div>";
+		return "<div style='" + getActionStyle(UP_TO_DATE_COLOR) + "'><img src=\"icon:///16/nav_plain_green.png\"/>&nbsp;" + I18N.getGUILabel("package.up.to.date") + "</div>";
 	}
 
 	private String getNotInstalledHtml() {
-		return "<div style='" + getActionStyle(NOT_INSTALLED_COLOR) + "'>Not installed</div>";
+		return "<div style='" + getActionStyle(NOT_INSTALLED_COLOR) + "'>" + I18N.getGUILabel("not.installed") + "</div>";
 	}
 
 	private String getMarkedForUpdateHtml() {
-		return "<div style='" + getActionStyle(MARKED_FOR_UPDATE__COLOR) + "'><img src=\"icon:///16/nav_refresh_blue.png\"/>&nbsp;Marked for update</div>";
+		return "<div style='" + getActionStyle(MARKED_FOR_UPDATE__COLOR) + "'><img src=\"icon:///16/nav_refresh_blue.png\"/>&nbsp;" + I18N.getGUILabel("marked.for.update") + "</div>";
 	}
 
 	private String getUpdatesAvailableHtml(String installedVersion) {
-		return "<div style='" + getActionStyle(UPDATES_AVAILABLE_COLOR) + "'><img src=\"icon:///16/nav_refresh_yellow.png\"/>&nbsp;Installed version: " + installedVersion + "</div>";
+		return "<div style='" + getActionStyle(UPDATES_AVAILABLE_COLOR) + "'><img src=\"icon:///16/nav_refresh_yellow.png\"/>&nbsp;" + I18N.getGUILabel("installed.version", installedVersion) + "</div>";
 	}
 
 	private String getActionStyle(String color) {
-		return "color:" + color + ";margin-top:3px;";
+		return "height:18px;min-height:18px;line-height:18px;vertical-align:middle;color:" + color + ";margin-top:3px;";
 	}
 }

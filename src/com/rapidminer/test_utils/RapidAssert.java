@@ -39,6 +39,7 @@ import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.table.NominalMapping;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.meta.ParameterValue;
 import com.rapidminer.tools.Ontology;
@@ -341,6 +342,13 @@ public class RapidAssert extends Assert {
 	 */
 	public static void assertEquals(String message, IOObject expectedIOO, IOObject actualIOO) {
 
+		// first, compare annotations:
+		Annotations expectedAnnotations = expectedIOO.getAnnotations();
+		Annotations actualAnnotations = actualIOO.getAnnotations();
+		
+		Assert.assertEquals(message + "annotations differ: ", expectedAnnotations, actualAnnotations);
+		
+		
 		/*
 		 * Do not forget to add a newly supported class to the 
 		 * ASSERTER_REGISTRY!!!

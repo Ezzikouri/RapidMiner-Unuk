@@ -54,6 +54,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
@@ -104,7 +105,7 @@ import com.rapidminer.tools.WebServiceTools;
  */
 public class UpdateManager {
 
-	/** The platform architecture as specified in the manifest. */	
+	/** The platform architecture as specified in the manifest. */
 	public static final String TARGET_PLATFORM;
 
 	/** If true, the {@link #TARGET_PLATFORM} was not correctly identified in the manifest, so we
@@ -118,7 +119,7 @@ public class UpdateManager {
 			TARGET_PLATFORM = "ANY";
 			DEVELOPMENT_BUILD = true;
 		} else {
-			int dashPos = implementationVersion.lastIndexOf("-");
+			int dashPos = implementationVersion.lastIndexOf("-") + 1;
 			if (dashPos != -1) {
 				String suffix = implementationVersion.substring(dashPos).trim();
 				if (!suffix.isEmpty()) {
@@ -126,7 +127,7 @@ public class UpdateManager {
 					DEVELOPMENT_BUILD = false;
 				} else {
 					LogService.getRoot().log(Level.WARNING, "com.rapid_i.deployment.update.client.UpdateManager.illegal_implementation_version", implementationVersion);
-					TARGET_PLATFORM ="ANY";
+					TARGET_PLATFORM = "ANY";
 					DEVELOPMENT_BUILD = true;
 				}
 			} else {
@@ -182,7 +183,7 @@ public class UpdateManager {
 						I18N.getMessage(LogService.getRoot().getResourceBundle(),
 								"com.rapid_i.deployment.update.client.UpdateManager.sending_illegal_content_length_error",
 								lengthStr),
-								e);
+						e);
 				return urlIn;
 			}
 		}
@@ -196,7 +197,7 @@ public class UpdateManager {
 	 * @throws IOException
 	 * @throws UpdateServiceException_Exception
 	 */
-	public int performUpdates(List<PackageDescriptor> downloadList, ProgressListener progressListener) throws IOException, UpdateServiceException_Exception {
+	public List<PackageDescriptor> performUpdates(List<PackageDescriptor> downloadList, ProgressListener progressListener) throws IOException, UpdateServiceException_Exception {
 		for (Iterator<PackageDescriptor> iterator = downloadList.iterator(); iterator.hasNext();) {
 			PackageDescriptor desc = iterator.next();
 			if ("rapidminer".equals(desc.getPackageId()) && DEVELOPMENT_BUILD) {
@@ -206,10 +207,14 @@ public class UpdateManager {
 			}
 		}
 		int i = 0;
+		
 		//number of failed Downloads
 		int failedLoads = 0;
+		
 		//number of all available Downloads
 		int availableLoads = downloadList.size();
+		
+		List<PackageDescriptor> installedPackage = new LinkedList<PackageDescriptor>();
 		try {
 			for (final PackageDescriptor desc : downloadList) {
 				String urlString = service.getDownloadURL(desc.getPackageId(), desc.getVersion(), desc.getPlatformName());
@@ -223,12 +228,20 @@ public class UpdateManager {
 					incremental &= baseVersion != null;
 					URL url = UpdateManager.getUpdateServerURI(urlString +
 							(incremental ? "?baseVersion=" + URLEncoder.encode(baseVersion, "UTF-8") : "")).toURL();
+					boolean succesful = false;
 					if (incremental) {
 						//LogService.getRoot().info("Updating "+desc.getPackageId()+" incrementally.");
 						LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.updating_package_id_incrementally", desc.getPackageId());
 						try {
 							updatePluginIncrementally(extension, openStream(url, progressListener, minProgress, maxProgress), baseVersion, desc.getVersion(), urlString + "?baseVersion=" + URLEncoder.encode(baseVersion, "UTF-8") + "&md5");
+							succesful = true;
 						} catch (IOException e) {
+							// if encountering problems during incremental installation, try using standard.
+							//LogService.getRoot().warning("Incremental Update failed. Trying to fall back on non incremental Update...");
+							LogService.getRoot().warning("com.rapid_i.deployment.update.client.UpdateManager.incremental_update_error");
+							incremental = false;
+							url = UpdateManager.getUpdateServerURI(urlString).toURL();
+						} catch (final ChecksumException e) {
 							// if encountering problems during incremental installation, try using standard.
 							//LogService.getRoot().warning("Incremental Update failed. Trying to fall back on non incremental Update...");
 							LogService.getRoot().warning("com.rapid_i.deployment.update.client.UpdateManager.incremental_update_error");
@@ -243,26 +256,19 @@ public class UpdateManager {
 						LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.updating_package_id", desc.getPackageId());
 						try {
 							updatePlugin(extension, openStream(url, progressListener, minProgress, maxProgress), desc.getVersion(), urlString + "?md5");
+							succesful = true;
 						} catch (final IOException e) {
-							LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Plugin");
 							failedLoads++;
-							//show MD5-Error to the user
-							try {
-								SwingUtilities.invokeAndWait(new Runnable() {
-									@Override
-									public void run() {
-										ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] { desc.getName() });
-										dialog.setModal(true);
-										dialog.setVisible(true);
-									}								
-								});
-							} catch (InvocationTargetException e1) {
-								LogService.getRoot().log(Level.WARNING, "Error showing error message: "+e, e);								
-							} catch (InterruptedException e1) {	}
+							reportDownloadError(e, desc.getName());
+						} catch (final ChecksumException e) {
+							failedLoads++;
+							reportChecksumError(e, desc.getName());
 						}
-
 					}
-					extension.addAndSelectVersion(desc.getVersion());
+					if(succesful) {
+						installedPackage.add(desc);
+						extension.addAndSelectVersion(desc.getVersion());
+					}
 				} else if ("STAND_ALONE".equals(desc.getPackageTypeName()) && ("rapidminer".equals(desc.getPackageId()))) {
 					if (DEVELOPMENT_BUILD) {
 						SwingTools.showVerySimpleErrorMessageAndWait("update_error_development_build");
@@ -271,17 +277,16 @@ public class UpdateManager {
 
 					URL url = UpdateManager.getUpdateServerURI(urlString +
 							(incremental ? "?baseVersion=" + URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") : "")).toURL();
-					//LogService.getRoot().info("Updating RapidMiner core.");
-					//LogService.getRoot().info("Updating RapidMiner core.");
 					LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.updating_rapidminer_core");
 					try {
-						updateRapidMiner(openStream(url, progressListener, minProgress, maxProgress), desc.getVersion(), urlString + (incremental ? "?baseVersion=" + URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") + "&md5" : "?md5"));
+						updateRapidMiner(openStream(url, progressListener, minProgress, maxProgress), desc.getVersion(), urlString + (incremental ? "?baseVersion=" + URLEncoder.encode(RapidMiner.getLongVersion(), "UTF-8") + "&md5" : "?md5"));						
+						installedPackage.add(desc);
+					} catch (ChecksumException e) {
+						failedLoads++;
+						reportChecksumError(e, desc.getName());
 					} catch (IOException e) {
 						failedLoads++;
-						//show MD5-Error to the user
-						LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", "RapidMiner-Update");
-						ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] { "RapidMiner" });
-						dialog.setVisible(true);
+						reportDownloadError(e, desc.getName());
 					}
 				} else {
 					SwingTools.showVerySimpleErrorMessageAndWait("updatemanager.unknown_package_type", desc.getName(), desc.getPackageTypeName());
@@ -295,10 +300,48 @@ public class UpdateManager {
 		} finally {
 			progressListener.complete();
 		}
-		if ((availableLoads == failedLoads) && (availableLoads > 0))
-			// show Message that no Update was successful
-			throw new IOException(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.no_update_md5.message"));
-		return availableLoads - failedLoads;
+		if ((availableLoads == failedLoads) && (availableLoads > 0)) {
+			SwingTools.showVerySimpleErrorMessageAndWait("updatemanager.updates_installed_partially", String.valueOf(availableLoads-failedLoads), String.valueOf(availableLoads));
+		}
+		return installedPackage;
+	}
+
+	private void reportChecksumError(final ChecksumException e, final String failedPackageName) {
+		LogService.getRoot().log(Level.INFO,
+				I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", failedPackageName, e.getMessage()),
+				e);				
+		//show MD5-Error to the user
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					ExtendedErrorDialog dialog = new ExtendedErrorDialog("update_md5_error", e, true, new Object[] { failedPackageName, e.getMessage() });
+					dialog.setModal(true);
+					dialog.setVisible(true);
+				}								
+			});
+		} catch (InvocationTargetException e1) {
+			LogService.getRoot().log(Level.WARNING, "Error showing error message: "+e, e);								
+		} catch (InterruptedException e1) {	}
+	}
+
+	private void reportDownloadError(final IOException e, final String failedPackageName) {
+		LogService.getRoot().log(Level.INFO,
+				I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapid_i.deployment.update.client.UpdateManager.md5_failed", failedPackageName, e.getMessage()),
+				e);				
+		//show MD5-Error to the user
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					ExtendedErrorDialog dialog = new ExtendedErrorDialog("error_downloading_package", e, true, new Object[] { failedPackageName, e.getMessage() });
+					dialog.setModal(true);
+					dialog.setVisible(true);
+				}								
+			});
+		} catch (InvocationTargetException e1) {
+			LogService.getRoot().log(Level.WARNING, "Error showing error message: "+e, e);								
+		} catch (InterruptedException e1) {	}
 	}
 
 	/*
@@ -323,7 +366,7 @@ public class UpdateManager {
 	}
 	 */
 
-	private void updatePlugin(ManagedExtension extension, InputStream updateIn, String newVersion, String md5Adress) throws IOException {
+	private void updatePlugin(ManagedExtension extension, InputStream updateIn, String newVersion, String md5Adress) throws IOException, ChecksumException {
 		File outFile = extension.getDestinationFile(newVersion);
 		OutputStream out = new FileOutputStream(outFile);
 		try {
@@ -335,13 +378,13 @@ public class UpdateManager {
 		}
 		if (!compareMD5(outFile, md5Adress)) {
 			Tools.delete(outFile);
-			throw new IOException("The MD5-hashes are not equal");
+			throw new ChecksumException();
 		}
-
 	}
 
-	@SuppressWarnings("resource") // stream is closed by copyStreamSynchronously
-	private void updateRapidMiner(InputStream openStream, String version, String md5adress) throws IOException {
+	@SuppressWarnings("resource")
+	// stream is closed by copyStreamSynchronously
+	private void updateRapidMiner(InputStream openStream, String version, String md5adress) throws IOException, ChecksumException {
 		if (DEVELOPMENT_BUILD) {
 			SwingTools.showVerySimpleErrorMessage("update_error_development_build");
 		}
@@ -363,7 +406,7 @@ public class UpdateManager {
 		if (!compareMD5(updateFile, md5adress)) {
 			Tools.delete(updateFile);
 			Tools.delete(updateRootDir);
-			throw new IOException("MD5-hashes are not equal");
+			throw new ChecksumException();
 		}
 
 		File ruInstall = new File(updateRootDir, "RUinstall");
@@ -403,8 +446,9 @@ public class UpdateManager {
 	 *  The new jar is scanned for a file META-INF/UPDATE that contains
 	 *  instructions about files to delete. Files found in this list
 	 *  are removed from the destination jar. 
-	 *  return -1 on error*/
-	private void updatePluginIncrementally(ManagedExtension extension, InputStream diffJarIn, String fromVersion, String newVersion, String md5Adress) throws IOException {
+	 *  return -1 on error
+	 * @throws ChecksumException */
+	private void updatePluginIncrementally(ManagedExtension extension, InputStream diffJarIn, String fromVersion, String newVersion, String md5Adress) throws IOException, ChecksumException {
 		ByteArrayOutputStream diffJarBuffer = new ByteArrayOutputStream();
 		Tools.copyStreamSynchronously(diffJarIn, diffJarBuffer, true);
 		//save byte[] to create the MD5-hash later
@@ -415,8 +459,7 @@ public class UpdateManager {
 
 		//create MD5-hash and compare to server-hash
 		if (!compareMD5(downloadedFile, md5Adress)) {
-			throw new IOException("Download has failed. MD5 hashes are not equal");
-
+			throw new ChecksumException();
 		}
 
 		Set<String> toDelete = new HashSet<String>();
@@ -765,7 +808,7 @@ public class UpdateManager {
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
 							"com.rapid_i.deployment.update.client.UpdateManager.reading_update_check_error"),
-							e);
+					e);
 			return null;
 		} finally {
 			if (in != null) {
@@ -823,7 +866,7 @@ public class UpdateManager {
 									I18N.getMessage(LogService.getRoot().getResourceBundle(),
 											"com.rapid_i.deployment.update.client.UpdateManager.checking_for_updates_error",
 											e),
-											e);
+									e);
 							return;
 						}
 
@@ -831,7 +874,7 @@ public class UpdateManager {
 						if (updatesExist) {
 							if (SwingTools.showConfirmDialog("updates_exist", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.YES_OPTION) {
 								UpdateDialog.showUpdateDialog(true);
-							} 
+							}
 						} else {
 							//LogService.getRoot().info("No updates since "+lastCheckDate+".");
 							LogService.getRoot().log(Level.INFO, "com.rapid_i.deployment.update.client.UpdateManager.no_updates_aviable", lastCheckDate);
@@ -860,7 +903,7 @@ public class UpdateManager {
 						I18N.getMessage(LogService.getRoot().getResourceBundle(),
 								"com.rapid_i.deployment.update.client.UpdateManager.malformed_update_server_uri",
 								e),
-								e);
+						e);
 				return;
 			}
 
@@ -915,7 +958,7 @@ public class UpdateManager {
 									I18N.getMessage(LogService.getRoot().getResourceBundle(),
 											"com.rapid_i.deployment.update.client.UpdateManager.checking_for_purchased_extensions_error",
 											e),
-											e);
+									e);
 							return;
 						}
 						if (updatesExist) {
@@ -947,7 +990,7 @@ public class UpdateManager {
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
 							"com.rapid_i.deployment.update.client.PurchasedNotInstalledDialog.creating_xml_document_error",
 							e),
-							e);
+					e);
 			return new ArrayList<String>();
 		}
 

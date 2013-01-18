@@ -42,15 +42,10 @@ System::Store L
 !endif
 !macroend
 
- 
 Section ""
-
-
-DetailPrint "Hallo"
 
 ; This will set the environment variables accordingly
 Call SetEnvironment 
-
 
 ; Searching for system memory to use
 System::Alloc 32
@@ -60,7 +55,6 @@ System::Call "*$1(&i4 .r2, &i4 .r3, &i4 .r4, &i4 .r5, \
                   &i4 .r6, &i4.r7, &i4 .r8, &i4 .r9)"
 System::Free $1
 
-
 ; for Xmx and Xms
 IntOp $R9 $5 / 1024
 IntOp $R9 $R9 / 1024
@@ -68,18 +62,18 @@ IntOp $R9 $R9 * 90
 IntOp $R9 $R9 / 100
 IntCmp $R9 64 less64 less64 more64
 less64: 
-StrCpy $R9 64
-Goto mem_more
+	StrCpy $R9 64
+	Goto mem_more
 more64:
-Goto mem_more
+	Goto mem_more
 
 mem_more:
-IntCmp $R9 1200 less1200 less1200 more1200
-less1200:
-Goto after_mem_more
+	IntCmp $R9 1200 less1200 less1200 more1200
+	less1200:
+	Goto after_mem_more
 more1200: 
-StrCpy $R9 1200
-Goto after_mem_more
+	StrCpy $R9 1200
+	Goto after_mem_more
 
 after_mem_more:
   Call GetJRE
@@ -89,7 +83,7 @@ after_mem_more:
   Pop $R1
 
 ; testing for number of processors for switching to multi threaded GC
-ReadEnvStr $R2 "NUMBER_OF_PROCESSORS"  
+  ReadEnvStr $R2 "NUMBER_OF_PROCESSORS"  
   IntFmt $0 "0x%08X" $R2
   IntCmp $0 1 is1 done morethan1
 is1:
@@ -100,11 +94,9 @@ morethan1:
   StrCpy $R2 '-XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:ConcGCThreads=$0 -XX:ParallelGCThreads=$0'
   Goto done
 done:
- 
   
   ; invoking RapidMiner via launcher.jar  
   StrCpy $0 '"$R0" $R2 -Xmx$R9m -XX:MaxPermSize=128m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
-
   
   SetOutPath $EXEDIR
 
@@ -113,8 +105,7 @@ done:
   
 	  ExecWait $0 $1
 	  Call SetEnvironment ;if settings have been adapted inside RapidMiner
-  IntCmp $1 2 Relaunch
-    
+  IntCmp $1 2 Relaunch    
 SectionEnd
  
 Function PerformUpdate 
@@ -129,22 +120,19 @@ Function PerformUpdate
  
   ClearErrors
   StrCpy $R0 "$R8\update\*"
-  IfFileExists $R0 UpdateFound CANCEL
+  IfFileExists $R0 UpdateFound NoUpdate
         
   UpdateFound:
      MessageBox MB_OKCANCEL "An Update was found. Press press OK to perform the update now or press Cancel to delay the update until the next start. You need to enter the Administrator-Password to start the update" IDOK OK IDCANCEL CANCEL
 	 ;start RapidMinerUpdate.exe which will elevate administrator privileges
 	 OK:
 	 	StrCpy $R9 ""
-	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_HIDE} $R9
-	 	MessageBox MB_OK "exitcode = $R9"
-	 	;check exitcode to and show suitable message
-	 	StrCmp $R9 "1223" UACAbort CANCEL
-	UACAbort:
-		MessageBox MB_OK "Delayed update to the next start of RapidMiner."
+	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_SHOW} $R9
 		
 	CANCEL:
 		; User delayed update
+		
+  NoUpdate:
 		
 FunctionEnd
 
@@ -181,8 +169,6 @@ Function GetJRE
   Pop $R1
   Exch $R0
 FunctionEnd
-
-
 
  ; GetParameters
  ; input, none
@@ -272,4 +258,3 @@ Function SetEnvironment
 	Pop $R1
 	Pop $R0
 FunctionEnd
-

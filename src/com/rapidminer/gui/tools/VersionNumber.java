@@ -154,6 +154,8 @@ public class VersionNumber implements Comparable<VersionNumber> {
 		return this.compareTo(other) <= 0;
 	}
 	
+	
+	@Override
 	public int compareTo(VersionNumber o) {
 		int index = Double.compare(this.majorNumber, o.majorNumber);
 		if (index != 0) {
@@ -208,6 +210,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
 		return majorNumber + "." + minorNumber + "." + "000".substring((patchLevel + "").length()) + patchLevel +  alphaBetaString; 
 	}
 
+	/**
+	 * Returns the RapidMiner version in the format major.minor.patchlevel, with 3 digits for patchlevel. Example: 5.3.001
+	 */
 	public String getLongVersion() {
 		return toString();
 	}

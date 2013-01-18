@@ -463,6 +463,18 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				throw new RepositoryException(e);
 			}
 		} else if (entry instanceof Folder) {
+			String sourceAbsolutePath = entry.getLocation().getAbsoluteLocation();
+			String destinationAbsolutePath = destination.getLocation().getAbsoluteLocation();
+			// make sure same folder moves are forbidden
+			if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
+				SwingTools.showVerySimpleErrorMessage("repository_same_folder");
+				return;
+			}
+			// make sure moving parent folder into subfolder is forbidden
+			if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
+				SwingTools.showVerySimpleErrorMessage("repository_move_into_subfolder");
+				return;
+			}
 			Folder destinationFolder = destination.createFolder(newName);
 			List<Entry> allChildren = new LinkedList<Entry>();
 			allChildren.addAll(((Folder) entry).getSubfolders());
@@ -498,8 +510,14 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			} else {
 				destinationAbsolutePath = destination.getLocation().getAbsoluteLocation();
 			}
+			// make sure same folder moves are forbidden
 			if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
 				SwingTools.showVerySimpleErrorMessage("repository_same_folder");
+				return;
+			}
+			// make sure moving parent folder into subfolder is forbidden
+			if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
+				SwingTools.showVerySimpleErrorMessage("repository_move_into_subfolder");
 				return;
 			}
 			if (destination.getLocation().getRepository() != source.getRepository()) {

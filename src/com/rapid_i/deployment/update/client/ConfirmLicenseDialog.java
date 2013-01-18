@@ -90,7 +90,7 @@ public class ConfirmLicenseDialog extends ButtonDialog {
 		
 		okButton = makeOkButton();
 		okButton.setEnabled(false);
-		layoutDefault(main, makeCancelButton("skip_install"), okButton);
+		layoutDefault(main, okButton, makeCancelButton("skip_install"));
 	}
 
 	private void enableButtons() {

@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapid_i.deployment.update.client;
 
 import java.net.URISyntaxException;
@@ -39,7 +40,6 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.plugin.Dependency;
 
-
 /**
  * @author Simon Fischer, Dominik Halfkann
  */
@@ -52,7 +52,7 @@ public class UpdatePackagesModel extends Observable {
 	private final Map<PackageDescriptor, List<Dependency>> dependencyMap = new HashMap<PackageDescriptor, List<Dependency>>();
 
 	private UpdateServerAccount usAccount;
-	
+
 	/** Read the comment of {@link #isPurchased(PackageDescriptor)}. */
 	private Set<String> purchasedPackages = new HashSet<String>();
 
@@ -60,7 +60,7 @@ public class UpdatePackagesModel extends Observable {
 		this.descriptors = descriptors;
 		this.usAccount = usAccount;
 	}
-	
+
 	/** Should only be accessed within a thread. **/
 	public void updatePurchasedPackages() {
 		if (usAccount.isLoggedIn()) {
@@ -76,13 +76,13 @@ public class UpdatePackagesModel extends Observable {
 			purchasedPackages = new HashSet<String>();
 		}
 	}
-	
+
 	public void clearPurchasedPackages() {
 		if (!usAccount.isLoggedIn()) {
 			purchasedPackages = new HashSet<String>();
 			for (Map.Entry<PackageDescriptor, Boolean> selectionEntry : selectionMap.entrySet()) {
 				if (selectionEntry.getKey().isRestricted() && selectionEntry.getValue()) {
-					toggleSelesctionForInstallation(selectionEntry.getKey());
+					toggleSelectionForInstallation(selectionEntry.getKey());
 				}
 			}
 		}
@@ -97,7 +97,7 @@ public class UpdatePackagesModel extends Observable {
 		notifyObservers();
 	}
 
-	public void toggleSelesctionForInstallation(PackageDescriptor desc) {
+	public void toggleSelectionForInstallation(PackageDescriptor desc) {
 		if (desc != null) {
 			boolean select = !isSelectedForInstallation(desc);
 			if (isUpToDate(desc)) {
@@ -124,6 +124,14 @@ public class UpdatePackagesModel extends Observable {
 			this.notifyObservers(desc);
 		}
 	}
+	
+	public void clearFromSelectionMap(List<PackageDescriptor> toClear) {
+		for(PackageDescriptor desc : toClear) {
+			selectionMap.remove(desc);
+			this.setChanged();
+			this.notifyObservers(desc);
+		}
+	}
 
 	public boolean isSelectedForInstallation(PackageDescriptor desc) {
 		Boolean selected = selectionMap.get(desc);
@@ -144,7 +152,7 @@ public class UpdatePackagesModel extends Observable {
 
 	}
 
-	private boolean isUpToDate(PackageDescriptor desc) {
+	public boolean isUpToDate(PackageDescriptor desc) {
 		ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 		if (ext != null) {
 			String remoteVersion = ManagedExtension.normalizeVersion(desc.getVersion());
@@ -191,24 +199,24 @@ public class UpdatePackagesModel extends Observable {
 	public String getExtensionURL(PackageDescriptor descriptor) {
 		return UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + descriptor.getPackageId();
 	}
-	
+
 	public void markAllPackages(List<String> packageNames, PackageDescriptorCache cache) {
 		for (String packageName : packageNames) {
 			PackageDescriptor pd = cache.getPackageInfo(packageName);
 			if (!isSelectedForInstallation(pd) && (!usAccount.isLoggedIn() || !pd.isRestricted() || isPurchased(pd))) {
-				toggleSelesctionForInstallation(pd);
+				toggleSelectionForInstallation(pd);
 			}
 		}
 	}
 
-
-	public String toString(PackageDescriptor descriptor, String changes) {		
+	public String toString(PackageDescriptor descriptor, String changes) {
 		StringBuilder b = new StringBuilder("<html><body>");
 		b.append("<h1>");
+		b.append(descriptor.getName());
 		if (descriptor.isRestricted()) {
-			b.append("<img src=\"icon:///").append("16/currency_euro.png").append("\"/>&nbsp;");
+			b.append("&nbsp;<img src=\"icon:///").append("16/currency_euro.png").append("\"/>");
 		}
-		b.append(descriptor.getName()).append("</h1>");
+		b.append("</h1>");
 		Date date = new Date(descriptor.getCreationTime().toGregorianCalendar().getTimeInMillis());
 		b.append("<hr><p><strong>Version ").append(descriptor.getVersion()).append(", released ").append(Tools.formatDate(date));
 		b.append(", ").append(Tools.formatBytes(descriptor.getSize())).append("</strong></p>");
@@ -234,6 +242,5 @@ public class UpdatePackagesModel extends Observable {
 		b.append("</body></html>");
 		return b.toString();
 	}
-
 
 }

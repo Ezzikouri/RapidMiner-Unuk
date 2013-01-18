@@ -14,12 +14,11 @@ SilentInstall silent
 AutoCloseWindow true
 ShowInstDetails nevershow
 
-
 ;includes are part of the macro
 !include LogicLib.nsh
 !include WinMessages.nsh
  
- 
+ ;taken from http://nsis.sourceforge.net/ShellExecWait 
  ;macro to run a programm with UAC and wait until it is terminated
 !macro ShellExecWait verb app param workdir show exitoutvar ;only app and show must be != "", every thing else is optional
 #define SEE_MASK_NOCLOSEPROCESS 0x40 
@@ -42,7 +41,6 @@ System::Store L
 	pop ${exitoutvar}
 !endif
 !macroend
-
  
 Section ""
 
@@ -74,7 +72,6 @@ less64:
 more64:
 	Goto after_mem_more
 
-
 after_mem_more:
   Call GetJRE
   Pop $R0
@@ -95,7 +92,7 @@ morethan1:
   Goto done
 done:
 
-  ; invoking RapidMiner via laucher.jar  
+  ; invoking RapidMiner via launcher.jar  
   StrCpy $0 '"$R0" $R2 -Xmx$1m -XX:MaxPermSize=128m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
   
   SetOutPath $EXEDIR
@@ -127,7 +124,6 @@ Function PerformUpdate
 	 ;start RapidMinerUpdate.exe which will elevate administrator privileges
 	 OK:
 	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_SHOW} $R9
-	 	MessageBox MB_OK "Update was successful"
 		 
 	CANCEL:
 		; User delayed update
@@ -170,7 +166,6 @@ Function GetJRE
   Exch $R0
 FunctionEnd
 
-
  ; GetParameters
  ; input, none
  ; output, top of stack (replaces, with e.g. whatever)
@@ -211,6 +206,7 @@ Function GetParameters
   Exch $R0
  
 FunctionEnd
+
 ; This function will read from the ./scripts/config/config.win file
 ; which environment variables have to be set
 Function SetEnvironment

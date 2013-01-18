@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapid_i.deployment.update.client;
 
 import java.awt.BorderLayout;
@@ -70,7 +71,6 @@ import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
-
 /**
  * 
  * @author Dominik Halfkann
@@ -79,15 +79,15 @@ import com.rapidminer.tools.LogService;
 public class UpdatePanelTab extends JPanel {
 
 	private JPanel extensionButtonPane;
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private static final int LIST_WIDTH = 330;
-	
+
 	protected UpdatePackagesModel updateModel;
 	protected AbstractPackageListModel listModel;
 	UpdateServerAccount usAccount;
-	
+
 	private ExtendedHTMLJEditorPane displayPane;
 	private final SelectForInstallationButton installButton;
 	private LinkButton loginForInstallHint;
@@ -95,21 +95,21 @@ public class UpdatePanelTab extends JPanel {
 	private PackageDescriptor lastSelected = null;
 
 	private JList packageList;
-	
+
 	private class SelectForInstallationButton extends JToggleButton implements Observer {
-		
+
 		private boolean purchaseFirst = false;
-		
+
 		private static final long serialVersionUID = 1L;
 
 		public SelectForInstallationButton(Action a) {
 			super(a);
 		}
-		
+
 		public void setPurchaseFirst(boolean purchaseFirst) {
 			this.purchaseFirst = purchaseFirst;
 		}
-		
+
 		public boolean getPurchaseFirst() {
 			return purchaseFirst;
 		}
@@ -117,20 +117,20 @@ public class UpdatePanelTab extends JPanel {
 		@Override
 		public void update(Observable o, Object arg) {
 			if (o instanceof UpdatePackagesModel) {
-				UpdatePackagesModel currentModel = (UpdatePackagesModel)o;
+				UpdatePackagesModel currentModel = (UpdatePackagesModel) o;
 				if (arg != null && arg instanceof PackageDescriptor) {
-					PackageDescriptor desc = (PackageDescriptor)arg;
+					PackageDescriptor desc = (PackageDescriptor) arg;
 					Object selectedObject = getPackageList().getSelectedValue();
 					if (selectedObject instanceof PackageDescriptor) {
-						PackageDescriptor selectedDescriptor = (PackageDescriptor)selectedObject;
+						PackageDescriptor selectedDescriptor = (PackageDescriptor) selectedObject;
 						if (desc.getPackageId().equals(selectedDescriptor.getPackageId())) {
-								this.setSelected(currentModel.isSelectedForInstallation(desc));
-								if (this.isSelected()) {
-									this.setIcon(SwingTools.createIcon("16/checkbox.png"));
-								} else {
-									this.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
-								}
-								
+							this.setSelected(currentModel.isSelectedForInstallation(desc));
+							if (this.isSelected()) {
+								this.setIcon(SwingTools.createIcon("16/checkbox.png"));
+							} else {
+								this.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+							}
+
 						}
 					}
 					listModel.updateView(desc);
@@ -141,17 +141,18 @@ public class UpdatePanelTab extends JPanel {
 
 	public UpdatePanelTab(final UpdatePackagesModel updateModel, AbstractPackageListModel model, final UpdateServerAccount usAccount) {
 		super(new GridBagLayout());
-		
+
 		this.updateModel = updateModel;
 		this.listModel = model;
 		this.usAccount = usAccount;
 		this.usAccount.addObserver(new Observer() {
+
 			@Override
 			public void update(Observable o, Object arg) {
-				updateDisplayPane();				
+				updateDisplayPane();
 			}
 		});
-		
+
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		c.gridheight = GridBagConstraints.REMAINDER;
@@ -160,26 +161,19 @@ public class UpdatePanelTab extends JPanel {
 		c.weightx = 0;
 		c.weighty = 1;
 		c.insets = new Insets(0, 0, 0, 0);
-		
+
 		installButton = new SelectForInstallationButton(new ResourceAction(true, "update.select") {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				PackageDescriptor selectedDescriptor = (PackageDescriptor) getPackageList().getSelectedValue();
 				if (installButton.getPurchaseFirst()) {
-					try {
-						installButton.setSelected(false);
-						PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
-						String url = UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + selectedDescriptor.getPackageId();
-						Desktop.getDesktop().browse(new URI(url));
-					} catch (Exception e1) {
-						SwingTools.showVerySimpleErrorMessage("cannot_open_browser");
-					}
-
+					installButton.setSelected(false);
+					showProductPage(selectedDescriptor);
 				} else {
-					PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
-					UpdatePanelTab.this.updateModel.toggleSelesctionForInstallation(selectedDescriptor);
+					UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
 					getModel().updateView(selectedDescriptor);
 				}
 			}
@@ -203,9 +197,9 @@ public class UpdatePanelTab extends JPanel {
 		displayPane = new ExtendedHTMLJEditorPane("text/html", "");
 		displayPane.installDefaultStylesheet();
 		((HTMLEditorKit) displayPane.getEditorKit()).getStyleSheet().addRule("a  {text-decoration:underline; color:blue;}");
-		
+
 		setDefaultDescription();
-		
+
 		displayPane.setEditable(false);
 
 		displayPane.addHyperlinkListener(new HyperlinkListener() {
@@ -221,31 +215,33 @@ public class UpdatePanelTab extends JPanel {
 				}
 			}
 		});
-		
-		loginForInstallHint = new LinkButton(new AbstractAction(){
+
+		loginForInstallHint = new LinkButton(new AbstractAction() {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				usAccount.login(updateModel);
 			}
-			
+
 		});
-		
-		extensionHomepageLink = new LinkButton(new AbstractAction(){
+
+		extensionHomepageLink = new LinkButton(new AbstractAction() {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
-				PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
+
+				PackageDescriptor selectedDescriptor = (PackageDescriptor) getPackageList().getSelectedValue();
 				if (selectedDescriptor != null) {
 					String url = updateModel.getExtensionURL(selectedDescriptor);
 					// open link
 					Desktop desktop = Desktop.getDesktop();
-					 
-			        if(desktop.isSupported(Desktop.Action.BROWSE) ) {
-			          URI uri;
+
+					if (desktop.isSupported(Desktop.Action.BROWSE)) {
+						URI uri;
 						try {
 							uri = new java.net.URI(url);
 							desktop.browse(uri);
@@ -256,13 +252,13 @@ public class UpdatePanelTab extends JPanel {
 							LogService.getRoot().log(Level.WARNING, "Error opening extension URI in the default browser.");
 							return;
 						}
-			              
-			        }
+
+					}
 				}
 			}
-			
+
 		});
-		
+
 		packageList = createUpdateList();
 		JScrollPane updateListScrollPane = new ExtendedJScrollPane(packageList);
 		updateListScrollPane.setMinimumSize(new Dimension(LIST_WIDTH, 100));
@@ -270,10 +266,10 @@ public class UpdatePanelTab extends JPanel {
 		updateListScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		Component topPanel = makeTopPanel();
 		Component bottomPanel = makeBottomPanel();
-		
+
 		JPanel leftPanel = new JPanel(new BorderLayout());
 		leftPanel.add(updateListScrollPane, BorderLayout.CENTER);
-		
+
 		if (topPanel != null) {
 			leftPanel.add(topPanel, BorderLayout.NORTH);
 			add(leftPanel, c);
@@ -295,40 +291,49 @@ public class UpdatePanelTab extends JPanel {
 		descriptionPanel.add(jScrollPane, BorderLayout.CENTER);
 
 		extensionButtonPane = new JPanel(new BorderLayout());
-		extensionButtonPane.setMinimumSize(new Dimension(100,35));
-		extensionButtonPane.setPreferredSize(new Dimension(100,35));
-		
+		extensionButtonPane.setMinimumSize(new Dimension(100, 35));
+		extensionButtonPane.setPreferredSize(new Dimension(100, 35));
+
 		JPanel extensionButtonPaneLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		
+
 		extensionButtonPaneLeft.add(installButton);
 		extensionButtonPaneLeft.add(loginForInstallHint);
 		extensionButtonPane.add(extensionButtonPaneLeft, BorderLayout.WEST);
-		
+
 		JPanel extensionButtonPaneRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
 		extensionButtonPaneRight.add(extensionHomepageLink);
 		extensionButtonPane.add(extensionButtonPaneRight, BorderLayout.CENTER);
-		
+
 		for (Component component : extensionButtonPane.getComponents()) {
 			component.setVisible(false);
 		}
-		
+
 		extensionButtonPane.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
-		
+
 		descriptionPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, Color.LIGHT_GRAY));
 		descriptionPanel.add(extensionButtonPane, BorderLayout.SOUTH);
 
 		add(descriptionPanel, c);
 	}
-	
+
+	private void showProductPage(PackageDescriptor desc) {
+		try {
+			String url = UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + desc.getPackageId();
+			Desktop.getDesktop().browse(new URI(url));
+		} catch (Exception e1) {
+			SwingTools.showVerySimpleErrorMessage("cannot_open_browser");
+		}
+	}
+
 	protected Component makeTopPanel() {
 		return null;
 	}
-	
+
 	protected Component makeBottomPanel() {
 		JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		panel.setMinimumSize(new Dimension(100,35));
-		panel.setPreferredSize(new Dimension(100,35));
+		panel.setMinimumSize(new Dimension(100, 35));
+		panel.setPreferredSize(new Dimension(100, 35));
 		panel.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, Color.LIGHT_GRAY));
 		return panel;
 	}
@@ -350,9 +355,38 @@ public class UpdatePanelTab extends JPanel {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					PackageDescriptor selectedDescriptor = (PackageDescriptor)getPackageList().getSelectedValue();
-					UpdatePanelTab.this.updateModel.toggleSelesctionForInstallation(selectedDescriptor);
-					getModel().updateView(selectedDescriptor);
+					PackageDescriptor selectedDescriptor = (PackageDescriptor) getPackageList().getSelectedValue();
+
+					// check if extension is installed and up to date
+					if (updateModel.isUpToDate(selectedDescriptor)) {
+						return;
+					}
+
+					// check if selected descriptor is restricted
+					if (selectedDescriptor.isRestricted()) {
+						if (usAccount.isLoggedIn()) {
+							if (updateModel.isPurchased(selectedDescriptor)) {
+								UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
+								getModel().updateView(selectedDescriptor);
+							} else {
+								showProductPage(selectedDescriptor);
+							}
+						} else {
+							usAccount.login(updateModel);
+							if (usAccount.isLoggedIn()) {
+								if (updateModel.isPurchased(selectedDescriptor)) {
+									UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
+									getModel().updateView(selectedDescriptor);
+								} else {
+									showProductPage(selectedDescriptor);
+								}
+							}
+						}
+					} else {
+						UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
+						getModel().updateView(selectedDescriptor);
+					}
+
 				}
 			}
 		});
@@ -360,29 +394,28 @@ public class UpdatePanelTab extends JPanel {
 		return updateList;
 	}
 
-	
 	protected JList getPackageList() {
 		return packageList;
 	}
 
-	public void selectNotify() {		
+	public void selectNotify() {
 		if (listModel instanceof BookmarksPackageListModel || listModel instanceof LicencedPackageListModel) {
 			usAccount.login(updateModel);
 		}
-		listModel.update();		
+		listModel.update();
 	}
 
-	
 	public AbstractPackageListModel getModel() {
 		return listModel;
 	}
-	
+
 	private void setDefaultDescription() {
-		
 		new Thread("Load Default Description") {
 
 			@Override
 			public void run() {
+				
+				
 				try {
 					displayPane.setPage("http://rapid-i.com/rapidminer_news/");
 				} catch (Exception e) {
@@ -406,7 +439,7 @@ public class UpdatePanelTab extends JPanel {
 			}
 		}
 		if (desc != null) {
-			
+
 			for (Component component : extensionButtonPane.getComponents()) {
 				component.setVisible(true);
 			}
@@ -421,11 +454,11 @@ public class UpdatePanelTab extends JPanel {
 			css.addRule(".changes-header-version {margin-top:10px;margin-bottom:5px;color:#111111;}");
 			css.addRule("ul {padding-left:10px;}");
 			css.addRule("ul li {margin-left:0px;padding-left:0px;}");
-				
+
 			HTMLDocument doc = new HTMLDocument(css);
 			displayPane.setDocument(doc);
 			displayPane.setText(updateModel.toString(desc, listModel.getChanges(desc.getPackageId())));
-			
+
 			displayPane.setCaretPosition(0);
 
 			installButton.setSelected(updateModel.isSelectedForInstallation(desc));
@@ -441,8 +474,8 @@ public class UpdatePanelTab extends JPanel {
 						installButton.setEnabled(false);
 					}
 				}
-			}						
-			
+			}
+
 			if (desc.isRestricted() && !isInstalled) {
 				if (!usAccount.isLoggedIn()) {
 					// restricted, uninstalled, not logged in
@@ -451,11 +484,11 @@ public class UpdatePanelTab extends JPanel {
 				} else if (updateModel.isPurchased(desc)) {
 					// restricted, purchased but not installed yet
 					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
-					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int)I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
 					installButton.setPurchaseFirst(false);
 					installButton.setVisible(true);
 					loginForInstallHint.setText("");
-					
+
 					if (updateModel.isSelectedForInstallation(desc)) {
 						installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
 					} else {
@@ -463,23 +496,23 @@ public class UpdatePanelTab extends JPanel {
 					}
 				} else {
 					// restricted, not purchased
-					
+
 					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.label"));
 					installButton.setIcon(SwingTools.createIcon("16/shopping_cart_empty.png"));
-					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int)I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.mne").toUpperCase().charAt(0));
+					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.mne").toUpperCase().charAt(0));
 					installButton.setVisible(true);
 					loginForInstallHint.setText("");
-					
+
 					installButton.setPurchaseFirst(true);
-				}				
+				}
 			} else {
 				// not restricted / restricted but already installed
 				installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
-				installButton.getAction().putValue(Action.MNEMONIC_KEY, (int)I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+				installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
 				installButton.setPurchaseFirst(false);
 				installButton.setVisible(true);
 				loginForInstallHint.setText("");
-				
+
 				if (updateModel.isSelectedForInstallation(desc)) {
 					installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
 				} else {
@@ -489,7 +522,6 @@ public class UpdatePanelTab extends JPanel {
 		}
 	}
 
-	
 	@Override
 	public void removeNotify() {
 		super.removeNotify();

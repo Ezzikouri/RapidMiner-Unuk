@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapid_i.deployment.update.client;
 
 import java.awt.BorderLayout;
@@ -222,9 +223,10 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
-						int numUpdates = um.performUpdates(acceptedList, getProgressListener());
-						if (numUpdates > 0) {
-							if (SwingTools.showConfirmDialog((numUpdates == 1 ? "update.complete_restart" : "update.complete_restart1"), ConfirmDialog.YES_NO_OPTION, numUpdates) == ConfirmDialog.YES_OPTION) {
+						List<PackageDescriptor> performedUpdates = um.performUpdates(acceptedList, getProgressListener());
+						if (performedUpdates.size() > 0) {
+							if (SwingTools.showConfirmDialog((performedUpdates.size() == 1 ? "update.complete_restart" : "update.complete_restart1"), 
+									ConfirmDialog.YES_NO_OPTION, performedUpdates.size()) == ConfirmDialog.YES_OPTION) {
 								RapidMinerGUI.getMainFrame().exit(true);
 							}
 						}
@@ -233,7 +235,7 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 					}
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
-				} finally {					
+				} finally {
 					getProgressListener().complete();
 				}
 			}

@@ -61,7 +61,7 @@ class ProgressThreadDialog extends ButtonDialog {
 
 	private ProgressThreadDialog() {
 		super("progress_dialog");
-		setModal(false);
+		setModal(true);
 		ProgressThread.QUEUE_MODEL.addListDataListener(new ListDataListener() {
 			@Override
 			public void intervalRemoved(ListDataEvent e) {

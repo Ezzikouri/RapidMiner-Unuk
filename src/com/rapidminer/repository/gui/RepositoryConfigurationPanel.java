@@ -22,6 +22,9 @@
  */
 package com.rapidminer.repository.gui;
 
+import java.util.List;
+
+import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 
@@ -50,5 +53,8 @@ public interface RepositoryConfigurationPanel {
 
 	/** This button should be disabled when invalid values are entered. */
 	public void setOkButton(JButton okButton);
+	
+	/** Additional buttons that will be shown left of the cancel button. If no additional buttons should be added an empty list should be returned. */
+	public List<AbstractButton> getAdditionalButtons();
 
 }

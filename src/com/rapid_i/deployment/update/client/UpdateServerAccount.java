@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapid_i.deployment.update.client;
 
 import java.net.PasswordAuthentication;
@@ -42,9 +43,9 @@ import com.rapidminer.tools.PasswortInputCanceledException;
 public class UpdateServerAccount extends Observable {
 
 	private static PasswordAuthentication upateServerPA = null;
-	
+
 	private boolean loggedIn = false;
-	
+
 	static {
 		GlobalAuthenticator.registerServerAuthenticator(new GlobalAuthenticator.URLAuthenticator() {
 
@@ -72,29 +73,39 @@ public class UpdateServerAccount extends Observable {
 			}
 		});
 	}
-	
+
 	public void forceNotifyObservers() {
 		setChanged();
 		notifyObservers();
 	}
-	
+
 	public static void setPasswordAuthentication(PasswordAuthentication pa) {
 		upateServerPA = pa;
 	}
-	
-	/** Shows the login dialog and notifies observers when the status changed.**/
+
+	/** Shows the login dialog and notifies observers when the status changed. Code will not block because it is opened in background */
 	public void login(final UpdatePackagesModel updateModel) {
-		new ProgressThread("log_in_to_updateserver", false) {
+		login(updateModel, false);
+	}
+
+	/** 
+	 * Shows the login dialog and notifies observers when the status changed.
+	 * 
+	 * @param startAndWait if <code>true</code> this code will block until the login has finished.
+	 **/
+	public void login(final UpdatePackagesModel updateModel, boolean showInForeground) {
+		ProgressThread loginProgressThread = new ProgressThread("log_in_to_updateserver", showInForeground) {
+
 			public void run() {
 				try {
 					while (true) {
-						
+
 						if (loggedIn) {
 							return;
 						}
-						
+
 						UpdateManager.clearAccountSerive();
-						
+
 						boolean clickedOk = true;
 						PasswordAuthentication pa = null;
 						try {
@@ -102,18 +113,18 @@ public class UpdateServerAccount extends Observable {
 						} catch (PasswortInputCanceledException e1) {
 							clickedOk = false;
 						}
-		
+
 						clickedOk &= pa != null;
 						if (clickedOk) {
 							//user hit "ok"
 							upateServerPA = pa;
-		
+
 							getProgressListener().setCompleted(10);
 							//check the provided login data
 							try {
 								UpdateManager.getAccountService();
 							} catch (Exception e) {
-								LogService.getRoot().log(Level.WARNING, "Failed to login: "+e, e);
+								LogService.getRoot().log(Level.INFO, "Failed to login: " + e.getLocalizedMessage(), e);
 								// wrong login data
 								continue;
 							}
@@ -132,17 +143,19 @@ public class UpdateServerAccount extends Observable {
 							notifyObservers(null);
 							return;
 						}
-						
+
 					}
 				} catch (URISyntaxException e) {
 					return;
 				}
 			}
-		}.start();
+		};
+		loginProgressThread.start();
 	}
-	
+
 	public void logout(final UpdatePackagesModel updateModel) {
 		new ProgressThread("log_out_frm_updateserver", false) {
+
 			public void run() {
 				UpdateManager.clearAccountSerive();
 				upateServerPA = null;
@@ -153,9 +166,10 @@ public class UpdateServerAccount extends Observable {
 			}
 		}.start();
 	}
-	
+
 	public void updatePurchasedPackages(final UpdatePackagesModel updateModel) {
 		new ProgressThread("fetching_updates", false) {
+
 			public void run() {
 				getProgressListener().setCompleted(10);
 				updateModel.updatePurchasedPackages();
@@ -166,11 +180,11 @@ public class UpdateServerAccount extends Observable {
 			}
 		}.start();
 	}
-	
+
 	public boolean isLoggedIn() {
 		return loggedIn;
 	}
-	
+
 	public String getUserName() {
 		return upateServerPA != null ? upateServerPA.getUserName() : null;
 	}
@@ -178,5 +192,5 @@ public class UpdateServerAccount extends Observable {
 	public char[] getPassword() {
 		return upateServerPA.getPassword();
 	}
-	
+
 }

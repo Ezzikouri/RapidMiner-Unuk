@@ -27,6 +27,7 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.net.Authenticator;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -176,6 +177,31 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 	}
 
+	public static boolean checkConfiguration(String url, String username, char[] password) {
+		URL repositoryServiceURL;
+		try {
+			repositoryServiceURL = getRepositoryServiceWSDLUrl(new URL(url));
+
+			final HttpURLConnection conn = (HttpURLConnection) repositoryServiceURL.openConnection();
+			WebServiceTools.setURLConnectionDefaults(conn);
+			conn.setRequestProperty("Accept-Charset", "UTF-8");
+			if ((username != null) && (username.length() != 0) &&
+					(password != null) && (password.length != 0)) {				
+				String userpass = username + ":" + new String(password);
+				String basicAuth = "Basic " + new String(Base64.encodeBytes(userpass.getBytes()));
+				conn.setRequestProperty("Authorization", basicAuth);
+				Authenticator.setDefault(null);
+				return 200 == conn.getResponseCode();
+			} else {
+				return false;
+			}
+		} catch (Throwable t) {
+			return false;
+		} finally {
+			Authenticator.setDefault(GlobalAuthenticator.getInstance());
+		}
+	}
+
 	public URL getRepositoryServiceBaseUrl() {
 		try {
 			return new URL(getBaseUrl(), "RAWS/");
@@ -190,10 +216,10 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 	}
 
-	private URL getRepositoryServiceWSDLUrl() {
+	private static URL getRepositoryServiceWSDLUrl(URL baseURL) {
 		String url = "RAWS/RepositoryService?wsdl";
 		try {
-			return new URL(getBaseUrl(), url);
+			return new URL(baseURL, url);
 		} catch (MalformedURLException e) {
 			// cannot happen
 			LogService.getRoot().log(Level.WARNING,
@@ -203,6 +229,10 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 					e);
 			return null;
 		}
+	}
+
+	private URL getRepositoryServiceWSDLUrl() {
+		return getRepositoryServiceWSDLUrl(getBaseUrl());
 	}
 
 	private URL getRAInfoServiceWSDLUrl() {

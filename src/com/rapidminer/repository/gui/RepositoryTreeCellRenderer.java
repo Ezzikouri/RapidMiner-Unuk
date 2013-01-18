@@ -59,7 +59,7 @@ public class RepositoryTreeCellRenderer extends DefaultTreeCellRenderer {
 	private static final Icon ICON_FOLDER_LOCKED = SwingTools.createIcon("16/folder_lock.png");
 	private static final Icon ICON_PROCESS = SwingTools.createIcon("16/gear.png");
 	private static final Icon ICON_DATA = SwingTools.createIcon("16/data.png");
-	private static final Icon ICON_BLOB = SwingTools.createIcon("16/data.png");
+	private static final Icon ICON_BLOB = SwingTools.createIcon("16/document_plain.png");
 	private static final Icon ICON_TEXT = SwingTools.createIcon("16/text.png");
 	private static final Icon ICON_TABLE = SwingTools.createIcon("16/table2.png");
 	private static final Icon ICON_IMAGE = SwingTools.createIcon("16/photo_landscape2.png");
