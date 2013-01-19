@@ -34,6 +34,7 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.tools.GroupTree;
@@ -57,6 +58,11 @@ public class NewOperatorEditor extends JPanel implements TreeSelectionListener, 
 	//private final OperatorList operatorList;
 	
 	public NewOperatorEditor() {
+		this(null);
+	}
+	
+	/** The drag listener will be registered at the operator tree and will receive drag start events if a drag has started and drag stopped events if dragging has stopped again */ 
+	public NewOperatorEditor(DragListener dragListener) {
 		super(new BorderLayout());
 		// will cause the tree half to keep fixed size during resizing
 		setBorder(null);
@@ -65,6 +71,9 @@ public class NewOperatorEditor extends JPanel implements TreeSelectionListener, 
 		this.newOperatorGroupTree.getTree().addTreeSelectionListener(this);
 		add(newOperatorGroupTree, BorderLayout.CENTER);
         
+		if(dragListener != null) {
+			newOperatorGroupTree.getOperatorTreeTransferhandler().addDragListener(dragListener);
+		}
       //  this.operatorList = new OperatorList();        
     }
 

@@ -446,9 +446,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	private final EventListenerList processEditors = new EventListenerList();
 	private List<Operator> selectedOperators = Collections.emptyList();
 	
-	// replaced by OperatorDocumentationBrowser
-//    private final OperatorDocViewer operatorDocViewer = OperatorDocViewer.instantiate();
-	// TODO: Enable as soon as documentation is ready
 	private final OperatorDocumentationBrowser operatorDocumentationBrowser = new OperatorDocumentationBrowser();
 	private final OperatorTreePanel operatorTree = new OperatorTreePanel(this);
 	private final ErrorTable errorTable = new ErrorTable(this);
@@ -456,9 +453,9 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	private final XMLEditor xmlEditor = new XMLEditor(this);
 	private final CommentEditor commentEditor = new CommentEditor();
 	private final ProcessContextProcessEditor processContextEditor = new ProcessContextProcessEditor();
-	private final NewOperatorEditor newOperatorEditor = new NewOperatorEditor();
 	private final ProcessPanel processPanel = new ProcessPanel(this);
-	private final RepositoryBrowser repositoryBrowser = new RepositoryBrowser();
+	private final NewOperatorEditor newOperatorEditor = new NewOperatorEditor(processPanel.getProcessRenderer());
+	private final RepositoryBrowser repositoryBrowser = new RepositoryBrowser(processPanel.getProcessRenderer());
 	private final RemoteProcessViewer remoteProcessViewer = new RemoteProcessViewer();
 	private final MacroViewer macroViewer = new MacroViewer();
 

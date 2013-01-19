@@ -54,6 +54,7 @@ import javax.swing.tree.TreeSelectionModel;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.ToggleAction;
+import com.rapidminer.gui.dnd.AbstractPatchedTransferHandler;
 import com.rapidminer.gui.dnd.OperatorTransferHandler;
 import com.rapidminer.gui.operatortree.actions.InfoOperatorAction;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -577,5 +578,9 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
             }
         }
         return max;
+    }
+    
+    public AbstractPatchedTransferHandler getOperatorTreeTransferhandler() {
+    	return (AbstractPatchedTransferHandler) operatorGroupTree.getTransferHandler();
     }
 }

@@ -32,6 +32,8 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ValueDouble;
+import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
+import com.rapidminer.operator.ports.metadata.ParameterConditionedPrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -102,6 +104,9 @@ public class Data2Performance extends AbstractExampleSetEvaluator {
 	public Data2Performance(OperatorDescription description) {
 		super(description);
 
+		getExampleSetInputPort().addPrecondition(new ParameterConditionedPrecondition(getExampleSetInputPort(), new AttributeSetPrecondition(getExampleSetInputPort(), AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_ATTRIBUTE_NAME)), this, PARAMETER_PERFORMANCE_TYPE, MACRO_TYPES[MACRO_TYPE_DATA]));
+		getExampleSetInputPort().addPrecondition(new ParameterConditionedPrecondition(getExampleSetInputPort(), new AttributeSetPrecondition(getExampleSetInputPort(), AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_ATTRIBUTE_NAME)), this, PARAMETER_PERFORMANCE_TYPE, MACRO_TYPES[MACRO_TYPE_STATISTICS]));
+		
 		addValue(new ValueDouble("performance", "The last calculated performance.") {
 			@Override
 			public double getDoubleValue() {

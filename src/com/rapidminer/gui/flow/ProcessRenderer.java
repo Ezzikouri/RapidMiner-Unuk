@@ -38,6 +38,9 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -70,7 +73,6 @@ import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -91,8 +93,10 @@ import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.ConnectPortToRepositoryAction;
 import com.rapidminer.gui.actions.StoreInRepositoryAction;
+import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.dnd.OperatorTransferHandler;
 import com.rapidminer.gui.dnd.ReceivingOperatorTransferHandler;
+import com.rapidminer.gui.dnd.TransferableOperator;
 import com.rapidminer.gui.metadata.MetaDataRendererFactoryRegistry;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.tools.PrintingTools;
@@ -146,7 +150,7 @@ import com.rapidminer.tools.Tools;
  * 
  * @author Simon Fischer
  */
-public class ProcessRenderer extends JPanel {
+public class ProcessRenderer extends JPanel implements DragListener {
 
 	private enum Orientation {
 		X_AXIS,
@@ -413,7 +417,7 @@ public class ProcessRenderer extends JPanel {
 	private static int GRID_Y_OFFSET = MIN_OPERATOR_HEIGHT / 2;
 	private static int GRID_AUTOARRANGE_WIDTH = OPERATOR_WIDTH * 3 / 2;
 	private static int GRID_AUTOARRANGE_HEIGHT = MIN_OPERATOR_HEIGHT * 3 / 2;
-	
+
 	private static RenderingHints HI_QUALITY_HINTS = new RenderingHints(null);
 	private static RenderingHints LOW_QUALITY_HINTS = new RenderingHints(null);
 
@@ -474,7 +478,6 @@ public class ProcessRenderer extends JPanel {
 
 	private static final int ORIGINAL_TUTORIAL_COMIC_WIDTH = 657;
 	private static final int ORIGINAL_TUTORIAL_COMIC_HEIGHT = 464;
-
 
 	/** The widths of the individual subprocesses. */
 	private transient final Map<ExecutionUnit, Dimension> processSizes = new WeakHashMap<ExecutionUnit, Dimension>();
@@ -550,42 +553,46 @@ public class ProcessRenderer extends JPanel {
 
 	/**List of Listeners from a {@link IntroductoryTour} which waits for the moment that something is opened */
 	private LinkedList<ProcessRendererListener> listenersTour;
-	
+
 	private BufferedImage[] tutorialComicPanels;
-	
+
 	private BufferedImage tutorialComicPanelToDraw = null;
 
 	public ProcessRenderer(ProcessPanel processPanel, MainFrame mainFrame) {
 		new PanningManager(this);
-		
+
 		try {
 			tutorialComicPanels = new BufferedImage[7];
-			for (int i=0; i<5; i++) {
-					tutorialComicPanels[i] = ImageIO.read(Tools.getResource("images/tutorial-comic-"+Integer.toString(i)+".png"));
+			for (int i = 0; i < 5; i++) {
+				tutorialComicPanels[i] = ImageIO.read(Tools.getResource("images/tutorial-comic-" + Integer.toString(i) + ".png"));
 			}
-			tutorialComicPanels[5] = ImageIO.read(Tools.getResource("images/tutorial-comic-"+Integer.toString(1)+"-drop.png"));
-			tutorialComicPanels[6] = ImageIO.read(Tools.getResource("images/tutorial-comic-"+Integer.toString(2)+"-drop.png"));
+			tutorialComicPanels[5] = ImageIO.read(Tools.getResource("images/tutorial-comic-" + Integer.toString(1) + "-drop.png"));
+			tutorialComicPanels[6] = ImageIO.read(Tools.getResource("images/tutorial-comic-" + Integer.toString(2) + "-drop.png"));
 		} catch (IOException e) {
 			LogService.getRoot().log(Level.WARNING, "Can not load image", e);
 		}
 		mainFrame.addProcessEditor(new ProcessEditor() {
-			
+
 			private ProcessListener tutorialProcessListener = new ProcessListener() {
+
 				@Override
 				public void processStarts(Process process) {}
+
 				@Override
 				public void processStartedOperator(Process process, Operator op) {}
+
 				@Override
 				public void processFinishedOperator(Process process, Operator op) {}
+
 				@Override
 				public void processEnded(Process process) {
 					tutorialComicPanelToDraw = null;
 				}
 			};
-		
+
 			@Override
 			public void setSelection(List<Operator> selection) {}
-			
+
 			@Override
 			public void processUpdated(Process process) {
 				if ((displayedChain instanceof ProcessRootOperator)) {
@@ -600,40 +607,40 @@ public class ProcessRenderer extends JPanel {
 							break;
 						case 1:
 							golfOperator = getRetrieveGolfOperator(displayedChain.getSubprocess(0).getOperators());
-							if (golfOperator!=null) {
+							if (golfOperator != null) {
 								tutorialComicPanelToDraw = tutorialComicPanels[2];
 							}
 							break;
 						case 2:
 							golfOperator = getRetrieveGolfOperator(displayedChain.getSubprocess(0).getOperators());
-							decisionTreeOperator = getDecisionTreeOperator(displayedChain.getSubprocess(0).getOperators());	
+							decisionTreeOperator = getDecisionTreeOperator(displayedChain.getSubprocess(0).getOperators());
 							if (areCorrectlyConnected(golfOperator, decisionTreeOperator)) {
-									tutorialComicPanelToDraw = tutorialComicPanels[4];
-									process.getRootOperator().addProcessListener(tutorialProcessListener);
-								} else {
-									tutorialComicPanelToDraw = tutorialComicPanels[3];
-								}
-							
+								tutorialComicPanelToDraw = tutorialComicPanels[4];
+								process.getRootOperator().addProcessListener(tutorialProcessListener);
+							} else {
+								tutorialComicPanelToDraw = tutorialComicPanels[3];
+							}
+
 							break;
 						default:
 							break;
 					}
 				}
 			}
-			
+
 			private boolean areCorrectlyConnected(RepositorySource golfOperator, DecisionTreeLearner decisionTreeOperator) {
-				return golfOperator!=null && decisionTreeOperator!=null &&
-						
-						golfOperator.getOutputPorts().getNumberOfConnectedPorts()==1 && 
-						decisionTreeOperator.getInputPorts().getNumberOfConnectedPorts()==1 &&
-						decisionTreeOperator.getOutputPorts().getNumberOfConnectedPorts()==1 &&
-						
-						golfOperator.getOutputPorts().getPortByIndex(0).getDestination().equals(decisionTreeOperator.getInputPorts().getPortByIndex(0)); 
+				return golfOperator != null && decisionTreeOperator != null &&
+
+						golfOperator.getOutputPorts().getNumberOfConnectedPorts() == 1 &&
+						decisionTreeOperator.getInputPorts().getNumberOfConnectedPorts() == 1 &&
+						decisionTreeOperator.getOutputPorts().getNumberOfConnectedPorts() == 1 &&
+
+						golfOperator.getOutputPorts().getPortByIndex(0).getDestination().equals(decisionTreeOperator.getInputPorts().getPortByIndex(0));
 			}
-			
+
 			private RepositorySource getRetrieveGolfOperator(List<Operator> operators) {
-				for(Operator operator : operators) {
-					if(operator instanceof RepositorySource) {
+				for (Operator operator : operators) {
+					if (operator instanceof RepositorySource) {
 						RepositorySource specificOperator = (RepositorySource) operator;
 						try {
 							if (specificOperator.getParameter(RepositorySource.PARAMETER_REPOSITORY_ENTRY).equals("//Samples/data/Golf")) {
@@ -646,16 +653,16 @@ public class ProcessRenderer extends JPanel {
 				}
 				return null;
 			}
-			
+
 			private DecisionTreeLearner getDecisionTreeOperator(List<Operator> operators) {
-				for(Operator operator : operators) {
-					if(operator instanceof DecisionTreeLearner) {
+				for (Operator operator : operators) {
+					if (operator instanceof DecisionTreeLearner) {
 						return (DecisionTreeLearner) operator;
 					}
 				}
 				return null;
 			}
-			
+
 			@Override
 			public void processChanged(Process process) {}
 		});
@@ -678,9 +685,7 @@ public class ProcessRenderer extends JPanel {
 
 				List<Operator> selection = getSelection();
 				// if we don't have a loc, we can use the mouse cursor
-				if (loc == null &&
-						(selection == null || selection.isEmpty() ||
-						selection.size() == 1 && selection.get(0) == displayedChain)) {
+				if (loc == null) {
 					loc = currentMousePosition;
 				}
 
@@ -702,7 +707,7 @@ public class ProcessRenderer extends JPanel {
 				try {
 					if (processIndex != -1) {
 						if (loc != null) {
-							// this is a drop
+							// we have a location for the drop/paste
 							Operator firstOperator = newOperators.get(0);
 							Point dest = toProcessSpace(loc, processIndex);
 
@@ -773,7 +778,8 @@ public class ProcessRenderer extends JPanel {
 							}
 							AutoWireThread.autoWireInBackground(newOperators, firstMustBeWired);
 						} else {
-							// this is a paste. Insert all, then wire all
+							// this should not happen, since we should always have a location.
+							// Nevertheless, we have a fallback here in case no position for the drop is set.
 							for (Operator newOp : newOperators) {
 								processes[processIndex].addOperator(newOp);
 							}
@@ -857,7 +863,7 @@ public class ProcessRenderer extends JPanel {
 
 			@Override
 			public boolean canImport(TransferSupport ts) {
-				if(ts.isDrop()) {
+				if (ts.isDrop()) {
 					int pid = ProcessRenderer.this.getProcessIndexUnder(ts.getDropLocation().getDropPoint());
 					if (pid < 0) {
 						return false;
@@ -911,7 +917,7 @@ public class ProcessRenderer extends JPanel {
 				}
 			}
 		});
-		
+
 		((ResourceAction) mainFrame.getActions().TOGGLE_BREAKPOINT[BreakpointListener.BREAKPOINT_AFTER]).addToActionMap(this, WHEN_FOCUSED);
 		((ResourceAction) mainFrame.getActions().TOGGLE_ACTIVATION_ITEM).addToActionMap(this, WHEN_FOCUSED);
 		SELECT_ALL_ACTION.addToActionMap(this, WHEN_FOCUSED);
@@ -1050,9 +1056,10 @@ public class ProcessRenderer extends JPanel {
 			}
 		}
 		showProcesses(processes);
-		
+
 		fireNewChainDisplayed();
 	}
+
 	private void showProcesses(ExecutionUnit[] processes) {
 		this.processes = processes;
 		setInitialSizes(processes);
@@ -1122,7 +1129,6 @@ public class ProcessRenderer extends JPanel {
 		}
 	}
 
-	
 	@Override
 	public void paintComponent(Graphics graphics) {
 		super.paintComponent(graphics);
@@ -1134,14 +1140,15 @@ public class ProcessRenderer extends JPanel {
 		}
 		render((Graphics2D) graphics);
 //		drawComicTutorial(graphics);
-	
+
 	}
-	
+
 	private void drawComicTutorial(Graphics graphics) {
-		if (tutorialComicPanelToDraw!=null) {
+		if (tutorialComicPanelToDraw != null) {
 			Graphics2D translated = (Graphics2D) graphics.create();
 			translated.translate(getWidth() / 2 - ORIGINAL_TUTORIAL_COMIC_WIDTH / 2, getHeight() / 2 - ORIGINAL_TUTORIAL_COMIC_HEIGHT / 2);
 			translated.drawImage(tutorialComicPanelToDraw, 0, 0, new ImageObserver() {
+
 				@Override
 				public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
 					return false;
@@ -1150,11 +1157,11 @@ public class ProcessRenderer extends JPanel {
 			translated.dispose();
 		}
 	}
-	
+
 	private void onGolfDataDragged() {
 		tutorialComicPanelToDraw = tutorialComicPanels[5];
 	}
-	
+
 	private void onDecisionTreeDragged() {
 		tutorialComicPanelToDraw = tutorialComicPanels[6];
 	}
@@ -1364,8 +1371,15 @@ public class ProcessRenderer extends JPanel {
 		g.setPaint(SHADOW_LEFT_GRADIENT);
 		g.fill(top);
 
-		g.setPaint(LINE_COLOR);
-		g.setStroke(LINE_STROKE);
+		if (dragStarted) {
+//			g.setPaint(new Color(245, 184, 0));
+//			g.setPaint(new Color(51, 102, 255));
+			g.setPaint(FRAME_COLOR_SELECTED);
+			g.setStroke(FRAME_STROKE_SELECTED);
+		} else {
+			g.setPaint(LINE_COLOR);
+			g.setStroke(LINE_STROKE);
+		}
 		g.draw(frame);
 
 		drawComicTutorial(g);
@@ -2613,7 +2627,6 @@ public class ProcessRenderer extends JPanel {
 	private final OverviewPanel overviewPanel = new OverviewPanel(this);
 
 	private JTextField renameField = null;
-	
 
 	private BufferedImage tutorialImage;
 
@@ -3511,5 +3524,51 @@ public class ProcessRenderer extends JPanel {
 				listener.newChainShowed(displayedChain);
 			}
 		}
+	}
+
+	private boolean dragStarted = false;
+
+	@Override
+	public void dragStarted(Transferable t) {
+		DataFlavor[] transferDataFlavors = t.getTransferDataFlavors();
+		dragStarted = true;
+		for (DataFlavor flavor : transferDataFlavors) {
+
+			if (flavor == TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR) {
+				RepositoryLocation location;
+				try {
+
+					// get repository location
+					location = (RepositoryLocation) t.getTransferData(flavor);
+
+					// check if golf is dragged
+					if (location.getAbsoluteLocation().equals("//Samples/data/Golf")) {
+						onGolfDataDragged();
+					}
+				} catch (UnsupportedFlavorException e) {} catch (IOException e) {}
+			}
+
+			if (flavor == TransferableOperator.LOCAL_TRANSFERRED_OPERATORS_FLAVOR) {
+				Operator[] operators;
+				try {
+					operators = (Operator[]) t.getTransferData(flavor);
+
+					// we assume that only one operator can be dragged at a time
+					Operator draggedOperator = operators[0];
+
+					// check if decision tree is dragged
+					if (draggedOperator instanceof DecisionTreeLearner) {
+						onDecisionTreeDragged();
+					}
+				} catch (UnsupportedFlavorException e) {} catch (IOException e) {}
+			}
+		}
+		repaint();
+	}
+
+	@Override
+	public void dragEnded() {
+		dragStarted = false;
+		repaint();
 	}
 }

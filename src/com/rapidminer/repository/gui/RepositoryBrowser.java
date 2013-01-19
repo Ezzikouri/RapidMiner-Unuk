@@ -37,6 +37,8 @@ import javax.swing.JToolBar;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.OpenAction;
+import com.rapidminer.gui.dnd.AbstractPatchedTransferHandler;
+import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJToolBar;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -71,7 +73,17 @@ public class RepositoryBrowser extends JPanel implements Dockable {
 	private final RepositoryTree tree;
 	
 	public RepositoryBrowser() {
+		this(null);
+	}
+	
+	/**
+	 * @param dragListener registers a dragListener at the repository tree transferhandler. The listener is informed when a drag starts and a drag ends.
+	 */
+	public RepositoryBrowser(DragListener dragListener) {	
 		tree = new RepositoryTree();
+		if(dragListener != null) {
+			((AbstractPatchedTransferHandler) tree.getTransferHandler()).addDragListener(dragListener);
+		}
 		tree.addRepositorySelectionListener(new RepositorySelectionListener() {			
 			@Override
 			public void repositoryLocationSelected(RepositorySelectionEvent e) {

@@ -32,6 +32,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
 
+import com.rapidminer.gui.dnd.AbstractPatchedTransferHandler;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;

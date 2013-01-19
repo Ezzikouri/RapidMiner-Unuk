@@ -78,6 +78,7 @@ import javax.swing.tree.TreePath;
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableExampleSetAdapter;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.new_plotter.MasterOfDesaster;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;
@@ -97,7 +98,6 @@ import com.rapidminer.gui.new_plotter.gui.treenodes.DimensionConfigTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.PlotConfigurationTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.RangeAxisConfigTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.ValueSourceTreeNode;
-import com.rapidminer.gui.new_plotter.listener.DragListener;
 import com.rapidminer.gui.new_plotter.listener.MasterOfDesasterListener;
 import com.rapidminer.gui.new_plotter.listener.PlotConfigurationProcessingListener;
 import com.rapidminer.gui.new_plotter.listener.PlotInstanceChangedListener;
@@ -225,8 +225,8 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 		masterOfDesaster.addListener(this);
 
-		attributeListTransferHandler.addDragStartListener(this);
-		plotConfigurationTreeTransferHandler.addDragStartListener(this);
+		attributeListTransferHandler.addDragListener(this);
+		plotConfigurationTreeTransferHandler.addDragListener(this);
 
 		attributeList.requestFocusInWindow();
 		plotConfigurationTree.expandAll();

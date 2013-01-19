@@ -30,6 +30,7 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
 import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryException;
 
 /**
@@ -64,8 +65,33 @@ public class TreeUtil {
 		if (selectedPath != null) {
 			Object lastPathComponent = selectedPath.getLastPathComponent();
 
-			if (lastPathComponent instanceof Folder) {
-
+			if (lastPathComponent instanceof Repository) {
+				// special handling for repository because they are top level elements in the tree
+				// and a tree structure change TreeModelEvent on a top level element will collapse the whole JTree
+				// and therefore only storing the current selection is not sufficient
+				Object root = parentTree.getModel().getRoot();
+				int rootChildCount = parentTree.getModel().getChildCount(root);
+				// iterate over all elements in RepositoryTree
+				for (int i=0; i<rootChildCount; i++) {
+					Object childRepo = parentTree.getModel().getChild(root, i);
+					// only interested in Repository
+					if (childRepo instanceof Repository) {
+						int repoChildCount = parentTree.getModel().getChildCount(childRepo);
+						// iterate over all elements in the repository
+						for (int j=0; j<repoChildCount; j++) {
+							Object childFolder = parentTree.getModel().getChild(childRepo, j);
+							// only interested in Folder
+							if (childFolder instanceof Folder) {
+								try {
+									saveExpansionState(parentTree, expansionRoot, (Folder)childFolder);
+								} catch (RepositoryException e) {
+									// could not save expansion state. Do nothing here. It just can't be restored afterwards
+								}
+							}
+						}
+					}
+				}
+			} else if (lastPathComponent instanceof Folder) {
 				Folder folder = (Folder) lastPathComponent; // Get the selected folder
 
 				//check if parent of folder is still a folder

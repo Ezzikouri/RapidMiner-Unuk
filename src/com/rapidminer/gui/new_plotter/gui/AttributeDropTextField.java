@@ -32,10 +32,10 @@ import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 
+import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.gui.dnd.DataTableColumnDropTextFieldTransferHandler;
 import com.rapidminer.gui.new_plotter.gui.dnd.DataTableColumnListTransferHandler;
-import com.rapidminer.gui.new_plotter.listener.DragListener;
 
 
 /**
@@ -50,7 +50,7 @@ public class AttributeDropTextField extends JTextField implements DragListener {
 	private Border dropEndedBorder;
 
 	public AttributeDropTextField(JTree plotConfigurationTree, DataTableColumnListTransferHandler th, SeriesUsageType type) {
-		th.addDragStartListener(this);
+		th.addDragListener(this);
 
 		this.setFocusable(false);
 		this.setEditable(false);

@@ -124,7 +124,7 @@ public class UpdateServerAccount extends Observable {
 							try {
 								UpdateManager.getAccountService();
 							} catch (Exception e) {
-								LogService.getRoot().log(Level.INFO, "Failed to login: " + e.getLocalizedMessage(), e);
+								LogService.getRoot().log(Level.INFO, "Failed to login: " + e.getLocalizedMessage());
 								// wrong login data
 								continue;
 							}

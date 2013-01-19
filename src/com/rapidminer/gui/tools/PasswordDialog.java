@@ -90,7 +90,7 @@ public class PasswordDialog extends ButtonDialog {
 
 		main.add(rememberBox, c);
 
-		layoutDefault(main, makeCancelButton(), makeOkButton());
+		layoutDefault(main, makeOkButton(), makeCancelButton());
 
 	}
 

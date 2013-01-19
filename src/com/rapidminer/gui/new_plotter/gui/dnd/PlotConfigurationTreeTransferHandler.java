@@ -46,6 +46,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import com.rapidminer.gui.dnd.AbstractPatchedTransferHandler;
 import com.rapidminer.gui.new_plotter.ChartConfigurationException;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;

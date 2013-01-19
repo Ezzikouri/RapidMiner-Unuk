@@ -45,10 +45,10 @@ import java.util.List;
 import java.util.logging.Level;
 
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
-import javax.swing.TransferHandler;
 import javax.swing.event.EventListenerList;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
@@ -60,6 +60,7 @@ import javax.swing.tree.TreeSelectionModel;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.OpenAction;
+import com.rapidminer.gui.dnd.AbstractPatchedTransferHandler;
 import com.rapidminer.gui.dnd.TransferableOperator;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceActionAdapter;
@@ -311,7 +312,7 @@ public class RepositoryTree extends JTree {
 		});
 
 		setDragEnabled(true);
-		setTransferHandler(new TransferHandler() {
+		setTransferHandler(new AbstractPatchedTransferHandler() {
 
 			private static final long serialVersionUID = 1L;
 			// Remember whether the last cut/copy action was a MOVE
@@ -451,6 +452,11 @@ public class RepositoryTree extends JTree {
 				} else {
 					return null;
 				}
+			}
+
+			@Override
+			public Icon getVisualRepresentation(Transferable t) {
+				return null;
 			}
 		});
 

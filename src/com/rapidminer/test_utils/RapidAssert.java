@@ -56,6 +56,7 @@ public class RapidAssert extends Assert {
 	public static final double MAX_RELATIVE_ERROR = 0.000000001;
 
 	public static final AsserterRegistry ASSERTER_REGISTRY = new AsserterRegistry();
+	private static boolean ignoreRepositoryNameForSourceAnnotation = true;
 
 	/**
 	 * Returns <code>true</code> if the ioobjects class is supported for
@@ -342,13 +343,6 @@ public class RapidAssert extends Assert {
 	 */
 	public static void assertEquals(String message, IOObject expectedIOO, IOObject actualIOO) {
 
-		// first, compare annotations:
-		Annotations expectedAnnotations = expectedIOO.getAnnotations();
-		Annotations actualAnnotations = actualIOO.getAnnotations();
-		
-		Assert.assertEquals(message + "annotations differ: ", expectedAnnotations, actualAnnotations);
-		
-		
 		/*
 		 * Do not forget to add a newly supported class to the 
 		 * ASSERTER_REGISTRY!!!
@@ -362,7 +356,36 @@ public class RapidAssert extends Assert {
 			throw new ComparisonFailure("Comparison of the two given IOObject classes " + expectedIOO.getClass() + " and " + actualIOO.getClass() + " is not supported. ",
 					expectedIOO.toString(), actualIOO.toString());
 		}
+		
+		// last, compare annotations:
+		Annotations expectedAnnotations = expectedIOO.getAnnotations();
+		Annotations actualAnnotations = actualIOO.getAnnotations();
+		
+		if (ignoreRepositoryNameForSourceAnnotation  ) {
+			// compare annotations one by one. For the Source annotation, ignore the repository name
+			// (that's what all the regular expressions here are for)
+			for (String key : expectedAnnotations.getKeys()) {
+				String expectedValue = expectedAnnotations.getAnnotation(key);
+				String actualValue = actualAnnotations.getAnnotation(key);
 
+				if (expectedValue != null) {
+					Assert.assertNotNull(message + "objects are equal, but annotation " + key + " is missing", actualValue);
+				}
+				
+				
+				if (Annotations.KEY_SOURCE.equals(key)) {
+					if (expectedValue != null && expectedValue.startsWith("//") && expectedValue.matches("//[^/]+/.*")) {
+						expectedValue = expectedValue.replaceAll("^//[^/]+/", "//repository/");
+						if (actualValue != null) {
+							actualValue = actualValue.replaceAll("^//[^/]+/", "//repository/");
+						}
+					}
+				}
+				Assert.assertEquals(message + "objects are equal, but annotation '" + key + "' differs: ", expectedValue, actualValue);
+			}
+		} else {
+			Assert.assertEquals(message + "objects are equal, but annotations differ: ", expectedAnnotations, actualAnnotations);
+		}
 	}
 
 	/**

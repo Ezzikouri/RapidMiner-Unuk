@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.new_plotter.gui.treenodes;
 
 import java.awt.datatransfer.DataFlavor;
@@ -41,9 +42,9 @@ public class RangeAxisConfigTreeNode extends DefaultMutableTreeNode implements T
 
 	private static final long serialVersionUID = 1L;
 
-	private final static String MIME_TYPE = DataFlavor.javaJVMLocalObjectMimeType+";class="+RangeAxisConfig.class.getName();
+	private final static String MIME_TYPE = DataFlavor.javaJVMLocalObjectMimeType + ";class=" + RangeAxisConfig.class.getName();
 	public final static DataFlavor RANGE_AXIS_CONFIG_FLAVOR = new DataFlavor(MIME_TYPE, "RangeAxisConfigTreeNode");
-	
+
 	/**
 	 * @param rangeAxis
 	 */
@@ -52,7 +53,7 @@ public class RangeAxisConfigTreeNode extends DefaultMutableTreeNode implements T
 	}
 
 	public int getValueSourceIndex(ValueSource valueSource) {
-		if(children == null) {
+		if (children == null) {
 			return -1;
 		}
 		for (Object child : children) {
@@ -97,7 +98,7 @@ public class RangeAxisConfigTreeNode extends DefaultMutableTreeNode implements T
 	public boolean isLeaf() {
 		return false;
 	}
-	
+
 	@Override
 	public RangeAxisConfig getUserObject() {
 		return (RangeAxisConfig) super.getUserObject();

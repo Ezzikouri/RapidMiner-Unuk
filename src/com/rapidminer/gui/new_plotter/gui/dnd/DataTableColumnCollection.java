@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.new_plotter.gui.dnd;
 
 import java.awt.datatransfer.DataFlavor;
@@ -27,19 +28,17 @@ import java.util.List;
 
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 
-
 /**
  * @author Nils Woehler
  *
  */
 public class DataTableColumnCollection {
 
-	private final static String MIME_TYPE = DataFlavor.javaJVMLocalObjectMimeType+";class="+DataTableColumnCollection.class.getName();
-	public final static DataFlavor DATATABLE_COLUMN_COLLECTION_FLAVOR = new DataFlavor(MIME_TYPE,"DataTableColumnCollection");
-	
+	private final static String MIME_TYPE = DataFlavor.javaJVMLocalObjectMimeType + ";class=" + DataTableColumnCollection.class.getName();
+	public final static DataFlavor DATATABLE_COLUMN_COLLECTION_FLAVOR = new DataFlavor(MIME_TYPE, "DataTableColumnCollection");
+
 	private final List<DataTableColumn> collection;
 
-	
 	/**
 	 * @return the collection
 	 */
@@ -49,7 +48,7 @@ public class DataTableColumnCollection {
 
 	public DataTableColumnCollection(List<DataTableColumn> collection) {
 		this.collection = collection;
-		
+
 	}
-	
+
 }

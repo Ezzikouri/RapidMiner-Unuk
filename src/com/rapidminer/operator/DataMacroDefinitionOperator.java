@@ -134,7 +134,8 @@ public class DataMacroDefinitionOperator extends Operator {
 		super(description);
 
 		exampleSetInput.addPrecondition(new ParameterConditionedPrecondition(exampleSetInput, new AttributeSetPrecondition(exampleSetInput, AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_ATTRIBUTE_NAME)), this, PARAMETER_MACRO_TYPE, MACRO_TYPES[MACRO_TYPE_DATA]));
-
+		exampleSetInput.addPrecondition(new ParameterConditionedPrecondition(exampleSetInput, new AttributeSetPrecondition(exampleSetInput, AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_ATTRIBUTE_NAME)), this, PARAMETER_MACRO_TYPE, MACRO_TYPES[MACRO_TYPE_STATISTICS]));
+		
 		getTransformer().addRule(new PassThroughRule(exampleSetInput, exampleSetOutput, false));
 
 

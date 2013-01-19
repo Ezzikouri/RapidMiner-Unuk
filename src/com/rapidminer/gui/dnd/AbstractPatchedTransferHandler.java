@@ -20,7 +20,8 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.gui.new_plotter.gui.dnd;
+
+package com.rapidminer.gui.dnd;
 
 import java.awt.Cursor;
 import java.awt.Graphics;
@@ -58,8 +59,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.TransferHandler;
 
-import com.rapidminer.gui.new_plotter.listener.DragListener;
-
 /**
  * Abstract class for PlotConfiguration DnD {@link TransferHandler}s. Extends the original
  * TransferHandler and allows to set DnD Icons by overwriting the original
@@ -72,7 +71,7 @@ import com.rapidminer.gui.new_plotter.listener.DragListener;
 public abstract class AbstractPatchedTransferHandler extends TransferHandler implements Serializable {
 
 	//TODO Occasionally check if Bug has been fixed: http://bugs.sun.com/view_bug.do?bug_id=4816922
-	
+
 	private final int HIDE_DELAY = 100;
 	private final int SHOW_DELAY = 500;
 
@@ -94,16 +93,14 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 		/**
 		 * register this DragGestureRecognizer's Listeners with the Component
 		 */
-		protected void registerListeners() {
-		}
+		protected void registerListeners() {}
 
 		/**
 		 * unregister this DragGestureRecognizer's Listeners with the Component
 		 * <p/>
 		 * subclasses must override this method
 		 */
-		protected void unregisterListeners() {
-		}
+		protected void unregisterListeners() {}
 
 	}
 
@@ -167,20 +164,17 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 		/**
 		 * as the hotspot enters a platform dependent drop site
 		 */
-		public void dragEnter(DragSourceDragEvent dsde) {
-		}
+		public void dragEnter(DragSourceDragEvent dsde) {}
 
 		/**
 		 * as the hotspot moves over a platform dependent drop site
 		 */
-		public void dragOver(DragSourceDragEvent dsde) {
-		}
+		public void dragOver(DragSourceDragEvent dsde) {}
 
 		/**
 		 * as the hotspot exits a platform dependent drop site
 		 */
-		public void dragExit(DragSourceEvent dsde) {
-		}
+		public void dragExit(DragSourceEvent dsde) {}
 
 		/**
 		 * as the operation completes
@@ -197,8 +191,7 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 			fireDragEnded();
 		}
 
-		public void dropActionChanged(DragSourceDragEvent dsde) {
-		}
+		public void dropActionChanged(DragSourceDragEvent dsde) {}
 	}
 
 	protected class hidePopupAction implements ActionListener {
@@ -236,7 +229,7 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 
 		// only mouse events supported for drag operations
 		if (!(e instanceof MouseEvent)
-		// only support known actions
+				// only support known actions
 				|| !(action == COPY || action == MOVE || action == LINK)
 				// only support valid source actions
 				|| (srcActions & action) == 0) {
@@ -369,14 +362,14 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 					showTimer.restart();
 				} else {
 //					StaticDebug.debug("DND POPUP: Check if mouse position has changed.. ");
-					
+
 					// check if mouse position has changed
 					showPopupAtMousePosition();
 				}
 
 			} else {
 //				StaticDebug.debug("DND POPUP: Popup is not shown.. ");
-				
+
 				// if tooltip is not shown check if show timer is running already. if not start it
 				if (!showTimer.isRunning()) {
 //					StaticDebug.debug("DND POPUP: Show timer is not running.. starting Show timer");
@@ -400,11 +393,11 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 		}
 	}
 
-	public void addDragStartListener(DragListener l) {
+	public void addDragListener(DragListener l) {
 		listeners.add(l);
 	}
 
-	public void removeDragStartListener(DragListener l) {
+	public void removeDragListener(DragListener l) {
 		listeners.remove(l);
 	}
 }

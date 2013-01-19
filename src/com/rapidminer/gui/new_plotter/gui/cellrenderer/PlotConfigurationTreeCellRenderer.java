@@ -41,6 +41,7 @@ import javax.swing.border.Border;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig;
@@ -54,7 +55,6 @@ import com.rapidminer.gui.new_plotter.gui.treenodes.DimensionConfigTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.PlotConfigurationTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.RangeAxisConfigTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.ValueSourceTreeNode;
-import com.rapidminer.gui.new_plotter.listener.DragListener;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.I18N;
 
@@ -567,7 +567,7 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 	private boolean dragging;
 
 	public PlotConfigurationTreeCellRenderer(DataTableColumnListTransferHandler aTH) {
-		aTH.addDragStartListener(this);
+		aTH.addDragListener(this);
 
 		ERROR_ICON = SwingTools.createIcon("16/" + I18N.getMessageOrNull(I18N.getGUIBundle(), "gui.label.plotter.configuratiom_dialog.error_icon"));
 		WARNING_ICON = SwingTools.createIcon("16/" + I18N.getMessageOrNull(I18N.getGUIBundle(), "gui.label.plotter.configuratiom_dialog.warning_icon"));
