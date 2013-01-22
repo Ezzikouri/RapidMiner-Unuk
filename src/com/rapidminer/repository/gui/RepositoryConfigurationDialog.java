@@ -28,8 +28,10 @@ import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.JButton;
 
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryException;
 
 /** Dialog to configure an existing repository.
  * 
@@ -62,6 +64,11 @@ public class RepositoryConfigurationDialog extends ButtonDialog {
 	@Override
 	protected void ok() {
 		configurationPanel.configure(repository);
+		try {
+			repository.refresh();
+		} catch (RepositoryException e) {
+			SwingTools.showSimpleErrorMessage("cannot_refresh_folder", e);
+		}
 		super.ok();
 	}
 	

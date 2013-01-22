@@ -41,6 +41,7 @@ import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.nio.model.ParsingError.ErrorCode;
 import com.rapidminer.tools.CSVParseException;
 import com.rapidminer.tools.LineParser;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.WebServiceTools;
@@ -52,7 +53,8 @@ import com.rapidminer.tools.WebServiceTools;
  */
 public class CSVResultSet implements DataResultSet {
 
-    private CSVResultSetConfiguration configuration;
+    private static final int MAX_LOG_COUNT = 100;
+	private CSVResultSetConfiguration configuration;
     private LineReader reader;
     private LineParser parser;
 
@@ -64,6 +66,7 @@ public class CSVResultSet implements DataResultSet {
     private int numColumns = 0;
     private Operator operator;
     private final List<ParsingError> errors = new LinkedList<ParsingError>();
+	private int logCount = 0;
 
     public CSVResultSet(CSVResultSetConfiguration configuration, Operator operator) throws OperatorException {
         this.configuration = configuration;
@@ -75,6 +78,7 @@ public class CSVResultSet implements DataResultSet {
         getErrors().clear();
         close();
         InputStream in = openStream();
+        logCount = 0;
 
         // if encoding is UTF-8, we will have to check whether the stream starts with a BOM. If not restart stream
 
@@ -157,11 +161,22 @@ public class CSVResultSet implements DataResultSet {
             	ParsingError parsingError = new ParsingError(currentRow, -1, ErrorCode.FILE_SYNTAX_ERROR, line, e);
                 getErrors().add(parsingError);
                 String warning = "Could not parse line " + currentRow + " in input: " + e.toString();
-                if (operator != null) {
-                	operator.logWarning(warning);
+                if (logCount < MAX_LOG_COUNT) {
+                	if (operator != null) {
+                		operator.logWarning(warning);
+                	} else {                	
+                		LogService.getRoot().warning(warning);
+                	}
                 } else {
-                	Logger.getLogger(getClass().getName()).warning(warning);
+                	if (logCount == MAX_LOG_COUNT) {
+                    	if (operator != null) {
+                    		operator.logWarning("Maximum number of warnings exceeded. Will display no further warnings.");
+                    	} else {                	
+                    		LogService.getRoot().warning("Maximum number of warnings exceeded. Will display no further warnings.");
+                    	}                		
+                	}               	
                 }
+            	logCount++;
                 next = new String[] { line };
             }
         } while (true);

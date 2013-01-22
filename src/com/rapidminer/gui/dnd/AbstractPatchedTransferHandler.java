@@ -39,12 +39,15 @@ import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceDropEvent;
 import java.awt.dnd.DragSourceEvent;
 import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TooManyListenersException;
@@ -102,6 +105,14 @@ public abstract class AbstractPatchedTransferHandler extends TransferHandler imp
 		 */
 		protected void unregisterListeners() {}
 
+	}
+
+	/** Dirty hack to get the drop target listener defined in {@link TransferHandler} by method invokation. */
+	public static DropTargetListener getDropTargetListener() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		Method m;
+		m = TransferHandler.class.getDeclaredMethod("getDropTargetListener");
+		m.setAccessible(true); //if security settings allow this
+		return (DropTargetListener) m.invoke(null); //use null if the method is static
 	}
 
 	/**

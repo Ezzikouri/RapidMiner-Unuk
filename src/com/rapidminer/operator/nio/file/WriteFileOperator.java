@@ -152,7 +152,7 @@ public class WriteFileOperator extends Operator {
 		parameterTypes.add(parameterTypeFile);
 
 		ParameterTypeRepositoryLocation parameterTypeRepositoryLocation = new ParameterTypeRepositoryLocation(
-				PARAMETER_REPOSITORY_LOCATION, "Repository entry to open. This must point to a blob.", true, false, false, true, true);
+				PARAMETER_REPOSITORY_LOCATION, "Repository entry to open. This must point to a blob.", true, false, false, true, true,true);
 		parameterTypeRepositoryLocation.setExpert(false);
 		parameterTypeRepositoryLocation.registerDependencyCondition(new EqualTypeCondition(
 				this, PARAMETER_DESTINATION_TYPE, DESTINATION_TYPES, true,

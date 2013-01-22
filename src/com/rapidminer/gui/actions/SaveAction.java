@@ -66,6 +66,7 @@ public class SaveAction extends ResourceAction {
 				}
 			} else {
 				SaveAsAction.saveAs(process);
+				return;
 			}
 			
 			// check if process has really been saved or user has pressed cancel in saveAs dialog

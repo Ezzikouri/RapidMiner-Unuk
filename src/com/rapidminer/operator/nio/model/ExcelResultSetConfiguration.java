@@ -324,22 +324,15 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	@Override
 	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException {
 		final DataResultSet resultSet = makeDataResultSet(null);
-		//this.errors = ((CSVResultSet) resultSet).getErrors();
 		try {
 			return new DefaultPreview(resultSet, listener);
 		} catch (ParseException e) {
 			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
+		} finally {
+			if(resultSet != null) {
+				resultSet.close();
+			}
 		}
-		//
-		//		try {
-		//			return new ExcelSheetTableModel(this);
-		//		} catch (IndexOutOfBoundsException e) {
-		//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
-		//		} catch (BiffException e) {
-		//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
-		//		} catch (IOException e) {
-		//			throw new UserError(null, 302, getFile().getPath(), e.getMessage());
-		//		}
 	}
 
 	public void closeWorkbook() {

@@ -179,10 +179,12 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 
 	public static boolean checkConfiguration(String url, String username, char[] password) {
 		URL repositoryServiceURL;
+		HttpURLConnection conn = null;
 		try {
 			repositoryServiceURL = getRepositoryServiceWSDLUrl(new URL(url));
 
-			final HttpURLConnection conn = (HttpURLConnection) repositoryServiceURL.openConnection();
+			Authenticator.setDefault(null);
+			conn = (HttpURLConnection) repositoryServiceURL.openConnection();
 			WebServiceTools.setURLConnectionDefaults(conn);
 			conn.setRequestProperty("Accept-Charset", "UTF-8");
 			if ((username != null) && (username.length() != 0) &&
@@ -190,7 +192,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				String userpass = username + ":" + new String(password);
 				String basicAuth = "Basic " + new String(Base64.encodeBytes(userpass.getBytes()));
 				conn.setRequestProperty("Authorization", basicAuth);
-				Authenticator.setDefault(null);
 				return 200 == conn.getResponseCode();
 			} else {
 				return false;
@@ -199,6 +200,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			return false;
 		} finally {
 			Authenticator.setDefault(GlobalAuthenticator.getInstance());
+			if(conn != null) {
+				conn.disconnect();
+			}
 		}
 	}
 
@@ -569,6 +573,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		super.refresh();
 		if (!isPasswordInputCanceled()) {
 			removeJDBCConnectionEntries();
+			installJDBCConnectionEntries();
 			refreshProcessExecutionQueueNames();
 		}
 	}

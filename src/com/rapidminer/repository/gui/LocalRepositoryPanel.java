@@ -70,10 +70,10 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 	private JButton finishButton;
 
 	/** The optional finish button will be disabled when invalid information is entered. */
-	public LocalRepositoryPanel(JButton finishButton) {
+	public LocalRepositoryPanel(JButton finishButton, boolean isNew) {
 		this.finishButton = finishButton;
 		
-		standardLocation.setSelected(true);
+		standardLocation.setSelected(isNew);
 		errorLabel.setForeground(Color.red);
 		errorLabel.setFont(errorLabel.getFont().deriveFont(Font.BOLD));
 		
@@ -105,10 +105,11 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 		gbl.setConstraints(label, c);
 		add(label);
 
-		c.gridheight = 1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		add(standardLocation, c);
-
+		if (isNew) {
+			c.gridheight = 1;
+			c.gridwidth = GridBagConstraints.REMAINDER;
+			add(standardLocation, c);
+		}
 		c.gridwidth = GridBagConstraints.RELATIVE;
 		gbl.setConstraints(fileField, c);
 		add(fileField);

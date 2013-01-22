@@ -115,6 +115,7 @@ public class Annotations implements Serializable, Map<String,String>, Cloneable 
 	public static final String[] ALL_KEYS_IOOBJECT = {
 		KEY_SOURCE,
 		KEY_COMMENT,
+		KEY_FILENAME,
 		
 		KEY_DC_AUTHOR,
 		KEY_DC_TITLE,
@@ -132,7 +133,6 @@ public class Annotations implements Serializable, Map<String,String>, Cloneable 
 		KEY_DC_AUDIENCE,
 		KEY_DC_INSTRUCTIONAL_METHOD,
 		
-		KEY_FILENAME,
 	};
 	
 	/** Keys that can be assigned to {@link Attribute}s. 

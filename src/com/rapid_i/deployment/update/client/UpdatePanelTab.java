@@ -417,7 +417,7 @@ public class UpdatePanelTab extends JPanel {
 				
 				
 				try {
-					displayPane.setPage("http://rapid-i.com/rapidminer_news/");
+					displayPane.setPage("http://rapid-i.com/marketplace_news");
 				} catch (Exception e) {
 					displayPane.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update_welcome_message.text", UpdateManager.getBaseUrl()));
 				}

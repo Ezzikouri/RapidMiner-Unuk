@@ -592,6 +592,7 @@ public class RepositoryTree extends JTree {
 		expandIfExists(location.parent(), location.getName());
 		scrollPathToVisible(getSelectionPath());
 		expandIfExists(location.parent(), location.getName());
+		scrollPathToVisible(getSelectionPath());
     }
 
 	private void showPopup(MouseEvent e) {

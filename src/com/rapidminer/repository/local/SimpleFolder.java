@@ -29,7 +29,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.repository.BlobEntry;
@@ -168,14 +167,12 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 		for (Folder folder : folders) {
 			// folder with the same name (no matter if they have different capitalization) must not be created
 			if (folder.getName().toLowerCase(Locale.ENGLISH).equals(name.toLowerCase(Locale.ENGLISH))) {
-				SwingTools.showVerySimpleErrorMessage("repository_folder_already_exists", name);
-				return null;
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_folder_already_exists", name));
 			}
 		}
 		for (DataEntry entry : data) {
 			if (entry.getName().equals(name)) {
-				SwingTools.showVerySimpleErrorMessage("repository_entry_with_same_name_already_exists", name);
-				return null;
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_entry_with_same_name_already_exists", name));
 			}
 		}
 

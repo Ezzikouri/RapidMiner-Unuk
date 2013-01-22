@@ -141,7 +141,7 @@ public class UpdateManager {
 	public static final String PARAMETER_UPDATE_INCREMENTALLY = "rapidminer.update.incremental";
 	public static final String PARAMETER_UPDATE_URL = "rapidminer.update.url";
 	public static final String PARAMETER_INSTALL_TO_HOME = "rapidminer.update.to_home";
-	public static final String UPDATESERVICE_URL = "http://rapidupdate.de:80/UpdateServer";
+	public static final String UPDATESERVICE_URL = "http://marketplace.rapid-i.com:80/UpdateServer";
 	public static final String PACKAGEID_RAPIDMINER = "rapidminer";
 	public static final String COMMERCIAL_LICENSE_NAME = "RIC";
 	public static final String NEVER_REMIND_INSTALL_EXTENSIONS_FILE_NAME = "never_remind_extensions.xml";
@@ -268,6 +268,12 @@ public class UpdateManager {
 					if(succesful) {
 						installedPackage.add(desc);
 						extension.addAndSelectVersion(desc.getVersion());
+					} else {
+						
+						// if extension was not installed before, remove it from managed extensions
+						if(baseVersion == null) {
+							ManagedExtension.remove(desc.getPackageId());
+						}
 					}
 				} else if ("STAND_ALONE".equals(desc.getPackageTypeName()) && ("rapidminer".equals(desc.getPackageId()))) {
 					if (DEVELOPMENT_BUILD) {
@@ -565,6 +571,11 @@ public class UpdateManager {
 		}
 		lastUsedUri = uri;
 		return theService;
+	}
+	
+	public synchronized static void resetService() {
+		lastUsedUri = null;
+		theService = null;
 	}
 
 	public static final boolean isAccountServiceCreated() {

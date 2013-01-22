@@ -24,11 +24,13 @@
 package com.rapid_i.deployment.update.client;
 
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -121,10 +123,18 @@ public class UpdateDialog extends ButtonDialog {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
-					if (account.isLoggedIn()) {
-						account.logout(updateModel);
+					if ("#register".equals(e.getActionCommand())) {
+						try {
+							Desktop.getDesktop().browse(new URI(UpdateManager.getBaseUrl() + "/faces/signup.xhtml"));
+						} catch (Exception ex) {
+							SwingTools.showSimpleErrorMessage("cannot_open_browser", ex);				
+						}
 					} else {
-						account.login(updateModel);
+						if (account.isLoggedIn()) {
+							account.logout(updateModel);
+						} else {
+							account.login(updateModel);
+						}
 					}
 
 				}
@@ -242,17 +252,18 @@ public class UpdateDialog extends ButtonDialog {
 			@Override
 			public void run() {
 
-				
+
 				getProgressListener().setTotal(100);
 				getProgressListener().setCompleted(33);
 				try {
+					UpdateManager.resetService();
 					UpdateManager.getService();
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
 					return;
 				}
 				getProgressListener().setCompleted(100);
-				
+
 				SwingUtilities.invokeLater(new Runnable() {
 
 					@Override
@@ -303,15 +314,15 @@ public class UpdateDialog extends ButtonDialog {
 							acceptedList.add(desc);
 						}
 					}
-					
+
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
 						List<PackageDescriptor> installedPackages = um.performUpdates(acceptedList, getProgressListener());
-						
+
 						updateModel.clearFromSelectionMap(installedPackages);
 						ulp.validate();
 						ulp.repaint();
-						
+
 						if (installedPackages.size() > 0) {
 							if (SwingTools.showConfirmDialog((installedPackages.size() == 1 ? "update.complete_restart" : "update.complete_restart1"), 
 									ConfirmDialog.YES_NO_OPTION, installedPackages.size()) == ConfirmDialog.YES_OPTION) {

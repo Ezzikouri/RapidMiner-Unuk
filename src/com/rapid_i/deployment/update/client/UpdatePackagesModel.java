@@ -69,7 +69,7 @@ public class UpdatePackagesModel extends Observable {
 				UpdatePackagesModel.this.setChanged();
 				UpdatePackagesModel.this.notifyObservers();
 			} catch (Exception e1) {
-				SwingTools.showSimpleErrorMessage("error_accessing_marketplace_account", e1);
+				SwingTools.showSimpleErrorMessage("error_accessing_marketplace_account", e1, e1.getMessage());
 				purchasedPackages = new HashSet<String>();
 			}
 		} else {

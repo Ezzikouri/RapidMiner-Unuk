@@ -27,6 +27,7 @@ import com.rapidminer.gui.flow.ProcessPanel;
 import com.rapidminer.gui.processeditor.CommentEditor;
 import com.rapidminer.gui.processeditor.NewOperatorEditor;
 import com.rapidminer.gui.processeditor.ProcessContextProcessEditor;
+import com.rapidminer.gui.processeditor.XMLEditor;
 import com.rapidminer.gui.processeditor.results.ResultDisplay;
 import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.tools.LoggingViewer;
@@ -67,7 +68,7 @@ public class Perspectives extends ApplicationPerspectives {
 		WSDockKey repositoryKey = new WSDockKey(RepositoryBrowser.REPOSITORY_BROWSER_DOCK_KEY);
 		WSDockKey newOperatorEditorKey = new WSDockKey(NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
 		WSDockKey errorTableKey = new WSDockKey(ErrorTable.ERROR_TABLE_DOCK_KEY);
-		//WSDockKey xmlEditorKey = new WSDockKey(XMLEditor.XML_EDITOR_DOCK_KEY);
+		WSDockKey xmlEditorKey = new WSDockKey(XMLEditor.XML_EDITOR_DOCK_KEY);
 		WSDockKey commentEditorKey = new WSDockKey(CommentEditor.COMMENT_EDITOR_DOCK_KEY);
 		WSDockKey operatorHelpKey = new WSDockKey(OperatorDocViewer.OPERATOR_HELP_DOCK_KEY);
 		WSDockKey processContextEditorKey = new WSDockKey(ProcessContextProcessEditor.PROCESS_CONTEXT_DOCKKEY);
@@ -96,7 +97,7 @@ public class Perspectives extends ApplicationPerspectives {
 			designDesktop.split(processPanelKey, errorTableKey, DockingConstants.SPLIT_BOTTOM, 0.8);
 			designDesktop.createTab(errorTableKey, messageViewerKey, 1);
 
-			//designDesktop.createTab(processPanelKey, xmlEditorKey, 1);
+			designDesktop.createTab(processPanelKey, xmlEditorKey, 1);
 		} else if ("result".equals(perspectiveName)) {
 			Perspective resultPerspective = getPerspective("result");
 			WSDesktop resultsDesktop = resultPerspective.getWorkspace().getDesktop(0);

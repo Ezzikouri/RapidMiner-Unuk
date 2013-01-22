@@ -267,12 +267,10 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 //			NewRepositoryDialog.createNew();
 			try {
 				LocalRepository defaultRepo = new LocalRepository("Local Repository");
-				RepositoryManager.getInstance(null).addRepository(defaultRepo);
-				RepositoryManager.getInstance(null).copy(new RepositoryLocation("//Samples/data"), defaultRepo, null);
+				RepositoryManager.getInstance(null).addRepository(defaultRepo);				
+				defaultRepo.createFolder("data");
 				defaultRepo.createFolder("processes");
 			} catch (RepositoryException e) {
-				LogService.getRoot().log(Level.WARNING, "com.rapidminer.repository.RepositoryManager.failed_to_create_default", e);
-			} catch (MalformedRepositoryLocationException e) {
 				LogService.getRoot().log(Level.WARNING, "com.rapidminer.repository.RepositoryManager.failed_to_create_default", e);
 			}
 		}

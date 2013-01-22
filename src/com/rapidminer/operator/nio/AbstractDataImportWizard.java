@@ -22,23 +22,12 @@
  */
 package com.rapidminer.operator.nio;
 
-import java.util.logging.Level;
-
-import com.rapidminer.RapidMiner;
-import com.rapidminer.RapidMiner.ExecutionMode;
-import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
-import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.AbstractDataResultSetReader;
 import com.rapidminer.operator.nio.model.DataResultSetFactory;
 import com.rapidminer.operator.nio.model.WizardState;
-import com.rapidminer.repository.Entry;
-import com.rapidminer.repository.IOObjectEntry;
-import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.tools.LogService;
 
 /** All new data import wizards should inherit from this class. It provides 
  *  the common steps (annotations, meta data, saving) for all import wizards.
@@ -97,21 +86,6 @@ public abstract class AbstractDataImportWizard extends DataImportWizard {
 			state.getTranslationConfiguration().setParameters(reader);
 			state.getDataResultSetFactory().setParameters(reader);
 			getState().getDataResultSetFactory().close();
-		} else {
-			// Select repository entry
-			RepositoryLocation storedRepositoryLocation = getState().getSelectedLocation();
-			if (storedRepositoryLocation!=null && RapidMinerGUI.getMainFrame()!=null) {
-				RapidMinerGUI.getMainFrame().getRepositoryBrowser().expandToRepositoryLocation(storedRepositoryLocation);
-				// Switch to result 
-				try {
-					Entry entry = storedRepositoryLocation.locateEntry();
-					if (entry !=null && entry instanceof IOObjectEntry) {
-						OpenAction.showAsResult((IOObjectEntry)entry);
-					}
-				} catch (RepositoryException e) {
-					LogService.getRoot().log(Level.WARNING, "Can not open result", e);
-				}
-			}
 		}
 	}
 }

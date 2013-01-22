@@ -172,10 +172,10 @@ public class RepositoryTreeModel implements TreeModel {
 			@Override
 			public void update(Observable<Repository> observable, Repository arg) {
 				for (Repository repository : root.getRepositories()) {
-					if (onlyWritableRepositories) {
-						repository.removeRepositoryListener(repositoryListener);
-						repository.addRepositoryListener(repositoryListener);
-					}
+					//if (onlyWritableRepositories) {
+					repository.removeRepositoryListener(repositoryListener);
+					repository.addRepositoryListener(repositoryListener);
+					//}
 				}
 				TreeModelEvent e = new TreeModelEvent(this, new TreePath(root));
 				for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {

@@ -23,6 +23,7 @@
 package com.rapidminer.operator.ports;
 
 import java.awt.Component;
+import java.awt.Point;
 
 import javax.swing.JOptionPane;
 /**
@@ -47,7 +48,7 @@ public class PortException extends RuntimeException {
 		return false;
 	}
 	
-	public void showRepairDialog(Component parent) {
+	public void showRepairPopup(Component parent, Point popupLocation) {
 		JOptionPane.showMessageDialog(parent, getMessage(), "Port exception", JOptionPane.ERROR_MESSAGE);
 	}
 }

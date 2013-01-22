@@ -41,6 +41,11 @@ import java.awt.Stroke;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -67,6 +72,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.TooManyListenersException;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 
@@ -81,7 +87,9 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
+import javax.swing.TransferHandler;
 import javax.swing.UIManager;
+import javax.swing.event.EventListenerList;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -93,6 +101,7 @@ import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.ConnectPortToRepositoryAction;
 import com.rapidminer.gui.actions.StoreInRepositoryAction;
+import com.rapidminer.gui.dnd.AbstractPatchedTransferHandler;
 import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.dnd.OperatorTransferHandler;
 import com.rapidminer.gui.dnd.ReceivingOperatorTransferHandler;
@@ -151,6 +160,94 @@ import com.rapidminer.tools.Tools;
  * @author Simon Fischer
  */
 public class ProcessRenderer extends JPanel implements DragListener {
+
+	private class ProcessRendererDropTarget extends DropTarget {
+
+		private static final long serialVersionUID = 1L;
+		private EventListenerList dropTragetListenerList;
+
+		public ProcessRendererDropTarget(Component c, DropTargetListener dropTargetListener) {
+			super(c, TransferHandler.COPY_OR_MOVE | TransferHandler.LINK, null);
+			try {
+				super.addDropTargetListener(dropTargetListener);
+			} catch (TooManyListenersException tmle) {}
+		}
+
+		public void addDropTargetListener(DropTargetListener dtl) throws TooManyListenersException {
+			if (dropTragetListenerList == null) {
+				dropTragetListenerList = new EventListenerList();
+			}
+			dropTragetListenerList.add(DropTargetListener.class, dtl);
+		}
+
+		public void removeDropTargetListener(DropTargetListener dtl) {
+			if (dropTragetListenerList != null) {
+				dropTragetListenerList.remove(DropTargetListener.class, dtl);
+			}
+		}
+
+		public void dragEnter(DropTargetDragEvent e) {
+			super.dragEnter(e);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).dragEnter(e);
+					}
+				}
+			}
+		}
+
+		public void dragOver(DropTargetDragEvent e) {
+			super.dragOver(e);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).dragOver(e);
+					}
+				}
+			}
+		}
+
+		public void dragExit(DropTargetEvent e) {
+			super.dragExit(e);
+			setImportDragged(false);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).dragExit(e);
+					}
+				}
+			}
+		}
+
+		public void drop(DropTargetDropEvent e) {
+			super.drop(e);
+			setImportDragged(false);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).drop(e);
+					}
+				}
+			}
+		}
+
+		public void dropActionChanged(DropTargetDragEvent e) {
+			super.dropActionChanged(e);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).dropActionChanged(e);
+					}
+				}
+			}
+		}
+	}
 
 	private enum Orientation {
 		X_AXIS,
@@ -456,6 +553,8 @@ public class ProcessRenderer extends JPanel implements DragListener {
 	private static Paint SHADOW_TOP_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, PADDING, 0, Color.WHITE);
 	private static Paint SHADOW_LEFT_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, 0, PADDING, Color.WHITE);
 
+	public static Color INNER_DRAG_COLOR = new Color(238, 238, 255);
+
 	private static Stroke CONNECTION_LINE_STROKE = new BasicStroke(1.3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	private static Stroke CONNECTION_HIGHLIGHT_STROKE = new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	private static Stroke CONNECTION_COLLECTION_LINE_STROKE = new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -469,6 +568,8 @@ public class ProcessRenderer extends JPanel implements DragListener {
 	private static final Color PORT_NAME_COLOR = Color.DARK_GRAY;
 	private static final Color PORT_NAME_SELECTION_COLOR = Color.GRAY;
 	private static final Color ACTIVE_EDGE_COLOR = SwingTools.RAPID_I_ORANGE;
+
+	private static final Stroke HIGHLIGHT_DRAG_STROKE = new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 
 	private static final Stroke FRAME_STROKE_SELECTED = new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	private static final Stroke FRAME_STROKE_NORMAL = new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -540,6 +641,15 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 	private final ProcessPanel processPanel;
 	private final MainFrame mainFrame;
+
+	/** Will be <code>true</code> if an operator is dragged from the operator tree or if a repository entry is dragged. */
+	private boolean dragStarted = false;
+
+	/** Will be <code>true</code> if canImport of transfer handler has returned <code>true</code>. Will be set to false if mouse has exited the process renderer */
+	private boolean importDragged = false;
+
+	/** Indicates if the droptarget could be set. If this is not the case, importDragged will be ignored */
+	private boolean dropTargetSet = false;
 
 	private Point mousePositionRelativeToProcess = null;
 
@@ -614,6 +724,9 @@ public class ProcessRenderer extends JPanel implements DragListener {
 						case 2:
 							golfOperator = getRetrieveGolfOperator(displayedChain.getSubprocess(0).getOperators());
 							decisionTreeOperator = getDecisionTreeOperator(displayedChain.getSubprocess(0).getOperators());
+							if (golfOperator == null || decisionTreeOperator == null) {
+								break;
+							}
 							if (areCorrectlyConnected(golfOperator, decisionTreeOperator)) {
 								tutorialComicPanelToDraw = tutorialComicPanels[4];
 								process.getRootOperator().addProcessListener(tutorialProcessListener);
@@ -677,6 +790,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 			@Override
 			public boolean dropNow(final List<Operator> newOperators, Point loc) {
+				setImportDragged(false);
 				ProcessRenderer.this.mainFrame.getStatusBar().clearSpecialText();
 				if (newOperators.isEmpty()) {
 					return true;
@@ -869,7 +983,11 @@ public class ProcessRenderer extends JPanel implements DragListener {
 						return false;
 					}
 				}
-				return super.canImport(ts);
+				boolean canImport = super.canImport(ts);
+				if (dropTargetSet && !dragStarted && canImport && !getImportDragged()) {
+					setImportDragged(true);
+				}
+				return canImport;
 			}
 
 			@Override
@@ -881,6 +999,15 @@ public class ProcessRenderer extends JPanel implements DragListener {
 			}
 		};
 		setTransferHandler(transferHandler);
+
+		ProcessRendererDropTarget dropTarget;
+		try {
+			dropTarget = new ProcessRendererDropTarget(this, AbstractPatchedTransferHandler.getDropTargetListener());
+			setDropTarget(dropTarget);
+			dropTargetSet = true;
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.INFO, "Drop target could not be loaded. Process panel will not be highlighted when dragging external data on it.");
+		}
 
 		addKeyListener(new KeyAdapter() {
 
@@ -903,6 +1030,11 @@ public class ProcessRenderer extends JPanel implements DragListener {
 							selectInDirection(e);
 						}
 						e.consume();
+						break;
+					case KeyEvent.VK_ESCAPE:
+						if (connectingPortSource != null) {
+							cancelConnectionDragging();
+						}
 						break;
 					case KeyEvent.VK_ENTER:
 						if (!getSelection().isEmpty()) {
@@ -1139,10 +1271,9 @@ public class ProcessRenderer extends JPanel implements DragListener {
 			((Graphics2D) graphics).setRenderingHints(HI_QUALITY_HINTS);
 		}
 		render((Graphics2D) graphics);
-//		drawComicTutorial(graphics);
-
 	}
 
+	@SuppressWarnings("unused")
 	private void drawComicTutorial(Graphics graphics) {
 		if (tutorialComicPanelToDraw != null) {
 			Graphics2D translated = (Graphics2D) graphics.create();
@@ -1352,37 +1483,64 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		double height = getHeight(processes[index]);
 		Shape frame = new Rectangle2D.Double(0, 0, width, height);
 
-		g.setPaint(INNER_COLOR);
-		g.fill(frame);
+		if (dragStarted || (dropTargetSet && getImportDragged())) {
+			g.setPaint(INNER_DRAG_COLOR);
+			g.fill(frame);
 
-		g.setColor(PROCESS_TITLE_COLOR);
-		g.setFont(PROCESS_FONT);
-		g.drawString(processes[index].getName(), PADDING + 2, PROCESS_FONT.getSize() + PADDING);
+			// process title color
+			g.setColor(PROCESS_TITLE_COLOR.darker());
+			g.setFont(PROCESS_FONT);
+			g.drawString(processes[index].getName(), PADDING + 2, PROCESS_FONT.getSize() + PADDING);
 
-		g.setPaint(SHADOW_TOP_GRADIENT);
-		g.fill(new Rectangle2D.Double(0, 0, PADDING, height));
-		GeneralPath top = new GeneralPath();
-		int shadowWidth = PADDING;
-		top.moveTo(0, 0);
-		top.lineTo(width, 0);
-		top.lineTo(width, shadowWidth);
-		top.lineTo(shadowWidth, shadowWidth);
-		top.closePath();
-		g.setPaint(SHADOW_LEFT_GRADIENT);
-		g.fill(top);
+			// padding gradients
+			g.setPaint(new GradientPaint(0, 0, SHADOW_COLOR, PADDING, 0, INNER_DRAG_COLOR));
+			g.fill(new Rectangle2D.Double(0, 0, PADDING, height));
+			GeneralPath top = new GeneralPath();
+			int shadowWidth = PADDING;
+			top.moveTo(0, 0);
+			top.lineTo(width, 0);
+			top.lineTo(width, shadowWidth);
+			top.lineTo(shadowWidth, shadowWidth);
+			top.closePath();
+			g.setPaint(new GradientPaint(0, 0, SHADOW_COLOR, 0, PADDING, INNER_DRAG_COLOR));
+			g.fill(top);
 
-		if (dragStarted) {
-//			g.setPaint(new Color(245, 184, 0));
-//			g.setPaint(new Color(51, 102, 255));
-			g.setPaint(FRAME_COLOR_SELECTED);
-			g.setStroke(FRAME_STROKE_SELECTED);
+			// frame color
+			g.setPaint(INNER_DRAG_COLOR.darker().darker());
+			g.setStroke(HIGHLIGHT_DRAG_STROKE);
 		} else {
+
+			// background color
+			g.setPaint(INNER_COLOR);
+			g.fill(frame);
+
+			// process title color
+			g.setColor(PROCESS_TITLE_COLOR);
+			g.setFont(PROCESS_FONT);
+			g.drawString(processes[index].getName(), PADDING + 2, PROCESS_FONT.getSize() + PADDING);
+
+			// padding gradients
+			g.setPaint(SHADOW_TOP_GRADIENT);
+			g.fill(new Rectangle2D.Double(0, 0, PADDING, height));
+			GeneralPath top = new GeneralPath();
+			int shadowWidth = PADDING;
+			top.moveTo(0, 0);
+			top.lineTo(width, 0);
+			top.lineTo(width, shadowWidth);
+			top.lineTo(shadowWidth, shadowWidth);
+			top.closePath();
+			g.setPaint(SHADOW_LEFT_GRADIENT);
+			g.fill(top);
+
+			// frame color
 			g.setPaint(LINE_COLOR);
 			g.setStroke(LINE_STROKE);
 		}
+
 		g.draw(frame);
 
-		drawComicTutorial(g);
+//		drawComicTutorial(g); TODO re-add when it is ready
+
 		// render operators: as a side effect the port locations are stored
 		for (Operator operator : processes[index].getOperators()) {
 			if (!selectedOperators.contains(operator)) {
@@ -2011,7 +2169,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 					// Left mouse button pressed on port -> start connecting ports
 					if (hoveringPort instanceof OutputPort) {
 						if (connectingPortSource != null && connectingPortSource instanceof InputPort) {
-							connectConnectingPortSourceWithHoveringPort((InputPort) connectingPortSource, (OutputPort) hoveringPort);
+							connectConnectingPortSourceWithHoveringPort((InputPort) connectingPortSource, (OutputPort) hoveringPort, hoveringPort);
 						} else {
 							if (!e.isShiftDown()) {
 								connectingPortSource = hoveringPort;
@@ -2019,7 +2177,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 						}
 					} else if (hoveringPort instanceof InputPort) {
 						if (connectingPortSource != null && connectingPortSource instanceof OutputPort) {
-							connectConnectingPortSourceWithHoveringPort((InputPort) hoveringPort, (OutputPort) connectingPortSource);
+							connectConnectingPortSourceWithHoveringPort((InputPort) hoveringPort, (OutputPort) connectingPortSource, hoveringPort);
 						} else {
 							if (!e.isShiftDown()) {
 								connectingPortSource = hoveringPort;
@@ -2069,7 +2227,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 			}
 		}
 
-		private void connectConnectingPortSourceWithHoveringPort(InputPort input, OutputPort output) {
+		private void connectConnectingPortSourceWithHoveringPort(InputPort input, OutputPort output, Port hoveringPort) {
 			try {
 				Operator destOp = input.getPorts().getOwner().getOperator();
 				boolean hasConnections = hasConnections(destOp);
@@ -2083,7 +2241,17 @@ public class ProcessRenderer extends JPanel implements DragListener {
 				}
 			} catch (PortException e1) {
 				if (e1.hasRepairOptions()) {
-					e1.showRepairDialog(ProcessRenderer.this);
+
+					// calculate popup position
+					Point popupPosition = getPortLocation(hoveringPort);
+
+					if (hoveringPort instanceof InputPort) {
+						popupPosition.setLocation(popupPosition.getX() + 28, popupPosition.getY() - 2);
+					} else {
+						popupPosition.setLocation(popupPosition.getX() - 18, popupPosition.getY() - 2);
+					}
+
+					e1.showRepairPopup(ProcessRenderer.this, popupPosition);
 				} else {
 					JOptionPane.showMessageDialog(null, e1.getMessage(), "Cannot connect", JOptionPane.ERROR_MESSAGE);
 				}
@@ -2132,9 +2300,9 @@ public class ProcessRenderer extends JPanel implements DragListener {
 				// connect when released over hovering port
 				if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null && !e.isAltDown()) {
 					if (hoveringPort instanceof InputPort && connectingPortSource instanceof OutputPort) {
-						connectConnectingPortSourceWithHoveringPort((InputPort) hoveringPort, (OutputPort) connectingPortSource);
+						connectConnectingPortSourceWithHoveringPort((InputPort) hoveringPort, (OutputPort) connectingPortSource, hoveringPort);
 					} else if (hoveringPort instanceof OutputPort && connectingPortSource instanceof InputPort) {
-						connectConnectingPortSourceWithHoveringPort((InputPort) connectingPortSource, (OutputPort) hoveringPort);
+						connectConnectingPortSourceWithHoveringPort((InputPort) connectingPortSource, (OutputPort) hoveringPort, hoveringPort);
 					}
 				}
 			}
@@ -2370,12 +2538,6 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 		}
 
-		private void cancelConnectionDragging() {
-			connectionDraggingCanceled = true;
-			connectingPortSource = null;
-			repaint();
-		}
-
 		@Override
 		public void mouseExited(MouseEvent e) {
 			mainFrame.getStatusBar().clearSpecialText();
@@ -2384,6 +2546,12 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 	private void selectOperator(Operator op, boolean clear) {
 		selectOperator(op, clear, false);
+	}
+
+	private void cancelConnectionDragging() {
+		connectionDraggingCanceled = true;
+		connectingPortSource = null;
+		repaint();
 	}
 
 	/**
@@ -3526,8 +3694,6 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		}
 	}
 
-	private boolean dragStarted = false;
-
 	@Override
 	public void dragStarted(Transferable t) {
 		DataFlavor[] transferDataFlavors = t.getTransferDataFlavors();
@@ -3570,5 +3736,14 @@ public class ProcessRenderer extends JPanel implements DragListener {
 	public void dragEnded() {
 		dragStarted = false;
 		repaint();
+	}
+
+	private void setImportDragged(boolean importDragged) {
+		this.importDragged = importDragged;
+		repaint();
+	}
+
+	private boolean getImportDragged() {
+		return importDragged;
 	}
 }

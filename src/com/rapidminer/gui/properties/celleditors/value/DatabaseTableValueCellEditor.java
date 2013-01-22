@@ -35,7 +35,6 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.AbstractListModel;
@@ -56,8 +55,6 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeDatabaseSchema;
 import com.rapidminer.parameter.ParameterTypeDatabaseTable;
 import com.rapidminer.parameter.UndefinedParameterError;
-import com.rapidminer.tools.I18N;
-import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.jdbc.ColumnIdentifier;
 import com.rapidminer.tools.jdbc.DatabaseHandler;
@@ -129,12 +126,7 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 								try {
 									handler = DatabaseHandler.getConnectedDatabaseHandler(entry);
 								} catch (SQLException e1) {
-									LogService.getRoot().log(Level.WARNING,
-											I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-											"com.rapidminer.gui.properties.celleditors.value.DatabaseTableValueCellEditor.fetching_database_tables_error", 
-											e1),
-											e1);
-
+									// do nothing
 									return;
 								}
 
@@ -173,12 +165,7 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 										//list.addAll(tableMap.keySet());
 										getProgressListener().setCompleted(90);
 									} catch (SQLException e) {
-										LogService.getRoot().log(Level.WARNING,
-												I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-												"com.rapidminer.gui.properties.celleditors.value.DatabaseTableValueCellEditor.fetching_database_tables_error", 
-												e),
-												e);
-
+										// do nothing
 										return;
 									}
 									try {

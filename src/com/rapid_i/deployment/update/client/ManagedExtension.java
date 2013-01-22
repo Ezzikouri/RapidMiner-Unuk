@@ -308,6 +308,10 @@ public class ManagedExtension {
         }
         return ext;
     }
+    
+    public static ManagedExtension remove(String packageId) {
+    	return MANAGED_EXTENSIONS.remove(packageId);
+    }
 
     public String getPackageId() {
         return packageID;

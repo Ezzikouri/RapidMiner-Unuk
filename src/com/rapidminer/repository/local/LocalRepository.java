@@ -25,7 +25,6 @@ package com.rapidminer.repository.local;
 import java.io.File;
 import java.util.logging.Level;
 
-import javax.swing.JButton;
 import javax.swing.event.EventListenerList;
 
 import org.w3c.dom.Document;
@@ -242,7 +241,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public RepositoryConfigurationPanel makeConfigurationPanel() {
-		return new LocalRepositoryPanel(null);
+		return new LocalRepositoryPanel(null, false);
 	}
 	
 	/** Returns the folder which, by default, contains RM repositories, e.g. .RapidMiner5/repositories */
