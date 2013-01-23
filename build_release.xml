@@ -23,11 +23,11 @@
 
 		<ant target="version.updateFiles" />
 		<ant target="javaDoc.makeZip" />
-		<ant target="release.publishToRapidShare" />
-		<ant target="release.publish" />
+		<ant antfile="build_release.xml" target="release.publishToRapidShare" />
+		<ant antfile="build_release.xml" target="release.publish" />
 		<ant target="update.makeAll" />
-		<ant target="update.publish" />
-		<ant target="update.uploadChanges" />
+		<ant antfile="build_release.xml" target="update.publish" />
+		<ant antfile="build_release.xml" target="update.uploadChanges" />
 	</target>
 
 	<!-- Publishing release -->
@@ -162,7 +162,7 @@
 		<echo message="Updating started..." />
 		<ant target="version.updateFiles" />
 		<ant target="update.makeAll" />
-		<ant target="update.publish" />
+		<ant antfile="build_release.xml" target="update.publish" />
 	</target>
 
 	<!-- Upload current changes.txt to corresponding marketplace project url -->

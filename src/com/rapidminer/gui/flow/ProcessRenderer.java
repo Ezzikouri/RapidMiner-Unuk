@@ -553,7 +553,8 @@ public class ProcessRenderer extends JPanel implements DragListener {
 	private static Paint SHADOW_TOP_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, PADDING, 0, Color.WHITE);
 	private static Paint SHADOW_LEFT_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, 0, PADDING, Color.WHITE);
 
-	public static Color INNER_DRAG_COLOR = new Color(238, 238, 255);
+	public static Color INNER_DRAG_COLOR = new Color(237,237,255);
+	public static Color INNER_DRAG_FRAME_COLOR = INNER_DRAG_COLOR.darker();
 
 	private static Stroke CONNECTION_LINE_STROKE = new BasicStroke(1.3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	private static Stroke CONNECTION_HIGHLIGHT_STROKE = new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -1506,7 +1507,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 			g.fill(top);
 
 			// frame color
-			g.setPaint(INNER_DRAG_COLOR.darker().darker());
+			g.setPaint(INNER_DRAG_FRAME_COLOR);
 			g.setStroke(HIGHLIGHT_DRAG_STROKE);
 		} else {
 

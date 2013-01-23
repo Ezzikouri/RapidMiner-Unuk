@@ -62,7 +62,6 @@ import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler.TransferSupport;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
@@ -79,6 +78,7 @@ import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableExampleSetAdapter;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.gui.dnd.DragListener;
+import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.new_plotter.MasterOfDesaster;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;
@@ -173,9 +173,11 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 	private JPopupMenu dimensionConfigPopupMenu;
 
-	private static final Border ongoingDropBorder = BorderFactory.createBevelBorder(BevelBorder.RAISED, new Color(43, 128, 0), new Color(43, 128, 0));;
+	private static final Color DROP_BORDER_COLOR = ProcessRenderer.INNER_DRAG_FRAME_COLOR;
+	
+	private static final Border ONGOING_DROP_BORDER = BorderFactory.createLineBorder(DROP_BORDER_COLOR, 2);
 
-	private static final Border dropEndedBorder = BorderFactory.createEmptyBorder(2, 2, 2, 2);
+	private static final Border DROP_ENDED_BORDER = BorderFactory.createEmptyBorder(2, 2, 2, 2);
 
 	private JScrollPane plotConfigurationTreeScrollPane;
 
@@ -893,7 +895,7 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 			plotConfigurationTreeScrollPane.setMinimumSize(MIN_LIST_AND_TREE_DIMENSION);
 			plotConfigurationTreeScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 			plotConfigurationTreeScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			plotConfigurationTreeScrollPane.setBorder(dropEndedBorder);
+			plotConfigurationTreeScrollPane.setBorder(DROP_ENDED_BORDER);
 
 			itemConstraint = new GridBagConstraints();
 			itemConstraint.fill = GridBagConstraints.BOTH;
@@ -1120,13 +1122,15 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 		boolean doesSupportFlavor = ((PlotConfigurationTreeTransferHandler) plotConfigurationTree.getTransferHandler()).doesSupportFlavor(support);
 		if (doesSupportFlavor) {
 			if (SwingUtilities.isEventDispatchThread()) {
-				plotConfigurationTreeScrollPane.setBorder(ongoingDropBorder);
+				plotConfigurationTreeScrollPane.setBorder(ONGOING_DROP_BORDER);
+				plotConfigurationTree.setBackground(ProcessRenderer.INNER_DRAG_COLOR);
 			} else {
 				SwingUtilities.invokeLater(new Runnable() {
 
 					@Override
 					public void run() {
-						plotConfigurationTreeScrollPane.setBorder(ongoingDropBorder);
+						plotConfigurationTreeScrollPane.setBorder(ONGOING_DROP_BORDER);
+						plotConfigurationTree.setBackground(ProcessRenderer.INNER_DRAG_COLOR);
 					}
 				});
 			}
@@ -1136,13 +1140,15 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	@Override
 	public void dragEnded() {
 		if (SwingUtilities.isEventDispatchThread()) {
-			plotConfigurationTreeScrollPane.setBorder(dropEndedBorder);
+			plotConfigurationTreeScrollPane.setBorder(DROP_ENDED_BORDER);
+			plotConfigurationTree.setBackground(Color.WHITE);
 		} else {
 			SwingUtilities.invokeLater(new Runnable() {
 
 				@Override
 				public void run() {
-					plotConfigurationTreeScrollPane.setBorder(dropEndedBorder);
+					plotConfigurationTreeScrollPane.setBorder(DROP_ENDED_BORDER);
+					plotConfigurationTree.setBackground(Color.WHITE);
 				}
 			});
 		}

@@ -470,7 +470,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			}
 			// make sure moving parent folder into subfolder is forbidden
 			if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
-				SwingTools.showVerySimpleErrorMessage("repository_move_into_subfolder");
+				SwingTools.showVerySimpleErrorMessage("repository_copy_into_subfolder");
 				return;
 			}
 			Folder destinationFolder = destination.createFolder(newName);

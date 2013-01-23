@@ -345,7 +345,7 @@ Name "${extension.name.long}"
 
 		<echo message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net/${server.sf.url.rapidminer}..." />
 		<!-- scping -->
-		<scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net/${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="true" trust="true">
+		<scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net:${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="true" trust="true">
 			<fileset dir="${release.targetDir}/scp" includes="**/*.*" />
 		</scp>
 
@@ -423,10 +423,7 @@ Name "${extension.name.long}"
 
 	<!-- Uploading updates -->
 	<target name="update.publish" depends="createJar" description="This will generate a new update and upload files for all platforms (currently only platform independent). The update number will ne increased automatically.">
-		<echo message="Publishing update ${extension.longversion} using ${server.update.user}..." />
-		<echo message="...Platform Independent on update server" />
-		<put targetUrl="${server.update.url}/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.update.user}" password="${server.update.password}" />
-		<echo message="...Platform Independent on marketplace" />
+		<echo message="Publishing update ${extension.longversion} on Marketplace ${server.marketplace.user}..." />
 		<put targetUrl="${server.marketplace.url}/admin/upload/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 	</target>
 

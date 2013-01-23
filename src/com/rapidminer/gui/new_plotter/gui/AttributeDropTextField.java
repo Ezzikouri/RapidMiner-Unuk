@@ -29,10 +29,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.TransferHandler.TransferSupport;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.Border;
 
 import com.rapidminer.gui.dnd.DragListener;
+import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.gui.dnd.DataTableColumnDropTextFieldTransferHandler;
 import com.rapidminer.gui.new_plotter.gui.dnd.DataTableColumnListTransferHandler;
@@ -57,8 +57,8 @@ public class AttributeDropTextField extends JTextField implements DragListener {
 		this.setBackground(Color.white);
 		this.setTransferHandler(new DataTableColumnDropTextFieldTransferHandler(plotConfigurationTree, type, this));
 
-		ongoingDropBorder = BorderFactory.createBevelBorder(BevelBorder.RAISED, new Color(43, 128, 0), new Color(43, 128, 0));
-		dropEndedBorder = BorderFactory.createEmptyBorder();
+		ongoingDropBorder = BorderFactory.createLineBorder(ProcessRenderer.INNER_DRAG_FRAME_COLOR, 1);
+		dropEndedBorder = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 	}
 
 	@Override
@@ -67,12 +67,14 @@ public class AttributeDropTextField extends JTextField implements DragListener {
 		boolean doesSupportFlavor = ((DataTableColumnDropTextFieldTransferHandler) getTransferHandler()).doesSupportFlavor(support);
 		if (doesSupportFlavor) {
 			setBorder(ongoingDropBorder);
+			setBackground(ProcessRenderer.INNER_DRAG_COLOR);
 		}
 	}
 	
 	@Override
 	public void dragEnded() {
-		setBorder(dropEndedBorder);		
+		setBorder(dropEndedBorder);	
+		setBackground(Color.WHITE);
 	}
 
 }

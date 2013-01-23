@@ -182,7 +182,7 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		HttpURLConnection conn = null;
 		try {
 			repositoryServiceURL = getRepositoryServiceWSDLUrl(new URL(url));
-
+			WebServiceTools.clearAuthCache();
 			Authenticator.setDefault(null);
 			conn = (HttpURLConnection) repositoryServiceURL.openConnection();
 			WebServiceTools.setURLConnectionDefaults(conn);
