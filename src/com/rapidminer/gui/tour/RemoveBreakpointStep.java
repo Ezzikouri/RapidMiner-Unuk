@@ -51,42 +51,43 @@ public class RemoveBreakpointStep extends Step {
 	private String attachToKey = "breakpoint_after";
 	private Position positionOnOperator = Position.DONT_CARE;
 	private ProcessSetupListener listener = null;
+	private String dockableKey = OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY;
 	
 
 	/** chooses the breakpoint_after-Button as default
-	 * @param alignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass the Class or Superclass of the {@link Operator} to which the breakpoint should be added.
 	 * @param position indicates whether the Step listens to a breakpoint before, after or any breakpoint which will be removed from the given operatorClass.
 	 */
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Position position) {
-		this(alignment, owner, i18nKey, operatorClass,(Component) null, position);
+	public RemoveBreakpointStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Position position) {
+		this(preferredAlignment, owner, i18nKey, operatorClass,(Component) null, position);
 	}
 	
 	/**
-	 * @param alignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass the Class or Superclass of the {@link Operator} to which the breakpoint should be added.
 	 * @param attachToKey i18nkey of the Button to which the {@link BubbleWindow} should point to.
 	 * @param position indicates whether the Step listens to a breakpoint before, after or any breakpoint which will be removed from the given operatorClass.
 	 */
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, Position position) {
-		this(alignment, owner, i18nKey, operatorClass,(Component) null, position);
+	public RemoveBreakpointStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, Position position) {
+		this(preferredAlignment, owner, i18nKey, operatorClass,(Component) null, position);
 		this.attachToKey = attachToKey;
 	}
 	
 	/**
-	 * @param alignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass the Class or Superclass of the {@link Operator} to which the breakpoint should be added.
 	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
 	 * @param position indicates whether the Step listens to a breakpoint before, after or any breakpoint which will be removed from the given operatorClass.
 	 */
-	public RemoveBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Component attachTo, Position position) {
-		this.alignment = alignment;
+	public RemoveBreakpointStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Component attachTo, Position position) {
+		this.alignment = preferredAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.operatorClass = operatorClass;
@@ -98,9 +99,9 @@ public class RemoveBreakpointStep extends Step {
 	@Override
 	boolean createBubble() {
 				if (attachTo == null){
-						bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey,false);
+						bubble = new BubbleWindow(owner, dockableKey,alignment, i18nKey, attachToKey, false, new Object[] {});
 				} else {
-					bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
+					bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, attachTo);
 				}
 		
 		listener = new ProcessSetupListener() {
@@ -151,6 +152,6 @@ public class RemoveBreakpointStep extends Step {
 
 	@Override
 	public Step[] getPreconditions() {
-		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY), new NotViewableStep(alignment, owner, attachToKey, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY)};
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep(dockableKey), new NotViewableStep(alignment, owner, attachToKey, dockableKey)};
 	}
 }

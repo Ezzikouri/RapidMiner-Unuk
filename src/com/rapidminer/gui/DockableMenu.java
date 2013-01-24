@@ -127,4 +127,7 @@ public class DockableMenu extends ResourceMenu {
 
 	}
 
+	public DockingContext getDockingContext() {
+		return dockingContext;
+	}
 }

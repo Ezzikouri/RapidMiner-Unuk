@@ -42,20 +42,12 @@ public class NotViewableStep extends Step {
 	
 	private Alignment alignment;
 	private Window owner;
-	private String i18nKey = "test";
-	private String attachToKey = null;
-	private Component attachTo = null;
+	private String i18nKey = "hiddenButton";
+	private String attachToKey;
+	private Component attachTo;
 	private String watch;
 	private ComponentListener compListener = null;
 	private boolean showMe;
-	
-	
-	public NotViewableStep(Alignment preferredAlignment, Window owner, String shouldBeViewable, Component attachTo) {
-		this.owner = owner;
-		this.alignment = preferredAlignment;
-		this.watch = shouldBeViewable;
-		this.attachTo = attachTo;
-	}
 	
 	public NotViewableStep(Alignment preferredAlignment, Window owner, String shouldBeViewable, String attachToKey) {
 		this.owner = owner;
@@ -71,11 +63,10 @@ public class NotViewableStep extends Step {
 	boolean createBubble() {
 		this.showMe = BubbleWindow.isButtonOnScreen(watch) == 0;
 		if(showMe) {
-			if(attachTo == null)
-				attachTo = BubbleWindow.getDockableByKey(attachToKey);
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
+			bubble = new BubbleWindow(owner, attachToKey, alignment, i18nKey, BubbleWindow.getDockableByKey(attachToKey));
+			attachTo = BubbleWindow.getDockableByKey(attachToKey);
 			compListener = new ComponentListener() {
-			
+				
 				@Override
 				public void componentShown(ComponentEvent e) {
 				// TODO Auto-generated method stub

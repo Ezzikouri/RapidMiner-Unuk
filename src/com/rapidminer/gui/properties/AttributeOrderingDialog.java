@@ -463,7 +463,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					editRuleAction.actionPerformed(null);
+					deselectAttributesAction.actionPerformed(null);
 				}
 			}
 

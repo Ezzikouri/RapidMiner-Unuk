@@ -474,6 +474,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	private final JMenu toolsMenu;
 	private final JMenu viewMenu;
 	private final JMenu helpMenu;
+	
+	private DockableMenu dockableMenu;
 
 	private final JMenu recentFilesMenu = new ResourceMenu("recent_files");
 
@@ -804,7 +806,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		viewMenu = new ResourceMenu("view");
 		viewMenu.add(perspectives.getWorkspaceMenu());
 		viewMenu.add(NEW_PERSPECTIVE_ACTION);
-		viewMenu.add(new DockableMenu(dockingContext));
+		viewMenu.add(dockableMenu = new DockableMenu(dockingContext));
 		viewMenu.add(perspectives.RESTORE_DEFAULT_ACTION);
 		viewMenu.addSeparator();
 		viewMenu.add(TOGGLE_EXPERT_MODE_ACTION.createMenuItem());
@@ -812,7 +814,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
 		// help menu
 		helpMenu = new ResourceMenu("help");
-//		helpMenu.add(TOUR_ACTION); //TODO reenable when tour is complete
+		helpMenu.add(TOUR_ACTION); //TODO reenable when tour is complete
 		helpMenu.add(TUTORIAL_ACTION);
 		// TODO: Re-add updated manual
 		// helpMenu.add(new ResourceAction("gui_manual") {
@@ -1784,6 +1786,11 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 	 */
 	public JMenu getHelpMenu() {
 		return helpMenu;
+	}
+	
+	public DockableMenu getDockableMenu() {
+		return dockableMenu;
+		
 	}
 
 }

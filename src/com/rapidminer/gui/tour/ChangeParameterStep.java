@@ -30,13 +30,12 @@ import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
-import com.rapidminer.operator.learner.tree.AbstractTreeLearner;
 import com.rapidminer.parameter.UndefinedParameterError;
 
 /**
  *This subclass of {@link Step} will open a {@link BubbleWindow} which closes if the user changes a chosen parameter of an {@link Operator}.
  *
- * @author Philipp Kersting
+ * @author Philipp Kersting and Thilo Kamradt
  *
  */
 
@@ -54,7 +53,7 @@ public class ChangeParameterStep extends Step {
 
 	
 	/**
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass the class of Operator of which you want to change the parameter.
@@ -62,8 +61,8 @@ public class ChangeParameterStep extends Step {
 	 * @param targetDockKey the Component to which the {@link BubbleWindow} should point to.
 	 * @param targetValue the Value the user should select for the given parameter.
 	 */
-	public ChangeParameterStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue) {
-		this.alignment = preferedAlignment;
+	public ChangeParameterStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue) {
+		this.alignment = preferredAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.targetDockKey = targetDockKey;
@@ -74,7 +73,7 @@ public class ChangeParameterStep extends Step {
 
 	@Override
 	boolean createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey, BubbleWindow.getDockableByKey(targetDockKey));
+		bubble = new BubbleWindow(owner, targetDockKey, alignment, i18nKey, BubbleWindow.getDockableByKey(targetDockKey));
 		listener = new ProcessSetupListener() {
 			
 			@Override
@@ -115,7 +114,7 @@ public class ChangeParameterStep extends Step {
 
 	@Override
 	public Step[] getPreconditions() {
-		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", AbstractTreeLearner.PARAMETER_CRITERION)};
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep(targetDockKey)};
 		
 	}
 

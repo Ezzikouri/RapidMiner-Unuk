@@ -27,6 +27,7 @@ import java.awt.Window;
 
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.operator.ExecutionUnit;
@@ -49,31 +50,32 @@ public class RenameOperatorStep extends Step {
 	private Component attachTo;
 	private String attachToKey = null;
 	private ProcessSetupListener listener = null;
+	private String dockableKey = OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY;
 	
 	/**
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass Class or Superclass of the {@link Operator} which should be renamed.
 	 * @param targetName the Name the {@link Operator} should have after this Step.
 	 * @param attachToKey i18nkey of the {@link Component} to which the {@link BubbleWindow} should point to.
 	 */
-	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetName, String attachToKey) {
-		this(alignment, owner, i18nKey, operatorClass, targetName, (Component) null);
+	public RenameOperatorStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetName, String attachToKey) {
+		this(preferredAlignment, owner, i18nKey, operatorClass, targetName, (Component) null);
 		this.attachToKey = attachToKey;
 	}
 	
 	/**
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass Class or Superclass of the {@link Operator} which should be renamed.
 	 * @param targetName the Name the {@link Operator} should have after this Step.
 	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
 	 */
-	public RenameOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetName, Component attachTo) {
+	public RenameOperatorStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetName, Component attachTo) {
 		super();
-		this.alignment = alignment;
+		this.alignment = preferredAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.targetName = targetName;
@@ -87,9 +89,9 @@ public class RenameOperatorStep extends Step {
 		if (attachTo == null) {
 			if(attachToKey== null)
 				throw new IllegalArgumentException("Buttonkey and Component is null. Please add any Component to attach");
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey, false);
+			bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, attachToKey, false, new Object[] {});
 		} else {
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
+			bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, attachTo);
 		}
 		listener = new ProcessSetupListener() {
 
@@ -131,6 +133,6 @@ public class RenameOperatorStep extends Step {
 
 	@Override
 	public Step[] getPreconditions() {
-		return new Step[] {new PerspectivesStep(1)};
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep(dockableKey)};
 	}
 }

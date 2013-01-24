@@ -58,6 +58,8 @@ public class TourManager {
 		indexList = new ArrayList<String>();
 		tours.put("RapidMiner", RapidMinerTour.class);
 		indexList.add("RapidMiner");
+		this.registerTour("RM1", RapidMinerTour.class);
+		this.registerTour("RM2", RapidMinerTour.class);
 	}
 
 	/**

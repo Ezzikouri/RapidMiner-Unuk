@@ -28,6 +28,10 @@ import java.awt.Window;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.vlsolutions.swing.docking.DockableState;
+import com.vlsolutions.swing.docking.DockingContext;
+import com.vlsolutions.swing.docking.event.DockableStateChangeEvent;
+import com.vlsolutions.swing.docking.event.DockableStateChangeListener;
 
 
 /**
@@ -37,14 +41,15 @@ import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
  *
  */
 public class NotOnScreenStep extends Step {
-
+	
 	private boolean showMe = false;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private String dockableKey;
-	private String i18nKey;
+	private String i18nKey = "lostDockable";
+	private DockableStateChangeListener dockListener;
+	private DockingContext context = RapidMinerGUI.getMainFrame().getDockableMenu().getDockingContext();
 	
-	public NotOnScreenStep(String i18nMessageKey, String dockableKey) {
-		this.i18nKey = i18nMessageKey;
+	public NotOnScreenStep(String dockableKey) {
 		this.dockableKey = dockableKey;
 	}
 	
@@ -54,12 +59,23 @@ public class NotOnScreenStep extends Step {
 	@Override
 	boolean createBubble() {
 		this.showMe = BubbleWindow.isDockableOnScreen(dockableKey) == -1;
-		// TODO: delete
-		showMe = false;
-		if(showMe)
-			bubble = new BubbleWindow(owner, Alignment.MIDDLE, i18nKey, (Component) null);
-			//TODO: get dockableMenu
-			//TODO: listener adden and compare with the given dockableKey
+		if(showMe) {
+			bubble = new BubbleWindow(owner, null, Alignment.MIDDLE, i18nKey, (Component) null, this.getDockableNameByKey(dockableKey));
+			//TODO: test it
+			dockListener = new DockableStateChangeListener() {
+				
+				@Override
+				public void dockableStateChanged(DockableStateChangeEvent changed) {
+					if(changed.getNewState().getDockable().getDockKey().getKey().equals(dockableKey) && !changed.getNewState().isClosed()) {
+						NotOnScreenStep.this.bubble.triggerFire();
+						context.removeDockableStateChangeListener(dockListener);
+						
+					}
+				}
+			};
+			
+			context.addDockableStateChangeListener(dockListener);
+		}
 		return showMe;
 	}
 
@@ -68,7 +84,7 @@ public class NotOnScreenStep extends Step {
 	 */
 	@Override
 	protected void stepCanceled() {
-		// TODO Auto-generated method stub
+		context.removeDockableStateChangeListener(dockListener);
 
 	}
 
@@ -80,4 +96,12 @@ public class NotOnScreenStep extends Step {
 		return new Step[] {};
 	}
 
+	private String getDockableNameByKey(String key) {
+		DockableState[] dockables = RapidMinerGUI.getMainFrame().getDockingDesktop().getDockables();
+		for (DockableState state : dockables) {
+			if(state.getDockable().getDockKey().getKey().equals(key))
+				return state.getDockable().getDockKey().getName();
+		}
+		throw new IllegalArgumentException("Dockable with key: "+key+" does not exists.");
+	}
 }

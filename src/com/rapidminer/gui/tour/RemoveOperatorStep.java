@@ -50,28 +50,28 @@ public class RemoveOperatorStep extends Step {
 
 	
 	/**
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass Class or SuperClass of the {@link Operator} which should be deleted.
 	 * @param componentKey key of the {@link Component} to which the {@link BubbleWindow} should point to. 
 	 */
-	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String componentKey) {
-		this(alignment, owner, i18nKey, operatorClass, (Component) null);
+	public RemoveOperatorStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String componentKey) {
+		this(preferredAlignment, owner, i18nKey, operatorClass, (Component) null);
 		this.buttonKey = componentKey;
 	}
 	
 	/**
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass Class or SuperClass of the {@link Operator} which should be deleted.
 	 * @param component {@link Component} to which the {@link BubbleWindow} should point to.
 	 */
-	public RemoveOperatorStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Component component) {
+	public RemoveOperatorStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Component component) {
 		this.i18nKey = i18nKey;
 		this.owner = owner;
-		this.alignment = alignment;
+		this.alignment = preferredAlignment;
 		this.operatorClass = operatorClass;
 		this.component = component;
 	}
@@ -81,9 +81,9 @@ public class RemoveOperatorStep extends Step {
 		if (component == null) {
 			if (buttonKey == null)
 				throw new IllegalArgumentException("Component is null. Please add any Component to attach to ");
-			bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey);
+			bubble = new BubbleWindow(owner, null, alignment, i18nKey, buttonKey);
 		} else {
-			bubble = new BubbleWindow(owner, alignment, i18nKey, component);
+			bubble = new BubbleWindow(owner, null, alignment, i18nKey, component);
 		}
 		listener = new ProcessSetupListener() {
 

@@ -294,7 +294,15 @@ public class ButtonDialog extends JDialog {
 			@Override
 			public void componentResized(ComponentEvent e) {
 				if ((infoTextLabel != null) && (centerComponent != null)) {
+					int prefHeightBefore = infoTextLabel.getPreferredSize().height;
 					infoTextLabel.setWidth(centerComponent.getWidth() - 88);
+					int prefHeightAfter = infoTextLabel.getPreferredSize().height;
+					int heightDiff = prefHeightAfter - prefHeightBefore;
+					if (heightDiff > 0) {
+						// re-pack this dialog if the infoTextLabel has changed its prefHeight after the resize
+						// fixes center component being overlapped/cut off
+						ButtonDialog.this.pack();
+					}
 				}
 			}
 

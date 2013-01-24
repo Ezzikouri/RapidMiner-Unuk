@@ -26,6 +26,7 @@ import java.awt.Component;
 import java.awt.Window;
 
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.flow.ProcessPanel;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
@@ -54,6 +55,7 @@ public class OpenSubprocessStep extends Step {
 	private String attachToKey = null;
 	private Class<? extends OperatorChain> operatorClass;
 	private ProcessRendererListener listener = null;
+	private String dockableKey = ProcessPanel.PROCESS_PANEL_DOCK_KEY;
 
 	/**
 	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
@@ -105,9 +107,9 @@ public class OpenSubprocessStep extends Step {
 		if (attachTo == null) {
 			if(attachToKey == null)
 				throw new IllegalArgumentException("Component attachTo and Buttenkey attachToKey are null. Please add any Component to attach to ");
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey, false);
+			bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, attachToKey, false, new Object[] {});
 		} else {
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachTo);
+			bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, attachTo);
 		}
 		
 		listener = new ProcessRendererListener() {
@@ -133,6 +135,6 @@ public class OpenSubprocessStep extends Step {
 
 	@Override
 	public Step[] getPreconditions() {
-		return new Step[] {new PerspectivesStep(1)};
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep(dockableKey)};
 	}
 }

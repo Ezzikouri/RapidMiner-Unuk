@@ -82,7 +82,7 @@ public class PerspectivesStep extends Step {
 				showMe = !(RapidMinerGUI.getMainFrame().getPerspectives().getCurrentPerspective().getName().equals("design"));
 		}
 		if(showMe)
-			bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey);
+			bubble = new BubbleWindow(owner, null, alignment, i18nKey, buttonKey);
 		return showMe;
 	}
 

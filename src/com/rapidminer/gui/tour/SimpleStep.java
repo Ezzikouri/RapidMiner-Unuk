@@ -42,13 +42,13 @@ public class SimpleStep extends Step {
 	private Window owner;
 	
 	/**
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param buttonKey i18nKey of the Button to which the {@link Step} listens and the {@link BubbleWindow} will point to.
 	 */
-	public SimpleStep(Alignment preferedAlignment, Window owner, String i18nKey, String buttonKey){
-		this.alignment = preferedAlignment;
+	public SimpleStep(Alignment preferredAlignment, Window owner, String i18nKey, String buttonKey){
+		this.alignment = preferredAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.buttonKey = buttonKey;
@@ -56,7 +56,7 @@ public class SimpleStep extends Step {
 	
 	@Override
 	boolean createBubble() {
-		bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey, true);
+		bubble = new BubbleWindow(owner, null, alignment, i18nKey, buttonKey, true, new Object[] {});
 		return true;
 	}
 

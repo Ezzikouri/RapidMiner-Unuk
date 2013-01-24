@@ -23,6 +23,8 @@
 package com.rapidminer.gui.tour;
 
 import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
@@ -69,10 +71,12 @@ public class TourChooser extends ButtonDialog {
 		if (choosenTour != null) {
 			choosenTour.startTour();
 			super.ok();
+			
 		}
 
 	}
 
+	@SuppressWarnings("unchecked")
 	protected JComponent makeTable() {
 		list = new JList(new AbstractListModel() {
 
@@ -88,7 +92,39 @@ public class TourChooser extends ButtonDialog {
 				return tourManager.get(index);
 			}
 		});
-
+		list.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				
+			}
+			
+			@Override
+			public void mousePressed(MouseEvent e) {
+				
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				
+			}
+			
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				
+			}
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if(e.getClickCount() == 2) {
+					IntroductoryTour choosenTour = (IntroductoryTour) list.getSelectedValue();
+					if (choosenTour != null) {
+						choosenTour.startTour();
+						TourChooser.this.dispose();
+					}
+				}
+			}
+		});
 		list.setCellRenderer(new DefaultListCellRenderer() {
 
 			private static final long serialVersionUID = 1L;
@@ -105,12 +141,12 @@ public class TourChooser extends ButtonDialog {
 				//make numbers
 				int current = tourManager.getProgress(tourKey);
 				int max = ((IntroductoryTour) value).getSize();
-				// make stars
+				// make progress balls
 				for (int i = 0; i < current; i++) {
-					statusValue = statusValue + "<img src=\"" + Tools.getResource("icons/16/star_yellow.png") + "\"/>";
+					statusValue = statusValue + "<img src=\"" + Tools.getResource("icons/16/bullet_ball_green.png") + "\"/>";
 				}
 				for (int i = 0; i < (max - current); i++) {
-					statusValue = statusValue + "<img src=\"" + Tools.getResource("icons/16/star_grey.png") + "\"/>";
+					statusValue = statusValue + "<img src=\"" + Tools.getResource("icons/16/bullet_ball_glass_grey.png") + "\"/>";
 				}
 				renderer.setText("<html><div style=\"width:300px\">" + "<h3 style=\"padding-left:5px;color:" + (isSelected ? "white" : "black") + ";\">" + tourKey + "</h3><p style=\"padding-left:5px;\">" + description + "</p><p style=\"padding-left:5px;\">" + relation + "</p><p style=\"padding-left:5px;\">" + statusValue + "</p></div></html>");
 				return renderer;
@@ -119,7 +155,7 @@ public class TourChooser extends ButtonDialog {
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setSelectedIndex(0);
 		if(list.getModel().getSize()>3) {
-			//add JSrcollPane
+			//add JSrcollPane if necessary
 			JScrollPane scroll = new JScrollPane(list);
 			scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 			return scroll;

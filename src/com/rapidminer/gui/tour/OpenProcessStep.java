@@ -84,9 +84,9 @@ public class OpenProcessStep extends Step {
 		if (attachTo == null) {
 			if (attachToKey == null)
 				throw new IllegalArgumentException("no component to attach !");
-			bubble = new BubbleWindow(owner, alignment, i18nKey, attachToKey, false);
+			bubble = new BubbleWindow(owner, null, alignment, i18nKey, attachToKey, false, new Object[] {});
 		} else {
-			bubble = new BubbleWindow(owner, alignment, i18nKey,(AbstractButton) attachTo, false);
+			bubble = new BubbleWindow(owner, null, alignment, i18nKey,(AbstractButton) attachTo, false, new Object[] {});
 		}
 		listener = new ProcessStorageListener() {
 			@Override

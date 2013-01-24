@@ -2152,6 +2152,8 @@ public class ProcessRenderer extends JPanel implements DragListener {
 				}
 			}
 
+			updateHoveringState(e);
+			
 			if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null) {
 
 				// Left mouse button pressed on port with alt pressed -> remove connection
@@ -3532,7 +3534,6 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 	/** Connects two operators and enables them. */
 	private void connect(OutputPort out, InputPort in) {
-		out.connectTo(in);
 		Operator inOp = in.getPorts().getOwner().getOperator();
 		if (!inOp.isEnabled()) {
 			inOp.setEnabled(true);
@@ -3541,6 +3542,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		if (!outOp.isEnabled()) {
 			outOp.setEnabled(true);
 		}
+		out.connectTo(in);
 	}
 
 	/** Adds positions of operators etc. */

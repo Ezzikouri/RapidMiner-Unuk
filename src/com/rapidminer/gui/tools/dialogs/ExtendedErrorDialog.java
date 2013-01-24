@@ -136,7 +136,6 @@ public class ExtendedErrorDialog extends ButtonDialog {
 		}
 
 		layoutDefault(mainComponent, SIZE, getButtons(hasError && displayExceptionMessage, isBugReportException(error), detailedPane, error));
-		pack();
 	}
 
 	/**
@@ -346,9 +345,9 @@ public class ExtendedErrorDialog extends ButtonDialog {
 				}
 
 				if (!"null".equals(message)) {
-					infoText.append("<p><strong>Reason: </strong>");
+					infoText.append("<br/>");
+					infoText.append("<strong>" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.process_failed_reason.message") + " </strong>");
 					infoText.append(message);
-					infoText.append("</p>");
 				}
 			}
 			return infoText.toString();

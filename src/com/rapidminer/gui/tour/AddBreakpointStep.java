@@ -37,7 +37,7 @@ import com.rapidminer.operator.Operator;
  * 
  * This subclass of {@link Step} will open a {@link BubbleWindow} which closes if a Breakpoint is set.
  * 
- * @author Philipp Kersting
+ * @author Philipp Kersting and Thilo Kamradt
  *
  */
 
@@ -55,17 +55,18 @@ public class AddBreakpointStep extends Step {
 	private Position position;
 	private String buttonKey = "breakpoint_after";
 	private ProcessSetupListener listener = null;
+	private final String dockableKey = OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY;
 
 	/**
 	 * The Bubble Window will be attached to the Button with the breakpoint_after key
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operator the class of the Operator at which the Breakpoint should be added.
 	 * @param position position on which the Breakpoint should be set.
 	 */
-	public AddBreakpointStep(Alignment preferedAlignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
-		this.alignment = preferedAlignment;
+	public AddBreakpointStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operator, Position position) {
+		this.alignment = preferredAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.position = position;
@@ -73,15 +74,15 @@ public class AddBreakpointStep extends Step {
 	}
 
 	/**
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operator the class of the Operator at which the Breakpoint should be added.
 	 * @param i18nButtonKey key of the Button to which the {@link BubbleWindow} should be attached to.
 	 * @param position position on which the Breakpoint should be set.
 	 */
-	public AddBreakpointStep(Alignment alignment, Window owner, String i18nKey, Class<? extends Operator> operator, String i18nButtonKey, Position position) {
-		this.alignment = alignment;
+	public AddBreakpointStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operator, String i18nButtonKey, Position position) {
+		this.alignment = preferredAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.position = position;
@@ -91,7 +92,7 @@ public class AddBreakpointStep extends Step {
 
 	@Override
 	boolean createBubble() {
-			bubble = new BubbleWindow(owner, alignment, i18nKey, buttonKey, false);
+			bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, buttonKey, false, new Object[] {});
 			listener = new ProcessSetupListener() {
 
 			@Override
@@ -141,6 +142,6 @@ public class AddBreakpointStep extends Step {
 
 	@Override
 	public Step[] getPreconditions() {
-		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep("test", OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY), new NotViewableStep(alignment, owner, buttonKey, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY)};
+		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep(dockableKey), new NotViewableStep(alignment, owner, buttonKey, dockableKey)};
 	}
 }
