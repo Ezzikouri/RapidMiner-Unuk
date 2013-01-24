@@ -1,0 +1,179 @@
+<project name="RapidMiner_Unuk_Release">
+	<description>Build file for RapidMiner release targets. Should not be mirrored to public SVN.</description>
+
+	<target name="release" depends="init"
+		description="This will increase the version counter and generate all files with the new version, including update files and javadoc.">
+
+		<!-- testing if release should be built at all -->
+		<input
+			message="Do you really want to create the new release ${rapidminer.longversion}? This will generate all platform install files, javadoc, update files and upload them as well on sourceforge as on the update server."
+			validargs="yes,no" defaultvalue="no" addproperty="release.input">
+		</input>
+		<condition property="release.accepted">
+			<istrue value="${release.input}" />
+		</condition>
+		<fail unless="release.accepted" />
+		<echo message="Releasing started..." />
+
+		<delete failonerror="false" includeemptydirs="true">
+			<fileset dir="${release}">
+				<include name="**/*" />
+			</fileset>
+		</delete>
+
+		<ant target="version.updateFiles" />
+		<ant target="javaDoc.makeZip" />
+		<ant antfile="build_release.xml" target="release.publishToRapidShare" />
+		<ant antfile="build_release.xml" target="release.publish" />
+		<ant target="update.makeAll" />
+		<ant antfile="build_release.xml" target="update.publish" />
+		<ant antfile="build_release.xml" target="update.uploadChanges" />
+	</target>
+
+	<!-- Publishing release -->
+
+	<target name="release.publish" depends="release.makeAll"
+		description="This target builds a full release and uploads all files to source-forge.">
+		<echo message="Publishing release ${rapidminer.longversion}..." />
+		<!-- move files to proper directory for scping them to sf-net. -->
+		<move todir="${release}/scp/1. RapidMiner/${rapidminer.shortversion}">
+			<fileset dir="${release}">
+				<include name="*.zip" />
+				<include name="*.exe" />
+				<exclude name="update*.*" />
+			</fileset>
+		</move>
+
+		<echo
+			message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net:${server.sf.url.rapidminer}..." />
+		<!-- scping -->
+		<scp
+			remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net:${server.sf.url.rapidminer}"
+			password="${server.sf.password}" failonerror="true" trust="true">
+			<fileset dir="${release}/scp" includes="**/*.*" />
+		</scp>
+
+		<!-- correcting file permissions -->
+		<!--<for param="file"> <fileset dir="${release}/scp" includes="**/*.*" 
+			/> <sequential> <sshexec command="chmod 775 ${file}" host="frs.sourceforge.net:${server.sf.url.rapidminer}" 
+			username="${server.sf.user},${server.sf.project.rapidminer}" password="${server.sf.password}" 
+			/> </sequential> </for> -->
+
+		<!-- move back and delete dir -->
+		<move todir="${release}">
+			<fileset dir="${release}/scp/1. RapidMiner/${rapidminer.shortversion}">
+				<include name="**/*.*" />
+			</fileset>
+		</move>
+		<delete dir="${release}/scp" />
+	</target>
+
+	<!-- Amazon S3 -->
+	<target name="setupAmazonS3">
+		<path id="amazon.s3.path">
+			<pathelement location="ant/aws-ant-tasks-0.4-SNAPSHOT.jar" />
+			<pathelement location="ant/aws-java-sdk-1.3.8.jar" />
+			<pathelement location="ant/commons-codec-1.6.jar" />
+			<pathelement location="ant/commons-logging-1.1.1.jar" />
+			<pathelement location="ant/httpclient-4.1.1.jar" />
+			<pathelement location="ant/httpcore-4.1.jar" />
+			<pathelement location="ant/jackson-core-asl-1.9.10.jar" />
+			<pathelement location="ant/jackson-mapper-asl-1.9.10.jar" />
+		</path>
+		<taskdef name="s3put" classname="it.corley.ant.S3PutTask"
+			classpathref="amazon.s3.path" />
+		<typedef name="contenttype.mapping" classname="it.corley.ant.ContentTypeMapping"
+			classpathref="amazon.s3.path" />
+		<typedef name="cachecontrol.mapping" classname="it.corley.ant.CacheControlMapping"
+			classpathref="amazon.s3.path" />
+		<typedef name="contentencoding.mapping" classname="it.corley.ant.ContentEncodingMapping"
+			classpathref="amazon.s3.path" />
+	</target>
+
+	<target name="release.publishToAmazonS3" depends="release.makeAll, setupAmazonS3"
+		description="This target builds a full release and uploads all files to amazon s3.">
+		<echo message="Publishing release ${rapidminer.longversion}... to Amazon S3" />
+
+		<!-- upload to s3 -->
+		<s3put key="${server.amazon_s3.access_key}" secret="${server.amazon_s3.secret_key}"
+			bucket="${server.amazon_s3.bucket}" dest="${server.amazon_s3.destination}/${rapidminer.longversion}"
+			publicread="true" cacheControl="3600" contentType="application/octet-stream">
+			<fileset dir="${release}">
+				<include name="rapidminer-${rapidminer.longversion}x32-install.exe" />
+				<include name="rapidminer-${rapidminer.longversion}x64-install.exe" />
+				<include name="rapidminer-${rapidminer.longversion}.zip" />
+			</fileset>
+			<contenttypemapping extension="zip" contenttype="application/zip" />
+			<cachecontrolmapping extension="md" maxage="7200" />
+			<contentencodingmapping extension="md"
+				encoding="UTF-8" />
+		</s3put>
+	</target>
+
+	<target name="release.publishToRapidShare" depends="release.makeAll"
+		description="Copies the created jar file into Rapid-I's internal file share.">
+		<echo message="Publishing release ${rapidminer.longversion} to Rapid Share..." />
+		<property name="server.rapidshare.path.release"
+			value="${server.rapidshare.path}/RapidMiner/Community/${rapidminer.longversion}" />
+		<mkdir dir="${server.rapidshare.path.release}" />
+		<copy todir="${server.rapidshare.path.release}">
+			<fileset dir="${release}">
+				<include name="*.zip" />
+				<include name="*.exe" />
+				<exclude name="update*.*" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- Uploading updates -->
+
+	<target name="update.publish" depends="init"
+		description="This will generate a new update and upload files for all platforms.">
+		<echo
+			message="Publishing update ${rapidminer.longversion} using ${server.marketplace.user} to Marketplace..." />
+		<echo message="...Platform Independent" />
+		<put
+			targetUrl="${server.marketplace.url}/admin/upload/rapidminer/${rapidminer.longversion}/ANY"
+			uploadFile="${release}/update_rapidminer-${rapidminer.longversion}.zip"
+			username="${server.marketplace.user}" password="${server.marketplace.password}" />
+		<echo message="...Windows 32" />
+		<put
+			targetUrl="${server.marketplace.url}/admin/upload/rapidminer/${rapidminer.longversion}/WIN32"
+			uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x32.zip"
+			username="${server.marketplace.user}" password="${server.marketplace.password}" />
+		<echo message="...Windows 64" />
+		<put
+			targetUrl="${server.marketplace.url}/admin/upload/rapidminer/${rapidminer.longversion}/WIN64"
+			uploadFile="${release}/update_rapidminer-${rapidminer.longversion}x64.zip"
+			username="${server.marketplace.user}" password="${server.marketplace.password}" />
+
+	</target>
+
+	<target name="update" depends="init"
+		description="This target will perform a full update including file generation and uploading them to the update server.">
+		<input
+			message="Do you really want to create the update to ${rapidminer.longversion}? This will generate all update files and upload to the server."
+			validargs="yes,no" addproperty="update.input">
+		</input>
+		<condition property="update.accepted">
+			<istrue value="${update.input}" />
+		</condition>
+		<fail unless="update.accepted" />
+		<echo message="Updating started..." />
+		<ant target="version.updateFiles" />
+		<ant target="update.makeAll" />
+		<ant antfile="build_release.xml" target="update.publish" />
+	</target>
+
+	<!-- Upload current changes.txt to corresponding marketplace project url -->
+	<target name="update.uploadChanges" depends="init"
+		description="Uploading current CHANGES file to the Marketplace">
+		<echo message="Uploading current CHANGES File to Rapid-I Marketplace" />
+		<put
+			targetUrl="${server.marketplace.url}/admin/upload-changes/rapidminer/${rapidminer.longversion}"
+			uploadFile="${changes.current}" username="${server.marketplace.user}"
+			password="${server.marketplace.password}" />
+	</target>
+
+	<import file="build.xml" />
+</project>
