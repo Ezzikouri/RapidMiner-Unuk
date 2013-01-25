@@ -1391,23 +1391,14 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		if (process != null) {
 			File result = process.resolveFileName(fileName);
 			if (createMissingDirectories) {
-				if (result.isDirectory()) {
-					boolean isDirectoryCreated = result.mkdirs();
-					if (!isDirectoryCreated) {
-						throw new UserError(null, "io.dir_creation_fail", result.getAbsolutePath());
-					}
-				} else {
-					File parent = result.getParentFile();
-					if (parent != null) {
-						if (!parent.exists()) {
-							boolean isDirectoryCreated = parent.mkdirs();
-							if (!isDirectoryCreated) {
-								throw new UserError(null, "io.dir_creation_fail", parent.getAbsolutePath());
-							}
+				File parent = result.getParentFile();
+				if (parent != null) {
+					if (!parent.exists()) {
+						boolean isDirectoryCreated = parent.mkdirs();
+						if (!isDirectoryCreated) {
+							throw new UserError(null, "io.dir_creation_fail", parent.getAbsolutePath());
 						}
-
 					}
-
 				}
 			}
 			return result;
