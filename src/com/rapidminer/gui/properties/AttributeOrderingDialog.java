@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.properties;
 
 import java.awt.Color;
@@ -153,6 +152,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 
 			// clear text field
 			addRuleTextField.setText("");
+			addRuleTextField.requestFocusInWindow();
 
 			if (newRule != null && newRule.trim().length() != 0 && !(selectedRules.contains(newRule))) {
 				// add rule to list
@@ -254,7 +254,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 				int currentIndex = selectedIndices[0];
 				String oldRule = selectedRules.get(currentIndex);
 
-				InputDialog inputDialog = new InputDialog("", oldRule); //TODO
+				InputDialog inputDialog = new InputDialog("attribute_ordering", oldRule);
 				inputDialog.setVisible(true);
 
 				if (inputDialog.wasConfirmed()) {
@@ -317,6 +317,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				attributeSearchField.clearFilter();
+				attributeSearchField.requestFocusInWindow();
 			}
 		});
 		JPanel itemSearchFieldPanel = new JPanel(new GridBagLayout());
@@ -462,7 +463,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					editRuleAction.actionPerformed(null);
+					deselectAttributesAction.actionPerformed(null);
 				}
 			}
 

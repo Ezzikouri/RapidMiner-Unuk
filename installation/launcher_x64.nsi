@@ -13,6 +13,34 @@ RequestExecutionLevel user
 SilentInstall silent
 AutoCloseWindow true
 ShowInstDetails nevershow
+
+;includes are part of the macro
+!include LogicLib.nsh
+!include WinMessages.nsh
+ 
+ ;taken from http://nsis.sourceforge.net/ShellExecWait 
+ ;macro to run a programm with UAC and wait until it is terminated
+!macro ShellExecWait verb app param workdir show exitoutvar ;only app and show must be != "", every thing else is optional
+#define SEE_MASK_NOCLOSEPROCESS 0x40 
+System::Store S
+System::Call '*(&i60)i.r0'
+System::Call '*$0(i 60,i 0x40,i $hwndparent,t "${verb}",t $\'${app}$\',t $\'${param}$\',t "${workdir}",i ${show})i.r0'
+System::Call 'shell32::ShellExecuteEx(ir0)i.r1 ?e'
+${If} $1 <> 0
+	System::Call '*$0(is,i,i,i,i,i,i,i,i,i,i,i,i,i,i.r1)' ;stack value not really used, just a fancy pop ;)
+	System::Call 'kernel32::WaitForSingleObject(ir1,i-1)'
+	System::Call 'kernel32::GetExitCodeProcess(ir1,*i.s)'
+	System::Call 'kernel32::CloseHandle(ir1)'
+${EndIf}
+System::Free $0
+!if "${exitoutvar}" == ""
+	pop $0
+!endif
+System::Store L
+!if "${exitoutvar}" != ""
+	pop ${exitoutvar}
+!endif
+!macroend
  
 Section ""
 
@@ -39,11 +67,10 @@ Pop $1
 
 IntCmp $1 64 less64 less64 more64
 less64: 
-StrCpy $1 64
-Goto after_mem_more
+	StrCpy $1 64
+	Goto after_mem_more
 more64:
-Goto after_mem_more
-
+	Goto after_mem_more
 
 after_mem_more:
   Call GetJRE
@@ -61,11 +88,11 @@ is1:
   Goto done
 morethan1:
   IntOp $0 $0 - 1
-  StrCpy $R2 '-XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=$0'
+  StrCpy $R2 '-XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:ConcGCThreads=$0 -XX:ParallelGCThreads=$0'
   Goto done
 done:
 
-  ; invoking RapidMiner via laucher.jar  
+  ; invoking RapidMiner via launcher.jar  
   StrCpy $0 '"$R0" $R2 -Xmx$1m -XX:MaxPermSize=128m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
   
   SetOutPath $EXEDIR
@@ -78,30 +105,31 @@ done:
   IntCmp $1 2 Relaunch
 SectionEnd
 
-Function PerformUpdate
+Function PerformUpdate 
 ;
 ;  Check for Directory RUinstall
 ;  If found, copy everything from this directory and remove it 
- 
+
+  ;RapidMiner directory in UserProfile ----------- important change for new version
+  StrCpy $R8 "$PROFILE\.RapidMiner5"
+  
   Push $R0
  
   ClearErrors
-  StrCpy $R0 "$EXEDIR\RUinstall\*"
-  IfFileExists $R0 UpdateFound
-  StrCpy $R0 ""
+  StrCpy $R0 "$R8\update\*"
+  IfFileExists $R0 UpdateFound NoUpdate
         
   UpdateFound:
-    ; Check if update contains new RapidMiner.exe
-    StrCpy $R0 "$EXEDIR\RUinstall\RapidMiner.exe"
-    IfFileExists UpdateItself UpdateOther
-    UpdateItself:
-       Rename "$EXEDIR\RUinstall\RapidMiner.exe" "$EXEDIR\RapidMiner.exex"
-       Rename /REBOOTOK "$EXEDIR\RapidMiner.exex" "$EXEDIR\RapidMiner.exe"
-    
-    UpdateOther:  
-       CopyFiles /SILENT $EXEDIR\RUinstall\* $EXEDIR
-       RmDir /r $EXEDIR\RUinstall
-     
+     MessageBox MB_OKCANCEL "An Update was found. Press press OK to perform the update now or press Cancel to delay the update until the next start. You need to enter the Administrator-Password to start the update" IDOK OK IDCANCEL CANCEL
+	 ;start RapidMinerUpdate.exe which will elevate administrator privileges
+	 OK:
+	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_SHOW} $R9
+		 
+	CANCEL:
+		; User delayed update
+		
+  NoUpdate:
+ 
 FunctionEnd
 
 Function GetJRE
@@ -137,7 +165,6 @@ Function GetJRE
   Pop $R1
   Exch $R0
 FunctionEnd
-
 
  ; GetParameters
  ; input, none
@@ -179,6 +206,7 @@ Function GetParameters
   Exch $R0
  
 FunctionEnd
+
 ; This function will read from the ./scripts/config/config.win file
 ; which environment variables have to be set
 Function SetEnvironment

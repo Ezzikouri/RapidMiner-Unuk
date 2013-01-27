@@ -13,7 +13,35 @@ RequestExecutionLevel user
 SilentInstall silent
 AutoCloseWindow true
 ShowInstDetails nevershow
+
+;includes are part of the macro
+!include LogicLib.nsh
+!include WinMessages.nsh
  
+ ;taken from http://nsis.sourceforge.net/ShellExecWait
+ ;macro to run a programm with UAC and wait until it is terminated
+!macro ShellExecWait verb app param workdir show exitoutvar ;only app and show must be != "", every thing else is optional
+#define SEE_MASK_NOCLOSEPROCESS 0x40 
+System::Store S
+System::Call '*(&i60)i.r0'
+System::Call '*$0(i 60,i 0x40,i $hwndparent,t "${verb}",t $\'${app}$\',t $\'${param}$\',t "${workdir}",i ${show})i.r0'
+System::Call 'shell32::ShellExecuteEx(ir0)i.r1 ?e'
+${If} $1 <> 0
+	System::Call '*$0(is,i,i,i,i,i,i,i,i,i,i,i,i,i,i.r1)' ;stack value not really used, just a fancy pop ;)
+	System::Call 'kernel32::WaitForSingleObject(ir1,i-1)'
+	System::Call 'kernel32::GetExitCodeProcess(ir1,*i.s)'
+	System::Call 'kernel32::CloseHandle(ir1)'
+${EndIf}
+System::Free $0
+!if "${exitoutvar}" == ""
+	pop $0
+!endif
+System::Store L
+!if "${exitoutvar}" != ""
+	pop ${exitoutvar}
+!endif
+!macroend
+
 Section ""
 
 ; This will set the environment variables accordingly
@@ -27,7 +55,6 @@ System::Call "*$1(&i4 .r2, &i4 .r3, &i4 .r4, &i4 .r5, \
                   &i4 .r6, &i4.r7, &i4 .r8, &i4 .r9)"
 System::Free $1
 
-
 ; for Xmx and Xms
 IntOp $R9 $5 / 1024
 IntOp $R9 $R9 / 1024
@@ -35,18 +62,18 @@ IntOp $R9 $R9 * 90
 IntOp $R9 $R9 / 100
 IntCmp $R9 64 less64 less64 more64
 less64: 
-StrCpy $R9 64
-Goto mem_more
+	StrCpy $R9 64
+	Goto mem_more
 more64:
-Goto mem_more
+	Goto mem_more
 
 mem_more:
-IntCmp $R9 1200 less1200 less1200 more1200
-less1200:
-Goto after_mem_more
+	IntCmp $R9 1200 less1200 less1200 more1200
+	less1200:
+	Goto after_mem_more
 more1200: 
-StrCpy $R9 1200
-Goto after_mem_more
+	StrCpy $R9 1200
+	Goto after_mem_more
 
 after_mem_more:
   Call GetJRE
@@ -56,7 +83,7 @@ after_mem_more:
   Pop $R1
 
 ; testing for number of processors for switching to multi threaded GC
-ReadEnvStr $R2 "NUMBER_OF_PROCESSORS"  
+  ReadEnvStr $R2 "NUMBER_OF_PROCESSORS"  
   IntFmt $0 "0x%08X" $R2
   IntCmp $0 1 is1 done morethan1
 is1:
@@ -64,50 +91,49 @@ is1:
   Goto done
 morethan1:
   IntOp $0 $0 - 1
-  StrCpy $R2 '-XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=$0'
+  StrCpy $R2 '-XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:ConcGCThreads=$0 -XX:ParallelGCThreads=$0'
   Goto done
 done:
- 
   
   ; invoking RapidMiner via launcher.jar  
   StrCpy $0 '"$R0" $R2 -Xmx$R9m -XX:MaxPermSize=128m -classpath "${CLASSPATH}" -Drapidminer.home=. -Drapidminer.operators.additional="${RAPIDMINER_OPERATORS_ADDITIONAL}" -jar lib/launcher.jar $R1'
- 
   
   SetOutPath $EXEDIR
 
   Relaunch:
-	  Call PerformUpdate
-	  
+  	  Call PerformUpdate
+  
 	  ExecWait $0 $1
 	  Call SetEnvironment ;if settings have been adapted inside RapidMiner
-  IntCmp $1 2 Relaunch
-  
+  IntCmp $1 2 Relaunch    
 SectionEnd
  
-Function PerformUpdate
+Function PerformUpdate 
 ;
 ;  Check for Directory RUinstall
 ;  If found, copy everything from this directory and remove it 
- 
+
+  ;RapidMiner directory in UserProfile ----------- important change for new version
+  StrCpy $R8 "$PROFILE\.RapidMiner5"
+  
   Push $R0
  
   ClearErrors
-  StrCpy $R0 "$EXEDIR\RUinstall\*"
-  IfFileExists $R0 UpdateFound
-  StrCpy $R0 ""
+  StrCpy $R0 "$R8\update\*"
+  IfFileExists $R0 UpdateFound NoUpdate
         
   UpdateFound:
-    ; Check if update contains new RapidMiner.exe
-    StrCpy $R0 "$EXEDIR\RUinstall\RapidMiner.exe"
-    IfFileExists UpdateItself UpdateOther
-    UpdateItself:
-       Rename "$EXEDIR\RUinstall\RapidMiner.exe" "$EXEDIR\RapidMiner.exex"
-       Rename /REBOOTOK "$EXEDIR\RapidMiner.exex" "$EXEDIR\RapidMiner.exe"
-    
-    UpdateOther:  
-       CopyFiles /SILENT $EXEDIR\RUinstall\* $EXEDIR
-       RmDir /r $EXEDIR\RUinstall
-     
+     MessageBox MB_OKCANCEL "An Update was found. Press press OK to perform the update now or press Cancel to delay the update until the next start. You need to enter the Administrator-Password to start the update" IDOK OK IDCANCEL CANCEL
+	 ;start RapidMinerUpdate.exe which will elevate administrator privileges
+	 OK:
+	 	StrCpy $R9 ""
+	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_SHOW} $R9
+		
+	CANCEL:
+		; User delayed update
+		
+  NoUpdate:
+		
 FunctionEnd
 
 Function GetJRE
@@ -143,8 +169,6 @@ Function GetJRE
   Pop $R1
   Exch $R0
 FunctionEnd
-
-
 
  ; GetParameters
  ; input, none

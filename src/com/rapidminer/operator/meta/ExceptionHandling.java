@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,6 +24,7 @@ package com.rapidminer.operator.meta;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.OperatorChain;
@@ -38,6 +39,7 @@ import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.tools.LogService;
 
 /**
  * <p>This operator performs the inner operators and delivers the result of the
@@ -57,7 +59,7 @@ public class ExceptionHandling extends OperatorChain {
 	public static final String PARAMETER_EXCEPTION_MACRO = "exception_macro";
 
 	private boolean withoutError = true;
-	private Exception exception;
+	private Throwable throwable;
 	
 	private static final int TRY_SUBPROCESS = 0;
 	private static final int CATCH_SUBPROCESS = 1;
@@ -95,7 +97,7 @@ public class ExceptionHandling extends OperatorChain {
 		addValue(new Value("exception", "The exception that occured during execution.") {
 			@Override
 			public Object getValue() {				
-				return exception;
+				return throwable;
 			}
 
 			@Override
@@ -108,7 +110,7 @@ public class ExceptionHandling extends OperatorChain {
 	@Override
 	public void doWork() throws OperatorException {
 		withoutError = true;
-		exception = null;
+		throwable = null;
 
 		ExecutionUnit tryProcess = getSubprocess(TRY_SUBPROCESS);
 		ExecutionUnit catchProcess = getSubprocess(CATCH_SUBPROCESS);
@@ -119,13 +121,13 @@ public class ExceptionHandling extends OperatorChain {
 		try {			
 			tryProcess.execute();
 			outputExtender.passDataThrough(TRY_SUBPROCESS);
-		} catch (Exception e) {
-			logWarning("Error occurred and will be neglected by " + getName() + ": " + e.getMessage());
+		} catch (Throwable e) {
+			LogService.getRoot().log(Level.WARNING, "Error occurred and will be neglected by " + getName() + ": " + e.getMessage(), e);
 			if (isParameterSet(PARAMETER_EXCEPTION_MACRO)) {
 				getProcess().getMacroHandler().addMacro(getParameterAsString(PARAMETER_EXCEPTION_MACRO), e.getMessage());
 			}
 			withoutError = false;
-			this.exception = e;
+			this.throwable = e;
 			
 			catchProcess.execute();
 			outputExtender.passDataThrough(CATCH_SUBPROCESS);

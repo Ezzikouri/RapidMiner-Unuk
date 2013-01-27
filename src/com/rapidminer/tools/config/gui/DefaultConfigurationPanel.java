@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -42,6 +42,9 @@ import com.rapidminer.tools.config.Configurable;
 /**
  * The default implementation of the {@link ConfigurationPanel}.
  * The DefaultCongurationPanel creates a {@link GenericParameterPanel} for managing {@link Configurable}s.
+ * 
+ * The I18N Keys can be found at the {@link Configurable} interface.
+ * 
  * @author Dominik Halfkann
  *
  */

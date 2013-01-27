@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -79,8 +79,8 @@ public class ProcessPanel extends JPanel implements Dockable, ProcessEditor {
 		autoWireDropDownButton.add(new AutoWireAction(mainFrame, "rewire", CompatibilityLevel.PRE_VERSION_5, false, false));
 		autoWireDropDownButton.add(new AutoWireAction(mainFrame, "rewire_recursive", CompatibilityLevel.PRE_VERSION_5, true, false));
 		autoWireDropDownButton.addToToolBar(toolBar, ViewToolBar.RIGHT);
-		toolBar.add(renderer.getFlowVisualizer().SHOW_ORDER_TOGGLEBUTTON, ViewToolBar.RIGHT);
 		toolBar.add(renderer.ARRANGE_OPERATORS_ACTION, ViewToolBar.RIGHT);
+		toolBar.add(renderer.getFlowVisualizer().SHOW_ORDER_TOGGLEBUTTON, ViewToolBar.RIGHT);
 		toolBar.add(renderer.AUTO_FIT_ACTION, ViewToolBar.RIGHT);
 		JToggleButton toggleRealMetadataPropagationButton = new JToggleButton(mainFrame.getPropagateRealMetadataAction());
 		toggleRealMetadataPropagationButton.setText("");

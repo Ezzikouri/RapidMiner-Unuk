@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -142,7 +142,7 @@ public class FieldConnectionEntry extends ConnectionEntry {
 		if (properties != null) {
 			urlBuffer.append(properties.getUrlPrefix());
 		} else {
-			urlBuffer.append("unkown:prefix://");
+			urlBuffer.append("unknown:prefix://");
 		}
 		if (host != null && !"".equals(host)) {
 			urlBuffer.append(host);

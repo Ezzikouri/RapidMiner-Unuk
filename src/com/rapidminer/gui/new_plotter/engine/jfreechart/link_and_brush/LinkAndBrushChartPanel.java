@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -380,6 +380,15 @@ public class LinkAndBrushChartPanel extends ChartPanel {
         setVerticalTraceLine(null);
         setHorizontalTraceLine(null);
     }
+	
+	@SuppressWarnings("unchecked")
+	public List<Overlay> getOverlayList() {
+		return ((List<Overlay>) getChartFieldValueByName("overlays"));
+	}
+	
+	public void setOverlayList(List<Overlay> list) {
+		setChartFieldValue(getChartFieldByName("overlays"), list);
+	}
 	
 	@Override
 	public void mousePressed(MouseEvent e) {

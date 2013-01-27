@@ -24,20 +24,20 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _GetProcessIdsForJobId_QNAME = new QName("http://service.web.rapidanalytics.de/", "getProcessIdsForJobId");
-    private final static QName _GetRunningProcessesInfo_QNAME = new QName("http://service.web.rapidanalytics.de/", "getRunningProcessesInfo");
-    private final static QName _StopProcess_QNAME = new QName("http://service.web.rapidanalytics.de/", "stopProcess");
-    private final static QName _GetRunningProcessesInfoResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getRunningProcessesInfoResponse");
-    private final static QName _ExecuteProcessCron_QNAME = new QName("http://service.web.rapidanalytics.de/", "executeProcessCron");
-    private final static QName _ExecuteProcessSimpleResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "executeProcessSimpleResponse");
-    private final static QName _GetProcessIdsForJobIdResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getProcessIdsForJobIdResponse");
-    private final static QName _CancelTriggerResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "cancelTriggerResponse");
-    private final static QName _GetRunningProcessesResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getRunningProcessesResponse");
-    private final static QName _StopProcessResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "stopProcessResponse");
-    private final static QName _CancelTrigger_QNAME = new QName("http://service.web.rapidanalytics.de/", "cancelTrigger");
-    private final static QName _GetRunningProcesses_QNAME = new QName("http://service.web.rapidanalytics.de/", "getRunningProcesses");
-    private final static QName _ExecuteProcessCronResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "executeProcessCronResponse");
-    private final static QName _ExecuteProcessSimple_QNAME = new QName("http://service.web.rapidanalytics.de/", "executeProcessSimple");
+    private final static QName _GetTotalMemory_QNAME = new QName("http://service.web.rapidanalytics.de/", "getTotalMemory");
+    private final static QName _GetSystemLoadAverage_QNAME = new QName("http://service.web.rapidanalytics.de/", "getSystemLoadAverage");
+    private final static QName _GetMaxMemory_QNAME = new QName("http://service.web.rapidanalytics.de/", "getMaxMemory");
+    private final static QName _GetSystemLoadAverageResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getSystemLoadAverageResponse");
+    private final static QName _GetVersionNumberResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getVersionNumberResponse");
+    private final static QName _GetTotalMemoryResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getTotalMemoryResponse");
+    private final static QName _GetMaxMemoryResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getMaxMemoryResponse");
+    private final static QName _GetUpSince_QNAME = new QName("http://service.web.rapidanalytics.de/", "getUpSince");
+    private final static QName _GetUpSinceResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getUpSinceResponse");
+    private final static QName _GetFreeMemoryResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getFreeMemoryResponse");
+    private final static QName _GetFreeMemory_QNAME = new QName("http://service.web.rapidanalytics.de/", "getFreeMemory");
+    private final static QName _GetVersionNumber_QNAME = new QName("http://service.web.rapidanalytics.de/", "getVersionNumber");
+    private final static QName _GetInstalledPlugins_QNAME = new QName("http://service.web.rapidanalytics.de/", "getInstalledPlugins");
+    private final static QName _GetInstalledPluginsResponse_QNAME = new QName("http://service.web.rapidanalytics.de/", "getInstalledPluginsResponse");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.rapid_i.repository.wsimport
@@ -47,297 +47,249 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link CancelTriggerResponse }
+     * Create an instance of {@link GetMaxMemoryResponse }
      * 
      */
-    public CancelTriggerResponse createCancelTriggerResponse() {
-        return new CancelTriggerResponse();
+    public GetMaxMemoryResponse createGetMaxMemoryResponse() {
+        return new GetMaxMemoryResponse();
     }
 
     /**
-     * Create an instance of {@link GetRunningProcessesResponse }
+     * Create an instance of {@link GetFreeMemory }
      * 
      */
-    public GetRunningProcessesResponse createGetRunningProcessesResponse() {
-        return new GetRunningProcessesResponse();
+    public GetFreeMemory createGetFreeMemory() {
+        return new GetFreeMemory();
     }
 
     /**
-     * Create an instance of {@link ProcessContextWrapper }
+     * Create an instance of {@link GetTotalMemory }
      * 
      */
-    public ProcessContextWrapper createProcessContextWrapper() {
-        return new ProcessContextWrapper();
+    public GetTotalMemory createGetTotalMemory() {
+        return new GetTotalMemory();
     }
 
     /**
-     * Create an instance of {@link ExecuteProcessCron }
+     * Create an instance of {@link GetUpSince }
      * 
      */
-    public ExecuteProcessCron createExecuteProcessCron() {
-        return new ExecuteProcessCron();
+    public GetUpSince createGetUpSince() {
+        return new GetUpSince();
     }
 
     /**
-     * Create an instance of {@link GetProcessIdsForJobId }
+     * Create an instance of {@link GetInstalledPlugins }
      * 
      */
-    public GetProcessIdsForJobId createGetProcessIdsForJobId() {
-        return new GetProcessIdsForJobId();
+    public GetInstalledPlugins createGetInstalledPlugins() {
+        return new GetInstalledPlugins();
     }
 
     /**
-     * Create an instance of {@link ProcessStackTraceElement }
+     * Create an instance of {@link GetVersionNumber }
      * 
      */
-    public ProcessStackTraceElement createProcessStackTraceElement() {
-        return new ProcessStackTraceElement();
+    public GetVersionNumber createGetVersionNumber() {
+        return new GetVersionNumber();
     }
 
     /**
-     * Create an instance of {@link GetProcessIdsForJobIdResponse }
+     * Create an instance of {@link GetSystemLoadAverageResponse }
      * 
      */
-    public GetProcessIdsForJobIdResponse createGetProcessIdsForJobIdResponse() {
-        return new GetProcessIdsForJobIdResponse();
+    public GetSystemLoadAverageResponse createGetSystemLoadAverageResponse() {
+        return new GetSystemLoadAverageResponse();
     }
 
     /**
-     * Create an instance of {@link CancelTrigger }
+     * Create an instance of {@link GetMaxMemory }
      * 
      */
-    public CancelTrigger createCancelTrigger() {
-        return new CancelTrigger();
+    public GetMaxMemory createGetMaxMemory() {
+        return new GetMaxMemory();
     }
 
     /**
-     * Create an instance of {@link GetRunningProcesses }
+     * Create an instance of {@link GetUpSinceResponse }
      * 
      */
-    public GetRunningProcesses createGetRunningProcesses() {
-        return new GetRunningProcesses();
+    public GetUpSinceResponse createGetUpSinceResponse() {
+        return new GetUpSinceResponse();
     }
 
     /**
-     * Create an instance of {@link ProcessResponse }
+     * Create an instance of {@link GetVersionNumberResponse }
      * 
      */
-    public ProcessResponse createProcessResponse() {
-        return new ProcessResponse();
+    public GetVersionNumberResponse createGetVersionNumberResponse() {
+        return new GetVersionNumberResponse();
     }
 
     /**
-     * Create an instance of {@link StopProcess }
+     * Create an instance of {@link GetSystemLoadAverage }
      * 
      */
-    public StopProcess createStopProcess() {
-        return new StopProcess();
+    public GetSystemLoadAverage createGetSystemLoadAverage() {
+        return new GetSystemLoadAverage();
     }
 
     /**
-     * Create an instance of {@link Response }
+     * Create an instance of {@link GetTotalMemoryResponse }
      * 
      */
-    public Response createResponse() {
-        return new Response();
+    public GetTotalMemoryResponse createGetTotalMemoryResponse() {
+        return new GetTotalMemoryResponse();
     }
 
     /**
-     * Create an instance of {@link MacroDefinition }
+     * Create an instance of {@link GetFreeMemoryResponse }
      * 
      */
-    public MacroDefinition createMacroDefinition() {
-        return new MacroDefinition();
+    public GetFreeMemoryResponse createGetFreeMemoryResponse() {
+        return new GetFreeMemoryResponse();
     }
 
     /**
-     * Create an instance of {@link ExecuteProcessSimple }
+     * Create an instance of {@link PluginInfo }
      * 
      */
-    public ExecuteProcessSimple createExecuteProcessSimple() {
-        return new ExecuteProcessSimple();
+    public PluginInfo createPluginInfo() {
+        return new PluginInfo();
     }
 
     /**
-     * Create an instance of {@link StopProcessResponse }
+     * Create an instance of {@link GetInstalledPluginsResponse }
      * 
      */
-    public StopProcessResponse createStopProcessResponse() {
-        return new StopProcessResponse();
+    public GetInstalledPluginsResponse createGetInstalledPluginsResponse() {
+        return new GetInstalledPluginsResponse();
     }
 
     /**
-     * Create an instance of {@link GetRunningProcessesInfo }
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetTotalMemory }{@code >}}
      * 
      */
-    public GetRunningProcessesInfo createGetRunningProcessesInfo() {
-        return new GetRunningProcessesInfo();
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getTotalMemory")
+    public JAXBElement<GetTotalMemory> createGetTotalMemory(GetTotalMemory value) {
+        return new JAXBElement<GetTotalMemory>(_GetTotalMemory_QNAME, GetTotalMemory.class, null, value);
     }
 
     /**
-     * Create an instance of {@link ExecuteProcessSimpleResponse }
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetSystemLoadAverage }{@code >}}
      * 
      */
-    public ExecuteProcessSimpleResponse createExecuteProcessSimpleResponse() {
-        return new ExecuteProcessSimpleResponse();
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getSystemLoadAverage")
+    public JAXBElement<GetSystemLoadAverage> createGetSystemLoadAverage(GetSystemLoadAverage value) {
+        return new JAXBElement<GetSystemLoadAverage>(_GetSystemLoadAverage_QNAME, GetSystemLoadAverage.class, null, value);
     }
 
     /**
-     * Create an instance of {@link ExecuteProcessCronResponse }
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetMaxMemory }{@code >}}
      * 
      */
-    public ExecuteProcessCronResponse createExecuteProcessCronResponse() {
-        return new ExecuteProcessCronResponse();
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getMaxMemory")
+    public JAXBElement<GetMaxMemory> createGetMaxMemory(GetMaxMemory value) {
+        return new JAXBElement<GetMaxMemory>(_GetMaxMemory_QNAME, GetMaxMemory.class, null, value);
     }
 
     /**
-     * Create an instance of {@link ExecutionResponse }
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetSystemLoadAverageResponse }{@code >}}
      * 
      */
-    public ExecutionResponse createExecutionResponse() {
-        return new ExecutionResponse();
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getSystemLoadAverageResponse")
+    public JAXBElement<GetSystemLoadAverageResponse> createGetSystemLoadAverageResponse(GetSystemLoadAverageResponse value) {
+        return new JAXBElement<GetSystemLoadAverageResponse>(_GetSystemLoadAverageResponse_QNAME, GetSystemLoadAverageResponse.class, null, value);
     }
 
     /**
-     * Create an instance of {@link GetRunningProcessesInfoResponse }
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetVersionNumberResponse }{@code >}}
      * 
      */
-    public GetRunningProcessesInfoResponse createGetRunningProcessesInfoResponse() {
-        return new GetRunningProcessesInfoResponse();
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getVersionNumberResponse")
+    public JAXBElement<GetVersionNumberResponse> createGetVersionNumberResponse(GetVersionNumberResponse value) {
+        return new JAXBElement<GetVersionNumberResponse>(_GetVersionNumberResponse_QNAME, GetVersionNumberResponse.class, null, value);
     }
 
     /**
-     * Create an instance of {@link ProcessStackTrace }
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetTotalMemoryResponse }{@code >}}
      * 
      */
-    public ProcessStackTrace createProcessStackTrace() {
-        return new ProcessStackTrace();
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getTotalMemoryResponse")
+    public JAXBElement<GetTotalMemoryResponse> createGetTotalMemoryResponse(GetTotalMemoryResponse value) {
+        return new JAXBElement<GetTotalMemoryResponse>(_GetTotalMemoryResponse_QNAME, GetTotalMemoryResponse.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetProcessIdsForJobId }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetMaxMemoryResponse }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getProcessIdsForJobId")
-    public JAXBElement<GetProcessIdsForJobId> createGetProcessIdsForJobId(GetProcessIdsForJobId value) {
-        return new JAXBElement<GetProcessIdsForJobId>(_GetProcessIdsForJobId_QNAME, GetProcessIdsForJobId.class, null, value);
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getMaxMemoryResponse")
+    public JAXBElement<GetMaxMemoryResponse> createGetMaxMemoryResponse(GetMaxMemoryResponse value) {
+        return new JAXBElement<GetMaxMemoryResponse>(_GetMaxMemoryResponse_QNAME, GetMaxMemoryResponse.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetRunningProcessesInfo }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetUpSince }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getRunningProcessesInfo")
-    public JAXBElement<GetRunningProcessesInfo> createGetRunningProcessesInfo(GetRunningProcessesInfo value) {
-        return new JAXBElement<GetRunningProcessesInfo>(_GetRunningProcessesInfo_QNAME, GetRunningProcessesInfo.class, null, value);
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getUpSince")
+    public JAXBElement<GetUpSince> createGetUpSince(GetUpSince value) {
+        return new JAXBElement<GetUpSince>(_GetUpSince_QNAME, GetUpSince.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link StopProcess }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetUpSinceResponse }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "stopProcess")
-    public JAXBElement<StopProcess> createStopProcess(StopProcess value) {
-        return new JAXBElement<StopProcess>(_StopProcess_QNAME, StopProcess.class, null, value);
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getUpSinceResponse")
+    public JAXBElement<GetUpSinceResponse> createGetUpSinceResponse(GetUpSinceResponse value) {
+        return new JAXBElement<GetUpSinceResponse>(_GetUpSinceResponse_QNAME, GetUpSinceResponse.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetRunningProcessesInfoResponse }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetFreeMemoryResponse }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getRunningProcessesInfoResponse")
-    public JAXBElement<GetRunningProcessesInfoResponse> createGetRunningProcessesInfoResponse(GetRunningProcessesInfoResponse value) {
-        return new JAXBElement<GetRunningProcessesInfoResponse>(_GetRunningProcessesInfoResponse_QNAME, GetRunningProcessesInfoResponse.class, null, value);
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getFreeMemoryResponse")
+    public JAXBElement<GetFreeMemoryResponse> createGetFreeMemoryResponse(GetFreeMemoryResponse value) {
+        return new JAXBElement<GetFreeMemoryResponse>(_GetFreeMemoryResponse_QNAME, GetFreeMemoryResponse.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link ExecuteProcessCron }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetFreeMemory }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "executeProcessCron")
-    public JAXBElement<ExecuteProcessCron> createExecuteProcessCron(ExecuteProcessCron value) {
-        return new JAXBElement<ExecuteProcessCron>(_ExecuteProcessCron_QNAME, ExecuteProcessCron.class, null, value);
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getFreeMemory")
+    public JAXBElement<GetFreeMemory> createGetFreeMemory(GetFreeMemory value) {
+        return new JAXBElement<GetFreeMemory>(_GetFreeMemory_QNAME, GetFreeMemory.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link ExecuteProcessSimpleResponse }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetVersionNumber }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "executeProcessSimpleResponse")
-    public JAXBElement<ExecuteProcessSimpleResponse> createExecuteProcessSimpleResponse(ExecuteProcessSimpleResponse value) {
-        return new JAXBElement<ExecuteProcessSimpleResponse>(_ExecuteProcessSimpleResponse_QNAME, ExecuteProcessSimpleResponse.class, null, value);
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getVersionNumber")
+    public JAXBElement<GetVersionNumber> createGetVersionNumber(GetVersionNumber value) {
+        return new JAXBElement<GetVersionNumber>(_GetVersionNumber_QNAME, GetVersionNumber.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetProcessIdsForJobIdResponse }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetInstalledPlugins }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getProcessIdsForJobIdResponse")
-    public JAXBElement<GetProcessIdsForJobIdResponse> createGetProcessIdsForJobIdResponse(GetProcessIdsForJobIdResponse value) {
-        return new JAXBElement<GetProcessIdsForJobIdResponse>(_GetProcessIdsForJobIdResponse_QNAME, GetProcessIdsForJobIdResponse.class, null, value);
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getInstalledPlugins")
+    public JAXBElement<GetInstalledPlugins> createGetInstalledPlugins(GetInstalledPlugins value) {
+        return new JAXBElement<GetInstalledPlugins>(_GetInstalledPlugins_QNAME, GetInstalledPlugins.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link CancelTriggerResponse }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link GetInstalledPluginsResponse }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "cancelTriggerResponse")
-    public JAXBElement<CancelTriggerResponse> createCancelTriggerResponse(CancelTriggerResponse value) {
-        return new JAXBElement<CancelTriggerResponse>(_CancelTriggerResponse_QNAME, CancelTriggerResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetRunningProcessesResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getRunningProcessesResponse")
-    public JAXBElement<GetRunningProcessesResponse> createGetRunningProcessesResponse(GetRunningProcessesResponse value) {
-        return new JAXBElement<GetRunningProcessesResponse>(_GetRunningProcessesResponse_QNAME, GetRunningProcessesResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link StopProcessResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "stopProcessResponse")
-    public JAXBElement<StopProcessResponse> createStopProcessResponse(StopProcessResponse value) {
-        return new JAXBElement<StopProcessResponse>(_StopProcessResponse_QNAME, StopProcessResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link CancelTrigger }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "cancelTrigger")
-    public JAXBElement<CancelTrigger> createCancelTrigger(CancelTrigger value) {
-        return new JAXBElement<CancelTrigger>(_CancelTrigger_QNAME, CancelTrigger.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link GetRunningProcesses }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getRunningProcesses")
-    public JAXBElement<GetRunningProcesses> createGetRunningProcesses(GetRunningProcesses value) {
-        return new JAXBElement<GetRunningProcesses>(_GetRunningProcesses_QNAME, GetRunningProcesses.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link ExecuteProcessCronResponse }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "executeProcessCronResponse")
-    public JAXBElement<ExecuteProcessCronResponse> createExecuteProcessCronResponse(ExecuteProcessCronResponse value) {
-        return new JAXBElement<ExecuteProcessCronResponse>(_ExecuteProcessCronResponse_QNAME, ExecuteProcessCronResponse.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link ExecuteProcessSimple }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "executeProcessSimple")
-    public JAXBElement<ExecuteProcessSimple> createExecuteProcessSimple(ExecuteProcessSimple value) {
-        return new JAXBElement<ExecuteProcessSimple>(_ExecuteProcessSimple_QNAME, ExecuteProcessSimple.class, null, value);
+    @XmlElementDecl(namespace = "http://service.web.rapidanalytics.de/", name = "getInstalledPluginsResponse")
+    public JAXBElement<GetInstalledPluginsResponse> createGetInstalledPluginsResponse(GetInstalledPluginsResponse value) {
+        return new JAXBElement<GetInstalledPluginsResponse>(_GetInstalledPluginsResponse_QNAME, GetInstalledPluginsResponse.class, null, value);
     }
 
 }

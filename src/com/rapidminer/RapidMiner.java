@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer;
 
 import java.awt.Frame;
@@ -67,6 +66,7 @@ import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.XMLException;
 import com.rapidminer.tools.XMLSerialization;
 import com.rapidminer.tools.cipher.CipherTools;
@@ -420,6 +420,7 @@ public class RapidMiner {
 
 		ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST, "The proxy host to use for SOCKS.", true), "system");
 		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT, "The proxy port to use for SOCKS.", 0, 65535, true), "system");
+		ParameterService.registerParameter(new ParameterTypeInt(WebServiceTools.WEB_SERVICE_TIMEOUT, "The timeout in milliseconds for webservice and url connections.", 1, Integer.MAX_VALUE, 20000),"system");
 	}
 
 	private static InputHandler inputHandler = new ConsoleInputHandler();
@@ -505,6 +506,10 @@ public class RapidMiner {
 		// initializing networking tools
 		GlobalAuthenticator.init();
 
+		// init repositories
+		RapidMiner.splashMessage("init_repository");
+		RepositoryManager.init();
+		
 		// registering operators
 		RapidMiner.splashMessage("register_plugins");
 		Plugin.initAll();
@@ -526,9 +531,6 @@ public class RapidMiner {
 		RapidMiner.splashMessage("load_jdbc_drivers");
 		DatabaseService.init();
 		DatabaseConnectionService.init();
-
-		RapidMiner.splashMessage("init_repository");
-		RepositoryManager.init();
 
 		RapidMiner.splashMessage("init_configurables");
 		ConfigurationManager.getInstance().initialize();
@@ -748,6 +750,10 @@ public class RapidMiner {
 		isInitiated = true;
 	}
 	
+	public static boolean isInitialized() {
+		return isInitiated;
+	}
+	
 	private static void runStartupHook(Runnable runnable) {
 		try {
 			runnable.run();
@@ -777,12 +783,14 @@ public class RapidMiner {
 		isInitiated = false;
 		switch (exitMode) {
 			case NORMAL:
+				RapidMinerGUI.getSafeMode().launchComplete();
 				System.exit(0);
 				break;
 			case ERROR:
 				System.exit(1);
 				break;
 			case RELAUNCH:
+				RapidMinerGUI.getSafeMode().launchComplete();
 				Launcher.relaunch();
 				break;
 		}

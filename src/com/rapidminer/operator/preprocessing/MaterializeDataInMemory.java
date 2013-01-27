@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -128,6 +128,7 @@ public class MaterializeDataInMemory extends AbstractDataProcessing {
 
 		// create and return result
 		ExampleSet createdSet = table.createExampleSet(specialAttributes);
+		createdSet.getAnnotations().addAll(exampleSet.getAnnotations());
 		return createdSet;
 	}
 	

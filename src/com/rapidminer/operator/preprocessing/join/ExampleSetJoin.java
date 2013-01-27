@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.operator.preprocessing.join;
 
 import java.util.Arrays;
@@ -516,6 +515,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 			for (int attributeNumber = 0; attributeNumber < keyAttributes.length; ++attributeNumber) {
 				if (keyAttributes[attributeNumber].isNominal()) {
 					Map<Double, Double> valueMap = new HashMap<Double, Double>();
+					// TODO: iterate over getMappint().values() rather than relying on the assumption that values appear in increasing order
 					for (int valueNumber = 0; valueNumber < keyAttributes[attributeNumber].getMapping().size(); ++valueNumber) {
 						String valueString = keyAttributes[attributeNumber].getMapping().mapIndex(valueNumber);
 						valueMap.put((double) valueNumber, (double) matchKeyAttributes[attributeNumber].getMapping().mapString(valueString));
@@ -526,16 +526,26 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 		}
 
 		double[] keyValues;
+		
 		for (Example example : exampleSet) {
+			boolean continueIteration = false;
 			// fetch key values from example
 			keyValues = getKeyValues(example, keyAttributes);
 			if (valueMapping != null) {
 				// remap keyValues to match values of other attributes:
 				for (int i = 0; i < keyValues.length; ++i) {
+					if(Double.isNaN(keyValues[i])) {
+						continueIteration = true;
+						break;
+					}
 					if (keyAttributes[i].isNominal()) {
 						keyValues[i] = valueMapping.get(keyAttributes[i]).get(keyValues[i]);
-					}
+					} 
 				}
+				if (continueIteration) {
+					continue;
+				}
+				
 			}
 
 			// check if this key is in keyMapping. If not, add:
@@ -549,7 +559,7 @@ public class ExampleSetJoin extends AbstractExampleSetJoin {
 				keyExamples.add(example);
 				keyMapping.put(new DoubleArrayWrapper(keyValues), keyExamples);
 			}
-		}
+		};
 		return keyMapping;
 	}
 

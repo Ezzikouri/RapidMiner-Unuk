@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,7 +24,7 @@ package com.rapidminer.gui.operatortree.actions;
 
 import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.actions.Actions;
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 
 
@@ -36,17 +36,20 @@ import com.rapidminer.gui.tools.ResourceAction;
 public class DeleteOperatorAction extends ResourceAction {
 
 	private static final long serialVersionUID = -3681027479511760566L;
-
-	private Actions actions;
 	
-	public DeleteOperatorAction(Actions actions) {
+	private static final String name = "delete";
+
+	public DeleteOperatorAction() {
 		super(true, "delete");
 		setCondition(OPERATOR_SELECTED, MANDATORY);
 		setCondition(ROOT_SELECTED, DISALLOWED);
-		this.actions = actions;
+	}
+	
+	public static String getActionName() {
+		return name;
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		this.actions.delete();
+		RapidMinerGUI.getMainFrame().getActions().delete();
 	}
 }

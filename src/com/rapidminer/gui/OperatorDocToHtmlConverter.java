@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -297,21 +297,21 @@ public class OperatorDocToHtmlConverter {
 	 */
 	@SuppressWarnings("unchecked")
 	public static String getTypeNameForType(String type) {
-		String iconName;
+		String typeName = null;
 		if ((type == null) || type.isEmpty()) {
-			iconName = "";
+			typeName = "";
 		} else {
 			Class<? extends IOObject> typeClass;
 			try {
 				typeClass = (Class<? extends IOObject>) Class.forName(type);
 
-				iconName = " (" + RendererService.getName(typeClass) + ")";
+				typeName = " (" + RendererService.getName(typeClass) + ")";
 			} catch (ClassNotFoundException e) {
 				LogService.getRoot().finer("Failed to lookup class '" + type + "'. Reason: " + e.getLocalizedMessage());
-				iconName = "";
+				typeName = "";
 			}
 		}
-		return iconName;
+		return typeName;
 	}
 
 	/**
@@ -328,12 +328,50 @@ public class OperatorDocToHtmlConverter {
 		// operator keys in the documentation begin with "operator.", so remove that
 		int index = operatorKey.indexOf(".");
 		if (index == -1) {
-			LogService.getRoot().finer("Tried to retrieve icon name for invalid operatorKey: '" + operatorKey + "'!");
-			return null;
+			return SwingTools.getIconPath("24/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
+//			LogService.getRoot().finer("Tried to retrieve icon name for invalid operatorKey: '" + operatorKey + "'!");
+//			return null;
 		} else {
 			operatorKey = operatorKey.substring(index + 1);
 			return SwingTools.getIconPath("24/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
 		}
+	}
+
+	public static String getIconNameForOperatorSmall(String operatorKey) {
+		if (operatorKey == null) {
+			LogService.getRoot().finer("Tried to retrieve icon name for null operatorKey!");
+			return null;
+		}
+		// operator keys in the documentation begin with "operator.", so remove that
+		int index = operatorKey.indexOf(".");
+		if (index == -1) {
+			return SwingTools.getIconPath("16/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
+		} else {
+			operatorKey = operatorKey.substring(index + 1);
+			return SwingTools.getIconPath("16/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
+		}
+	}
+
+	public static String getOperatorNameForKey(String operatorKey) {
+		OperatorDescription operatorDescription = OperatorService.getOperatorDescription(operatorKey);
+		if (operatorDescription != null) {
+			return operatorDescription.getName();
+		} else {
+			return null;
+		}
+	}
+	
+	public static String getPluginNameForOperator(String operatorKey) {
+		OperatorDescription operatorDescription;
+		int index = operatorKey.indexOf(".");
+		if (index == -1) {
+			operatorDescription= OperatorService.getOperatorDescription(operatorKey);
+		} else {
+			operatorKey = operatorKey.substring(index + 1);
+			operatorDescription = OperatorService.getOperatorDescription(operatorKey);
+		}
+		
+		return operatorDescription.getProviderName();
 	}
 
 	/**

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -42,6 +42,7 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -81,6 +82,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.io.Encoding;
 import com.rapidminer.tools.plugin.Plugin;
 
@@ -368,6 +370,12 @@ public class Tools {
 	public static String formatDateTime(Date date) {
 		DATE_TIME_FORMAT.setTimeZone(getPreferredTimeZone());
 		return DATE_TIME_FORMAT.format(date);
+	}
+
+	public static String formatDateTime(Date date, String pattern) {
+		SimpleDateFormat format = new SimpleDateFormat(pattern);
+		format.setTimeZone(getPreferredTimeZone());
+		return format.format(date);
 	}
 
 	/** Format the given amount of milliseconds as a human readable string. */
@@ -750,6 +758,23 @@ public class Tools {
 		}
 	}
 
+	/**
+	 * Return an input stream of the desired resource. Tries first to find a resource in the core RapidMiner resources directory. If no
+	 * resource with the given name is found, it is tried to load with help of the ResourceSource which might have been
+	 * added by plugins. Please note that resource names are only allowed to use '/' as separator instead of
+	 * File.separator!
+	 * 
+	 * @throws IOException if stream cannot be opened
+	 * @throws RepositoryException if resource cannot be found
+	 */
+	public static InputStream getResourceInputStream(String name) throws IOException, RepositoryException {
+		URL resourceURL = Tools.getResource(name);
+		if (resourceURL == null) {
+			throw new RepositoryException("Missing resource " + name);
+		}
+		return resourceURL.openStream();
+	}
+
 	public static String readTextFile(InputStream in) throws IOException {
 		return readTextFile(new InputStreamReader(in, "UTF-8"));
 	}
@@ -794,16 +819,28 @@ public class Tools {
 		}
 
 		InputStreamReader reader = null;
-		inStream = new FileInputStream(file);
-		if (useFallback) {
-			// default reader (as in old versions)
-			reader = new InputStreamReader(inStream);
-		} else {
-			// utf8 reader
-			reader = new InputStreamReader(inStream, XMLImporter.PROCESS_FILE_CHARSET);
-		}
 
-		return readTextFile(reader);
+		try {
+			inStream = new FileInputStream(file);
+			if (useFallback) {
+				// default reader (as in old versions)
+				reader = new InputStreamReader(inStream);
+			} else {
+				// utf8 reader
+				reader = new InputStreamReader(inStream, XMLImporter.PROCESS_FILE_CHARSET);
+			}
+
+			return readTextFile(reader);
+		} finally {
+			try {
+				inStream.close();
+			} catch (IOException e) {}
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {}
+			}
+		}
 	}
 
 	public static String readTextFile(Reader r) throws IOException {
@@ -826,12 +863,14 @@ public class Tools {
 		// but the result will be an EMPTY file C:\path\x and you never know it failed
 		// see http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4645046
 		if (file == null || !canFileBeStoredOnCurrentFilesystem(file.getName())) {
-			throw new FileNotFoundException("Entry contains illegal characters which cannot be stored on your filesystem. ('" + file.getName() + "')");
+			throw new FileNotFoundException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", file == null ? "null" : file.getName()));
 		}
-		
+
 		FileOutputStream outStream = new FileOutputStream(file);
 		try {
-			outStream.write(text.getBytes(XMLImporter.PROCESS_FILE_CHARSET));
+			if (text != null) {
+				outStream.write(text.getBytes(XMLImporter.PROCESS_FILE_CHARSET));
+			}
 		} finally {
 			outStream.close();
 		}
@@ -898,7 +937,7 @@ public class Tools {
 	}
 
 	public static void findImplementationsInJar(ClassLoader loader, JarFile jar, Class<?> superClass,
-			List<String> implementations) {
+												List<String> implementations) {
 		Enumeration<JarEntry> e = jar.entries();
 		while (e.hasMoreElements()) {
 			JarEntry entry = e.nextElement();
@@ -1187,7 +1226,7 @@ public class Tools {
 			File[] files = file.listFiles();
 			for (File child : files) {
 				success &= delete(child);
-				if (!success){
+				if (!success) {
 					return false;
 				}
 			}
@@ -1354,7 +1393,7 @@ public class Tools {
 	 * return = '"Charles says: \"Some people never go crazy, What truly horrible lives they must live\"", "1968", "US"'
 	 */
 	public static String escapeQuoteCharsInQuotes(String line, Pattern separatorPattern, char quotingChar,
-			char escapeChar, boolean showWarning) {
+													char escapeChar, boolean showWarning) {
 		// first remember quoteChar positions which should be escaped:
 		char lastChar = '0';
 		boolean openedQuote = false;
@@ -1517,18 +1556,26 @@ public class Tools {
 	}
 
 	/**
-	 * This method will return a byte array containing the raw data from the given url. If any error occurs null will be
-	 * returned. Please keep in mind that in order to load the data, the data will be stored in memory twice.
+	 * This method will return a byte array containing the raw data from the given url.
+	 * Please keep in mind that in order to load the data, the data will be stored in memory twice.
 	 */
-	public static byte[] readUrl(URL url) {
-		BufferedInputStream in = null;
+	public static byte[] readUrl(URL url) throws IOException {
+		return readInputStream(new BufferedInputStream(WebServiceTools.openStreamFromURL(url)));
+	}
+
+	/**
+	 * This method will return a byte array containing the raw data from the given input stream.
+	 * The stream will be closed afterwards in any case.
+	 */
+	public static byte[] readInputStream(InputStream in) throws IOException {
+
 		try {
 			class Part {
 
 				byte[] partData;
 				int len;
 			}
-			in = new BufferedInputStream(url.openStream());
+
 			LinkedList<Part> parts = new LinkedList<Part>();
 			int len = 1;
 			while (len > 0) {
@@ -1553,8 +1600,6 @@ public class Tools {
 				pos += part.len;
 			}
 			return result;
-		} catch (IOException e) {
-			return null;
 		} finally {
 			if (in != null) {
 				try {
@@ -1597,7 +1642,7 @@ public class Tools {
 	 * will be returned. No more escaping is performed in the last token!
 	 */
 	public static List<String> unescape(String source, char escapeChar, char[] specialCharacters, char splitCharacter,
-			int splitLimit) {
+										int splitLimit) {
 		List<String> result = new LinkedList<String>();
 		StringBuilder b = new StringBuilder();
 		// was the last character read an escape character?
@@ -1733,7 +1778,7 @@ public class Tools {
 
 		return unmaskedStringBuilder.toString();
 	}
-	
+
 	/**
 	 * This method tests if a file with the given file name could be stored on the current filesystem
 	 * the program is working on. For example, if working on Windows the string <code>foo:bar</code> would return <code>false</code>
@@ -1754,26 +1799,26 @@ public class Tools {
 			return false;
 		}
 		try {
-		     File file = new File(System.getProperty("java.io.tmpdir") + File.separator + fileName);
-		     
-		     if (!file.exists()) {
-		          file.createNewFile();
-		          if (file.exists()) {
-		        	  file.delete();
-		        	  return true;
-		          } else {
-		        	  return false;
-		          }
-		     }
+			File file = new File(System.getProperty("java.io.tmpdir") + File.separator + fileName);
+
+			if (!file.exists()) {
+				file.createNewFile();
+				if (file.exists()) {
+					file.delete();
+					return true;
+				} else {
+					return false;
+				}
+			}
 		} catch (IOException e) {
-		     return false;
+			return false;
 		} catch (SecurityException e) {
-		     return false;
+			return false;
 		} catch (Exception e) {
-		     LogService.getRoot().log(Level.WARNING, "Failed to check filename for illegal characters.", e);
-		     return false;
+			LogService.getRoot().log(Level.WARNING, "Failed to check filename for illegal characters.", e);
+			return false;
 		}
 
-		return true; 
+		return true;
 	}
 }

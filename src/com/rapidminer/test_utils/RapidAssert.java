@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.test_utils;
 
 import java.text.MessageFormat;
@@ -40,6 +39,7 @@ import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.table.NominalMapping;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.meta.ParameterValue;
 import com.rapidminer.tools.Ontology;
@@ -56,6 +56,7 @@ public class RapidAssert extends Assert {
 	public static final double MAX_RELATIVE_ERROR = 0.000000001;
 
 	public static final AsserterRegistry ASSERTER_REGISTRY = new AsserterRegistry();
+	private static boolean ignoreRepositoryNameForSourceAnnotation = true;
 
 	/**
 	 * Returns <code>true</code> if the ioobjects class is supported for
@@ -355,7 +356,36 @@ public class RapidAssert extends Assert {
 			throw new ComparisonFailure("Comparison of the two given IOObject classes " + expectedIOO.getClass() + " and " + actualIOO.getClass() + " is not supported. ",
 					expectedIOO.toString(), actualIOO.toString());
 		}
+		
+		// last, compare annotations:
+		Annotations expectedAnnotations = expectedIOO.getAnnotations();
+		Annotations actualAnnotations = actualIOO.getAnnotations();
+		
+		if (ignoreRepositoryNameForSourceAnnotation  ) {
+			// compare annotations one by one. For the Source annotation, ignore the repository name
+			// (that's what all the regular expressions here are for)
+			for (String key : expectedAnnotations.getKeys()) {
+				String expectedValue = expectedAnnotations.getAnnotation(key);
+				String actualValue = actualAnnotations.getAnnotation(key);
 
+				if (expectedValue != null) {
+					Assert.assertNotNull(message + "objects are equal, but annotation " + key + " is missing", actualValue);
+				}
+				
+				
+				if (Annotations.KEY_SOURCE.equals(key)) {
+					if (expectedValue != null && expectedValue.startsWith("//") && expectedValue.matches("//[^/]+/.*")) {
+						expectedValue = expectedValue.replaceAll("^//[^/]+/", "//repository/");
+						if (actualValue != null) {
+							actualValue = actualValue.replaceAll("^//[^/]+/", "//repository/");
+						}
+					}
+				}
+				Assert.assertEquals(message + "objects are equal, but annotation '" + key + "' differs: ", expectedValue, actualValue);
+			}
+		} else {
+			Assert.assertEquals(message + "objects are equal, but annotations differ: ", expectedAnnotations, actualAnnotations);
+		}
 	}
 
 	/**

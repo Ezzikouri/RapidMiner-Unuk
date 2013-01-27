@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -125,6 +125,10 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 		Attribute attribute = exampleSet.getAttributes().get(oldName);
 		if (attribute == null) {
 			throw new UserError(this, 111, oldName);
+		} 
+		Attribute newAttribute = exampleSet.getAttributes().get(newName);
+		if (newAttribute != null) {
+			throw new UserError(this, 152, newName);
 		}
 
 		attribute.setName(newName);

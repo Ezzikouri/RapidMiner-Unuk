@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -82,6 +82,7 @@ public class FeatureIterator extends OperatorChain {
 
 		exampleSetInnerSink.addPrecondition(new SimplePrecondition(exampleSetInnerSink, new ExampleSetMetaData(), false));
 		innerSinkExtender = new CollectingPortPairExtender("result", getSubprocess(0).getInnerSinks(), getOutputPorts());
+		innerSinkExtender.start();
 
 		getTransformer().addRule(new PassThroughRule(exampleSetInput, exampleSetInnerSource, false));
 		getTransformer().addRule(new SubprocessTransformRule(getSubprocess(0)));

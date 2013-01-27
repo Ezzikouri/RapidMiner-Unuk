@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -28,6 +28,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Icon;
 
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.tools.I18N;
 
 /**
  * Start the corresponding action.
@@ -38,17 +39,15 @@ public class WelcomeOpenAction extends AbstractAction {
 
 	private static final long serialVersionUID = 1358354112149248404L;
 
-	private static final String ICON_NAME = "folder.png";
-	
 	private static Icon icon = null;
 	
 	static {
-		icon = SwingTools.createIcon("48/" + ICON_NAME);
+		icon = SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.open.icon"));
 	}
 		
 	public WelcomeOpenAction() {
-		super("Open", icon);
-		putValue(SHORT_DESCRIPTION, "Open an existing process definition");
+		super(I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.open.label"), icon);
+		putValue(SHORT_DESCRIPTION, I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.open.tip"));
 	}
 
 	public void actionPerformed(ActionEvent e) {

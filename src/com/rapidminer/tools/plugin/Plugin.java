@@ -68,8 +68,10 @@ import com.rapidminer.RapidMiner;
 import com.rapidminer.RapidMiner.ExecutionMode;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.MainUIState;
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.renderer.RendererService;
+import com.rapidminer.gui.safemode.SafeMode;
 import com.rapidminer.gui.templates.BuildingBlock;
 import com.rapidminer.gui.tools.SplashScreen;
 import com.rapidminer.gui.tools.VersionNumber;
@@ -84,6 +86,7 @@ import com.rapidminer.tools.OperatorService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ResourceSource;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * <p>
@@ -473,13 +476,7 @@ public class Plugin {
                 Class<?> pluginInitator = Class.forName(pluginInitClassName, false, getClassLoader());
                 Method registerOperatorMethod = pluginInitator.getMethod("getOperatorStream", new Class[] { ClassLoader.class });
                 in = (InputStream) registerOperatorMethod.invoke(null, new Object[] { getClassLoader() });
-            } catch (ClassNotFoundException e) {
-            } catch (SecurityException e) {
-            } catch (NoSuchMethodException e) {
-            } catch (IllegalArgumentException e) {
-            } catch (IllegalAccessException e) {
-            } catch (InvocationTargetException e) {
-            }
+			} catch (ClassNotFoundException e) {} catch (SecurityException e) {} catch (NoSuchMethodException e) {} catch (IllegalArgumentException e) {} catch (IllegalAccessException e) {} catch (InvocationTargetException e) {}
         }
         if (in != null) {
             OperatorService.registerOperators(archive.getName(), in, this.classLoader, this);
@@ -564,7 +561,7 @@ public class Plugin {
                         URL bbURL = this.classLoader.getResource(Tools.RESOURCE_PREFIX + line);
                         BufferedReader bbIn = null;
                         try {
-                            bbIn = new BufferedReader(new InputStreamReader(bbURL.openStream()));
+							bbIn = new BufferedReader(new InputStreamReader(WebServiceTools.openStreamFromURL(bbURL)));
                             result.add(new BuildingBlock(bbIn, BuildingBlock.PLUGIN_DEFINED));
                         } catch (IOException e) {
                             //LogService.getRoot().log(Level.WARNING, "Cannot load plugin building blocks. Skipping...", e);
@@ -696,6 +693,7 @@ public class Plugin {
             }
         }
         for (Plugin newPlugin : newPlugins) {
+			LogService.getRoot().log(Level.INFO, "Register plugin: " + newPlugin.getName());
         	Plugin oldPlugin = getPluginByExtensionId(newPlugin.getExtensionId(), allPlugins);
 			if (oldPlugin == null) {
         		allPlugins.add(newPlugin);
@@ -862,14 +860,20 @@ public class Plugin {
 
 	private static void callPluginInitMethods(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
         List<Plugin> plugins = getAllPlugins();
-        for (Plugin plugin : plugins) {
-            plugin.callInitMethod(methodName, arguments, argumentValues, useOriginalJarClassLoader);
+		for (Iterator<Plugin> iterator = plugins.iterator(); iterator.hasNext();) {
+			Plugin plugin = iterator.next();
+			if (!plugin.callInitMethod(methodName, arguments, argumentValues, useOriginalJarClassLoader)) {
+				iterator.remove();
+			}
         }
     }
 
-    private void callInitMethod(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
+	/**
+	 * @return true if everything went well, false if a fatal error occurred. The plugin should be unregistered in this case.
+	 */
+	private boolean callInitMethod(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
         if (pluginInitClassName == null) {
-            return;
+			return true;
         }
         try {
             ClassLoader classLoader;
@@ -883,16 +887,18 @@ public class Plugin {
             try {
                 initMethod = pluginInitator.getMethod(methodName, arguments);
             } catch (NoSuchMethodException e) {
-                return;
+				return true;
             }
             initMethod.invoke(null, argumentValues);
-        } catch (Exception e) {
+			return true;
+		} catch (Throwable e) {
             //LogService.getRoot().log(Level.WARNING, "Plugin initializer " + pluginInitClassName + "." + methodName + " of Plugin " + getName() + " causes an error: " + e.getMessage(), e);
 			LogService.getRoot().log(
 					Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(),
 							"com.rapidminer.tools.plugin.Plugin.plugin_initializer_error", pluginInitClassName, methodName, getName(), e
 									.getMessage()), e);
+			return false;
         }
     }
 
@@ -915,13 +921,7 @@ public class Plugin {
             Method initGuiMethod = pluginInitator.getMethod("showAboutBox", new Class[] {});
             Boolean showAboutBox = (Boolean) initGuiMethod.invoke(null, new Object[] {});
             return showAboutBox.booleanValue();
-        } catch (ClassNotFoundException e) {
-        } catch (SecurityException e) {
-        } catch (NoSuchMethodException e) {
-        } catch (IllegalArgumentException e) {
-        } catch (IllegalAccessException e) {
-        } catch (InvocationTargetException e) {
-        }
+		} catch (ClassNotFoundException e) {} catch (SecurityException e) {} catch (NoSuchMethodException e) {} catch (IllegalArgumentException e) {} catch (IllegalAccessException e) {} catch (InvocationTargetException e) {}
         return true;
     }
 
@@ -937,7 +937,12 @@ public class Plugin {
 
         String loadPluginsString = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS);
         boolean loadPlugins = Tools.booleanValue(loadPluginsString, true);
-        if (loadPlugins) {
+		SafeMode safeMode = RapidMinerGUI.getSafeMode();
+		boolean isSafeMode = false;
+		if(safeMode != null) {
+			isSafeMode = safeMode.isSafeMode();
+		}
+		if (loadPlugins && !isSafeMode) {
             File webstartPluginDir;
             if (RapidMiner.getExecutionMode() == ExecutionMode.WEBSTART) {
                 webstartPluginDir = updateWebstartPluginsCache();
@@ -955,7 +960,6 @@ public class Plugin {
                 try {
                     pluginDir = getPluginLocation();
                 } catch (IOException e) {
-                    //LogService.getRoot().warning("None of the properties " + RapidMiner.PROPERTY_RAPIDMINER_INIT_PLUGINS + " and " + Launcher.PROPERTY_RAPIDMINER_HOME + " is set. No globally installed plugins will be loaded.");
         			LogService.getRoot().log(
         					Level.WARNING,
         					"com.rapidminer.tools.plugin.Plugin.no_properties_set",
@@ -975,8 +979,7 @@ public class Plugin {
             finalizePluginLoading();
             initPlugins();
         } else {
-            //LogService.getRoot().config("Plugins skipped.");
-            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.plugin.Plugin.plugins_skipped");
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.plugin.Plugin.plugins_skipped");
         }
     }
 
@@ -1044,7 +1047,7 @@ public class Plugin {
                 LogService.getRoot().log(Level.CONFIG, "com.rapidminer.tools.plugin.Plugin.extension_found_downloading", pluginName);
                 try {
                     URL pluginUrl = new URL(homeUrl + "/RAWS/dependencies/plugins/" + pluginName);
-                    Tools.copyStreamSynchronously(pluginUrl.openStream(), new FileOutputStream(pluginFile), true);
+					Tools.copyStreamSynchronously(WebServiceTools.openStreamFromURL(pluginUrl), new FileOutputStream(pluginFile), true);
                 } catch (Exception e) {
                     //LogService.getRoot().log(Level.WARNING, "Failed to download extension from server: " + e, e);
         			LogService.getRoot().log(

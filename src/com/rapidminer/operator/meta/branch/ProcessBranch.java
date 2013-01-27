@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -184,7 +184,7 @@ public class ProcessBranch extends OperatorChain {
 		clearAllInnerSinks();
 		if (condition != null) {
 			// checking condition
-			String conditionValue = null;
+			String conditionValue;
 			if (CONDITION_INPUT_EXISTS.equals(selectedConditionName)) {
 				Class<? extends IOObject> selectedConditionClass = getSelectedClass();
 				if (selectedConditionClass == null) {

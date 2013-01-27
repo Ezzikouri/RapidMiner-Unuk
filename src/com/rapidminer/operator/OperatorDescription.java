@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -291,6 +291,13 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
             return this.key;
         }
     }
+    
+    /**
+     * Returns the key of this operator without any prefix.
+     */
+    public String getKeyWithoutPrefix() {
+    	return this.key;
+    }
 
     public void disable() {
         this.enabled = false;
@@ -345,6 +352,8 @@ public class OperatorDescription implements Comparable<OperatorDescription> {
             throw new OperatorCreationException(OperatorCreationException.NO_CONSTRUCTOR_ERROR, key + "(" + clazz.getName() + ")", e);
         } catch (java.lang.reflect.InvocationTargetException e) {
             throw new OperatorCreationException(OperatorCreationException.CONSTRUCTION_ERROR, key + "(" + clazz.getName() + ")", e);
+        } catch (Throwable t) {
+        	throw new OperatorCreationException(OperatorCreationException.INSTANTIATION_ERROR, "(" + clazz.getName() + ")", t);
         }
         OperatorService.invokeCreationHooks(operator);
         return operator;

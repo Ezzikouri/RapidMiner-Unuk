@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -184,6 +184,12 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
      * {@link AbstractDataReader#stopReading()}
      */
     private boolean stopReading = false;
+    
+    /**
+     * Flag which interrupts the reading prcocess if it is set <code>true</code> . @see
+     * {@link AbstractDataReader#stopReading()}
+     */
+    protected boolean skipGuessingValueTypes = false;
 
     /**
      * Data structure to manage the background highlighting for cells, which can not be parsed as the specified value
@@ -1116,7 +1122,9 @@ public abstract class AbstractDataReader extends AbstractExampleSource {
             loadMetaDataFromParameters();
         } else {
             clearAllReaderSettings();
-            guessValueTypes(null);
+            if (!skipGuessingValueTypes) {
+				guessValueTypes(null);
+			}
         }
 
         // get the data set

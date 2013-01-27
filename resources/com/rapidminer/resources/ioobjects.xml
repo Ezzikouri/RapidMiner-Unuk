@@ -1,6 +1,15 @@
 <ioobjects>
+	<!--  Plain IOObject -->
+    <ioobject
+        name="IOObject"
+        class="com.rapidminer.operator.IOObject"
+        reportable="false"
+        >
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>     
+    </ioobject>
 
-<!--  Collections -->
+
+	<!--  Collections -->
     <ioobject
         name="Collection"
         class="com.rapidminer.operator.IOObjectCollection"
@@ -18,8 +27,8 @@
         class="com.rapidminer.example.ExampleSet"
         reportable="true"
         icon="data.png">
-        <renderer>com.rapidminer.gui.renderer.data.ExampleSetMetaDataRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.data.ExampleSetDataRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.data.ExampleSetMetaDataRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.data.ExampleSetPlotRenderer</renderer>
         <renderer>com.rapidminer.gui.new_plotter.integration.ExpertDataTableRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>     
@@ -752,6 +761,25 @@
         <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
         <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
+    
+    <ioobject
+        name="Archive File"
+        class="com.rapidminer.operator.nio.file.compression.ArchiveFileObject"
+        reportable="true"
+        icon="box.png">
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
+    </ioobject>
+    
+    <ioobject
+        name="Zip File"
+        class="com.rapidminer.operator.nio.file.compression.ZipFileObject"
+        reportable="true"
+        icon="box.png">
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
+    </ioobject>
+    
    
      
     <!-- Dummy Entry -->

@@ -3,6 +3,7 @@ package com.rapidminer.deployment.client.wsimport;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -22,10 +23,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="icon" type="{http://www.w3.org/2001/XMLSchema}base64Binary" minOccurs="0"/>
  *         &lt;element name="licenseName" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="longDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="owner" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="packageId" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="packageTypeName" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *         &lt;element name="platformName" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
+ *         &lt;element name="restricted" type="{http://www.w3.org/2001/XMLSchema}boolean"/>
  *         &lt;element name="size" type="{http://www.w3.org/2001/XMLSchema}int"/>
  *         &lt;element name="version" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
  *       &lt;/sequence>
@@ -43,24 +47,31 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "description",
     "icon",
     "licenseName",
+    "longDescription",
     "name",
+    "owner",
     "packageId",
     "packageTypeName",
     "platformName",
+    "restricted",
     "size",
     "version"
 })
 public class PackageDescriptor {
 
+    @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar creationTime;
     protected String dependencies;
     protected String description;
     protected byte[] icon;
     protected String licenseName;
+    protected String longDescription;
     protected String name;
+    protected String owner;
     protected String packageId;
     protected String packageTypeName;
     protected String platformName;
+    protected boolean restricted;
     protected int size;
     protected String version;
 
@@ -183,6 +194,30 @@ public class PackageDescriptor {
     }
 
     /**
+     * Gets the value of the longDescription property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getLongDescription() {
+        return longDescription;
+    }
+
+    /**
+     * Sets the value of the longDescription property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setLongDescription(String value) {
+        this.longDescription = value;
+    }
+
+    /**
      * Gets the value of the name property.
      * 
      * @return
@@ -204,6 +239,30 @@ public class PackageDescriptor {
      */
     public void setName(String value) {
         this.name = value;
+    }
+
+    /**
+     * Gets the value of the owner property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getOwner() {
+        return owner;
+    }
+
+    /**
+     * Sets the value of the owner property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setOwner(String value) {
+        this.owner = value;
     }
 
     /**
@@ -276,6 +335,22 @@ public class PackageDescriptor {
      */
     public void setPlatformName(String value) {
         this.platformName = value;
+    }
+
+    /**
+     * Gets the value of the restricted property.
+     * 
+     */
+    public boolean isRestricted() {
+        return restricted;
+    }
+
+    /**
+     * Sets the value of the restricted property.
+     * 
+     */
+    public void setRestricted(boolean value) {
+        this.restricted = value;
     }
 
     /**

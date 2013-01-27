@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -38,6 +38,9 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.SubprocessTransformRule;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
+import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.conditions.BooleanParameterCondition;
 
 /** Iterates over a collection and executes the subprocess on each element.
  *  The outputs of the subprocesses are collected and returned as collections.
@@ -47,12 +50,18 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
  */
 public class CollectionIterationOperator extends OperatorChain {
 
+	protected static final String PARAMETER_SET_MACRO = "set_iteration_macro";
+	protected static final String PARAMETER_MACRO_NAME = "macro_name";
+	protected static final String PARAMETER_MACRO_START_VALUE = "macro_start_value";
+	
 	protected static final String PARAMETER_UNFOLD = "unfold";
-
+	
 	private final InputPort collectionInput = getInputPorts().createPort("collection", new CollectionMetaData(new MetaData()));
 	private final OutputPort singleInnerSource = getSubprocess(0).getInnerSources().createPort("single");
 	private final CollectingPortPairExtender outExtender = new CollectingPortPairExtender("output", getSubprocess(0).getInnerSinks(), getOutputPorts()); 
 
+	private int currentIteration = 0;
+	
 	public CollectionIterationOperator(OperatorDescription description) {
 		super(description, "Iteration");
 		outExtender.start();
@@ -85,10 +94,23 @@ public class CollectionIterationOperator extends OperatorChain {
 			list = data.getObjects();
 		}
 		outExtender.reset();
+		String iterationMacroName = null;
+		int macroIterationOffset = 0;
+		boolean setIterationMacro = getParameterAsBoolean(PARAMETER_SET_MACRO);
+		if (setIterationMacro) {
+			iterationMacroName = getParameterAsString(PARAMETER_MACRO_NAME);
+			macroIterationOffset = getParameterAsInt(PARAMETER_MACRO_START_VALUE);
+		}
+		this.currentIteration = 0;	
 		for (IOObject o : list) {
+			if (setIterationMacro) {
+				String iterationString = Integer.toString(currentIteration + macroIterationOffset);
+				getProcess().getMacroHandler().addMacro(iterationMacroName, iterationString);
+			}
 			singleInnerSource.deliver(o);
 			getSubprocess(0).execute();
 			outExtender.collect();
+			currentIteration++;
 		}
 		//outExtender.passDataThrough();
 	}
@@ -96,6 +118,16 @@ public class CollectionIterationOperator extends OperatorChain {
 	@Override
 	public List<ParameterType> getParameterTypes() {		
 		List<ParameterType> types = super.getParameterTypes();
+		ParameterType type;
+		type = new ParameterTypeBoolean(PARAMETER_SET_MACRO, "Selects if in each iteration a macro with the current iteration number is set.", false, true);
+		types.add(type);
+		type = new ParameterTypeString(PARAMETER_MACRO_NAME, "The name of the iteration macro.", "iteration", true);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_SET_MACRO, true, true));
+		types.add(type);
+		type = new ParameterTypeInt(PARAMETER_MACRO_START_VALUE, "The number which is set for the macro in the first iteration.", Integer.MIN_VALUE, Integer.MAX_VALUE, 1, true);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_SET_MACRO, true, true));
+		types.add(type);
+		
 		types.add(new ParameterTypeBoolean(PARAMETER_UNFOLD, "Determines if the input collection is unfolded.", false));
 		return types;
 	}

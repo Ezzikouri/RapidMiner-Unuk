@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,14 +20,23 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.gui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.LinkedList;
+import java.util.List;
 
+import javax.swing.AbstractButton;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -37,6 +46,7 @@ import javax.swing.JTextField;
 import com.rapidminer.gui.security.UserCredential;
 import com.rapidminer.gui.security.Wallet;
 import com.rapidminer.gui.tools.ProgressThread;
+import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.Repository;
@@ -45,17 +55,66 @@ import com.rapidminer.repository.remote.RemoteRepository;
 
 /** Panel to add remote repositories
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Nils Woehler
  *
  */
 public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigurationPanel {
 
 	private static final long serialVersionUID = 1L;
-	
+
+	private static final ImageIcon OKAY_ICON = SwingTools.createIcon("24/ok.png");
+	private static final ImageIcon ERROR_ICON = SwingTools.createIcon("24/error.png");
+	private static final ImageIcon QUESTION_ICON = SwingTools.createIcon("24/symbol_questionmark.png");
+
 	private final JTextField urlField = new JTextField("http://localhost:8080/", 30);
 	private final JTextField aliasField = new JTextField("NewRepository", 30);
 	private final JTextField userField = new JTextField(System.getProperty("user.name"), 20);
-	private final JPasswordField passwordField = new JPasswordField(20); 
+	private final JPasswordField passwordField = new JPasswordField(20);
+
+	private final ResourceAction checkConnectionSettingsAction = new ResourceAction(false, "check_connection_settings") {
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			new ProgressThread("check_connection_settings", true) {
+
+				@Override
+				public void run() {
+					getProgressListener().setTotal(100);
+
+					getProgressListener().setCompleted(43);
+
+					boolean configCorrect = RemoteRepository.checkConfiguration(urlField.getText(), userField.getText(), passwordField.getPassword());
+					if (configCorrect) {
+						checkButton.setIcon(OKAY_ICON);
+					} else {
+						// show error
+						checkButton.setIcon(ERROR_ICON);
+					}
+
+					getProgressListener().complete();
+				}
+			}.start();
+		}
+
+	};
+
+	private final JButton checkButton = new JButton(checkConnectionSettingsAction);
+
+	private KeyListener resetCheckButtonKeyListener = new KeyListener() {
+
+		@Override
+		public void keyTyped(KeyEvent e) {}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			resetCheckButtonIcon();
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {}
+	};
 
 	public RemoteRepositoryPanel() {
 		GridBagLayout gbl = new GridBagLayout();
@@ -68,10 +127,10 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 
 		// ALIAS
 		c.gridwidth = GridBagConstraints.RELATIVE;
-		JLabel label = new ResourceLabel("repositorydialog.alias");		
+		JLabel label = new ResourceLabel("repositorydialog.alias");
 		label.setLabelFor(aliasField);
 		gbl.setConstraints(label, c);
-		add(label);		
+		add(label);
 
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		gbl.setConstraints(aliasField, c);
@@ -115,15 +174,19 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		aliasField.selectAll();
 		urlField.selectAll();
 		userField.selectAll();
+
+		userField.addKeyListener(resetCheckButtonKeyListener);
+		passwordField.addKeyListener(resetCheckButtonKeyListener);
+		urlField.addKeyListener(resetCheckButtonKeyListener);
 	}
-	
+
 	@Override
 	public void makeRepository() {
 		final URL url;
 		try {
 			url = new URL(urlField.getText());
 		} catch (MalformedURLException e) {
-			SwingTools.showSimpleErrorMessage("illegal_url",e);
+			SwingTools.showSimpleErrorMessage("illegal_url", e);
 			return;
 		}
 		String alias = aliasField.getText().trim();
@@ -132,16 +195,15 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		}
 		final String finalAlias = alias;
 
-		ProgressThread pt = new ProgressThread("add_repository") {		
+		ProgressThread pt = new ProgressThread("add_repository") {
+
 			@Override
 			public void run() {
 				getProgressListener().setTotal(100);
 				getProgressListener().setCompleted(10);
 				Repository repository = new RemoteRepository(url, finalAlias, userField.getText(), passwordField.getPassword(), false);
 				getProgressListener().setCompleted(90);
-				if (repository != null) {
-					RepositoryManager.getInstance(null).addRepository(repository);
-				}
+				RepositoryManager.getInstance(null).addRepository(repository);
 				getProgressListener().setCompleted(100);
 				getProgressListener().complete();
 			}
@@ -161,31 +223,48 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 	}
 
 	@Override
-	public boolean configure(Repository repository) {
+	public boolean configure(final Repository repository) {
 		URL url;
 		try {
 			url = new URL(urlField.getText());
 		} catch (MalformedURLException e) {
-			SwingTools.showSimpleErrorMessage("illegal_url",e);
+			SwingTools.showSimpleErrorMessage("illegal_url", e);
 			return false;
 		}
-		((RemoteRepository) repository).setBaseUrl(url);
-		if ((passwordField.getPassword() != null) && (passwordField.getPassword().length > 0)) {
-			((RemoteRepository) repository).setPassword(passwordField.getPassword());
-		}
-		((RemoteRepository) repository).setUsername(userField.getText());
+
+		String userName = userField.getText();
+		char[] password = passwordField.getPassword();
+
 		((RemoteRepository) repository).rename(aliasField.getText());
-		
-		UserCredential authenticationCredentials = new UserCredential(urlField.getText(), userField.getText(), passwordField.getPassword());
+		((RemoteRepository) repository).setBaseUrl(url);
+		((RemoteRepository) repository).setUsername(userName);
+		((RemoteRepository) repository).setPassword(password);
+
+		UserCredential authenticationCredentials = new UserCredential(urlField.getText(), userName, password);
 		Wallet.getInstance().registerCredentials(authenticationCredentials);
 		Wallet.getInstance().saveCache();
-		
+
 		return true;
 	}
-	
 
 	@Override
 	public JComponent getComponent() {
 		return this;
+	}
+
+	@Override
+	public void setOkButton(JButton okButton) {
+		// NOOP
+	}
+
+	@Override
+	public List<AbstractButton> getAdditionalButtons() {
+		LinkedList<AbstractButton> buttons = new LinkedList<AbstractButton>();
+		buttons.add(checkButton);
+		return buttons;
+	}
+
+	private void resetCheckButtonIcon() {
+		checkButton.setIcon(QUESTION_ICON);
 	}
 }

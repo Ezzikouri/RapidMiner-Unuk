@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -31,7 +31,7 @@ import com.rapidminer.gui.tools.VersionNumber;
  * @author Simon Fischer
  */
 public class RapidMinerVersion extends VersionNumber {
-	private static final String VERSION_STRING = "5.2.009";
+	private static final String VERSION_STRING = "5.3.000";
 	public RapidMinerVersion() {
 		super(VERSION_STRING);
 	}

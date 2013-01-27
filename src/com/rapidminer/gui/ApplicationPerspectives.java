@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -123,6 +123,10 @@ public abstract class ApplicationPerspectives {
         perspective.apply(context);
         current = perspective;
         RESTORE_DEFAULT_ACTION.setEnabled(!current.isUserDefined());
+        // try to request focus for the process renderer so actions are enabled after perspective switch
+        if ("design".equals(perspective.getName())) {
+        	RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().requestFocusInWindow();
+        }
     }
 
     public JMenu getWorkspaceMenu() {

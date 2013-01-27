@@ -26,8 +26,7 @@ rem ###  Setting Maximal Amount of Memory  ###
 rem ###                                    ###
 rem ##########################################
 
-if "%MAX_JAVA_MEMORY%"=="" set MAX_JAVA_MEMORY=512
-
+if "%MAX_JAVA_MEMORY%"=="" set MAX_JAVA_MEMORY=1024
 
 rem ###########################################
 rem ###                                     ###
@@ -164,16 +163,47 @@ if not "%RAPIDMINER_JDBC_DRIVERS%"=="" set RAPIDMINER_JDBC_DRIVER_PARAMETER=-Dra
 echo Starting RapidMiner from '%RAPIDMINER_HOME%' using classes from '%RAPIDMINER_CLASSPATH%'...
 rem echo The used classpath is '%COMPLETE_CLASSPATH%'...
 
+:checkJavaVersion
+set CHECK_VERSION_FILE="%HOMEPATH%\check_rm_java_version"
+@echo Creating file %CHECK_VERSION_FILE%
+"%JAVA%" -version 2>&1 | findstr /i "version" >  %CHECK_VERSION_FILE%
+
+for /F "tokens=3" %%g in ('type %CHECK_VERSION_FILE%') do (
+    set JAVAVER=%%g
+)
+
+set JAVAVER=%JAVAVER:"=%
+@echo Java Version: %JAVAVER%
+
+for /f "delims=. tokens=1-3" %%v in ("%JAVAVER%") do (
+	set JAVA_MAJOR=%%v
+    set JAVA_MINOR=%%w
+    set JAVA_BUILD=%%x
+)
+
+rem @echo Major: %JAVA_MAJOR%
+rem @echo Minor: %JAVA_MINOR%
+rem @echo Build: %JAVA_BUILD%
+
+@echo Removing file %CHECK_VERSION_FILE%
+del %CHECK_VERSION_FILE%
+
 :launch
 if %NUMBER_OF_PROCESSORS% GEQ 2 goto startMultiCoreMode
+@echo Starting single core mode...
 "%JAVA%" -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% -jar "%RAPIDMINER_HOME%\lib\launcher.jar" %CMD_LINE_ARGS%
 goto startEnd
 
 :startMultiCoreMode
 SET /A NUMBER_OF_GC_THREADS=%NUMBER_OF_PROCESSORS%-1
+if %JAVA_MINOR% GEQ 7 goto :startMultiCoreMode_withG1GC
+@echo Starting in multicore mode with CMS garbage collector...
 "%JAVA%" -XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=%NUMBER_OF_GC_THREADS% -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% -jar "%RAPIDMINER_HOME%\lib\launcher.jar" %CMD_LINE_ARGS%
-:startEnd
 
+:startMultiCoreMode_withG1GC
+@echo Starting in multicore mode with G1 garbage collector...
+"%JAVA%" -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:InitiatingHeapOccupancyPercent=0 -XX:ConcGCThreads=%NUMBER_OF_GC_THREADS% -XX:ParallelGCThreads=%NUMBER_OF_PROCESSORS% -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% -jar "%RAPIDMINER_HOME%\lib\launcher.jar" %CMD_LINE_ARGS%
+:startEnd
 
 if errorlevel 2 goto update 
 goto end

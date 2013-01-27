@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -74,7 +74,11 @@ public class ErrorTableModel extends AbstractTableModel {
 		ParsingError error = errors.get(rowIndex);
 		switch (columnIndex) {
 		case 0:
-			return (error.getRow()+1) + ", " + (error.getColumn()+1);
+			if(error.getRow() < 0 && error.getColumn() < 0) {
+				return "columns " + listToString(error.getColumns());
+			} else {
+				return (error.getRow()+1) + ", " + (error.getColumn()+1);
+			}
 		case 1:
 			return error.getErrorCode().getMessage();
 		case 2:
@@ -111,5 +115,19 @@ public class ErrorTableModel extends AbstractTableModel {
 		}
 	}
 	
+	private String listToString(List<Integer> list) {
+		String output = "";
+		for (int i = 0; i < list.size(); i++) {
+			Integer column = list.get(i);
+			if (i < list.size()-2) {
+				output += column + ", ";
+			} else if (i == list.size()-2) {
+				output += column + " and ";
+			} else {
+				output += column;
+			}
+		}
+		return output;
+	}
 	
 }

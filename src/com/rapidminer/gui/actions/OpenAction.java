@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -74,6 +74,9 @@ public class OpenAction extends ResourceAction {
             public void run() {
                 try {
                     ResultObject result = (ResultObject)data.retrieveData(this.getProgressListener());
+                    if (isCancelled()) {
+                    	return;
+                    }
                     result.setSource(data.getLocation().toString());
                     RapidMinerGUI.getMainFrame().getResultDisplay().showResult(result);
                 } catch (Exception e1) {
@@ -92,13 +95,6 @@ public class OpenAction extends ResourceAction {
                     RepositoryLocation location = new RepositoryLocation(locationString);
                     Entry entry = location.locateEntry();
                     if (entry instanceof ProcessEntry) {
-                    	// ask for confirmation before stopping the currently running process and opening another one!
-                    	if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING || 
-                    			RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
-                    		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
-                				return;
-                			}
-                    	}
                         open(new RepositoryProcessLocation(location), true);
                     } else if (entry instanceof IOObjectEntry) {
                         showAsResult((IOObjectEntry) entry);
@@ -120,6 +116,13 @@ public class OpenAction extends ResourceAction {
      * you don't want to silently load a process, this should be true.
      */
     public static void open(final ProcessLocation processLocation, final boolean showInfo) {
+    	// ask for confirmation before stopping the currently running process and opening another one!
+    	if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING || 
+    			RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
+    		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+				return;
+			}
+    	}
         RapidMinerGUI.getMainFrame().stopProcess();
         ProgressThread openProgressThread = new ProgressThread("open_file") {
             @Override
@@ -128,7 +131,13 @@ public class OpenAction extends ResourceAction {
                 getProgressListener().setCompleted(10);
                 try {
                     Process process = processLocation.load(getProgressListener());
+                    if (isCancelled()) {
+                    	return;
+                    }
                     process.setProcessLocation(processLocation);
+                    if (isCancelled()) {
+                    	return;
+                    }
                     RapidMinerGUI.getMainFrame().setOpenedProcess(process, showInfo, processLocation.toString());
                 } catch (XMLException ex) {
                     try {

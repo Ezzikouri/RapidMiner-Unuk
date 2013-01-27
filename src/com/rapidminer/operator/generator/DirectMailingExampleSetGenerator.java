@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -113,7 +113,7 @@ public class DirectMailingExampleSetGenerator extends AbstractExampleSource {
 		for (int n = 0; n < numberOfExamples; n++) {
 			double[] values = new double[ATTRIBUTE_NAMES.length + 1];
 			values[0] = attributes.get(0).getMapping().mapString(random.nextString(8));
-			// "name", "age", "lifestyle", "zip code", "family status", "car", "sports", "earnings"
+			// "name", "age", "lifestyle", "zip code", "family status", "car", "sports", "earnings", "label"
 			values[1] = random.nextIntInRange(15, 70);
 			values[2] = random.nextInt(POSSIBLE_VALUES[2].length);
 			values[3] = random.nextIntInRange(10000, 100000);
@@ -123,19 +123,19 @@ public class DirectMailingExampleSetGenerator extends AbstractExampleSource {
 			values[7] = random.nextIntInRange(20000, 150000);
 
 			values[8] = label.getMapping().mapString("no response");
-			if (values[1] > 65) {
+			if (values[1] > 65) {	// age
 				if (random.nextDouble() > 0.05)
 					values[8] = label.getMapping().mapString("response");
-			} else if (values[1] > 60) {
+			} else if (values[1] > 60) {	// age
 				if (random.nextDouble() > 0.1)
 					values[8] = label.getMapping().mapString("response");
-			} else if (values[1] > 55) {
+			} else if (values[1] > 55) {	// age
 				if (random.nextDouble() > 0.2)
 					values[8] = label.getMapping().mapString("response");
-			} else if (values[3] < 15000) {
+			} else if (values[3] < 15000) { // zip code
 				if (random.nextDouble() > 0.1)
 					values[8] = label.getMapping().mapString("response");
-			} else if (values[7] > 140000) {
+			} else if (values[7] > 140000) { // earnings
 				values[8] = label.getMapping().mapString("response");
 			}
 			table.addDataRow(new DoubleArrayDataRow(values));

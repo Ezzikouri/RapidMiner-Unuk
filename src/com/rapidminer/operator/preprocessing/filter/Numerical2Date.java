@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -40,7 +40,8 @@ import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeBoolean;
-import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.parameter.ParameterTypeDouble;
+import com.rapidminer.parameter.ParameterTypeLong;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
@@ -89,7 +90,7 @@ public class Numerical2Date extends AbstractDateDataProcessing {
 	@Override
 	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
 		String attributeName = getParameterAsString(PARAMETER_ATTRIBUTE_NAME);
-		Long offset = (long) getParameterAsInt(PARMETER_TIME_OFFSET);
+		Long offset = getParameterAsLong(PARMETER_TIME_OFFSET);
 
 		Attribute numericalAttribute = exampleSet.getAttributes().get(attributeName);
 		if (numericalAttribute == null) {
@@ -125,7 +126,7 @@ public class Numerical2Date extends AbstractDateDataProcessing {
 		types.add(new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "The attribute which should be transformed.", getExampleSetInputPort(), false,
 				false, Ontology.DATE_TIME));
 		types.add(new ParameterTypeBoolean(PARAMETER_KEEP_OLD_ATTRIBUTE, "Indicates if the original numerical attribute should be kept.", false));
-		types.add(new ParameterTypeInt(PARMETER_TIME_OFFSET, "Time offset in milliseconds", Integer.MIN_VALUE, Integer.MAX_VALUE, 0, true));
+		types.add(new ParameterTypeLong(PARMETER_TIME_OFFSET, "Time offset in milliseconds", Long.MIN_VALUE, Long.MAX_VALUE, 0, true));
 		return types;
 	}
 

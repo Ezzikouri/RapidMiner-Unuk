@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.resource;
 
 import java.io.IOException;
@@ -49,9 +50,9 @@ public class ResourceFolder extends ResourceEntry implements Folder {
 
 	private List<Folder> folders;
 	private List<DataEntry> data;
-	
+
 	protected ResourceFolder(ResourceFolder parent, String name, String resource, ResourceRepository repository) {
-		super(parent, name, resource, repository);	
+		super(parent, name, resource, repository);
 	}
 
 	@Override
@@ -72,20 +73,23 @@ public class ResourceFolder extends ResourceEntry implements Folder {
 
 	@Override
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");
+		throw new RepositoryException("This is a read-only sample repository. Cannot create new entries.");
 	}
 
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");	}
+		throw new RepositoryException("This is a read-only sample repository. Cannot create new entries.");
+	}
 
 	@Override
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener newParam) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");	}
+		throw new RepositoryException("This is a read-only sample repository. Cannot create new entries.");
+	}
 
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");	}
+		throw new RepositoryException("This is a read-only sample repository. Cannot create new entries.");
+	}
 
 	@Override
 	public List<DataEntry> getDataEntries() throws RepositoryException {
@@ -97,9 +101,12 @@ public class ResourceFolder extends ResourceEntry implements Folder {
 		if ((folders != null) && (data != null)) {
 			return;
 		}
-		InputStream in = ResourceFolder.class.getResourceAsStream(getResource()+"/CONTENTS");
-		if (in == null) {
-			throw new RepositoryException("Cannot find contents of folder "+getResource());
+		String resourcePath = getResource() + "/CONTENTS";
+		InputStream in = null;
+		try {
+			in = Tools.getResourceInputStream(resourcePath);
+		} catch (IOException e1) {
+			throw new RepositoryException("Cannot find contents of folder " + getResource(), e1);
 		}
 		this.folders = new LinkedList<Folder>();
 		this.data = new LinkedList<DataEntry>();
@@ -109,31 +116,31 @@ public class ResourceFolder extends ResourceEntry implements Folder {
 				line = line.trim();
 				if (!line.isEmpty()) {
 					int space = line.indexOf(" ");
-					String name = (space != -1) ? line.substring(space+1).trim() : null;
+					String name = (space != -1) ? line.substring(space + 1).trim() : null;
 					if (line.startsWith("FOLDER ")) {
-						folders.add(new ResourceFolder(this, name, getPath()+"/"+name, getRepository()));
+						folders.add(new ResourceFolder(this, name, getPath() + "/" + name, getRepository()));
 					} else if (line.startsWith("ENTRY")) {
-						String nameWOExt = name.substring(0,name.length()-4);
+						String nameWOExt = name.substring(0, name.length() - 4);
 						if (name.endsWith(".rmp")) {
-							data.add(new ResourceProcessEntry(this, 
+							data.add(new ResourceProcessEntry(this,
 									nameWOExt,
-									getPath()+"/"+nameWOExt,
+									getPath() + "/" + nameWOExt,
 									getRepository()));
 						} else if (name.endsWith(".ioo")) {
-							data.add(new ResourceIOObjectEntry(this, 
+							data.add(new ResourceIOObjectEntry(this,
 									nameWOExt,
-									getPath()+"/"+nameWOExt,
+									getPath() + "/" + nameWOExt,
 									getRepository()));
 						} else {
-							throw new RepositoryException("Unknown entry type infolder '"+getName()+"': "+name);	
+							throw new RepositoryException("Unknown entry type infolder '" + getName() + "': " + name);
 						}
 					} else {
-						throw new RepositoryException("Illegal entry type in folder '"+getName()+"': "+line);			
+						throw new RepositoryException("Illegal entry type in folder '" + getName() + "': " + line);
 					}
 				}
 			}
 		} catch (Exception e) {
-			throw new RepositoryException("Error reading contents of folder "+getName()+": "+e, e);
+			throw new RepositoryException("Error reading contents of folder " + getName() + ": " + e, e);
 		} finally {
 			try {
 				in.close();
@@ -148,7 +155,7 @@ public class ResourceFolder extends ResourceEntry implements Folder {
 	}
 
 	@Override
-	public void refresh() throws RepositoryException { 
+	public void refresh() throws RepositoryException {
 		folders = null;
 		data = null;
 		getRepository().fireRefreshed(this);

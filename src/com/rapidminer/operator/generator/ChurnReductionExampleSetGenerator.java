@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -54,9 +54,17 @@ public class ChurnReductionExampleSetGenerator extends AbstractExampleSource {
 	/** The parameter name for &quot;The number of generated examples.&quot; */
 	public static final String PARAMETER_NUMBER_EXAMPLES = "number_examples";
 
+	public static final int NEW_CREDIT_IDX = 0;
+	public static final int NOTHING_IDX = 1;
+	public static final int END_CREDIT_IDX = 2;
+	public static final int COLLECT_INFO_IDX = 3;
+	public static final int ADD_CREDIT_IDX = 4;
 	private static String[] POSSIBLE_VALUES = {
 		"New Credit", "Nothing", "End Credit", "Collect Information", "Additional Credit"
 	};
+	
+	/** the index of the label attribute */ 
+	private static final int LABEL_ATTR_IDX = 5;
 
 	public ChurnReductionExampleSetGenerator(OperatorDescription description) {
 		super(description);
@@ -69,15 +77,16 @@ public class ChurnReductionExampleSetGenerator extends AbstractExampleSource {
 
 		// create table
 		List<Attribute> attributes = new ArrayList<Attribute>();
-		for (int m = 0; m < 5; m++) {
+		for (int m = 0; m < LABEL_ATTR_IDX; m++) {
 			Attribute current = AttributeFactory.createAttribute("Year " + (m + 1), Ontology.NOMINAL);
-			for (int v = 0; v < POSSIBLE_VALUES.length; v++)
+			for (int v = 0; v < POSSIBLE_VALUES.length; v++) {
 				current.getMapping().mapString(POSSIBLE_VALUES[v]);
+			}
 			attributes.add(current);
 		}
 		Attribute label = AttributeFactory.createAttribute("label", Ontology.NOMINAL);
-		label.getMapping().mapString("ok");
-		label.getMapping().mapString("terminate");
+		int okValue = label.getMapping().mapString("ok");
+		int terminateValue = label.getMapping().mapString("terminate");
 		attributes.add(label);
 
 		MemoryExampleTable table = new MemoryExampleTable(attributes);
@@ -86,20 +95,18 @@ public class ChurnReductionExampleSetGenerator extends AbstractExampleSource {
 		RandomGenerator random = RandomGenerator.getRandomGenerator(this);
 		for (int n = 0; n < numberOfExamples; n++) {
 			double[] values = new double[6];
-			for (int i = 0; i < 5; i++) {
+			for (int i = 0; i < LABEL_ATTR_IDX; i++) {
 				values[i] = random.nextInt(POSSIBLE_VALUES.length);
 			}
-			values[5] = 0;
+			values[LABEL_ATTR_IDX] = okValue;
 
 			//"New Credit", "Nothing", "End Credit", "Collect Information", "Additional Credit"
-			if ((values[0] == 0) &&
-					(values[1] == 1)) {
-				values[5] = 1;
-			} else if ((values[2] == 4) &&
-					(values[4] == 1)) {
-				values[5] = 1;
-			} else if (values[4] == 5) {
-				values[5] = 1;
+			if ((values[0] == NEW_CREDIT_IDX) && (values[1] == NOTHING_IDX)) {
+				values[LABEL_ATTR_IDX] = terminateValue;
+			} else if ((values[2] == ADD_CREDIT_IDX) && (values[4] == NOTHING_IDX)) {
+				values[LABEL_ATTR_IDX] = terminateValue;
+			} else if (values[4] == 5) { // this cannot happen (5 is no valid value idx). Remove?
+				values[LABEL_ATTR_IDX] = terminateValue;
 			}
 			table.addDataRow(new DoubleArrayDataRow(values));
 		}
@@ -124,8 +131,10 @@ public class ChurnReductionExampleSetGenerator extends AbstractExampleSource {
 	public MetaData getGeneratedMetaData() throws OperatorException {
 		ExampleSetMetaData emd = new ExampleSetMetaData();
 		emd.addAttribute(new AttributeMetaData("label", Attributes.LABEL_NAME, "ok", "terminate"));
-		for (int i = 1; i < 6; i++) 
+		for (int i = 1; i < 6; i++) {
+			// if you update the order of the list in the next line, be sure to update the constants in the header!!!
 			emd.addAttribute(new AttributeMetaData("Year " + i, null, "New Credit", "Nothing", "End Credit", "Collect Information", "Additional Credit"));
+		}
 
 		emd.setNumberOfExamples(getParameterAsInt(PARAMETER_NUMBER_EXAMPLES));
 		return emd;

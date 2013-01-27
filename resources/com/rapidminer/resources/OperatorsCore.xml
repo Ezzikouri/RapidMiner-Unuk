@@ -655,7 +655,19 @@
 					<key>create_directory</key>
 					<class>com.rapidminer.operator.filesystem.CreateDirectoryOperator</class>
 				</operator>
+				<operator>
+					<key>create_archive_file</key>
+					<icon>box_new.png</icon>
+					<class>com.rapidminer.operator.nio.file.compression.CreateArchiveFileOperator
+					</class>
+				</operator>
+				<operator>
+					<key>add_entry_to_archive_file</key>
+					<icon>box_into.png</icon>
+					<class>com.rapidminer.operator.nio.file.compression.AddEntryToArchiveFile</class>
+				</operator>
 			</group>
+			
 			<group key="data_generation">
 				<icon>data_new.png</icon>
 				<operator>
@@ -734,6 +746,30 @@
 					<replaces>NoiseGenerator</replaces>
 				</operator>
 			</group>
+			<group key="annotations">
+				<icon>bookmark_blue.png</icon>
+				<operator>
+					<key>annotate</key>
+					<class>com.rapidminer.operator.util.annotations.AnnotateOperator</class>
+					<icon>bookmark_blue_edit.png</icon>
+				</operator>
+				<operator>
+					<key>extract_macro_from_annotation</key>
+					<class>com.rapidminer.operator.util.annotations.ExtractAnnotation</class>
+					<icon>keyboard_key.png</icon>
+				</operator>
+				<operator>
+					<key>annotations_to_data</key>
+					<class>com.rapidminer.operator.util.annotations.AnnotationsToData</class>
+					<icon>bookmark_blue_up.png</icon>
+				</operator>
+				<operator>
+					<key>data_to_annotations</key>
+					<class>com.rapidminer.operator.util.annotations.DataToAnnotations</class>
+					<icon>bookmarks.png</icon>
+				</operator>
+			</group>
+			
 			<group key="misc">
 				<icon>wrench.png</icon>
 				<operator>

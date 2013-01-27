@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -29,6 +29,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.DataRow;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.ViewModel;
 
 /**
@@ -85,5 +86,13 @@ public class ModelViewExampleSet extends AbstractExampleSet {
 
 	public int size() {
 		return this.parent.size();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.rapidminer.operator.ResultObjectAdapter#getAnnotations()
+	 */
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
 	}
 }

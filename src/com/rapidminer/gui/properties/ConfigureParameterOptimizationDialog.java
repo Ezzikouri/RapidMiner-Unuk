@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -211,17 +211,7 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 		// initialize selection lists
 		operatorListModel = new ExtendedListModel();
 		for (Operator op : ((OperatorChain)listener).getAllInnerOperators()) {
-			String descriptionText = op.getOperatorDescription().getLongDescriptionHTML();
-			if (descriptionText == null) {
-				descriptionText = op.getOperatorDescription().getShortDescription();
-			}
-
-			StringBuffer toolTipText = new StringBuffer("<b>Description: </b>" + descriptionText);
-			if (op != null) {
-				toolTipText.append(Tools.getLineSeparator() + "<b>Input:</b> " + SwingTools.toHTMLString(op.getInputPorts()));
-				toolTipText.append(Tools.getLineSeparator() + "<b>Output:</b> " + SwingTools.toHTMLString(op.getOutputPorts()));
-			}
-			operatorListModel.addElement(op, SwingTools.transformToolTipText(toolTipText.toString()));
+			operatorListModel.addElement(op, null);
 		}
 
 		operatorList = new ExtendedJList(operatorListModel);

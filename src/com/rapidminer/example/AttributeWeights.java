@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -139,6 +139,7 @@ public class AttributeWeights extends AverageVector {
             String name = (String) i.next();
             this.setWeight(name, weights.getWeight(name));
         }
+        cloneAnnotationsFrom(weights);
     }
 
     /** Returns the name of this AverageVector. */

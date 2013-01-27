@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -33,6 +33,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.ExampleTable;
 import com.rapidminer.example.table.NominalMapping;
+import com.rapidminer.operator.Annotations;
 
 /**
  * This example set uses the mapping given by another example set and
@@ -126,5 +127,10 @@ public class RemappedExampleSet extends AbstractExampleSet {
 
 	public Example getExample(int index) {
 		return this.parent.getExample(index);
+	}
+	
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
 	}
 }

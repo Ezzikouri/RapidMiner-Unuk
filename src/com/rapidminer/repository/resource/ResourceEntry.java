@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -53,7 +53,7 @@ public abstract class ResourceEntry implements Entry {
 	
 	@Override
 	public void delete() throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");
+		throw new RepositoryException("This is a read-only sample repository. Cannot delete entries.");
 	}
 
 	@Override
@@ -87,12 +87,12 @@ public abstract class ResourceEntry implements Entry {
 
 	@Override
 	public boolean move(Folder newParent) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");
+		throw new RepositoryException("This is a read-only sample repository. Cannot move entries.");
 	}
 	
 	@Override 
 	public boolean move(Folder newParent, String newName) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");
+		throw new RepositoryException("This is a read-only sample repository. Cannot move or rename entries.");
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public abstract class ResourceEntry implements Entry {
 	}
 
 	protected String getResource() {
-		return getRepository().getResourceRooot() + getPath();
+		return getRepository().getResourceRoot() + getPath();
 	}
 	
 	protected String getPath() {

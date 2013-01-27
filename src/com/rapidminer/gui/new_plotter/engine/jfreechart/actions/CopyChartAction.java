@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,15 +22,16 @@
  */
 package com.rapidminer.gui.new_plotter.engine.jfreechart.actions;
 
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
-
-import org.jfree.chart.ChartTransferable;
+import java.awt.image.BufferedImage;
 
 import com.rapidminer.gui.new_plotter.engine.jfreechart.JFreeChartPlotEngine;
 import com.rapidminer.gui.tools.ResourceAction;
+import com.rapidminer.tools.io.TransferableImage;
 
 /**
  * This action allows the user to copy the current chart to the system clipboard.
@@ -69,8 +70,11 @@ public class CopyChartAction extends ResourceAction {
 		Insets insets = engine.getChartPanel().getInsets();
 		int w = engine.getChartPanel().getWidth() - insets.left - insets.right;
 		int h = engine.getChartPanel().getHeight() - insets.top - insets.bottom;
-		ChartTransferable selection = new ChartTransferable(engine.getChartPanel().getChart(), w, h);
-		systemClipboard.setContents(selection, null);
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2 = img.createGraphics();
+		engine.getChartPanel().print(g2);
+		g2.dispose();
+		systemClipboard.setContents(new TransferableImage(img), null);
 	}
 
 }

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.flow;
 
 import java.awt.BasicStroke;
@@ -31,11 +32,20 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -51,6 +61,8 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RectangularShape;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -60,9 +72,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.TooManyListenersException;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 
+import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -73,26 +87,36 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
+import javax.swing.TransferHandler;
 import javax.swing.UIManager;
+import javax.swing.event.EventListenerList;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
+import com.rapidminer.ProcessListener;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.ConnectPortToRepositoryAction;
 import com.rapidminer.gui.actions.StoreInRepositoryAction;
+import com.rapidminer.gui.dnd.AbstractPatchedTransferHandler;
+import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.dnd.OperatorTransferHandler;
 import com.rapidminer.gui.dnd.ReceivingOperatorTransferHandler;
+import com.rapidminer.gui.dnd.TransferableOperator;
+import com.rapidminer.gui.metadata.MetaDataRendererFactoryRegistry;
+import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.tools.PrintingTools;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceMenu;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
+import com.rapidminer.gui.tour.IntroductoryTour;
+import com.rapidminer.gui.tour.OpenSubprocessStep.ProcessRendererListener;
 import com.rapidminer.io.process.ProcessXMLFilter;
 import com.rapidminer.io.process.ProcessXMLFilterRegistry;
 import com.rapidminer.operator.ExecutionUnit;
@@ -105,6 +129,7 @@ import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ResultObject;
 import com.rapidminer.operator.io.RepositorySource;
+import com.rapidminer.operator.learner.tree.DecisionTreeLearner;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.InputPorts;
 import com.rapidminer.operator.ports.OutputPort;
@@ -119,6 +144,7 @@ import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.ports.metadata.MetaDataError;
 import com.rapidminer.operator.ports.metadata.Precondition;
 import com.rapidminer.operator.ports.quickfix.QuickFix;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
 import com.rapidminer.tools.ClassColorMap;
@@ -126,6 +152,7 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.ParentResolvingMap;
+import com.rapidminer.tools.Tools;
 
 /**
  * This class renders a process graph. It also stores all data about visualization
@@ -134,12 +161,100 @@ import com.rapidminer.tools.ParentResolvingMap;
  * 
  * @author Simon Fischer
  */
-public class ProcessRenderer extends JPanel {
+public class ProcessRenderer extends JPanel implements DragListener {
 
-    private enum Orientation {
-        X_AXIS,
-        Y_AXIS
-    }
+	private class ProcessRendererDropTarget extends DropTarget {
+
+		private static final long serialVersionUID = 1L;
+		private EventListenerList dropTragetListenerList;
+
+		public ProcessRendererDropTarget(Component c, DropTargetListener dropTargetListener) {
+			super(c, TransferHandler.COPY_OR_MOVE | TransferHandler.LINK, null);
+			try {
+				super.addDropTargetListener(dropTargetListener);
+			} catch (TooManyListenersException tmle) {}
+		}
+
+		public void addDropTargetListener(DropTargetListener dtl) throws TooManyListenersException {
+			if (dropTragetListenerList == null) {
+				dropTragetListenerList = new EventListenerList();
+			}
+			dropTragetListenerList.add(DropTargetListener.class, dtl);
+		}
+
+		public void removeDropTargetListener(DropTargetListener dtl) {
+			if (dropTragetListenerList != null) {
+				dropTragetListenerList.remove(DropTargetListener.class, dtl);
+			}
+		}
+
+		public void dragEnter(DropTargetDragEvent e) {
+			super.dragEnter(e);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).dragEnter(e);
+					}
+				}
+			}
+		}
+
+		public void dragOver(DropTargetDragEvent e) {
+			super.dragOver(e);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).dragOver(e);
+					}
+				}
+			}
+		}
+
+		public void dragExit(DropTargetEvent e) {
+			super.dragExit(e);
+			setImportDragged(false);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).dragExit(e);
+					}
+				}
+			}
+		}
+
+		public void drop(DropTargetDropEvent e) {
+			super.drop(e);
+			setImportDragged(false);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).drop(e);
+					}
+				}
+			}
+		}
+
+		public void dropActionChanged(DropTargetDragEvent e) {
+			super.dropActionChanged(e);
+			if (dropTragetListenerList != null) {
+				Object[] listeners = dropTragetListenerList.getListenerList();
+				for (int i = listeners.length - 2; i >= 0; i -= 2) {
+					if (listeners[i] == DropTargetListener.class) {
+						((DropTargetListener) listeners[i + 1]).dropActionChanged(e);
+					}
+				}
+			}
+		}
+	}
+
+	private enum Orientation {
+		X_AXIS,
+		Y_AXIS
+	}
 
     private static Orientation ORIENTATION = Orientation.X_AXIS;
 
@@ -173,111 +288,114 @@ public class ProcessRenderer extends JPanel {
         }
     }
 
-    private final transient TipProvider tipProvider = new TipProvider() {
-        @Override
-        public Object getIdUnder(Point point) {
-            if (connectingPortSource == null) {
-                return hoveringPort;
-            } else {
-                return null;
-            }
-        }
+	private final transient TipProvider tipProvider = new TipProvider() {
 
-        @Override
-        public String getTip(Object o) {
-            Port port = (Port) o;
-            StringBuilder tip = new StringBuilder();
+		@Override
+		public Object getIdUnder(Point point) {
+			if (connectingPortSource == null) {
+				return hoveringPort;
+			} else {
+				return null;
+			}
+		}
 
-            if (displayedChain instanceof ProcessRootOperator) {
-                if (port.getPorts() == displayedChain.getSubprocess(0).getInnerSources()) {
-                    int index = displayedChain.getSubprocess(0).getInnerSources().getAllPorts().indexOf(port);
-                    List<String> locations = displayedChain.getProcess().getContext().getInputRepositoryLocations();
-                    if (index >= 0 && index < locations.size()) {
-                        String dest = locations.get(index);
-                        tip.append("Loaded from: ").append(dest).append("<br/>");
-                    }
-                } else if (port.getPorts() == displayedChain.getSubprocess(0).getInnerSinks()) {
-                    int index = displayedChain.getSubprocess(0).getInnerSinks().getAllPorts().indexOf(port);
-                    List<String> locations = displayedChain.getProcess().getContext().getOutputRepositoryLocations();
-                    if (index >= 0 && index < locations.size()) {
-                        String dest = locations.get(index);
-                        tip.append("Stored at: ").append(dest).append("<br/>");
-                    }
-                }
-            }
+		@Override
+		public String getTip(Object o) {
+			Port port = (Port) o;
+			StringBuilder tip = new StringBuilder();
 
-            tip.append("<strong>");
-            tip.append(port.getSpec());
-            tip.append("</strong> (");
-            tip.append(port.getName());
-            tip.append(")<br/>");
-            tip.append("<em>Meta data:</em> ");
-            MetaData metaData = port.getMetaData();
-            if (metaData != null) {
-                if (metaData instanceof ExampleSetMetaData) {
-                    tip.append(((ExampleSetMetaData) metaData).getShortDescription());
-                } else {
-                    tip.append(metaData.getDescription());
-                }
-                tip.append("<br/><em>Generated by:</em> ");
-                tip.append(metaData.getGenerationHistoryAsHTML());
-                tip.append("<br>");
-            } else {
-                tip.append("-<br/>");
-            }
-            IOObject data = port.getAnyDataOrNull();
-            if (data != null) {
-                tip.append("</br><em>Data:</em> ");
-                tip.append(data.toString());
-                tip.append("<br/>");
-            }
-            tip.append(port.getDescription());
-            if (!port.getErrors().isEmpty()) {
-                boolean hasErrors = false;
-                boolean hasWarnings = false;
-                for (MetaDataError error : port.getErrors()) {
-                    if (error.getSeverity() == Severity.ERROR)
-                        hasErrors = true;
-                    if (error.getSeverity() == Severity.WARNING)
-                        hasWarnings = true;
-                }
-                if (hasErrors) {
-                    tip.append("<br/><strong style=\"color:red\">");
-                    tip.append(port.getErrors().size());
-                    tip.append(" error(s):</strong>");
-                    for (MetaDataError error : port.getErrors()) {
-                        if (error.getSeverity() == Severity.ERROR) {
-                            tip.append("<br/> ");
-                            tip.append(error.getMessage());
-                        }
-                    }
-                }
-                if (hasWarnings) {
-                    tip.append("<br/><strong style=\"color:#FFA500\">");
-                    tip.append(port.getErrors().size());
-                    tip.append(" warnings(s):</strong>");
-                    for (MetaDataError error : port.getErrors()) {
-                        if (error.getSeverity() == Severity.WARNING) {
-                            tip.append("<br/> ");
-                            tip.append(error.getMessage());
-                        }
-                    }
-                }
-            }
-            return tip.toString();
-        }
+			if (displayedChain instanceof ProcessRootOperator) {
+				if (port.getPorts() == displayedChain.getSubprocess(0).getInnerSources()) {
+					int index = displayedChain.getSubprocess(0).getInnerSources().getAllPorts().indexOf(port);
+					List<String> locations = displayedChain.getProcess().getContext().getInputRepositoryLocations();
+					if (index >= 0 && index < locations.size()) {
+						String dest = locations.get(index);
+						tip.append("Loaded from: ").append(dest).append("<br/>");
+					}
+				} else if (port.getPorts() == displayedChain.getSubprocess(0).getInnerSinks()) {
+					int index = displayedChain.getSubprocess(0).getInnerSinks().getAllPorts().indexOf(port);
+					List<String> locations = displayedChain.getProcess().getContext().getOutputRepositoryLocations();
+					if (index >= 0 && index < locations.size()) {
+						String dest = locations.get(index);
+						tip.append("Stored at: ").append(dest).append("<br/>");
+					}
+				}
+			}
 
-        @Override
-        public Component getCustomComponent(Object o) {
-            Port hoveringPort = (Port) o;
-            MetaData metaData = hoveringPort.getMetaData();
-            if (metaData != null && metaData instanceof ExampleSetMetaData) {
-                return ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
-            } else {
-                return null;
-            }
-        }
-    };
+			tip.append("<strong>");
+			tip.append(port.getSpec());
+			tip.append("</strong> (");
+			tip.append(port.getName());
+			tip.append(")<br/>");
+			tip.append("<em>Meta data:</em> ");
+			MetaData metaData = port.getMetaData();
+			if (metaData != null) {
+				if (metaData instanceof ExampleSetMetaData) {
+					tip.append(((ExampleSetMetaData) metaData).getShortDescription());
+				} else {
+					tip.append(metaData.getDescription());
+				}
+				tip.append("<br/><em>Generated by:</em> ");
+				tip.append(metaData.getGenerationHistoryAsHTML());
+				tip.append("<br>");
+			} else {
+				tip.append("-<br/>");
+			}
+			IOObject data = port.getAnyDataOrNull();
+			if (data != null) {
+				tip.append("</br><em>Data:</em> ");
+				tip.append(data.toString());
+				tip.append("<br/>");
+			}
+			tip.append(port.getDescription());
+			if (!port.getErrors().isEmpty()) {
+				boolean hasErrors = false;
+				boolean hasWarnings = false;
+				for (MetaDataError error : port.getErrors()) {
+					if (error.getSeverity() == Severity.ERROR)
+						hasErrors = true;
+					if (error.getSeverity() == Severity.WARNING)
+						hasWarnings = true;
+				}
+				if (hasErrors) {
+					tip.append("<br/><strong style=\"color:red\">");
+					tip.append(port.getErrors().size());
+					tip.append(" error(s):</strong>");
+					for (MetaDataError error : port.getErrors()) {
+						if (error.getSeverity() == Severity.ERROR) {
+							tip.append("<br/> ");
+							tip.append(error.getMessage());
+						}
+					}
+				}
+				if (hasWarnings) {
+					tip.append("<br/><strong style=\"color:#FFA500\">");
+					tip.append(port.getErrors().size());
+					tip.append(" warnings(s):</strong>");
+					for (MetaDataError error : port.getErrors()) {
+						if (error.getSeverity() == Severity.WARNING) {
+							tip.append("<br/> ");
+							tip.append(error.getMessage());
+						}
+					}
+				}
+			}
+			return tip.toString();
+		}
+
+		@Override
+		public Component getCustomComponent(Object o) {
+			Port hoveringPort = (Port) o;
+			MetaData metaData = hoveringPort.getMetaData();
+			return MetaDataRendererFactoryRegistry.getInstance().createRenderer(metaData);
+//            if (metaData != null && metaData instanceof ExampleSetMetaData) {
+//            	//ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
+//                return MetaDataRendererFactoryRegistry.getInstance().createRenderer(metaData);
+//            } else {
+//                return null;
+//            }
+		}
+	};
 
     public ResourceAction RENAME_ACTION = new ResourceAction("rename_in_processrenderer") {
         {
@@ -338,6 +456,12 @@ public class ProcessRenderer extends JPanel {
                     repaint();
                 }
             } else {
+				// don't delete if we have selected surrounding operator in subprocess so the whole subprocess would get deleted
+				for (Operator selectedOperator : getSelection()) {
+					if (selectedOperator.equals(getDisplayedChain())) {
+						return;
+					}
+				}
                 mainFrame.getActions().DELETE_OPERATOR_ACTION.actionPerformed(e);
                 setHoveringOperator(null);
                 updateCursor();
@@ -425,6 +549,9 @@ public class ProcessRenderer extends JPanel {
     private static Paint SHADOW_TOP_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, PADDING, 0, Color.WHITE);
     private static Paint SHADOW_LEFT_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, 0, PADDING, Color.WHITE);
 
+	public static Color INNER_DRAG_COLOR = new Color(237,237,255);
+	public static Color INNER_DRAG_FRAME_COLOR = INNER_DRAG_COLOR.darker();
+
     private static Stroke CONNECTION_LINE_STROKE = new BasicStroke(1.3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     private static Stroke CONNECTION_HIGHLIGHT_STROKE = new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     private static Stroke CONNECTION_COLLECTION_LINE_STROKE = new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -439,13 +566,16 @@ public class ProcessRenderer extends JPanel {
     private static final Color PORT_NAME_SELECTION_COLOR = Color.GRAY;
     private static final Color ACTIVE_EDGE_COLOR = SwingTools.RAPID_I_ORANGE;
 
+	private static final Stroke HIGHLIGHT_DRAG_STROKE = new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+
     private static final Stroke FRAME_STROKE_SELECTED = new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
     private static final Stroke FRAME_STROKE_NORMAL = new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 
     private static final Color FRAME_COLOR_SELECTED = SwingTools.RAPID_I_ORANGE;
     private static final Color FRAME_COLOR_NORMAL = LINE_COLOR;
 
-    // private static int PROCESS_HEIGHT = 400;
+	private static final int ORIGINAL_TUTORIAL_COMIC_WIDTH = 657;
+	private static final int ORIGINAL_TUTORIAL_COMIC_HEIGHT = 464;
 
     /** The widths of the individual subprocesses. */
     private transient final Map<ExecutionUnit, Dimension> processSizes = new WeakHashMap<ExecutionUnit, Dimension>();
@@ -467,6 +597,10 @@ public class ProcessRenderer extends JPanel {
 
     private boolean hasDragged = false;
 
+	private int pressedMouseButton = 0;
+
+	private boolean connectionDraggingCanceled = false;
+
     private Rectangle2D selectionRectangle = null;
 
     private Map<Operator, Rectangle2D> draggedOperatorsOrigins;
@@ -484,7 +618,7 @@ public class ProcessRenderer extends JPanel {
     private Port hoveringPort = null;
 
     /** Source port of the connection currently being created. */
-    private OutputPort connectingPortSource = null;
+	private Port connectingPortSource = null;
 
     /** Index of the process under the mouse. */
     private int hoveringProcessIndex = -1;
@@ -505,6 +639,15 @@ public class ProcessRenderer extends JPanel {
     private final ProcessPanel processPanel;
     private final MainUIState mainFrame;
 
+	/** Will be <code>true</code> if an operator is dragged from the operator tree or if a repository entry is dragged. */
+	private boolean dragStarted = false;
+
+	/** Will be <code>true</code> if canImport of transfer handler has returned <code>true</code>. Will be set to false if mouse has exited the process renderer */
+	private boolean importDragged = false;
+
+	/** Indicates if the droptarget could be set. If this is not the case, importDragged will be ignored */
+	private boolean dropTargetSet = false;
+
     private Point mousePositionRelativeToProcess = null;
 
     private final List<ExtensionButton> subprocessExtensionButtons = new LinkedList<ExtensionButton>();
@@ -515,8 +658,124 @@ public class ProcessRenderer extends JPanel {
 
     private final FlowVisualizer flowVisualizer = new FlowVisualizer(this);
 
+	/**List of Listeners from a {@link IntroductoryTour} which waits for the moment that something is opened */
+	private LinkedList<ProcessRendererListener> listenersTour;
+
+	private BufferedImage[] tutorialComicPanels;
+
+	private BufferedImage tutorialComicPanelToDraw = null;
+
     public ProcessRenderer(ProcessPanel processPanel, MainUIState mainFrame) {
         new PanningManager(this);
+
+		try {
+			tutorialComicPanels = new BufferedImage[7];
+			for (int i = 0; i < 5; i++) {
+				tutorialComicPanels[i] = ImageIO.read(Tools.getResource("images/tutorial-comic-" + Integer.toString(i) + ".png"));
+			}
+			tutorialComicPanels[5] = ImageIO.read(Tools.getResource("images/tutorial-comic-" + Integer.toString(1) + "-drop.png"));
+			tutorialComicPanels[6] = ImageIO.read(Tools.getResource("images/tutorial-comic-" + Integer.toString(2) + "-drop.png"));
+		} catch (IOException e) {
+			LogService.getRoot().log(Level.WARNING, "Can not load image", e);
+		}
+		mainFrame.addProcessEditor(new ProcessEditor() {
+
+			private ProcessListener tutorialProcessListener = new ProcessListener() {
+
+				@Override
+				public void processStarts(Process process) {}
+
+				@Override
+				public void processStartedOperator(Process process, Operator op) {}
+
+				@Override
+				public void processFinishedOperator(Process process, Operator op) {}
+
+				@Override
+				public void processEnded(Process process) {
+					tutorialComicPanelToDraw = null;
+				}
+			};
+
+			@Override
+			public void setSelection(List<Operator> selection) {}
+
+			@Override
+			public void processUpdated(Process process) {
+				if ((displayedChain instanceof ProcessRootOperator)) {
+					int numberOfOperator = displayedChain.getSubprocess(0).getNumberOfOperators();
+					tutorialComicPanelToDraw = null;
+					RepositorySource golfOperator = null;
+					DecisionTreeLearner decisionTreeOperator = null;
+					process.getRootOperator().removeProcessListener(tutorialProcessListener);
+					switch (numberOfOperator) {
+						case 0:
+							tutorialComicPanelToDraw = tutorialComicPanels[1];
+							break;
+						case 1:
+							golfOperator = getRetrieveGolfOperator(displayedChain.getSubprocess(0).getOperators());
+							if (golfOperator != null) {
+								tutorialComicPanelToDraw = tutorialComicPanels[2];
+							}
+							break;
+						case 2:
+							golfOperator = getRetrieveGolfOperator(displayedChain.getSubprocess(0).getOperators());
+							decisionTreeOperator = getDecisionTreeOperator(displayedChain.getSubprocess(0).getOperators());
+							if (golfOperator == null || decisionTreeOperator == null) {
+								break;
+							}
+							if (areCorrectlyConnected(golfOperator, decisionTreeOperator)) {
+								tutorialComicPanelToDraw = tutorialComicPanels[4];
+								process.getRootOperator().addProcessListener(tutorialProcessListener);
+							} else {
+								tutorialComicPanelToDraw = tutorialComicPanels[3];
+							}
+
+							break;
+						default:
+							break;
+					}
+				}
+			}
+
+			private boolean areCorrectlyConnected(RepositorySource golfOperator, DecisionTreeLearner decisionTreeOperator) {
+				return golfOperator != null && decisionTreeOperator != null &&
+
+						golfOperator.getOutputPorts().getNumberOfConnectedPorts() == 1 &&
+						decisionTreeOperator.getInputPorts().getNumberOfConnectedPorts() == 1 &&
+						decisionTreeOperator.getOutputPorts().getNumberOfConnectedPorts() == 1 &&
+
+						golfOperator.getOutputPorts().getPortByIndex(0).getDestination().equals(decisionTreeOperator.getInputPorts().getPortByIndex(0));
+			}
+
+			private RepositorySource getRetrieveGolfOperator(List<Operator> operators) {
+				for (Operator operator : operators) {
+					if (operator instanceof RepositorySource) {
+						RepositorySource specificOperator = (RepositorySource) operator;
+						try {
+							if (specificOperator.getParameter(RepositorySource.PARAMETER_REPOSITORY_ENTRY).equals("//Samples/data/Golf")) {
+								return specificOperator;
+							}
+						} catch (UndefinedParameterError e) {
+							continue;
+						}
+					}
+				}
+				return null;
+			}
+
+			private DecisionTreeLearner getDecisionTreeOperator(List<Operator> operators) {
+				for (Operator operator : operators) {
+					if (operator instanceof DecisionTreeLearner) {
+						return (DecisionTreeLearner) operator;
+					}
+				}
+				return null;
+			}
+
+			@Override
+			public void processChanged(Process process) {}
+		});
         ProcessXMLFilterRegistry.registerFilter(new GUIProcessXMLFilter());
         this.mainFrame = mainFrame;
         this.processPanel = processPanel;
@@ -527,16 +786,16 @@ public class ProcessRenderer extends JPanel {
 
             @Override
             public boolean dropNow(final List<Operator> newOperators, Point loc) {
+				setImportDragged(false);
                 ProcessRenderer.this.mainFrame.getStatusBar().clearSpecialText();
                 if (newOperators.isEmpty()) {
                     return true;
                 }
+				requestFocusInWindow();
 
                 List<Operator> selection = getSelection();
                 // if we don't have a loc, we can use the mouse cursor
-                if (loc == null &&
-                        (selection == null || selection.isEmpty() ||
-                                selection.size() == 1 && selection.get(0) == displayedChain)) {
+				if (loc == null) {
                     loc = currentMousePosition;
                 }
 
@@ -558,7 +817,7 @@ public class ProcessRenderer extends JPanel {
                 try {
                     if (processIndex != -1) {
                         if (loc != null) {
-                            // this is a drop
+							// we have a location for the drop/paste
                             Operator firstOperator = newOperators.get(0);
                             Point dest = toProcessSpace(loc, processIndex);
 
@@ -575,7 +834,29 @@ public class ProcessRenderer extends JPanel {
                                 }
                             }
 
-                            operatorRects.put(firstOperator, new Rectangle2D.Double(dest.getX() - OPERATOR_WIDTH / 2, dest.getY() - MIN_OPERATOR_HEIGHT / 2, OPERATOR_WIDTH, MIN_OPERATOR_HEIGHT));
+							// calculate operator position
+							Point opPosition = new Point((int) dest.getX() - OPERATOR_WIDTH / 2, (int) dest.getY() - MIN_OPERATOR_HEIGHT / 2);
+
+							// snap to grid
+							if (isSnapToGrid()) {
+								opPosition = snap(opPosition);
+							}
+
+							// check if operator overlaps bottom process corner
+							int lowestPosition = getHeight() - GRID_AUTOARRANGE_HEIGHT;
+							if (opPosition.getY() > lowestPosition) {
+								opPosition.setLocation(opPosition.getX(), lowestPosition);
+							}
+
+							// check if operator overlaps right process corner
+							int rightestPositon = getWidth() - GRID_AUTOARRANGE_WIDTH - PADDING;
+							if (opPosition.getX() > rightestPositon) {
+								opPosition.setLocation(rightestPositon, opPosition.getY());
+							}
+
+							Rectangle2D.Double opPositionDouble = new Rectangle2D.Double(opPosition.getX(), opPosition.getY(), OPERATOR_WIDTH, MIN_OPERATOR_HEIGHT);
+
+							operatorRects.put(firstOperator, opPositionDouble);
 
                             // index at which the first operator is inserted
                             int firstInsertionIndex;
@@ -607,7 +888,8 @@ public class ProcessRenderer extends JPanel {
                             }
                             AutoWireThread.autoWireInBackground(newOperators, firstMustBeWired);
                         } else {
-                            // this is a paste. Insert all, then wire all
+							// this should not happen, since we should always have a location.
+							// Nevertheless, we have a fallback here in case no position for the drop is set.
                             for (Operator newOp : newOperators) {
                                 processes[processIndex].addOperator(newOp);
                             }
@@ -689,9 +971,23 @@ public class ProcessRenderer extends JPanel {
                 }
             }
 
+			@Override
+			public boolean canImport(TransferSupport ts) {
+				if (ts.isDrop()) {
+					int pid = ProcessRenderer.this.getProcessIndexUnder(ts.getDropLocation().getDropPoint());
+					if (pid < 0) {
+						return false;
+					}
+				}
+				boolean canImport = super.canImport(ts);
+				if (dropTargetSet && !dragStarted && canImport && !getImportDragged()) {
+					setImportDragged(true);
+				}
+				return canImport;
+			}
+
             @Override
-            protected void dropEnds() {
-            }
+			protected void dropEnds() {}
 
             @Override
             protected Process getProcess() {
@@ -699,6 +995,15 @@ public class ProcessRenderer extends JPanel {
             }
         };
         setTransferHandler(transferHandler);
+
+		ProcessRendererDropTarget dropTarget;
+		try {
+			dropTarget = new ProcessRendererDropTarget(this, AbstractPatchedTransferHandler.getDropTargetListener());
+			setDropTarget(dropTarget);
+			dropTargetSet = true;
+		} catch (Exception e) {
+			LogService.getRoot().log(Level.INFO, "Drop target could not be loaded. Process panel will not be highlighted when dragging external data on it.");
+		}
 
         addKeyListener(new KeyAdapter() {
             @Override
@@ -721,11 +1026,17 @@ public class ProcessRenderer extends JPanel {
                     }
                     e.consume();
                     break;
+					case KeyEvent.VK_ESCAPE:
+						if (connectingPortSource != null) {
+							cancelConnectionDragging();
+						}
+						break;
                 case KeyEvent.VK_ENTER:
                     if (!getSelection().isEmpty()) {
                         Operator selected = getSelection().get(0);
                         if (selected instanceof OperatorChain) {
                             ProcessRenderer.this.processPanel.showOperatorChain((OperatorChain) selected);
+								ProcessRenderer.this.mainFrame.addViewSwitchToUndo();
                         }
                     }
                     e.consume();
@@ -736,16 +1047,22 @@ public class ProcessRenderer extends JPanel {
 
         ((ResourceAction) mainFrame.getActions().TOGGLE_BREAKPOINT[BreakpointListener.BREAKPOINT_AFTER]).addToActionMap(this, WHEN_FOCUSED);
         ((ResourceAction) mainFrame.getActions().TOGGLE_ACTIVATION_ITEM).addToActionMap(this, WHEN_FOCUSED);
-        RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
         SELECT_ALL_ACTION.addToActionMap(this, WHEN_FOCUSED);
-        DELETE_SELECTED_CONNECTION.addToActionMap(this, WHEN_FOCUSED);
 
         OperatorTransferHandler.addToActionMap(this);
+		DELETE_SELECTED_CONNECTION.addToActionMap(this, "delete", WHEN_FOCUSED);
 
         new ToolTipWindow(tipProvider, this);
 
         init();
     }
+
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		// we do this here to avoid being overridden by main frame
+		RENAME_ACTION.addToActionMap(this, WHEN_FOCUSED);
+	}
 
     protected int getIndex(ExecutionUnit executionUnit) {
         for (int i = 0; i < processes.length; i++) {
@@ -866,6 +1183,8 @@ public class ProcessRenderer extends JPanel {
             }
         }
         showProcesses(processes);
+
+		fireNewChainDisplayed();
     }
 
     private void showProcesses(ExecutionUnit[] processes) {
@@ -949,6 +1268,30 @@ public class ProcessRenderer extends JPanel {
         render((Graphics2D) graphics);
     }
 
+	@SuppressWarnings("unused")
+	private void drawComicTutorial(Graphics graphics) {
+		if (tutorialComicPanelToDraw != null) {
+			Graphics2D translated = (Graphics2D) graphics.create();
+			translated.translate(getWidth() / 2 - ORIGINAL_TUTORIAL_COMIC_WIDTH / 2, getHeight() / 2 - ORIGINAL_TUTORIAL_COMIC_HEIGHT / 2);
+			translated.drawImage(tutorialComicPanelToDraw, 0, 0, new ImageObserver() {
+
+				@Override
+				public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
+					return false;
+				}
+			});
+			translated.dispose();
+		}
+	}
+
+	private void onGolfDataDragged() {
+		tutorialComicPanelToDraw = tutorialComicPanels[5];
+	}
+
+	private void onDecisionTreeDragged() {
+		tutorialComicPanelToDraw = tutorialComicPanels[6];
+	}
+
     /**
      * Returns the operators rectangle.
      * 
@@ -956,7 +1299,7 @@ public class ProcessRenderer extends JPanel {
      *            If true and no position has been defined yet, a position will be
      *            created, either based on the position of adjacent operators or based on the index.
      */
-    Rectangle2D getOperatorRect(Operator op, boolean autoPositionIfMissing) {
+	public Rectangle2D getOperatorRect(Operator op, boolean autoPositionIfMissing) {
         Rectangle2D rect = operatorRects.get(op);
         if (rect == null && autoPositionIfMissing) {
             // if connected (e.g. because inserted by quick fix), place in the middle
@@ -1135,13 +1478,43 @@ public class ProcessRenderer extends JPanel {
         double height = getHeight(processes[index]);
         Shape frame = new Rectangle2D.Double(0, 0, width, height);
 
+		if (dragStarted || (dropTargetSet && getImportDragged())) {
+			g.setPaint(INNER_DRAG_COLOR);
+			g.fill(frame);
+
+			// process title color
+			g.setColor(PROCESS_TITLE_COLOR.darker());
+			g.setFont(PROCESS_FONT);
+			g.drawString(processes[index].getName(), PADDING + 2, PROCESS_FONT.getSize() + PADDING);
+
+			// padding gradients
+			g.setPaint(new GradientPaint(0, 0, SHADOW_COLOR, PADDING, 0, INNER_DRAG_COLOR));
+			g.fill(new Rectangle2D.Double(0, 0, PADDING, height));
+			GeneralPath top = new GeneralPath();
+			int shadowWidth = PADDING;
+			top.moveTo(0, 0);
+			top.lineTo(width, 0);
+			top.lineTo(width, shadowWidth);
+			top.lineTo(shadowWidth, shadowWidth);
+			top.closePath();
+			g.setPaint(new GradientPaint(0, 0, SHADOW_COLOR, 0, PADDING, INNER_DRAG_COLOR));
+			g.fill(top);
+
+			// frame color
+			g.setPaint(INNER_DRAG_FRAME_COLOR);
+			g.setStroke(HIGHLIGHT_DRAG_STROKE);
+		} else {
+
+			// background color
         g.setPaint(INNER_COLOR);
         g.fill(frame);
 
+			// process title color
         g.setColor(PROCESS_TITLE_COLOR);
         g.setFont(PROCESS_FONT);
         g.drawString(processes[index].getName(), PADDING + 2, PROCESS_FONT.getSize() + PADDING);
 
+			// padding gradients
         g.setPaint(SHADOW_TOP_GRADIENT);
         g.fill(new Rectangle2D.Double(0, 0, PADDING, height));
         GeneralPath top = new GeneralPath();
@@ -1154,9 +1527,14 @@ public class ProcessRenderer extends JPanel {
         g.setPaint(SHADOW_LEFT_GRADIENT);
         g.fill(top);
 
+			// frame color
         g.setPaint(LINE_COLOR);
         g.setStroke(LINE_STROKE);
+		}
+
         g.draw(frame);
+
+//		drawComicTutorial(g); TODO re-add when it is ready
 
         // render operators: as a side effect the port locations are stored
         for (Operator operator : processes[index].getOperators()) {
@@ -1175,7 +1553,7 @@ public class ProcessRenderer extends JPanel {
         // render ports
         renderPorts(processes[index].getInnerSources(), null, g, true);
         renderPorts(processes[index].getInnerSinks(), null, g, true);
-        renderConnections(processes[index].getInnerSources(), g);
+		renderConnections(processes[index].getInnerSinks(), processes[index].getInnerSources(), g);
 
         flowVisualizer.render(g, processes[index]);
     }
@@ -1428,7 +1806,7 @@ public class ProcessRenderer extends JPanel {
         }
 
         // Ports
-        renderConnections(operator.getOutputPorts(), g);
+		renderConnections(operator.getInputPorts(), operator.getOutputPorts(), g);
         renderPorts(operator.getInputPorts(), baseColor, g, operator.isEnabled());
         renderPorts(operator.getOutputPorts(), baseColor, g, operator.isEnabled());
 
@@ -1536,8 +1914,15 @@ public class ProcessRenderer extends JPanel {
         }
     }
 
-    private void renderConnections(OutputPorts ports, Graphics2D g) {
-        for (int i = 0; i < ports.getNumberOfPorts(); i++) {
+	private void renderConnections(InputPorts inputPorts, OutputPorts ports, Graphics2D g) {
+		if (connectingPortSource != null && mousePositionRelativeToProcess != null && connectingPortSource instanceof InputPort && inputPorts.containsPort((InputPort) connectingPortSource)) {
+			g.setColor(ACTIVE_EDGE_COLOR);
+			Point2D toLoc = getPortLocation(connectingPortSource);
+			toLoc.setLocation(toLoc.getX() - PORT_SIZE, toLoc.getY());
+			g.draw(new Line2D.Double(toLoc.getX() + PORT_SIZE / 2, toLoc.getY(), mousePositionRelativeToProcess.getX(), mousePositionRelativeToProcess.getY()));
+		}
+
+		for (int i = 0; i < ports.getNumberOfPorts(); i++) {
             OutputPort from = ports.getPortByIndex(i);
             Port to = from.getDestination();
             g.setColor(getColorFor(from, true, Color.LIGHT_GRAY));
@@ -1621,8 +2006,7 @@ public class ProcessRenderer extends JPanel {
         private boolean pressHasSelected = false;
 
         @Override
-        public void mouseEntered(MouseEvent e) {
-        }
+		public void mouseEntered(MouseEvent e) {}
 
         @Override
         public void mouseMoved(MouseEvent e) {
@@ -1673,9 +2057,9 @@ public class ProcessRenderer extends JPanel {
                             setHoveringOperator(op);
                             updateCursor();
                             if (getHoveringOperator() instanceof OperatorChain) {
-                                showStatus("Double-click to zoom, drag to move.");
+								showStatus(I18N.getGUILabel("processRenderer.displayChain.hover"));
                             } else {
-                                showStatus("Drag to move.");
+								showStatus(I18N.getGUILabel("processRenderer.operator.hover"));
                             }
                             repaint();
                         }
@@ -1693,11 +2077,17 @@ public class ProcessRenderer extends JPanel {
                 updateCursor();
                 repaint();
             }
+			if (hoveringConnectionSource != null) {
+				showStatus(I18N.getGUILabel("processRenderer.connection.hover"));
+			} else {
             clearStatus();
+		}
 		}
 
         @Override
         public void mousePressed(MouseEvent e) {
+
+			// do nothing if flow visualizer is active
             if (flowVisualizer.isActive()) {
                 return;
             }
@@ -1709,7 +2099,12 @@ public class ProcessRenderer extends JPanel {
             mousePositionAtDragStart = e.getPoint();
             mousePositionAtLastEvaluation = e.getPoint();
             hasDragged = false;
+			pressedMouseButton = e.getButton();
+			connectionDraggingCanceled = false;
 
+			// Popup will only be triggered if mouse has been released and no dragging was done
+			// CAUTION: Mac&Linux / Windows do different popup trigger handling. Because of this the popup trigger has to be checked
+			// in mousePressed AND mouseReleased
             if (e.isPopupTrigger()) {
                 if (showPopupMenu(e)) {
                     return;
@@ -1727,7 +2122,33 @@ public class ProcessRenderer extends JPanel {
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 return;
             }
+
+			// disconnect when clicking with alt + left mouse on connection
+			if (hoveringConnectionSource != null && e.getButton() == MouseEvent.BUTTON1 && e.isAltDown()) {
+				hoveringConnectionSource.disconnect();
+			}
+
+			// If mouse pressed while connecting, check if connecting ports should be canceled
+			if (connectingPortSource != null) {
+
+				// cancel if right mouse button is pressed
+				if (e.getButton() == MouseEvent.BUTTON3) {
+					cancelConnectionDragging();
+					return;
+				}
+
+				// cancel if any button is pressed but not over hovering port
+				if (hoveringPort == null) {
+					cancelConnectionDragging();
+					return;
+				}
+			}
+
+			updateHoveringState(e);
+			
             if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null) {
+
+				// Left mouse button pressed on port with alt pressed -> remove connection
                 if (e.isAltDown()) {
                     if (hoveringPort instanceof OutputPort) {
                         if (((OutputPort) hoveringPort).isConnected()) {
@@ -1740,15 +2161,22 @@ public class ProcessRenderer extends JPanel {
                     }
                     repaint();
                 } else {
+					// Left mouse button pressed on port -> start connecting ports
                     if (hoveringPort instanceof OutputPort) {
-                        if (connectingPortSource == null) {
-                            connectingPortSource = (OutputPort) hoveringPort;
+						if (connectingPortSource != null && connectingPortSource instanceof InputPort) {
+							connectConnectingPortSourceWithHoveringPort((InputPort) connectingPortSource, (OutputPort) hoveringPort, hoveringPort);
                         } else {
-                            connectingPortSource = null;
+							if (!e.isShiftDown()) {
+								connectingPortSource = hoveringPort;
                         }
+						}
                     } else if (hoveringPort instanceof InputPort) {
-                        if (connectingPortSource != null) {
-                            connectConnectingPortSourceWithHoveringPort();
+						if (connectingPortSource != null && connectingPortSource instanceof OutputPort) {
+							connectConnectingPortSourceWithHoveringPort((InputPort) hoveringPort, (OutputPort) connectingPortSource, hoveringPort);
+						} else {
+							if (!e.isShiftDown()) {
+								connectingPortSource = hoveringPort;
+							}
                         }
                     }
                 }
@@ -1793,28 +2221,37 @@ public class ProcessRenderer extends JPanel {
             }
         }
 
-		private void connectConnectingPortSourceWithHoveringPort() {
+		private void connectConnectingPortSourceWithHoveringPort(InputPort input, OutputPort output, Port hoveringPort) {
 			try {
-			    Operator destOp = hoveringPort.getPorts().getOwner().getOperator();
+				Operator destOp = input.getPorts().getOwner().getOperator();
 			    boolean hasConnections = hasConnections(destOp);
-			    connect(connectingPortSource, (InputPort) hoveringPort);
+				connect(output, input);
 			    // move directly after source if first connection
 			    if (!hasConnections) {
-			        Operator sourceOp = connectingPortSource.getPorts().getOwner().getOperator();
+					Operator sourceOp = output.getPorts().getOwner().getOperator();
 			        if (destOp != displayedChain && sourceOp != displayedChain) {
 			            destOp.getExecutionUnit().moveToIndex(destOp, destOp.getExecutionUnit().getOperators().indexOf(sourceOp) + 1);
 			        }
 			    }
 			} catch (PortException e1) {
 			    if (e1.hasRepairOptions()) {
-			        e1.showRepairDialog(ProcessRenderer.this);
+
+					// calculate popup position
+					Point popupPosition = getPortLocation(hoveringPort);
+
+					if (hoveringPort instanceof InputPort) {
+						popupPosition.setLocation(popupPosition.getX() + 28, popupPosition.getY() - 2);
+					} else {
+						popupPosition.setLocation(popupPosition.getX() - 18, popupPosition.getY() - 2);
+					}
+
+					e1.showRepairPopup(ProcessRenderer.this, popupPosition);
 			    } else {
 			        JOptionPane.showMessageDialog(null, e1.getMessage(), "Cannot connect", JOptionPane.ERROR_MESSAGE);
 			    }
 			    repaint();
 			} finally {
-			    repaint();
-			    connectingPortSource = null;
+				cancelConnectionDragging();
 			}
 		}
 
@@ -1830,6 +2267,10 @@ public class ProcessRenderer extends JPanel {
             if (e.isConsumed()) {
                 return;
             }
+
+			// Popup will only be triggered if mouse has been released and no dragging was done
+			// CAUTION: Mac&Linux / Windows do different popup trigger handling. Because of this the popup trigger has to be checked
+			// in mousePressed AND mouseReleased
             if (e.isPopupTrigger()) {
                 if (showPopupMenu(e)) {
                     return;
@@ -1837,12 +2278,25 @@ public class ProcessRenderer extends JPanel {
             }
             
             if (connectingPortSource != null) {
+
+				// cancel if right mouse button is released
             	if (e.getButton() == MouseEvent.BUTTON3) {
             		cancelConnectionDragging();
-            		return;
-            	} else if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null && hoveringPort instanceof InputPort && !e.isAltDown()) {
-            		connectConnectingPortSourceWithHoveringPort();
             	}
+
+				// cancel if any button is released but not over hovering port
+				if (hoveringPort == null) {
+					cancelConnectionDragging();
+				}
+
+				// connect when released over hovering port
+				if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null && !e.isAltDown()) {
+					if (hoveringPort instanceof InputPort && connectingPortSource instanceof OutputPort) {
+						connectConnectingPortSourceWithHoveringPort((InputPort) hoveringPort, (OutputPort) connectingPortSource, hoveringPort);
+					} else if (hoveringPort instanceof OutputPort && connectingPortSource instanceof InputPort) {
+						connectConnectingPortSourceWithHoveringPort((InputPort) connectingPortSource, (OutputPort) hoveringPort, hoveringPort);
+					}
+				}
             }
 
             try {
@@ -1933,7 +2387,7 @@ public class ProcessRenderer extends JPanel {
                 repaint();
                 // We cannot drag when it is an inner sink: dragging means moving the port.
                 if (connectingPortSource.getPorts().getOwner().getOperator() == displayedChain && e.isShiftDown()) {
-                    connectingPortSource = null;
+					cancelConnectionDragging();
                 }
             }
             // find process in which we are dragging
@@ -1950,9 +2404,11 @@ public class ProcessRenderer extends JPanel {
                         if (canBeInsertedIntoConnection(hoveringOperator)) {
                             int pid = getIndex(draggingInSubprocess);
                             Point processSpace = toProcessSpace(e.getPoint(), pid);
+							if (processSpace != null) {
                             hoveringConnectionSource = getPortForConnectorNear(processSpace, draggingInSubprocess);
                         }
                     }
+					}
 
                     double difX = e.getX() - mousePositionAtDragStart.getX();
                     double difY = e.getY() - mousePositionAtDragStart.getY();
@@ -2013,11 +2469,13 @@ public class ProcessRenderer extends JPanel {
                     ensureHeight(draggingInSubprocess, (int) maxY);
                     repaint();
                 }
-            } else if (draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain && (draggedPort instanceof InputPort || e.isShiftDown() || (hasDragged && connectingPortSource == null))) {
+			} else {
                 // ports are draggeable only if they belong to the displayedChain <-> they are inner sinks our sources
+				if (isDisplayChainPortDragged() &&
+						// furthermore they can only be dragged with left mouse button + shift key pressed
+						(pressedMouseButton == MouseEvent.BUTTON1 && e.isShiftDown())) {
 
                 double diff = e.getY() - mousePositionAtLastEvaluation.getY();
-                // setPortSpacing(draggedPort, portSpacingAtDragStart + diff);
                 double shifted = shiftPortSpacing(draggedPort, diff);
                 mousePositionAtLastEvaluation.setLocation(mousePositionAtLastEvaluation.getX(), mousePositionAtLastEvaluation.getY() + shifted);
 
@@ -2029,6 +2487,11 @@ public class ProcessRenderer extends JPanel {
             	updateHoveringState(e);
             }
         }
+		}
+
+		private boolean isDisplayChainPortDragged() {
+			return draggedPort != null && draggedPort.getPorts().getOwner().getOperator() == displayedChain;
+		}
 
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -2036,34 +2499,14 @@ public class ProcessRenderer extends JPanel {
                 return;
             }
             requestFocus();
-            // selectOperator(hoveringOperator, !e.isControlDown());
-            if (e.isPopupTrigger()) {
-                if (showPopupMenu(e)) {
-                    return;
-                }
-            }
+
             switch (e.getButton()) {
             case MouseEvent.BUTTON1:
                 if (e.getClickCount() == 2) {
-                    if (hoveringPort != null && hoveringPort.getPorts().getOwner().getOperator() instanceof ProcessRootOperator) {
-                        RepositoryLocation procLoc = displayedChain.getProcess().getRepositoryLocation();
-                        RepositoryLocation resolveRelativeTo = null;
-                        if (procLoc != null) {
-                            resolveRelativeTo = procLoc.parent();
-                        }
-                        String loc = RepositoryLocationChooser.selectLocation(resolveRelativeTo, ProcessRenderer.this);
-                        if (loc != null) {
-                            int index = hoveringPort.getPorts().getAllPorts().indexOf(hoveringPort);
-                            // This looks weird, but it is correct: The input ports are OutputPorts!
-                            if (hoveringPort instanceof OutputPort) {
-                                displayedChain.getProcess().getContext().setInputRepositoryLocation(index, loc);
-                            } else {
-                                displayedChain.getProcess().getContext().setOutputRepositoryLocation(index, loc);
-                            }
-                        }
-                    } else if (getHoveringOperator() != null) {
+						if (getHoveringOperator() != null) {
                         if (getHoveringOperator() instanceof OperatorChain) {
                             processPanel.showOperatorChain((OperatorChain) getHoveringOperator());
+								ProcessRenderer.this.mainFrame.addViewSwitchToUndo();
                         }
                     }
                 }
@@ -2079,11 +2522,6 @@ public class ProcessRenderer extends JPanel {
 
         }
 
-		private void cancelConnectionDragging() {
-			connectingPortSource = null;
-			repaint();
-		}
-
         @Override
         public void mouseExited(MouseEvent e) {
             mainFrame.getStatusBar().clearSpecialText();
@@ -2093,6 +2531,12 @@ public class ProcessRenderer extends JPanel {
     private void selectOperator(Operator op, boolean clear) {
         selectOperator(op, clear, false);
     }
+
+	private void cancelConnectionDragging() {
+		connectionDraggingCanceled = true;
+		connectingPortSource = null;
+		repaint();
+	}
 
     /**
      * 
@@ -2179,7 +2623,7 @@ public class ProcessRenderer extends JPanel {
     }
 
     private boolean showPopupMenu(final MouseEvent e) {
-        if (connectingPortSource != null) {
+		if (connectingPortSource != null || connectionDraggingCanceled) {
             return false;
         }
         JPopupMenu menu = new JPopupMenu();
@@ -2200,7 +2644,12 @@ public class ProcessRenderer extends JPanel {
 
                 });
                 menu.add(showResult);
+				try {
+					String locationString = mainFrame.getProcess().getRepositoryLocation().getAbsoluteLocation();
+					menu.add(new StoreInRepositoryAction(data, new RepositoryLocation(locationString.substring(0, locationString.lastIndexOf(RepositoryLocation.SEPARATOR)))));
+				} catch (Exception e1) {
                 menu.add(new StoreInRepositoryAction(data));
+				}
                 menu.addSeparator();
             }
             List<QuickFix> fixes = hoveringPort.collectQuickFixes();
@@ -2325,6 +2774,8 @@ public class ProcessRenderer extends JPanel {
     private final OverviewPanel overviewPanel = new OverviewPanel(this);
 
     private JTextField renameField = null;
+
+	private BufferedImage tutorialImage;
 
     private Shape createConnector(Port fromPort, Port toPort) {
         Point2D from = getPortLocation(fromPort);
@@ -2879,7 +3330,7 @@ public class ProcessRenderer extends JPanel {
             if (bestInputPort != null) {
                 hoveringConnectionSource.disconnect();
                 connect(hoveringConnectionSource, bestInputPort);
-                if (mainFrame.getValidateAutomaticallyAction().isSelected()) {
+				if (mainFrame.getValidateAutomaticallyAction().isSelected()) {
                     hoveringConnectionSource.getPorts().getOwner().getOperator().transformMetaData();
                     operator.transformMetaData();
                 }
@@ -2971,8 +3422,7 @@ public class ProcessRenderer extends JPanel {
         });
         renameField.addFocusListener(new FocusListener() {
             @Override
-            public void focusGained(FocusEvent e) {
-            }
+			public void focusGained(FocusEvent e) {}
 
             @Override
             public void focusLost(FocusEvent e) {
@@ -2990,8 +3440,7 @@ public class ProcessRenderer extends JPanel {
         // ignore changes on escape
         renameField.addKeyListener(new KeyListener() {
             @Override
-            public void keyPressed(KeyEvent e) {
-            }
+			public void keyPressed(KeyEvent e) {}
 
             @Override
             public void keyReleased(KeyEvent e) {
@@ -3003,8 +3452,7 @@ public class ProcessRenderer extends JPanel {
             }
 
             @Override
-            public void keyTyped(KeyEvent e) {
-            }
+			public void keyTyped(KeyEvent e) {}
         });
 
         repaint();
@@ -3059,7 +3507,6 @@ public class ProcessRenderer extends JPanel {
 
     /** Connects two operators and enables them. */
     private void connect(OutputPort out, InputPort in) {
-        out.connectTo(in);
         Operator inOp = in.getPorts().getOwner().getOperator();
         if (!inOp.isEnabled()) {
             inOp.setEnabled(true);
@@ -3068,6 +3515,7 @@ public class ProcessRenderer extends JPanel {
         if (!outOp.isEnabled()) {
             outOp.setEnabled(true);
         }
+		out.connectTo(in);
     }
 
     /** Adds positions of operators etc. */
@@ -3134,8 +3582,7 @@ public class ProcessRenderer extends JPanel {
                 if (w != null && w.length() > 0) {
                     processSizes.put(process, new Dimension((int) Double.parseDouble(w), (int) Double.parseDouble(h)));
                 }
-            } catch (NumberFormatException e) {
-            }
+			} catch (NumberFormatException e) {}
 
             NodeList children = element.getChildNodes();
             for (Port port : process.getInnerSources().getAllPorts()) {
@@ -3145,8 +3592,7 @@ public class ProcessRenderer extends JPanel {
                         if (("source_" + port.getName()).equals(psElement.getAttribute("port"))) {
                             try {
                                 portSpacings.put(port, (double) Integer.parseInt(psElement.getAttribute("spacing")));
-                            } catch (NumberFormatException e) {
-                            }
+							} catch (NumberFormatException e) {}
                             break;
                         }
                     }
@@ -3159,8 +3605,7 @@ public class ProcessRenderer extends JPanel {
                         if (("sink_" + port.getName()).equals(psElement.getAttribute("port"))) {
                             try {
                                 portSpacings.put(port, (double) Integer.parseInt(psElement.getAttribute("spacing")));
-                            } catch (NumberFormatException e) {
-                            }
+							} catch (NumberFormatException e) {}
                             break;
                         }
                     }
@@ -3185,14 +3630,10 @@ public class ProcessRenderer extends JPanel {
             if (dx * dx + dy * dy < 3 * PORT_SIZE * PORT_SIZE / 2) {
                 if (hoveringPort != port) {
                     hoveringPort = port;
-                    if (hoveringPort instanceof OutputPort) {
                     	if (hoveringPort.getPorts().getOwner().getOperator() == displayedChain) {
-                    		showStatus("Click or drag to connect, ALT to disconnect, SHIFT + drag to move.");
+						showStatus(I18N.getGUILabel("processRenderer.displayChain.port.hover"));
                     	} else {
-                    		showStatus("Click or drag to connect, ALT to disconnect.");
-                    	}
-                    } else if (hoveringPort instanceof InputPort && hoveringPort.getPorts().getOwner().getOperator() == displayedChain) {
-                		showStatus("Drag to move.");
+						showStatus(I18N.getGUILabel("processRenderer.operator.port.hover"));
                     }
                     setHoveringOperator(null);
                     updateCursor();
@@ -3204,6 +3645,80 @@ public class ProcessRenderer extends JPanel {
         return false;
     }
     
-    
+	public void addProcessRendererListener(ProcessRendererListener listener) {
+		if (listener != null) {
+			if (listenersTour != null) {
+				listenersTour.add(listener);
+			} else {
+				listenersTour = new LinkedList<ProcessRendererListener>();
+				listenersTour.add(listener);
+			}
+		}
+	}
 
+	public void removeProcessRendererListener(ProcessRendererListener listener) {
+		if (listener != null && listenersTour != null)
+			listenersTour.remove(listener);
+	}
+
+	private void fireNewChainDisplayed() {
+		if (listenersTour != null && !listenersTour.isEmpty()) {
+			for (ProcessRendererListener listener : ((LinkedList<ProcessRendererListener>) listenersTour.clone())) {
+				listener.newChainShowed(displayedChain);
+			}
+		}
+	}
+
+	@Override
+	public void dragStarted(Transferable t) {
+		DataFlavor[] transferDataFlavors = t.getTransferDataFlavors();
+		dragStarted = true;
+		for (DataFlavor flavor : transferDataFlavors) {
+
+			if (flavor == TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR) {
+				RepositoryLocation location;
+				try {
+
+					// get repository location
+					location = (RepositoryLocation) t.getTransferData(flavor);
+
+					// check if golf is dragged
+					if (location.getAbsoluteLocation().equals("//Samples/data/Golf")) {
+						onGolfDataDragged();
+					}
+				} catch (UnsupportedFlavorException e) {} catch (IOException e) {}
+			}
+
+			if (flavor == TransferableOperator.LOCAL_TRANSFERRED_OPERATORS_FLAVOR) {
+				Operator[] operators;
+				try {
+					operators = (Operator[]) t.getTransferData(flavor);
+
+					// we assume that only one operator can be dragged at a time
+					Operator draggedOperator = operators[0];
+
+					// check if decision tree is dragged
+					if (draggedOperator instanceof DecisionTreeLearner) {
+						onDecisionTreeDragged();
+					}
+				} catch (UnsupportedFlavorException e) {} catch (IOException e) {}
+			}
+		}
+		repaint();
+	}
+
+	@Override
+	public void dragEnded() {
+		dragStarted = false;
+		repaint();
+	}
+    
+	private void setImportDragged(boolean importDragged) {
+		this.importDragged = importDragged;
+		repaint();
+	}
+
+	private boolean getImportDragged() {
+		return importDragged;
+	}
 }

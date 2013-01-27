@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -28,13 +28,19 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 
 import com.rapid_i.repository.wsimport.AccessRights;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -44,8 +50,8 @@ import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.repository.AccessFlag;
-import com.rapidminer.repository.AccessType;
 import com.rapidminer.repository.RepositoryException;
+import com.rapidminer.tools.I18N;
 
 /**
  * 
@@ -69,9 +75,9 @@ public class AccessRightsDialog extends ButtonDialog {
 			AccessRights ar = accessRights.get(rowIndex);
 			switch (columnIndex) {
 			case 0:	return ar.getGroup();
-			case 1:	return ar.getRead();
-			case 2:	return ar.getWrite();
-			case 3:	return ar.getExecute();
+			case 1:	return AccessFlag.valueOf(ar.getRead());
+			case 2:	return AccessFlag.valueOf(ar.getWrite());
+			case 3:	return AccessFlag.valueOf(ar.getExecute());
 			default: throw new IndexOutOfBoundsException(columnIndex+"");
 			}			
 		}
@@ -79,9 +85,9 @@ public class AccessRightsDialog extends ButtonDialog {
 		public String getColumnName(int column) {
 			switch (column) {
 			case 0:	return "Group";
-			case 1:	return AccessType.READ.toString();
-			case 2:	return AccessType.WRITE.toString();
-			case 3:	return AccessType.EXECUTE.toString();
+			case 1:	return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.remote.accessRightsType_READ");
+			case 2:	return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.remote.accessRightsType_WRITE");
+			case 3: return I18N.getMessage(I18N.getGUIBundle(), "gui.repository.remote.accessRightsType_EXECUTE");
 			default: throw new IndexOutOfBoundsException(column+"");
 			}
 		}
@@ -100,17 +106,10 @@ public class AccessRightsDialog extends ButtonDialog {
 			default: throw new IndexOutOfBoundsException(columnIndex+"");
 			}
 		}
+		
 	}
 	
-	private TableCellEditor accessRightsCellEditor = new DefaultCellEditor(new JComboBox(AccessFlag.values())) {
-		private static final long serialVersionUID = 1L;
-		@Override
-		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-			JComboBox c = (JComboBox)super.getTableCellEditorComponent(table, value, isSelected, row, column);
-			c.setSelectedItem(value);
-			return c;
-		}
-	};
+	private TableCellEditor accessRightsCellEditor;
 
 	private TableCellEditor groupsCellEditor;
 
@@ -121,7 +120,7 @@ public class AccessRightsDialog extends ButtonDialog {
 
 	private AccessRightsTableModel accessRightsTableModel;
 
-	public AccessRightsDialog(RemoteEntry entry, List<AccessRights> accessRights, final List<String> groupNames) {
+	public AccessRightsDialog(RemoteEntry entry, final List<AccessRights> accessRights, final List<String> groupNames) {
 		super("repository.edit_access_rights", entry.getLocation());
 		this.entry = entry;
 		this.accessRights = accessRights;
@@ -136,7 +135,45 @@ public class AccessRightsDialog extends ButtonDialog {
 				return c;
 			}
 		};
+
+		JComboBox accessRightsBox = new JComboBox(AccessFlag.values());
+		accessRightsBox.setRenderer(new DefaultListCellRenderer() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				AccessFlag flag = (AccessFlag) value;
+				label.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.repository.remote.accessRights_"+value.toString()));
+				ImageIcon icon = SwingTools.createIcon("16/"+flag.getIcon());
+				label.setIcon(icon);
+				return label;				
+			}
+		});
 		
+		accessRightsCellEditor = new DefaultCellEditor(accessRightsBox) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+				JComboBox c = (JComboBox)super.getTableCellEditorComponent(table, value, isSelected, row, column);
+				c.setSelectedItem(value);
+				return c;
+			}			
+		};
+
+		final TableCellRenderer flagRenderer = new DefaultTableCellRenderer() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+				JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+				if (column >= 1) {
+					AccessFlag flag = (AccessFlag) value;
+					label.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.repository.remote.accessRights_"+value.toString()));
+					ImageIcon icon = SwingTools.createIcon("16/"+flag.getIcon());
+					label.setIcon(icon);
+				}
+				return label;
+			}
+		};
 		accessRightsTableModel = new AccessRightsTableModel();
 		final ExtendedJTable table = new ExtendedJTable(accessRightsTableModel, false) {
 			private static final long serialVersionUID = 1L;
@@ -147,7 +184,16 @@ public class AccessRightsDialog extends ButtonDialog {
 					return accessRightsCellEditor;
 				}
 			};
+			@Override
+			public TableCellRenderer getCellRenderer(int row, int col) {
+				if (col >= 1) {
+					return flagRenderer;
+				} else {
+					return super.getCellRenderer(row, col);
+				}
+			}
 		};
+		table.setRowHeight(24);
 
 		JButton addRowButton = new JButton(new ResourceAction("accessrights.add_row") {
 			private static final long serialVersionUID = 1L;

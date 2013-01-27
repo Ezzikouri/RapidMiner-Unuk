@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -268,16 +268,18 @@ public class ValueSourceData {
 	 * encouraged to provide a caching mechanism.
 	 */
 	public GroupCellSeriesData getSeriesDataForAllGroupCells() {
-		if (cachedSeriesDataForAllGroupCells == null) {
-			Vector<PlotDimension> dimensions = new Vector<PlotDimension>();
-			for (Entry<PlotDimension, DefaultDimensionConfig> dimensionEntry : plotInstance.getCurrentPlotConfigurationClone().getDefaultDimensionConfigs().entrySet()) {
-				PlotDimension d = dimensionEntry.getKey();
-				if (d == PlotDimension.DOMAIN || d == PlotDimension.VALUE) {
-					throw new RuntimeException("This should not happen!");
+		synchronized (this) {
+			if (cachedSeriesDataForAllGroupCells == null) {
+				Vector<PlotDimension> dimensions = new Vector<PlotDimension>();
+				for (Entry<PlotDimension, DefaultDimensionConfig> dimensionEntry : plotInstance.getCurrentPlotConfigurationClone().getDefaultDimensionConfigs().entrySet()) {
+					PlotDimension d = dimensionEntry.getKey();
+					if (d == PlotDimension.DOMAIN || d == PlotDimension.VALUE) {
+						throw new RuntimeException("This should not happen!");
+					}
+					dimensions.add(d);
 				}
-				dimensions.add(d);
+				cachedSeriesDataForAllGroupCells = recursivelyGetSeriesDataForAllGroupCells(dimensions, 0, null, null);
 			}
-			cachedSeriesDataForAllGroupCells = recursivelyGetSeriesDataForAllGroupCells(dimensions, 0, null, null);
 		}
 
 		return cachedSeriesDataForAllGroupCells;

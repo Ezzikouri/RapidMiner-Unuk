@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -146,7 +146,7 @@ public class AttributeSubsetSelector {
 			// init
 			boolean invert = operator.getParameterAsBoolean(PARAMETER_INVERT_SELECTION);
 			boolean applyOnSpecial = operator.getParameterAsBoolean(PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES);
-			boolean foundUnkown = false;
+			boolean foundUnknown = false;
 
 			for (AttributeMetaData attribute : attributes) {
 				if (!attribute.isSpecial() || (attribute.isSpecial() && applyOnSpecial)) {
@@ -160,7 +160,7 @@ public class AttributeSubsetSelector {
 					if (result == MetaDataInfo.YES)
 						resultSet.removeAttribute(attribute);
 					if (result == MetaDataInfo.UNKNOWN)
-						foundUnkown = true;
+						foundUnknown = true;
 				} else if (!keepSpecialIfNotIncluded) {					
 					resultSet.removeAttribute(attribute);
 				}
@@ -183,7 +183,7 @@ public class AttributeSubsetSelector {
 			}
 
 			// now check if unknown was found: Set set relation
-			if (foundUnkown)
+			if (foundUnknown)
 				resultSet.attributesAreSubset();
 
 			switch (metaData.getAttributeSetRelation()) {

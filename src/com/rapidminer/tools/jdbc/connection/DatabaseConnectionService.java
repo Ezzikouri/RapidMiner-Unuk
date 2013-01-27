@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -120,11 +120,31 @@ public class DatabaseConnectionService {
     }
 
     public static ConnectionEntry getConnectionEntry(String name) {
-        for (ConnectionEntry entry : connections) {
+    	return getConnectionEntry(name, null);
+    }
+
+    
+    public static ConnectionEntry getConnectionEntry(String name, String repository) {
+    	// try to find ant return entry matching both name and repository
+    	for (ConnectionEntry entry : connections) {
             if (entry.getName().equals(name)) {
-                return entry;
+            	String entryRepository = entry.getRepository();
+            	if (entryRepository == null && repository == null) {
+            		return entry;
+            	} else if (entryRepository != null && entryRepository.equals(repository)) {
+            		return entry;
+            	}
             }
         }
+    	
+    	// fallback: try to find and return entry matching only the name
+        for (ConnectionEntry entry : connections) {
+            if (entry.getName().equals(name)) {
+        		return entry;
+            }
+        }
+        
+        // return null
         return null;
     }
 

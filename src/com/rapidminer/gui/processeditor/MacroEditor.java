@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -124,6 +124,7 @@ public class MacroEditor extends JPanel {
 	private final JTable macroTable = new JTable(macroModel);
 	{
 		macroTable.setRowHeight(26);
+		macroTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
 	}
 
 	public MacroEditor(boolean embedded) {

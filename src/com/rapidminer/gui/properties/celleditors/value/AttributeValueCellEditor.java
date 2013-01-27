@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -29,11 +29,11 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JTable;
 import javax.swing.text.JTextComponent;
 
+import com.rapidminer.gui.properties.DefaultRMCellEditor;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 
@@ -42,7 +42,7 @@ import com.rapidminer.parameter.ParameterTypeAttribute;
  * 
  * @author Sebastian Land
  */
-public class AttributeValueCellEditor extends DefaultCellEditor implements PropertyValueCellEditor {
+public class AttributeValueCellEditor extends DefaultRMCellEditor implements PropertyValueCellEditor {
 
 	private static final long serialVersionUID = -1889899793777695100L;
 
@@ -98,9 +98,9 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 
 			@Override
 			public void focusLost(FocusEvent e) {
-				// The event is only fired if the focus loss is permamently,
+				// The event is only fired if the focus loss is permanently,
 				// i.e. it is not fired if the user e.g. just switched to another window.
-				// Otherwise any changes made after switching back to rapidminer would
+				// Otherwise any changes made after switching back to RapidMiner would
 				// not be saved for the same reasons as stated above.
 				if (!e.isTemporary()) {
 					comboBox.actionPerformed(new ActionEvent(comboBox, 12, "comboBoxEdited"));
@@ -137,11 +137,10 @@ public class AttributeValueCellEditor extends DefaultCellEditor implements Prope
 	public boolean useEditorAsRenderer() {
 		return true;
 	}
-
+	
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		Component editorComponent = getTableCellEditorComponent(table, value, isSelected, row, column);
-		return editorComponent;
+		return getTableCellEditorComponent(table, value, hasFocus, row, column);
 	}
 
 }

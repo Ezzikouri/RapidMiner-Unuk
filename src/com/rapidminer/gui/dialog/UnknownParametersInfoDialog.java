@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -101,6 +101,9 @@ public class UnknownParametersInfoDialog extends JDialog {
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);		
 		
 		setLayout(new BorderLayout());
+		
+		setModal(true);
+		
 		
 		// text
 		JTextArea text = new JTextArea();

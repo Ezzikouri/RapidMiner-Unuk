@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -94,7 +94,7 @@ public class DummyOperator extends Operator {
 			installFix = new AbstractQuickFix(10, true, "install_extension", getExtensionName()) {
 				@Override
 				public void apply() {
-					UpdateDialog.showUpdateDialog(getExtensionId());
+					UpdateDialog.showUpdateDialog(false, getExtensionId());
 				}
 			};
 		} else {
@@ -139,6 +139,9 @@ public class DummyOperator extends Operator {
 			} else {
 				String latest = service.getLatestVersion(extensionId, "ANY");
 				PackageDescriptor desc = service.getPackageInfo(extensionId, latest, "ANY");
+				if(desc == null) {
+					return getRequiredPluginPrefix();
+				}
 				return desc.getName();
 			}
 		} catch (Exception e) {

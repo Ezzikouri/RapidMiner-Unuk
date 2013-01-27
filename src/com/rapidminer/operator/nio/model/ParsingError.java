@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,6 +22,8 @@
  */
 package com.rapidminer.operator.nio.model;
 
+import java.util.List;
+
 /** An error that occurred during parsing.
  * 
  * @author Simon Fischer
@@ -35,7 +37,9 @@ public class ParsingError {
 		UNPARSEABLE_REAL("unparseable real number"),		
 		MORE_THAN_TWO_VALUES("more than two values for binominal attribute"),
 		ROW_TOO_LONG("row too long"),
-		FILE_SYNTAX_ERROR("file syntax error");
+		FILE_SYNTAX_ERROR("file syntax error"),
+		SAME_ROLE_FOR_MULTIPLE_COLUMNS("duplicate column role"),
+		SAME_NAME_FOR_MULTIPLE_COLUMNS("duplicate column name");
 		
 		private final String message;
 		private ErrorCode(String message) {
@@ -56,12 +60,19 @@ public class ParsingError {
 	/** The column (cell index) in which this error occurred. */
 	private final int column;
 	
+	private List<Integer> columns = null;
+	
 	/** The original value that was unparseable. Most of the time, this will be a string. */
 	private final Object originalValue;
 	
 	private final ErrorCode errorCode;
 
 	private final Throwable cause;
+	
+	public ParsingError(List<Integer> columns, ErrorCode errorCode, Object originalValue) {
+		this(-1, -1, errorCode, originalValue, null);
+		this.columns = columns;
+	}
 	
 	public ParsingError(int row, int column, ErrorCode errorCode, Object originalValue) {
 		this(row, column, errorCode, originalValue, null);
@@ -83,6 +94,10 @@ public class ParsingError {
 
 	public int getColumn() {
 		return column;
+	}
+	
+	public List<Integer> getColumns() {
+		return columns;
 	}
 
 	public Object getOriginalValue() {

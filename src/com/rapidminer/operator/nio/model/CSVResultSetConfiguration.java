@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -117,8 +117,14 @@ public class CSVResultSetConfiguration implements DataResultSetFactory {
 	@Override
 	public TableModel makePreviewTableModel(ProgressListener listener) throws OperatorException, ParseException {
 		final DataResultSet resultSet = makeDataResultSet(null);
-		this.errors = ((CSVResultSet) resultSet).getErrors();
-		return new DefaultPreview(resultSet, listener);
+		DefaultPreview preview = null;
+		try {
+			this.errors = ((CSVResultSet) resultSet).getErrors();
+			preview = new DefaultPreview(resultSet, listener);
+		} finally {
+			resultSet.close();
+		}
+		return preview;
 	}
 
 	public void setCsvFile(String csvFile) {

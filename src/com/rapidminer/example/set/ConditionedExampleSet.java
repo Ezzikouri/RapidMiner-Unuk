@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -31,6 +31,7 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 
 
 /**
@@ -211,5 +212,10 @@ public class ConditionedExampleSet extends AbstractExampleSet {
 		} catch (Throwable e) {
 			throw new ConditionCreationException(className + ": cannot invoke condition (" + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()) + ").", e);
 		}
+	}
+	
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
 	}
 }

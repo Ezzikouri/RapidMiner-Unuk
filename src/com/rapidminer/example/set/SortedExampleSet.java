@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.example.set;
 
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.tools.Ontology;
 
 /**
@@ -205,11 +205,13 @@ public class SortedExampleSet extends AbstractExampleSet {
 	}
 
 	/** Returns a {@link SortedExampleReader}. */
+	@Override
 	public Iterator<Example> iterator() {
 		return new SortedExampleReader(this);
 	}
 
 	/** Returns the i-th example in the mapping. */
+	@Override
 	public Example getExample(int index) {
 		if ((index < 0) || (index >= this.mapping.length)) {
 			throw new RuntimeException("Given index '" + index + "' does not fit the mapped ExampleSet!");
@@ -219,14 +221,22 @@ public class SortedExampleSet extends AbstractExampleSet {
 	}
 
 	/** Counts the number of examples. */
+	@Override
 	public int size() {
 		return mapping.length;
 	}
 
+	@Override
 	public Attributes getAttributes() {
 		return this.parent.getAttributes();
 	}
 
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
+	}
+
+	@Override
 	public ExampleTable getExampleTable() {
 		return this.parent.getExampleTable();
 	}

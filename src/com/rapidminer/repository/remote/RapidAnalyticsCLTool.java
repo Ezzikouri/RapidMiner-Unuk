@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -34,15 +34,16 @@ import javax.xml.ws.BindingProvider;
 
 import com.rapid_i.repository.wsimport.ExecutionResponse;
 import com.rapid_i.repository.wsimport.ProcessResponse;
-import com.rapid_i.repository.wsimport.ProcessService;
 import com.rapid_i.repository.wsimport.ProcessStackTrace;
 import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
 import com.rapid_i.repository.wsimport.RepositoryService;
 import com.rapid_i.repository.wsimport.mgt.ManagementService;
 import com.rapid_i.repository.wsimport.mgt.ManagementServiceService;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.tools.ParameterService;
 import com.rapidminer.tools.Tools;
 
 /** This class can be used to access a RapidAnalytics installation from a remote machine.
@@ -336,7 +337,7 @@ public class RapidAnalyticsCLTool {
 		return managementServicePort;
 	}
 	
-	private int getJobId(int jobId, ProcessService processService) {
+	private int getJobId(int jobId, ProcessServiceFacade processService) {
 		while (true) {
 			System.err.println("Waiting for server to assign process id to scheduled job id "+jobId+"...");
 			List<Integer> result = processService.getProcessIdsForJobId(jobId);
@@ -376,6 +377,8 @@ public class RapidAnalyticsCLTool {
 	}
 
 	public static void main(String[] args) {
+		RapidMiner.class.getName();
+		ParameterService.init();
 		try {
 			new RapidAnalyticsCLTool(args).run();
 		} catch (IllegalArgumentException e) {

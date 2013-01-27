@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -29,6 +29,7 @@ import javax.swing.Icon;
 
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.WelcomeScreen;
+import com.rapidminer.tools.I18N;
 
 /**
  * Start the corresponding action.
@@ -39,19 +40,17 @@ public class WelcomeOpenRecentAction extends AbstractAction {
 
 	private static final long serialVersionUID = 1358354112149248404L;
 
-	private static final String ICON_NAME = "folder_time.png";
-	
 	private static Icon icon = null;
 	
 	static {
-		icon = SwingTools.createIcon("48/" + ICON_NAME);
+		icon = SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.open_recent.icon"));
 	}
 			
 	private WelcomeScreen welcomeScreen;
 	
 	public WelcomeOpenRecentAction(WelcomeScreen welcomeScreen) {
-		super("Open Recent", icon);
-		putValue(SHORT_DESCRIPTION, "Open one of the recently used process definitions");
+		super(I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.open_recent.label"), icon);
+		putValue(SHORT_DESCRIPTION, I18N.getMessage(I18N.getGUIBundle(), "gui.action.welcome.open_recent.tip"));
 		this.welcomeScreen = welcomeScreen;
 	}
 

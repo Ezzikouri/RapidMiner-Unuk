@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -42,6 +42,7 @@ import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.PortProvider;
 import com.rapidminer.parameter.conditions.PortConnectedCondition;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
  * Provides methods for creating and working with a file InputPort. Used by reading operators.
@@ -95,7 +96,7 @@ public class FileInputPortHandler {
 						cachedFile = File.createTempFile("rm_file_", ".dump");
 						cachedFile.deleteOnExit();
 						FileOutputStream fos = new FileOutputStream(cachedFile);
-						Tools.copyStreamSynchronously(url.openStream(), fos, true);
+						Tools.copyStreamSynchronously(WebServiceTools.openStreamFromURL(url), fos, true);
 					} catch (IOException e) {
 						throw new OperatorException("Failed to access URL: " + url, e);
 					}

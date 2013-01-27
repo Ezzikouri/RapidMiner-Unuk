@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -45,7 +45,7 @@ public class NewRepositoryDialog extends MultiPageDialog {
 	private static final long serialVersionUID = 1L;
 
 	private final RemoteRepositoryPanel remoteRepositoryPanel = new RemoteRepositoryPanel();
-	private final LocalRepositoryPanel localRepositoryPanel = new LocalRepositoryPanel();
+	private final LocalRepositoryPanel localRepositoryPanel = new LocalRepositoryPanel(getFinishButton(), true);
 
 	private final JRadioButton localButton;
 

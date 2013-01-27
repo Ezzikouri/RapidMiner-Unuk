@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,6 +24,7 @@ package com.rapidminer.gui.plotter;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -155,11 +156,28 @@ public class PlotterPanel extends JPanel {
 		revalidate();
 	}
 	
+	@Override
+	public void print(Graphics pg) {
+		if (oldPlotterComponent != null) {
+			oldPlotterComponent.print(pg);
+		} else {
+			super.print(pg);
+		}
+	}
+	
 	/**
 	 * This method returns the plotter settings, controlling which plotter is 
 	 * displayed and how.
 	 */
 	public PlotterConfigurationModel getPlotterSettings() {
 		return settings;
+	}
+
+	/**
+	 * Returns the plotter component.
+	 * @return
+	 */
+	public Component getPlotterComponent() {
+		return oldPlotterComponent;
 	}
 }

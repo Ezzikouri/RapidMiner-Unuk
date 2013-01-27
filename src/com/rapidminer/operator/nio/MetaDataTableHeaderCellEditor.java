@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -26,6 +26,8 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.EventObject;
 
 import javax.swing.JCheckBox;
@@ -60,6 +62,8 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 	private JCheckBox selectCheckBox = new JCheckBox();
 	private JTextField nameField = new JTextField();
 	private JComboBox roleBox = new JComboBox(Attributes.KNOWN_ATTRIBUTE_TYPES);
+	
+	private MetaDataValidator validator;
 
 	public MetaDataTableHeaderCellEditor() {
 		super(new GridLayout(4, 1));
@@ -67,7 +71,7 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 		
 		add(selectCheckBox);
 		add(nameField);
-		add(valueTypeBox);				
+		add(valueTypeBox);
 		add(roleBox);
 
 		valueTypeBox.addActionListener(new ActionListener() {
@@ -78,9 +82,10 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 				}
 			}
 		});
-		nameField.addActionListener(new ActionListener() {
+		nameField.addFocusListener(new FocusListener() {
+			
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void focusLost(FocusEvent e) {
 				if (value != null) {
 					final String text = nameField.getText();
 					if ((text != null) && !text.isEmpty()) {
@@ -89,7 +94,13 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 						nameField.setText(value.getOriginalAttributeName());
 						value.setUserDefinedAttributeName(value.getOriginalAttributeName());
 					}
+					if (validator != null) validator.validate();
 				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				// not needed
 			}
 		});
 		selectCheckBox.addActionListener(new ActionListener() {
@@ -105,9 +116,15 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 			public void actionPerformed(ActionEvent e) {
 				if (value != null) {
 					value.setRole(roleBox.getSelectedItem().toString());
+					if (validator != null) validator.validate();
 				}
 			}
 		});
+	}
+
+	public MetaDataTableHeaderCellEditor(MetaDataValidator headerValidator) {
+		this();
+		validator = headerValidator;
 	}
 
 	@Override
@@ -189,6 +206,28 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 		selectCheckBox.setSelected(value.isSelected());
 		nameField.setText(value.getUserDefinedAttributeName());
 		roleBox.setSelectedItem(value.getRole());
+	}
+	
+	public void updateColumnMetaData() {
+		if (value != null) {
+			// value type
+			value.setAttributeValueType(valueTypeBox.getSelectedIndex());
+			
+			// value name
+			final String text = nameField.getText();
+			if ((text != null) && !text.isEmpty()) {
+				value.setUserDefinedAttributeName(text);
+			} else {
+				nameField.setText(value.getOriginalAttributeName());
+				value.setUserDefinedAttributeName(value.getOriginalAttributeName());
+			}
+			
+			// value selected
+			value.setSelected(selectCheckBox.isSelected());
+			
+			// value role
+			value.setRole(roleBox.getSelectedItem().toString());
+		}
 	}
 
 }

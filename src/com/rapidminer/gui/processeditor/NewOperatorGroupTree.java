@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -54,6 +54,7 @@ import javax.swing.tree.TreeSelectionModel;
 import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.ToggleAction;
+import com.rapidminer.gui.dnd.AbstractPatchedTransferHandler;
 import com.rapidminer.gui.dnd.OperatorTransferHandler;
 import com.rapidminer.gui.operatortree.actions.InfoOperatorAction;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -137,10 +138,11 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
 
     private transient final Action CLEAR_FILTER_ACTION = new ResourceAction(true, "clear_filter") {
         private static final long serialVersionUID = 3236281211064051583L;
-
+        
         @Override
         public void actionPerformed(ActionEvent e) {
             filterField.clearFilter();
+            filterField.requestFocusInWindow();
         }
     };
 
@@ -576,5 +578,9 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
             }
         }
         return max;
+    }
+    
+    public AbstractPatchedTransferHandler getOperatorTreeTransferhandler() {
+    	return (AbstractPatchedTransferHandler) operatorGroupTree.getTransferHandler();
     }
 }

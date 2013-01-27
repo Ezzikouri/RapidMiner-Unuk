@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,33 +20,42 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapid_i.deployment.update.client;
 
+import java.awt.BorderLayout;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
-import java.net.PasswordAuthentication;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
+import java.util.Observable;
+import java.util.Observer;
 
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import com.rapid_i.Launcher;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.tools.PasswordDialog;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
-import com.rapidminer.tools.GlobalAuthenticator;
-import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.NetTools;
 
 /**
  * 
@@ -56,8 +65,11 @@ import com.rapidminer.tools.LogService;
 public class UpdateDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = 1L;
-
+	static {
+		NetTools.init();
+	}
 	public static final Action UPDATE_ACTION = new ResourceAction("update_manager") {
+
 		private static final long serialVersionUID = 1L;
 		{
 			setCondition(EDIT_IN_PROGRESS, DONT_CARE);
@@ -65,121 +77,231 @@ public class UpdateDialog extends ButtonDialog {
 
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
-			showUpdateDialog();
+			showUpdateDialog(false);
 		}
 	};
 
-	private final UpdateService service;
+	private WindowListener windowListener = new WindowListener() {
 
-	private final UpdateListPanel ulp;
+		public void windowActivated(WindowEvent e) {
+			UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
+			account.updatePurchasedPackages(updateModel);
+		}
 
-	static {
-		GlobalAuthenticator.registerServerAuthenticator(new GlobalAuthenticator.URLAuthenticator() {
-			@Override
-			public PasswordAuthentication getAuthentication(URL url) {
-				try {
-					if (url.toString().startsWith(UpdateManager.getUpdateServerURI("").toString())) {
-						return PasswordDialog.getPasswordAuthentication(url.toString(), false, false);
+		@Override
+		public void windowOpened(WindowEvent e) {}
+
+		@Override
+		public void windowClosing(WindowEvent e) {}
+
+		@Override
+		public void windowClosed(WindowEvent e) {}
+
+		@Override
+		public void windowIconified(WindowEvent e) {}
+
+		@Override
+		public void windowDeiconified(WindowEvent e) {}
+
+		@Override
+		public void windowDeactivated(WindowEvent e) {}
+	};
+
+	private final UpdatePanel ulp;
+
+	private static UpdatePackagesModel updateModel;
+
+	private static class USAcountInfoButton extends LinkButton implements Observer {
+
+		private static final long serialVersionUID = 1L;
+
+		public USAcountInfoButton() {
+			super(new AbstractAction("") {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
+					if ("#register".equals(e.getActionCommand())) {
+						try {
+							Desktop.getDesktop().browse(new URI(UpdateManager.getBaseUrl() + "/faces/signup.xhtml"));
+						} catch (Exception ex) {
+							SwingTools.showSimpleErrorMessage("cannot_open_browser", ex);				
+						}
 					} else {
-						return null;
+						if (account.isLoggedIn()) {
+							account.logout(updateModel);
+						} else {
+							account.login(updateModel);
+						}
 					}
-				} catch (URISyntaxException e) {
-					return null;
+
+				}
+			});
+
+			Dimension size = new Dimension(300, 24);
+			this.setSize(size);
+			this.setMaximumSize(size);
+			this.setPreferredSize(size);
+		}
+
+		@Override
+		public void update(Observable obs, Object arg) {
+			if (obs instanceof UpdateServerAccount) {
+				UpdateServerAccount account = (UpdateServerAccount) obs;
+				if (account.isLoggedIn()) {
+					this.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.account_button.logged_in", account.getUserName()));
+				} else {
+					this.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.update.account_button.logged_out"));
 				}
 			}
-
-			@Override
-			public String getName() {
-				return "UpdateService authenticator.";
-			}
-			
-			@Override
-			public String toString() {
-				return getName();
-			}
-		});
+		}
 	}
 
-	public UpdateDialog(UpdateService service, List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
+	private class InstallButton extends JButton implements Observer {
+
+		private static final long serialVersionUID = 1L;
+
+		InstallButton(Action a) {
+			super(a);
+			updateButton();
+		}
+
+		@Override
+		public void update(Observable o, Object arg) {
+			if (o instanceof UpdatePackagesModel) {
+				//UpdatePackagesModel currentModel = (UpdatePackagesModel)o;
+				updateButton();
+			}
+		}
+
+		private void updateButton() {
+			UpdatePackagesModel currentModel = updateModel;
+			if (currentModel.getInstallationList() != null && currentModel.getInstallationList().size() > 0) {
+				this.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.install.label", currentModel.getInstallationList().size()));
+				this.setEnabled(true);
+			} else {
+				this.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.install.label", 0));
+				this.setEnabled(false);
+			}
+		}
+
+	}
+
+	private USAcountInfoButton accountInfoButton = new USAcountInfoButton();
+
+	private InstallButton installButton;
+
+	public UpdateDialog(List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
 		super("update");
-		this.service = service;
-		ulp = new UpdateListPanel(this, descriptors, preselectedExtensions);
-		layoutDefault(ulp,	ulp.getFetchFromAccountButton(), ulp.getInstallButton(), makeOkButton("update.install"), makeCloseButton());
+		setModal(true);
+		UpdateServerAccount usAccount = UpdateManager.getUpdateServerAccount();
+		usAccount.addObserver(accountInfoButton);
+		updateModel = new UpdatePackagesModel(descriptors, usAccount);
+		ulp = new UpdatePanel(this, descriptors, preselectedExtensions, usAccount, updateModel);
+		layoutDefault(ulp, HUGE, makeOkButton("update.install"), makeCloseButton());
+		this.addWindowListener(windowListener);
 	}
 
-	public static void showUpdateDialog(final String... preselectedExtensions) {
-		new ProgressThread("fetching_updates", true) {
+	@Override
+	protected JButton makeOkButton(String i18nKey) {
+
+		Action okAction = new ResourceAction(i18nKey) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				wasConfirmed = true;
+				ok();
+			}
+		};
+		installButton = new InstallButton(okAction);
+		getRootPane().setDefaultButton(installButton);
+
+		installButton.setEnabled(false);
+		updateModel.addObserver(installButton);
+		return installButton;
+	}
+
+	@Override
+	/** Overriding makeButtonPanel in order to display account information. **/
+	protected JPanel makeButtonPanel(AbstractButton... buttons) {
+		JPanel buttonPanel = new JPanel(new BorderLayout());
+		JPanel buttonPanelRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, GAP, GAP));
+		for (AbstractButton button : buttons) {
+			if (button != null) {
+				buttonPanelRight.add(button);
+			}
+		}
+		buttonPanel.add(buttonPanelRight, BorderLayout.CENTER);
+		JPanel buttonPanelLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, GAP, 2 * GAP));
+		buttonPanelLeft.add(accountInfoButton, false);
+		buttonPanel.add(buttonPanelLeft, BorderLayout.WEST);
+		return buttonPanel;
+	}
+
+	/**
+	 * Opens the marketplace dialog and selects the update tab.
+	 */
+	public static void showUpdateDialog(final boolean selectUpdateTab, final String... preselectedExtensions) {
+
+		new ProgressThread("open_marketplace_dialog", true) {
+
+			@Override
 			public void run() {
+
+
 				getProgressListener().setTotal(100);
-				getProgressListener().setCompleted(10);
-				final UpdateService service;
+				getProgressListener().setCompleted(33);
 				try {
-					service = UpdateManager.getService();
+					UpdateManager.resetService();
+					UpdateManager.getService();
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
-					getProgressListener().complete();
 					return;
-				} finally {
-					getProgressListener().complete();
 				}
-				//final UpdateService service = serviceTmp;
-				try {
-					getProgressListener().setCompleted(20);
+				getProgressListener().setCompleted(100);
 
-					final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
+				SwingUtilities.invokeLater(new Runnable() {
 
-					if (Launcher.isDevelopmentBuild()) {
-						//LogService.getRoot().config("This is a development build. Ignoring update check.");
-						LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.UpdateDialog.ignoring_update_check");
-					} else {
-						String rmPlatform = Launcher.getPlatform();
-						String latestRMVersion = service.getLatestVersion(UpdateManager.PACKAGEID_RAPIDMINER, rmPlatform);
-						PackageDescriptor packageInfo = service.getPackageInfo(UpdateManager.PACKAGEID_RAPIDMINER, latestRMVersion, rmPlatform);
-						if (packageInfo != null) {
-							descriptors.add(packageInfo);
+					@Override
+					public void run() {
+						final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
+						UpdateDialog updateDialog = new UpdateDialog(descriptors, preselectedExtensions);
+						if (selectUpdateTab) {
+							updateDialog.showUpdateTab();
 						}
+						updateDialog.setVisible(true);
 					}
-					getProgressListener().setCompleted(30);
+				});
 
-					String targetPlatform = "ANY";
-					List<String> extensions = service.getExtensions(UpdateManager.PACKAGEID_RAPIDMINER);
-					int i = 0;
-					for (String extension : extensions) {
-						String version = service.getLatestVersion(extension, targetPlatform);
-						PackageDescriptor packageInfo = service.getPackageInfo(extension, version, targetPlatform);
-						descriptors.add(packageInfo);
-						i++;
-						getProgressListener().setCompleted(30 + 70 * i / extensions.size());
-					}
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							UpdateManager.saveLastUpdateCheckDate();
-							new UpdateDialog(service, descriptors, preselectedExtensions).setVisible(true);
-						}
-					});
-				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("error_during_update", e, e.getMessage());
-				} finally {
-					getProgressListener().complete();
-				}
 			}
 		}.start();
 	}
 
+	private void showUpdateTab() {
+		ulp.selectUpdatesTab();
+	}
+
 	public void startUpdate(final List<PackageDescriptor> downloadList) {
 		new ProgressThread("installing_updates", true) {
+
 			@Override
 			public void run() {
 				try {
+					installButton.setEnabled(false);
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
+					UpdateService service = UpdateManager.getService();
 
 					// Download licenses
 					Map<String, String> licenses = new HashMap<String, String>();
 					for (PackageDescriptor desc : downloadList) {
 						String license = licenses.get(desc.getLicenseName());
 						if (license == null) {
-							license = service.getLicenseText(desc.getLicenseName());
+							license = service.getLicenseTextHtml(desc.getLicenseName());
 							licenses.put(desc.getLicenseName(), license);
 						}
 					}
@@ -195,19 +317,24 @@ public class UpdateDialog extends ButtonDialog {
 
 					if (!acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
-						um.performUpdates(acceptedList, getProgressListener());
-						getProgressListener().complete();
-						UpdateDialog.this.dispose();
-						// TODO: re-enable
-						// ManagedExtension.checkForLicenseConflicts();
-						if (SwingTools.showConfirmDialog("update.complete_restart", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.YES_OPTION) {
-							RapidMinerGUI.getMainFrame().exit(true);
+						List<PackageDescriptor> installedPackages = um.performUpdates(acceptedList, getProgressListener());
+
+						updateModel.clearFromSelectionMap(installedPackages);
+						ulp.validate();
+						ulp.repaint();
+
+						if (installedPackages.size() > 0) {
+							if (SwingTools.showConfirmDialog((installedPackages.size() == 1 ? "update.complete_restart" : "update.complete_restart1"), 
+									ConfirmDialog.YES_NO_OPTION, installedPackages.size()) == ConfirmDialog.YES_OPTION) {
+								RapidMinerGUI.getMainFrame().exit(true);
+							}
 						}
-					} else {
-						getProgressListener().complete();
 					}
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
+				} finally {
+					getProgressListener().complete();
+					installButton.setEnabled(true);
 				}
 			}
 		}.start();

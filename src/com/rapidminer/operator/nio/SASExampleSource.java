@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -30,6 +30,7 @@ import org.eobjects.sassy.SasReader;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.io.AbstractExampleSource;
 import com.rapidminer.operator.io.AbstractReader;
 import com.rapidminer.operator.nio.file.FileInputPortHandler;
@@ -96,8 +97,12 @@ public class SASExampleSource extends AbstractExampleSource {
 		SASExampleReader sasCallbackReader = new SASExampleReader();
 		SasReader reader = new SasReader(filePortHandler.getSelectedFile());
 		reader.read(sasCallbackReader);
+		ExampleSet exSet = sasCallbackReader.getExampleSet();
+		if (exSet == null) {
+			throw new UserError(this, 957);
+		}
 		
-		return sasCallbackReader.getExampleSet();
+		return exSet;
 	}
 
 }

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -31,7 +31,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 
 import javax.swing.InputVerifier;
 import javax.swing.JButton;
@@ -74,6 +74,12 @@ public class ExportImageAction extends ResourceAction {
 		
 		/** the height the user specified */
 		private int height;
+		
+		/** the field to input the width */
+		private JTextField widthField;
+		
+		/** the field to input the height */
+		private JTextField heightField;
 		
 		/** the value indicating whether the user pressed ok or cancel */
 		private int returnVal;
@@ -145,7 +151,7 @@ public class ExportImageAction extends ResourceAction {
 			gbc.gridy = 0;
 			gbc.insets = new Insets(2, 5, 2, 5);
 			gbc.fill = GridBagConstraints.HORIZONTAL;
-			final JTextField widthField = new JTextField();
+			widthField = new JTextField();
 			widthField.setText(String.valueOf(width));
 			widthField.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.export_newplotter_image.width.tip", MIN_WIDTH, MAX_WIDTH));
 			widthField.setInputVerifier(new InputVerifier() {
@@ -180,7 +186,7 @@ public class ExportImageAction extends ResourceAction {
 			gbc.gridx = 1;
 			gbc.gridy = 1;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
-			final JTextField heightField = new JTextField();
+			heightField = new JTextField();
 			heightField.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.export_newplotter_image.height.tip", MIN_HEIGHT, MAX_HEIGHT));
 			heightField.setText(String.valueOf(height));
 			heightField.setInputVerifier(new InputVerifier() {
@@ -304,6 +310,18 @@ public class ExportImageAction extends ResourceAction {
 			setVisible(true);
 			okButton.requestFocusInWindow();
 		}
+
+		/**
+		 * Updates the width and height default values.
+		 * @param width
+		 * @param height
+		 */
+		public void updateSizeValues(int width, int height) {
+			this.width = width;
+			this.height = height;
+			this.widthField.setText(String.valueOf(width));
+			this.heightField.setText(String.valueOf(height));
+		}
 	}
 	
 	/** the {@link PlotterTemplate} for this action */
@@ -317,6 +335,9 @@ public class ExportImageAction extends ResourceAction {
 	
 	public ExportImageAction(PlotterTemplate template) {
 		super(true, "export_newplotter_image");
+		if (template == null) {
+			throw new IllegalArgumentException("template must not be null!");
+		}
 		this.template = template;
 		setEnabled(true);
 	}
@@ -332,6 +353,7 @@ public class ExportImageAction extends ResourceAction {
 		if (dialog == null) {
 			dialog = new DimensionDialog();
 		}
+		dialog.updateSizeValues(template.getPlotEngine().getChartPanel().getWidth(), template.getPlotEngine().getChartPanel().getHeight());
 		dialog.showDialog();
 		if (dialog.getReturnValue() == JOptionPane.CANCEL_OPTION) {
 			return;
@@ -344,8 +366,12 @@ public class ExportImageAction extends ResourceAction {
 			@Override
 			public void paintComponent(Graphics g) {
 				Graphics2D g2 = (Graphics2D) g;
-				Rectangle2D chartArea = new Rectangle2D.Double(0.0, 0.0, dialog.getUserWidth(), dialog.getUserHeight());
-				template.getPlotEngine().getCurrentChart().draw(g2, chartArea);
+				AffineTransform at = new AffineTransform();
+				double factorWidth = (double) dialog.getUserWidth() / template.getPlotEngine().getChartPanel().getWidth();
+				double factorHeight = (double) dialog.getUserHeight() / template.getPlotEngine().getChartPanel().getHeight();
+				at.scale(factorWidth, factorHeight);
+				g2.transform(at);
+				template.getPlotEngine().getChartPanel().print(g2);
 			}
 		};
 		outerPanel.setSize(dialog.getUserDimension());

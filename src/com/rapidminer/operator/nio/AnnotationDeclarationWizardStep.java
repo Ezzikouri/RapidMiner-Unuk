@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -23,6 +23,7 @@
 package com.rapidminer.operator.nio;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -30,9 +31,11 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableModel;
 
+import com.rapidminer.gui.tools.CellColorProviderAlternating;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
 import com.rapidminer.operator.OperatorException;
@@ -52,7 +55,17 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 	public AnnotationDeclarationWizardStep(WizardState state) {
 		super("importwizard.annotations");
 		this.state = state;
-		table = new ExtendedJTable(false, false, false);
+		ExtendedJTable extendedTable = new ExtendedJTable(false, false, false);
+		extendedTable.setCellColorProvider(new CellColorProviderAlternating() {
+			public Color getCellColor(int row, int column) {
+				if(column==0) {
+					return row % 2 == 0 ? Color.WHITE : SwingTools.LIGHTEST_YELLOW;
+				} else {
+					return super.getCellColor(row, column);
+				}
+			}
+		});
+		table = extendedTable;
 		panel.add(new ExtendedJScrollPane(table), BorderLayout.CENTER);
 	}
 

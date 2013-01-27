@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -47,6 +47,8 @@ public class ViewAttribute extends AbstractAttribute {
 
 	private boolean isNumerical;
 	
+	private boolean isDateTime;
+	
 	private ViewModel model;
 
 	private Attribute parent;
@@ -57,6 +59,7 @@ public class ViewAttribute extends AbstractAttribute {
 			this.mapping = (NominalMapping) other.mapping.clone();
 		this.isNominal = other.isNominal;
 		this.isNumerical = other.isNumerical;
+		this.isDateTime = other.isDateTime();
 		this.model = other.model;
 		if (other.parent != null)
 			this.parent = (Attribute)other.parent.clone();
@@ -68,6 +71,7 @@ public class ViewAttribute extends AbstractAttribute {
 		this.mapping = mapping;
 		this.isNominal = mapping != null && Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NOMINAL);
 		this.isNumerical = Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.NUMERICAL);
+		this.isDateTime = Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.DATE_TIME) || Ontology.ATTRIBUTE_VALUE_TYPE.isA(valueType, Ontology.DATE);
 		
 		this.parent = parent;
 		if (isNominal) {
@@ -147,5 +151,11 @@ public class ViewAttribute extends AbstractAttribute {
 		// e.g. for discretizations of the label inside of an AttributeSubsetPreprocessing
 		// (index of label is then -1)
 		return parent.getTableIndex();
+	}
+
+	@Override
+	public boolean isDateTime() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

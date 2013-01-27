@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -355,16 +355,20 @@ public class PlotConfiguration implements DimensionConfigListener,
 	public void addPlotConfigurationListener(PlotConfigurationListener l,
 			boolean prioritized) {
 		if (prioritized) {
-			prioritizedListeners
-					.add(new WeakReference<PlotConfigurationListener>(l));
+			synchronized (prioritizedListeners) {
+				prioritizedListeners.add(new WeakReference<PlotConfigurationListener>(l));
+			}
 		} else {
-			defaultListeners
-					.add(new WeakReference<PlotConfigurationListener>(l));
+			synchronized (defaultListeners) {
+				defaultListeners.add(new WeakReference<PlotConfigurationListener>(l));
+			}
 		}
 	}
 
 	public int getPrioritizedListenerCount() {
-		return prioritizedListeners.size();
+		synchronized (prioritizedListeners) {
+			return prioritizedListeners.size();
+		}
 	}
 
 	/**
@@ -372,20 +376,23 @@ public class PlotConfiguration implements DimensionConfigListener,
 	 * lists.
 	 */
 	public void removePlotConfigurationListener(PlotConfigurationListener l) {
-		Iterator<WeakReference<PlotConfigurationListener>> it = prioritizedListeners
-				.iterator();
-		while (it.hasNext()) {
-			PlotConfigurationListener listener = it.next().get();
-			if (listener == null || listener == l) {
-				it.remove();
+		synchronized(prioritizedListeners) {
+			Iterator<WeakReference<PlotConfigurationListener>> it = prioritizedListeners.iterator();
+			while (it.hasNext()) {
+				PlotConfigurationListener listener = it.next().get();
+				if (listener == null || listener == l) {
+					it.remove();
+				}
 			}
 		}
-		Iterator<WeakReference<PlotConfigurationListener>> it_default = defaultListeners
-				.iterator();
-		while (it_default.hasNext()) {
-			PlotConfigurationListener listener = it_default.next().get();
-			if (listener == null || listener == l) {
-				it_default.remove();
+		
+		synchronized (defaultListeners) {
+			Iterator<WeakReference<PlotConfigurationListener>> it_default = defaultListeners.iterator();
+			while (it_default.hasNext()) {
+				PlotConfigurationListener listener = it_default.next().get();
+				if (listener == null || listener == l) {
+					it_default.remove();
+				}
 			}
 		}
 	}
@@ -899,8 +906,12 @@ public class PlotConfiguration implements DimensionConfigListener,
 			// iterate over all listeners
 
 			// first prioritizedListeners
-			Iterator<WeakReference<PlotConfigurationListener>> it = prioritizedListeners
-					.iterator();
+			List<WeakReference<PlotConfigurationListener>> clonedPrioListeners = new LinkedList<WeakReference<PlotConfigurationListener>>();
+			synchronized (prioritizedListeners) {
+				clonedPrioListeners.addAll(prioritizedListeners);
+			}
+
+			Iterator<WeakReference<PlotConfigurationListener>> it = clonedPrioListeners.iterator();
 
 			// // set counter to > 0, so that it will never drop to zero while
 			// we are in the loop.
@@ -922,13 +933,16 @@ public class PlotConfiguration implements DimensionConfigListener,
 						eventProcessed(true);
 					}
 				} else {
+					// TODO this removes the element from the CLONED list, but should be removed from original list
 					it.remove();
 				}
 			}
 
 			// then default listeners
 			List<WeakReference<PlotConfigurationListener>> clonedDefaultListeners = new LinkedList<WeakReference<PlotConfigurationListener>>();
-			clonedDefaultListeners.addAll(defaultListeners);
+			synchronized (defaultListeners) {
+				clonedDefaultListeners.addAll(defaultListeners);
+			}
 			Iterator<WeakReference<PlotConfigurationListener>> defaultIt = clonedDefaultListeners.iterator();
 			while (defaultIt.hasNext()) {
 				WeakReference<PlotConfigurationListener> wrl = defaultIt.next();
@@ -943,6 +957,7 @@ public class PlotConfiguration implements DimensionConfigListener,
 						eventProcessed(true);
 					}
 				} else {
+					// TODO this removes the element from the CLONED list, but should be removed from original list
 					defaultIt.remove();
 				}
 			}

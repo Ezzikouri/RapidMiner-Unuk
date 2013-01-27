@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -66,5 +66,9 @@ public abstract class AbstractExampleSetEvaluator extends Operator {
 		} else {
 			return super.shouldAutoConnect(port);
 		}
+	}
+	
+	protected InputPort getExampleSetInputPort() {
+		return exampleSetInput;
 	}
 }

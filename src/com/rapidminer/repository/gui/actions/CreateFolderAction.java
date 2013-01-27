@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -25,6 +25,7 @@ package com.rapidminer.repository.gui.actions;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.gui.RepositoryTree;
 
 /**
@@ -45,10 +46,12 @@ public class CreateFolderAction extends AbstractRepositoryAction<Folder> {
 	public void actionPerformed(final Folder folder) {				
 		ProgressThread openProgressThread = new ProgressThread("create_folder") {
 			public void run() {			
-				String name = SwingTools.showInputDialog("repository.new_folder", "");
+				String name = SwingTools.showRepositoryEntryInputDialog("repository.new_folder", "");
 				if (name != null) {
 					try {
 						folder.createFolder(name);
+					} catch (RepositoryException e) {
+						SwingTools.showSimpleErrorMessage("cannot_create_folder_with_reason", e, name, e.getMessage());
 					} catch (Exception e) {
 						SwingTools.showSimpleErrorMessage("cannot_create_folder", e, name);
 					}

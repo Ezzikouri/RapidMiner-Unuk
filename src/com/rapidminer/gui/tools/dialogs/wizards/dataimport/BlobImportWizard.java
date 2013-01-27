@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -30,6 +30,7 @@ import java.io.FileInputStream;
 import javax.swing.Action;
 
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
@@ -70,9 +71,12 @@ public class BlobImportWizard extends AbstractWizard {
 				return true;
 			}
 		});
-		addStep(new RepositoryLocationSelectionWizardStep(this, null) {
+		addStep(new RepositoryLocationSelectionWizardStep(this, null, true) {
 			@Override
 			protected boolean performLeavingAction(WizardStepDirection direction) {
+				if (direction == WizardStepDirection.BACKWARD) {
+					return true;
+				}
 				try {
 					RepositoryLocation repositoryLocation = new RepositoryLocation(getRepositoryLocation());
 					RepositoryLocation folderLocation = repositoryLocation.parent();
@@ -84,14 +88,14 @@ public class BlobImportWizard extends AbstractWizard {
 						if (newEntry == null) {
 							throw new RepositoryException("Creation of blob entry failed.");
 						} else {
-							BlobEntry blob = (BlobEntry) newEntry;
-							String mimeType = "application/octet-stream";
+							final BlobEntry blob = (BlobEntry) newEntry;
+							final String mimeType;
 							String name = file.getName().toLowerCase();
 							if (name.endsWith(".htm") || name.endsWith(".html")) {
 								mimeType = "text/html";
 							} else if (name.endsWith(".css")) {
 								mimeType = "text/css";
-							} else if (name.endsWith(".txt")) {								
+							} else if (name.endsWith(".txt")) {
 								mimeType = "text/plain";
 							} else if (name.endsWith(".pdf")) {
 								mimeType = "application/pdf";
@@ -101,8 +105,20 @@ public class BlobImportWizard extends AbstractWizard {
 								mimeType = "image/jpeg";
 							} else if (name.endsWith(".gif")) {
 								mimeType = "image/gif";
+							} else {
+								mimeType = "application/octet-stream";
 							}
-							Tools.copyStreamSynchronously(new FileInputStream(file), blob.openOutputStream(mimeType), true);
+							new ProgressThread("import_binary", true) {
+								
+								@Override
+								public void run() {
+									try {
+										Tools.copyStreamSynchronously(new FileInputStream(file), blob.openOutputStream(mimeType), true);
+									} catch (Exception e) {
+										SwingTools.showSimpleErrorMessage("import_blob_failed", e, e.getMessage());
+									}
+								}
+							}.start();
 						}
 					} else {
 						throw new RepositoryException("No such folder: '"+folderLocation+"'.");
@@ -111,7 +127,7 @@ public class BlobImportWizard extends AbstractWizard {
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("import_blob_failed", e, e.getMessage());
 					return false;
-				} 				
+				}
 			}
 		});
 		layoutDefault();

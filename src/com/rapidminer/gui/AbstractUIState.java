@@ -15,10 +15,12 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -32,6 +34,7 @@ import com.rapid_i.deployment.update.client.UpdateDialog;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessLocation;
+import com.rapidminer.ProcessStorageListener;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.actions.AboutAction;
 import com.rapidminer.gui.actions.Actions;
@@ -56,6 +59,7 @@ import com.rapidminer.gui.actions.PropagateRealMetaDataAction;
 import com.rapidminer.gui.actions.RedoAction;
 import com.rapidminer.gui.actions.RunAction;
 import com.rapidminer.gui.actions.RunRemoteAction;
+import com.rapidminer.gui.actions.RunRemoteNowAction;
 import com.rapidminer.gui.actions.SaveAction;
 import com.rapidminer.gui.actions.SaveAsAction;
 import com.rapidminer.gui.actions.SaveAsTemplateAction;
@@ -63,6 +67,7 @@ import com.rapidminer.gui.actions.SettingsAction;
 import com.rapidminer.gui.actions.StopAction;
 import com.rapidminer.gui.actions.ToggleAction;
 import com.rapidminer.gui.actions.ToggleExpertModeAction;
+import com.rapidminer.gui.actions.TourAction;
 import com.rapidminer.gui.actions.TutorialAction;
 import com.rapidminer.gui.actions.UndoAction;
 import com.rapidminer.gui.actions.ValidateAutomaticallyAction;
@@ -74,9 +79,10 @@ import com.rapidminer.gui.dialog.UnknownParametersInfoDialog;
 import com.rapidminer.gui.docking.RapidDockingToolbar;
 import com.rapidminer.gui.flow.ErrorTable;
 import com.rapidminer.gui.flow.ProcessPanel;
+import com.rapidminer.gui.flow.ProcessUndoManager;
 import com.rapidminer.gui.operatortree.OperatorTree;
 import com.rapidminer.gui.operatortree.OperatorTreePanel;
-import com.rapidminer.gui.operatortree.actions.CutCopyPasteAction;
+import com.rapidminer.gui.operatortree.actions.CutCopyPasteDeleteAction;
 import com.rapidminer.gui.operatortree.actions.ToggleBreakpointItem;
 import com.rapidminer.gui.plotter.PlotterPanel;
 import com.rapidminer.gui.processeditor.CommentEditor;
@@ -105,6 +111,7 @@ import com.rapidminer.gui.tools.dialogs.wizards.dataimport.access.AccessImportWi
 import com.rapidminer.operator.DebugMode;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UnknownParameterInformation;
 import com.rapidminer.operator.nio.CSVImportWizard;
@@ -115,8 +122,10 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeColor;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.gui.RepositoryBrowser;
 import com.rapidminer.repository.gui.process.RemoteProcessViewer;
+import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
@@ -289,6 +298,7 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	public final transient Action EXPORT_ACTION = new ExportViewAction(
 			this.getWindow(), "all");
 	public final transient Action EXIT_ACTION = new ExitAction(this);
+	public final transient RunRemoteNowAction RUN_REMOTE_NOW_ACTION = new RunRemoteNowAction(this);
 	public final transient RunAction RUN_ACTION = new RunAction(this);
 	public final transient Action PAUSE_ACTION = new PauseAction(this);
 	public final transient Action STOP_ACTION = new StopAction(this);
@@ -303,6 +313,7 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	public final transient ToggleAction TOGGLE_EXPERT_MODE_ACTION = new ToggleExpertModeAction(
 			this);
 	public final transient Action TUTORIAL_ACTION = new TutorialAction(this);
+	public final transient Action TOUR_ACTION = new TourAction();
 	public final transient Action UNDO_ACTION = new UndoAction(this);
 	public final transient Action REDO_ACTION = new RedoAction(this);
 	public final transient Action ANOVA_CALCULATOR_ACTION = new AnovaCalculatorAction();
@@ -329,6 +340,10 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 			.makeResultDisplay();
 	protected final LoggingViewer messageViewer = new LoggingViewer();
 	protected final SystemMonitor systemMonitor = new SystemMonitor();
+
+	private final EventListenerList processEditors = new EventListenerList();
+	private List<Operator> selectedOperators = Collections.emptyList();
+
 	protected final OperatorDocViewer operatorDocViewer = OperatorDocViewer
 			.instantiate();
 	protected final OperatorTreePanel operatorTree = new OperatorTreePanel(this);
@@ -338,13 +353,11 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	protected final XMLEditor xmlEditor = new XMLEditor(this);
 	protected final CommentEditor commentEditor = new CommentEditor();
 	protected final ProcessContextProcessEditor processContextEditor = new ProcessContextProcessEditor();
-	protected final NewOperatorEditor newOperatorEditor = new NewOperatorEditor();
 	protected final ProcessPanel processPanel = new ProcessPanel(this);
-	protected final RepositoryBrowser repositoryBrowser = new RepositoryBrowser();
+	protected final NewOperatorEditor newOperatorEditor = new NewOperatorEditor(processPanel.getProcessRenderer());
+	protected final RepositoryBrowser repositoryBrowser = new RepositoryBrowser(processPanel.getProcessRenderer());
 	protected final RemoteProcessViewer remoteProcessViewer = new RemoteProcessViewer();
 	protected final Perspectives perspectives = new Perspectives(dockingContext);
-	private final EventListenerList processEditors = new EventListenerList();
-	private List<Operator> selectedOperators = Collections.emptyList();
 	protected boolean changed = false;
 	protected boolean tutorialMode = false;
 	private int undoIndex;
@@ -355,10 +368,22 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	protected final JMenu toolsMenu;
 	protected final JMenu viewMenu;
 	protected final JMenu helpMenu;
+	
+	private DockableMenu dockableMenu;
+	
 	protected final JMenu recentFilesMenu = new ResourceMenu("recent_files");
+
+	private final ProcessUndoManager undoManager = new ProcessUndoManager();
+
+	private final LinkedList<ProcessStorageListener> storageListeners = new LinkedList<ProcessStorageListener>();
+
 	private final LinkedList<String> undoList = new LinkedList<String>();
 	/** XML representation of the process at last validation. */
 	private String lastProcessXML;
+
+	/** the OperatorChain which was last viewed */
+	private OperatorChain lastProcessDisplayedOperatorChain;
+
 	/**
 	 * The host name of the system. Might be empty (no host name will be shown)
 	 * and will be initialized in the first call of {@link #setTitle()}.
@@ -405,17 +430,31 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		}
 	};
 
-	private void updateProcessNow() {
-		lastUpdate = System.currentTimeMillis();
-		addToUndoList();
-		final String xmlWithoutGUIInformation = process.getRootOperator()
-				.getXML(true, false);
-		if (!xmlWithoutGUIInformation.equals(lastProcessXML)) {
-			validateProcess(false);
-		} else {
-			processPanel.getProcessRenderer().repaint();
+	/*
+	 * (non-Javadoc)
+	 * @see com.rapidminer.gui.MainUIState#addViewSwitchToUndo()
+	 */
+	@Override
+	public void addViewSwitchToUndo() {
+		String xmlWithoutGUIInformation = process.getRootOperator().getXML(true, false);
+		if (lastProcessDisplayedOperatorChain != null && processPanel.getProcessRenderer().getDisplayedChain() != null &&
+				!processPanel.getProcessRenderer().getDisplayedChain().getName().equals(lastProcessDisplayedOperatorChain.getName())) {
+			addToUndoList(xmlWithoutGUIInformation, true);
 		}
 		lastProcessXML = xmlWithoutGUIInformation;
+		lastProcessDisplayedOperatorChain = processPanel.getProcessRenderer().getDisplayedChain();
+	}
+
+	private void updateProcessNow() {
+		lastUpdate = System.currentTimeMillis();
+		String xmlWithoutGUIInformation = process.getRootOperator().getXML(true, false);
+		if (!xmlWithoutGUIInformation.equals(lastProcessXML)) {
+			addToUndoList(xmlWithoutGUIInformation, false);
+			validateProcess(false);
+		}
+		processPanel.getProcessRenderer().repaint();
+		lastProcessXML = xmlWithoutGUIInformation;
+		lastProcessDisplayedOperatorChain = processPanel.getProcessRenderer().getDisplayedChain();
 	}
 
 	@Override
@@ -424,6 +463,10 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 			metaDataUpdateQueue.validate(process, force);
 		}
 		fireProcessUpdated();
+	}
+
+	public boolean isProcessRendererFocused() {
+		return processPanel.getProcessRenderer().hasFocus();
 	}
 
 	private final transient BreakpointListener breakpointListener = new BreakpointListener() {
@@ -457,109 +500,32 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	private final JFrame window;
 
 	/**
-	 * Registers all RapidMiner GUI properties. This must often be done
-	 * centrally in mainframe to ensure that the properties are set when the GUI
-	 * is started.
+	 * Registers all RapidMiner GUI properties. This must often be done centrally in
+	 * mainframe to ensure that the properties are set when the GUI is started.
 	 */
 	static {
-		ParameterService.registerParameter(new ParameterTypeInt(
-				MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_MATRIXPLOT_SIZE,
-				"The pixel size of each plot in matrix plots.", 1,
-				Integer.MAX_VALUE, 200));
-		ParameterService
-				.registerParameter(new ParameterTypeInt(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_ROWS_MAXIMUM,
-						"The maximum number of rows used for a plotter, using only a sample of this size if more rows are available.",
-						1, Integer.MAX_VALUE,
-						PlotterPanel.DEFAULT_MAX_NUMBER_OF_DATA_POINTS));
-		ParameterService
-				.registerParameter(new ParameterTypeInt(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_CLASSLIMIT,
-						"Limit number of displayed classes plotter legends. -1 for no limit.",
-						-1, Integer.MAX_VALUE, 10));
-		ParameterService.registerParameter(new ParameterTypeColor(
-				MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MINCOLOR,
-				"The color for minimum values of the plotter legend.",
-				java.awt.Color.blue));
-		ParameterService.registerParameter(new ParameterTypeColor(
-				MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MAXCOLOR,
-				"The color for maximum values of the plotter legend.",
-				java.awt.Color.red));
-		ParameterService
-				.registerParameter(new ParameterTypeInt(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_COLORS_CLASSLIMIT,
-						"Limit number of displayed classes for colorized plots. -1 for no limit.",
-						-1, Integer.MAX_VALUE, 10));
-		ParameterService.registerParameter(new ParameterTypeInt(
-				PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE,
-				"Maximum number of states in the undo list.", 1,
-				Integer.MAX_VALUE, 10));
-		ParameterService
-				.registerParameter(new ParameterTypeInt(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_ATTRIBUTEEDITOR_ROWLIMIT,
-						"Maximum number of examples to use for the attribute editor. -1 for no limit.",
-						-1, Integer.MAX_VALUE, 50));
-		ParameterService.registerParameter(new ParameterTypeBoolean(
-				MainFrame.PROPERTY_RAPIDMINER_GUI_BEEP_SUCCESS,
-				"Beep on process success?", false));
-		ParameterService.registerParameter(new ParameterTypeBoolean(
-				MainFrame.PROPERTY_RAPIDMINER_GUI_BEEP_ERROR, "Beep on error?",
-				false));
-		ParameterService.registerParameter(new ParameterTypeBoolean(
-				MainFrame.PROPERTY_RAPIDMINER_GUI_BEEP_BREAKPOINT,
-				"Beep when breakpoint reached?", false));
-		ParameterService
-				.registerParameter(new ParameterTypeInt(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_ROWLIMIT,
-						"Limit number of displayed rows in the message viewer. -1 for no limit.",
-						-1, Integer.MAX_VALUE, 1000));
-		ParameterService
-				.registerParameter(new ParameterTypeColor(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_NOTES,
-						"The color for notes in the message viewer.",
-						new java.awt.Color(51, 151, 51)));
-		ParameterService
-				.registerParameter(new ParameterTypeColor(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_WARNINGS,
-						"The color for warnings in the message viewer.",
-						new java.awt.Color(51, 51, 255)));
-		ParameterService
-				.registerParameter(new ParameterTypeColor(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_ERRORS,
-						"The color for errors in the message viewer.",
-						new java.awt.Color(255, 51, 204)));
-		ParameterService
-				.registerParameter(new ParameterTypeColor(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_LOGSERVICE,
-						"The color for the logging service indicator in the message viewer.",
-						new java.awt.Color(184, 184, 184)));
-		ParameterService.registerParameter(new ParameterTypeBoolean(
-				PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW,
-				"Shows process info screen after loading?", true));
-		ParameterService.registerParameter(new ParameterTypeCategory(
-				PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN,
-				"Save process before running process?",
-				DecisionRememberingConfirmDialog.PROPERTY_VALUES,
-				DecisionRememberingConfirmDialog.ASK));
-		ParameterService.registerParameter(new ParameterTypeBoolean(
-				PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION,
-				"Save process when creating them?", false));
-		ParameterService
-				.registerParameter(new ParameterTypeCategory(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW,
-						"Automatically switch to results perspective when results are created?",
-						DecisionRememberingConfirmDialog.PROPERTY_VALUES,
-						DecisionRememberingConfirmDialog.ASK));
-		ParameterService.registerParameter(new ParameterTypeCategory(
-				MainFrame.PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE,
-				"Determines the result display style.",
-				ResultDisplayTools.TYPE_NAMES, 0));
-		ParameterService
-				.registerParameter(new ParameterTypeCategory(
-						MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL,
-						"Minimum level of messages that are logged in the GUIs log view.",
-						LoggingViewer.SELECTABLE_LEVEL_NAMES,
-						LoggingViewer.DEFAULT_LEVEL_INDEX));
+		ParameterService.registerParameter(new ParameterTypeInt(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_MATRIXPLOT_SIZE, "The pixel size of each plot in matrix plots.", 1, Integer.MAX_VALUE, 200));
+		ParameterService.registerParameter(new ParameterTypeInt(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_ROWS_MAXIMUM, "The maximum number of rows used for a plotter, using only a sample of this size if more rows are available.", 1, Integer.MAX_VALUE, PlotterPanel.DEFAULT_MAX_NUMBER_OF_DATA_POINTS));
+		ParameterService.registerParameter(new ParameterTypeInt(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_CLASSLIMIT, "Limit number of displayed classes plotter legends. -1 for no limit.", -1, Integer.MAX_VALUE, 10));
+		ParameterService.registerParameter(new ParameterTypeColor(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MINCOLOR, "The color for minimum values of the plotter legend.", java.awt.Color.blue));
+		ParameterService.registerParameter(new ParameterTypeColor(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_LEGEND_MAXCOLOR, "The color for maximum values of the plotter legend.", java.awt.Color.red));
+		ParameterService.registerParameter(new ParameterTypeInt(MainFrame.PROPERTY_RAPIDMINER_GUI_PLOTTER_COLORS_CLASSLIMIT, "Limit number of displayed classes for colorized plots. -1 for no limit.", -1, Integer.MAX_VALUE, 10));
+		ParameterService.registerParameter(new ParameterTypeInt(MainFrame.PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE, "Maximum number of states in the undo list.", 1, Integer.MAX_VALUE, 100));
+		ParameterService.registerParameter(new ParameterTypeInt(MainFrame.PROPERTY_RAPIDMINER_GUI_ATTRIBUTEEDITOR_ROWLIMIT, "Maximum number of examples to use for the attribute editor. -1 for no limit.", -1, Integer.MAX_VALUE, 50));
+		ParameterService.registerParameter(new ParameterTypeBoolean(MainFrame.PROPERTY_RAPIDMINER_GUI_BEEP_SUCCESS, "Beep on process success?", false));
+		ParameterService.registerParameter(new ParameterTypeBoolean(MainFrame.PROPERTY_RAPIDMINER_GUI_BEEP_ERROR, "Beep on error?", false));
+		ParameterService.registerParameter(new ParameterTypeBoolean(MainFrame.PROPERTY_RAPIDMINER_GUI_BEEP_BREAKPOINT, "Beep when breakpoint reached?", false));
+		ParameterService.registerParameter(new ParameterTypeInt(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_ROWLIMIT, "Limit number of displayed rows in the message viewer. -1 for no limit.", -1, Integer.MAX_VALUE, 1000));
+		ParameterService.registerParameter(new ParameterTypeColor(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_NOTES, "The color for notes in the message viewer.", new java.awt.Color(51, 151, 51)));
+		ParameterService.registerParameter(new ParameterTypeColor(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_WARNINGS, "The color for warnings in the message viewer.", new java.awt.Color(51, 51, 255)));
+		ParameterService.registerParameter(new ParameterTypeColor(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_ERRORS, "The color for errors in the message viewer.", new java.awt.Color(255, 51, 204)));
+		ParameterService.registerParameter(new ParameterTypeColor(MainFrame.PROPERTY_RAPIDMINER_GUI_MESSAGEVIEWER_HIGHLIGHT_LOGSERVICE, "The color for the logging service indicator in the message viewer.", new java.awt.Color(184, 184, 184)));
+		ParameterService.registerParameter(new ParameterTypeBoolean(MainFrame.PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW, "Shows process info screen after loading?", true));
+		ParameterService.registerParameter(new ParameterTypeCategory(MainFrame.PROPERTY_RAPIDMINER_GUI_SAVE_BEFORE_RUN, "Save process before running process?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.FALSE));
+		ParameterService.registerParameter(new ParameterTypeBoolean(MainFrame.PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION, "Save process when creating them?", false));
+		ParameterService.registerParameter(new ParameterTypeCategory(MainFrame.PROPERTY_RAPIDMINER_GUI_AUTO_SWITCH_TO_RESULTVIEW, "Automatically switch to results perspective when results are created?", DecisionRememberingConfirmDialog.PROPERTY_VALUES, DecisionRememberingConfirmDialog.TRUE));
+		ParameterService.registerParameter(new ParameterTypeCategory(MainFrame.PROPERTY_RAPIDMINER_GUI_RESULT_DISPLAY_TYPE, "Determines the result display style.", ResultDisplayTools.TYPE_NAMES, 0));
+		ParameterService.registerParameter(new ParameterTypeCategory(MainFrame.PROPERTY_RAPIDMINER_GUI_LOG_LEVEL, "Minimum level of messages that are logged in the GUIs log view.", LoggingViewer.SELECTABLE_LEVEL_NAMES, LoggingViewer.DEFAULT_LEVEL_INDEX));
 	}
 
 	/**
@@ -652,6 +618,19 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		menuBar.add(fileMenu);
 
 		// edit menu
+		((ResourceAction) actions.INFO_OPERATOR_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+		((ResourceAction) actions.TOGGLE_ACTIVATION_ITEM).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+		((ResourceAction) actions.RENAME_OPERATOR_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+		((ResourceAction) actions.NEW_OPERATOR_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+		((ResourceAction) actions.NEW_BUILDING_BLOCK_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+		((ResourceAction) actions.SAVE_BUILDING_BLOCK_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+		// not added for ProcessRenderer because there the DELETE_SELECTED_CONNECTION action is active
+		((ResourceAction) actions.DELETE_OPERATOR_ACTION).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getOperatorTree());
+		// commented out because toggleBreakpoint action is used at various places, especially at operator paramter frame which breaks if action is disabled
+//        for (ToggleBreakpointItem item : actions.TOGGLE_BREAKPOINT) {
+//        	 ((ResourceAction)item).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
+//        }
+		((ResourceAction) actions.TOGGLE_ALL_BREAKPOINTS).addToActionMap(JComponent.WHEN_FOCUSED, true, true, null, getProcessPanel().getProcessRenderer(), getOperatorTree());
 		editMenu = new ResourceMenu("edit");
 		editMenu.add(UNDO_ACTION);
 		editMenu.add(REDO_ACTION);
@@ -664,10 +643,11 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		editMenu.add(actions.NEW_BUILDING_BLOCK_ACTION);
 		editMenu.add(actions.SAVE_BUILDING_BLOCK_ACTION);
 		editMenu.addSeparator();
-		editMenu.add(CutCopyPasteAction.CUT_ACTION);
-		editMenu.add(CutCopyPasteAction.COPY_ACTION);
-		editMenu.add(CutCopyPasteAction.PASTE_ACTION);
-		editMenu.add(actions.DELETE_OPERATOR_ACTION);
+		editMenu.add(CutCopyPasteDeleteAction.CUT_ACTION);
+		editMenu.add(CutCopyPasteDeleteAction.COPY_ACTION);
+		editMenu.add(CutCopyPasteDeleteAction.PASTE_ACTION);
+		editMenu.add(CutCopyPasteDeleteAction.DELETE_ACTION);
+//        editMenu.add(actions.DELETE_OPERATOR_ACTION);
 		editMenu.addSeparator();
 		for (final ToggleBreakpointItem item : actions.TOGGLE_BREAKPOINT) {
 			editMenu.add(item.createMenuItem());
@@ -765,7 +745,7 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		viewMenu = new ResourceMenu("view");
 		viewMenu.add(perspectives.getWorkspaceMenu());
 		viewMenu.add(NEW_PERSPECTIVE_ACTION);
-		viewMenu.add(new DockableMenu(dockingContext));
+		viewMenu.add(dockableMenu = new DockableMenu(dockingContext));
 		viewMenu.add(perspectives.RESTORE_DEFAULT_ACTION);
 		viewMenu.addSeparator();
 		viewMenu.add(TOGGLE_EXPERT_MODE_ACTION.createMenuItem());
@@ -773,6 +753,7 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 
 		// help menu
 		helpMenu = new ResourceMenu("help");
+		helpMenu.add(TOUR_ACTION); //TODO reenable when tour is complete
 		helpMenu.add(TUTORIAL_ACTION);
 		// TODO: Re-add updated manual
 		// helpMenu.add(new ResourceAction("gui_manual") {
@@ -968,8 +949,12 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 
 	@Override
 	public void newProcess() {
-		if (close()) {
+		if (close(false)) {
+			// process changed -> clear undo history
+			resetUndo();
+
 			stopProcess();
+			changed = false;
 			setProcess(new Process(), true);
 			addToUndoList();
 			if (!"false"
@@ -977,6 +962,7 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 							.getParameterValue(PROPERTY_RAPIDMINER_GUI_SAVE_ON_PROCESS_CREATION))) {
 				SaveAction.save(getProcess());
 			}
+			SAVE_ACTION.setEnabled(false);
 		}
 	}
 
@@ -1075,12 +1061,16 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	}
 
 	/**
-	 * Sets a new process and registers the MainFrame listener. Please note
-	 * that this method only invoke {@link #processChanged()} if the parameter
-	 * newProcess is true.
+	 * Sets a new process and registers the MainFrame's listeners.
 	 */
-	@Override
-	public void setProcess(final Process process, final boolean newProcess) {
+	public void setProcess(Process process, boolean newProcess) {
+		setProcess(process, newProcess, false);
+	}
+
+	/**
+	 * Sets a new process and registers the MainFrame's listeners.
+	 */
+	public void setProcess(Process process, boolean newProcess, boolean addToUndoList) {
 		final boolean firstProcess = this.process == null;
 		if (this.process != null) {
 			// this.process.getRootOperator().removeObserver(processObserver);
@@ -1101,6 +1091,9 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 				this.process = process;
 				this.processThread = new ProcessThread(this.process);
 				this.process.addBreakpointListener(breakpointListener);
+				if (addToUndoList) {
+					addToUndoList(process.getRootOperator().getXML(true, false), false);
+				}
 				fireProcessChanged();
 				selectOperator(this.process.getRootOperator());
 				if (VALIDATE_AUTOMATICALLY_ACTION.isSelected()) {
@@ -1118,12 +1111,18 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 			perspectives.showPerspective("design");
 		}
 		setTitle();
+		getStatusBar().setTrafficLight(StatusBar.TRAFFIC_LIGHT_INACTIVE);
+		getStatusBar().clearSpecialText();
 	}
 
 	/** Returns true if the process has changed since the last save. */
 	@Override
 	public boolean isChanged() {
 		return changed;
+	}
+
+	private boolean addToUndoList() {
+		return addToUndoList(null, false);
 	}
 
 	/**
@@ -1135,46 +1134,42 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	 * 
 	 * @return true if process really differs.
 	 */
-	protected boolean addToUndoList() {
-		final String lastStateXML = undoList.size() != 0 ? (String) undoList
-				.get(undoList.size() - 1) : null;
-		String currentStateXML = null;
-		currentStateXML = this.process.getRootOperator().getXML(true);
+	private boolean addToUndoList(String currentStateXML, boolean viewSwitch) {
+		final String lastStateXML = undoManager.getNumberOfUndos() != 0 ? undoManager.getXml(undoManager.getNumberOfUndos() - 1) : null;
+		if (currentStateXML == null) {
+			currentStateXML = this.process.getRootOperator().getXML(true);
+		}
 		if (currentStateXML != null) {
-			if (lastStateXML == null || !lastStateXML.equals(currentStateXML)) {
-				if (undoIndex < undoList.size() - 1) {
-					while (undoList.size() > undoIndex + 1) {
-						undoList.removeLast();
+			if (lastStateXML == null || !lastStateXML.equals(currentStateXML) || viewSwitch) {
+				if (undoIndex < undoManager.getNumberOfUndos() - 1) {
+					while (undoManager.getNumberOfUndos() > undoIndex + 1) {
+						undoManager.removeLast();
 					}
 				}
-				undoList.add(currentStateXML);
-				final String maxSizeProperty = ParameterService
-						.getParameterValue(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE);
+				undoManager.add(currentStateXML, getProcessPanel().getProcessRenderer().getDisplayedChain(), getFirstSelectedOperator());
+				String maxSizeProperty = ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GUI_UNDOLIST_SIZE);
 				int maxSize = 20;
 				try {
 					if (maxSizeProperty != null) {
 						maxSize = Integer.parseInt(maxSizeProperty);
 					}
-				} catch (final NumberFormatException e) {
-					LogService
-							.getRoot()
-							.warning(
-									"Bad integer format for property 'rapidminer.gui.undolist.size', using default size of 20.");
+				} catch (NumberFormatException e) {
+					LogService.getRoot().warning("com.rapidminer.gui.main_frame_warning");
+					//LogService.getRoot().warning("Bad integer format for property 'rapidminer.gui.undolist.size', using default size of 20.");
 				}
-				while (undoList.size() > maxSize) {
-					undoList.removeFirst();
+				while (undoManager.getNumberOfUndos() > maxSize) {
+					undoManager.removeFirst();
 				}
-				undoIndex = undoList.size() - 1;
+				undoIndex = undoManager.getNumberOfUndos() - 1;
 				enableUndoAction();
 
-				final boolean oldValue = AbstractUIState.this.changed;
+				boolean oldValue = AbstractUIState.this.changed;
 				AbstractUIState.this.changed = lastStateXML != null;
 
 				if (!oldValue) {
 					setTitle();
 				}
-				if (AbstractUIState.this.process.getProcessLocation() != null
-						&& !tutorialMode) {
+				if (AbstractUIState.this.process.getProcessLocation() != null && !tutorialMode) {
 					AbstractUIState.this.SAVE_ACTION.setEnabled(true);
 				}
 				return true;
@@ -1190,16 +1185,16 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	public void undo() {
 		if (undoIndex > 0) {
 			undoIndex--;
-			setProcessIntoStateAt(undoIndex);
+			setProcessIntoStateAt(undoIndex, true);
 		}
 		enableUndoAction();
 	}
 
 	@Override
 	public void redo() {
-		if (undoIndex < undoList.size()) {
+		if (undoIndex < undoManager.getNumberOfUndos()) {
 			undoIndex++;
-			setProcessIntoStateAt(undoIndex);
+			setProcessIntoStateAt(undoIndex, false);
 		}
 		enableUndoAction();
 	}
@@ -1210,18 +1205,25 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		} else {
 			UNDO_ACTION.setEnabled(false);
 		}
-		if (undoIndex < undoList.size() - 1) {
+		if (undoIndex < undoManager.getNumberOfUndos() - 1) {
 			REDO_ACTION.setEnabled(true);
 		} else {
 			REDO_ACTION.setEnabled(false);
 		}
 	}
 
-	private void setProcessIntoStateAt(final int undoIndex) {
-		final String stateXML = undoList.get(undoIndex);
+	private void setProcessIntoStateAt(int undoIndex, boolean undo) {
+		String stateXML = undoManager.getXml(undoIndex);
+		OperatorChain shownOperatorChain = null;
+		if (undo) {
+			shownOperatorChain = undoManager.getOperatorChain(undoIndex);
+		} else {
+			shownOperatorChain = undoManager.getOperatorChain(undoIndex);
+		}
+		Operator selectedOperator = undoManager.getSelectedOperator(undoIndex);
 		try {
 			synchronized (process) {
-				final Process process = new Process(stateXML, this.process);
+				Process process = new Process(stateXML, this.process);
 				// this.process.setupFromXML(stateXML);
 				setProcess(process, false);
 				// cannot use method processChanged() because this would add the
@@ -1231,13 +1233,35 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 				if (this.process.getProcessLocation() != null && !tutorialMode) {
 					this.SAVE_ACTION.setEnabled(true);
 				}
+
+				// restore selected operator
+				if (selectedOperator != null) {
+					Operator restoredOperator = getProcess().getOperator(selectedOperator.getName());
+					if (restoredOperator != null) {
+						selectOperator(restoredOperator);
+					}
+				}
+
+				// restore process panel view on correct subprocess on undo
+				if (shownOperatorChain != null) {
+					OperatorChain restoredOperatorChain = (OperatorChain) getProcess().getOperator(shownOperatorChain.getName());
+					getProcessPanel().showOperatorChain(restoredOperatorChain);
+				}
 			}
-		} catch (final Exception e) {
+		} catch (Exception e) {
 			SwingTools.showSimpleErrorMessage("while_changing_process", e);
 		}
+
+		lastProcessDisplayedOperatorChain = getProcessPanel().getProcessRenderer().getDisplayedChain();
+		lastProcessXML = process.getRootOperator().getXML(true, false);
 	}
 
-	public boolean close() {
+	/**
+	 * Closes the current process
+	 * @param askForConfirmation if <code>true</code>, will prompt the user if he really wants to close the current process
+	 * @return
+	 */
+	public boolean close(boolean askForConfirmation) {
 		if (changed) {
 			final ProcessLocation loc = process.getProcessLocation();
 			String locName;
@@ -1255,6 +1279,15 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 					// we return the process changed status.
 					return !isChanged();
 				case ConfirmDialog.NO_OPTION:
+					// ask for confirmation before stopping the currently running process (if askForConfirmation=true)
+					if (askForConfirmation) {
+						if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING ||
+								RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
+							if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+								return false;
+							}
+						}
+					}
 					if (getProcessState() != Process.PROCESS_STATE_STOPPED) {
 						synchronized (processThread) {
 							processThread.stopProcess();
@@ -1269,6 +1302,10 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		}
 	}
 
+	public boolean close() {
+		return close(true);
+	}
+
 	@Override
 	public void setOpenedProcess(final Process process, final boolean showInfo,
 									final String sourceName) {
@@ -1278,43 +1315,75 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 					process.getImportMessage());
 		}
 
-		SAVE_ACTION.setEnabled(false);
+		SwingUtilities.invokeLater(new Runnable() {
 
+			@Override
+			public void run() {
+				SAVE_ACTION.setEnabled(false);
+			}
+		});
+
+		// process changed -> clear undo history
+		resetUndo();
+
+		List<UnknownParameterInformation> unknownParameters = null;
 		synchronized (process) {
 			RapidMinerGUI.useProcessFile(AbstractUIState.this.process);
-			updateRecentFileList();
-			addToUndoList();
-			changed = false;
-			setTitle();
+			unknownParameters = process.getUnknownParameters();
+		}
 
-			// show unsupported parameters info?
-			final List<UnknownParameterInformation> unknownParameters = process
-					.getUnknownParameters();
-			if (unknownParameters.size() > 0) {
-				new UnknownParametersInfoDialog(
-						AbstractUIState.this.getWindow(), unknownParameters)
-						.setVisible(true);
-			} else if (showInfo
-					&& Tools.booleanValue(
-							ParameterService
-									.getParameterValue(PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW),
-							true)) {
-				// show process info?
-				final String text = AbstractUIState.this.process
-						.getRootOperator().getUserDescription();
-				if (text != null && text.length() != 0) {
-					SwingUtilities.invokeLater(new Runnable() {
+		addToUndoList();
+		updateRecentFileList();
+		changed = false;
+
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				SAVE_ACTION.setEnabled(false);
+				setTitle();
+			}
+		});
+
+		// show unsupported parameters info?
+		if (unknownParameters != null && unknownParameters.size() > 0) {
+			final UnknownParametersInfoDialog unknownParametersInfoDialog = new UnknownParametersInfoDialog(AbstractUIState.this.getWindow(), unknownParameters);
+			if (SwingUtilities.isEventDispatchThread()) {
+				unknownParametersInfoDialog.setVisible(true);
+			} else {
+				try {
+					SwingUtilities.invokeAndWait(new Runnable() {
 
 						@Override
 						public void run() {
-							final ProcessInfoScreen infoScreen = new ProcessInfoScreen(
-									sourceName, text);
-							infoScreen.setVisible(true);
+							unknownParametersInfoDialog.setVisible(true);
 						}
 					});
+				} catch (Exception e) {
+					LogService.getRoot().log(Level.WARNING, "Error opening the unknown parameter dialog: " + e, e);
 				}
 			}
+		} else if (showInfo && Tools.booleanValue(ParameterService.getParameterValue(PROPERTY_RAPIDMINER_GUI_PROCESSINFO_SHOW), true)) {
+			// show process info?
+			final String text = AbstractUIState.this.process.getRootOperator().getUserDescription();
+			if (text != null && text.length() != 0) {
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						ProcessInfoScreen infoScreen = new ProcessInfoScreen(sourceName, text);
+						infoScreen.setVisible(true);
+					}
+				});
+			}
 		}
+		fireProcessLoaded();
+	}
+
+	private void resetUndo() {
+		undoIndex = 0;
+		undoManager.reset();
+		enableUndoAction();
 	}
 
 	@Override
@@ -1415,6 +1484,20 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		processEditors.add(ProcessEditor.class, p);
 	}
 
+	public void removeProcessEditor(ProcessEditor p) {
+		processEditors.remove(ProcessEditor.class, p);
+	}
+
+	@Override
+	public void addProcessStorageListener(ProcessStorageListener listener) {
+		storageListeners.add(listener);
+	}
+
+	@Override
+	public void removeProcessStorageListener(ProcessStorageListener listener) {
+		storageListeners.remove(listener);
+	}
+
 	@Override
 	public void selectOperator(Operator currentlySelected) {
 		if (currentlySelected == null) {
@@ -1468,6 +1551,13 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		}
 	}
 
+	private void fireProcessLoaded() {
+		LinkedList<ProcessStorageListener> list = new LinkedList<ProcessStorageListener>(storageListeners);
+		for (ProcessStorageListener l : list) {
+			l.opened(process);
+		}
+	}
+
 	@Override
 	public DockingDesktop getDockingDesktop() {
 		return dockingDesktop;
@@ -1513,11 +1603,27 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		changed = false;
 		setTitle();
 		updateRecentFileList();
+
+		// update RUN_REMOTE_NOW action enabled state
+		try {
+			if (process.getRepositoryLocation() != null && process.getRepositoryLocation().getRepository() instanceof RemoteRepository) {
+				RUN_REMOTE_NOW_ACTION.setEnabled(true);
+			} else {
+				RUN_REMOTE_NOW_ACTION.setEnabled(false);
+			}
+		} catch (RepositoryException e) {
+			RUN_REMOTE_NOW_ACTION.setEnabled(false);
+		}
 	}
 
 	@Override
 	public ProcessContextProcessEditor getProcessContextEditor() {
 		return processContextEditor;
+	}
+
+	@Override
+	public RepositoryBrowser getRepositoryBrowser() {
+		return repositoryBrowser;
 	}
 
 	@Override
@@ -1571,6 +1677,16 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	@Override
 	public JMenu getHelpMenu() {
 		return helpMenu;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.rapidminer.gui.MainUIState#getDockableMenu()
+	 */
+	@Override
+	public DockableMenu getDockableMenu() {
+		return dockableMenu;
+		
 	}
 
 	// The status bar of the application, usually displayed at the bottom
@@ -1649,6 +1765,15 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	@Override
 	public Action getRewireRecursively() {
 		return REWIRE_RECURSIVELY;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see com.rapidminer.gui.MainUIState#getRunRemoteNowAction()
+	 */
+	@Override
+	public RunRemoteNowAction getRunRemoteNowAction() {
+		return RUN_REMOTE_NOW_ACTION;
 	}
 
 	/*

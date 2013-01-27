@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -41,6 +41,8 @@ import javax.swing.border.Border;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import com.rapidminer.gui.dnd.DragListener;
+import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig;
@@ -54,7 +56,6 @@ import com.rapidminer.gui.new_plotter.gui.treenodes.DimensionConfigTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.PlotConfigurationTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.RangeAxisConfigTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.ValueSourceTreeNode;
-import com.rapidminer.gui.new_plotter.listener.DragListener;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.I18N;
 
@@ -70,7 +71,7 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 
 	private final Color SELECTED_COLOR = UIManager.getColor("Tree.selectionBackground");
 
-	private final Color NON_SELECTED_COLOR = UIManager.getColor("Tree.textBackground");
+	private final Color NOT_SELECTED_COLOR = UIManager.getColor("Tree.textBackground");
 
 	private final Color TEXT_SELECTED_COLOR = UIManager.getColor("Tree.selectionForeground");
 
@@ -128,7 +129,7 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 		}
 
 		private void adaptContainerStyle(JTree tree, Object node, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus, boolean dragging,
-				boolean setForeGround) {
+				boolean setForeground) {
 			SwingTools.setEnabledRecursive(this, tree.isEnabled());
 
 			Color fg = null;
@@ -143,10 +144,14 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 				bg = SELECTED_COLOR;
 			} else {
 				fg = TEXT_NON_SELECTED_COLOR;
-				bg = NON_SELECTED_COLOR;
+				if(dragging) {
+					bg = ProcessRenderer.INNER_DRAG_COLOR;
+				} else {
+					bg = NOT_SELECTED_COLOR;
+				}
 			}
 
-			if (setForeGround) {
+			if (setForeground) {
 				nameLabel.setForeground(fg);
 				attributeLabel.setForeground(fg);
 			}
@@ -155,7 +160,11 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 			if (hasFocus) {
 				this.setBorder(focusBorder);
 			} else {
-				this.setBorder(nonFocusBorder);
+				if(dragging) {
+					this.setBorder(draggingNotFocusedBorder);
+				} else {
+					this.setBorder(nonFocusBorder);
+				}
 			}
 		}
 
@@ -429,7 +438,11 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 				bg = SELECTED_COLOR;
 			} else {
 				fg = TEXT_NON_SELECTED_COLOR;
-				bg = NON_SELECTED_COLOR;
+				if(dragging) {
+					bg = ProcessRenderer.INNER_DRAG_COLOR;
+				} else {
+					bg = NOT_SELECTED_COLOR;
+				}
 			}
 
 			if (setForeGround) {
@@ -440,7 +453,11 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 			if (hasFocus) {
 				this.setBorder(focusBorder);
 			} else {
-				this.setBorder(nonFocusBorder);
+				if(dragging) {
+					this.setBorder(draggingNotFocusedBorder);
+				} else {
+					this.setBorder(nonFocusBorder);
+				}
 			}
 
 		}
@@ -566,15 +583,18 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 
 	private boolean dragging;
 
+	private Border draggingNotFocusedBorder;
+
 	public PlotConfigurationTreeCellRenderer(DataTableColumnListTransferHandler aTH) {
-		aTH.addDragStartListener(this);
+		aTH.addDragListener(this);
 
 		ERROR_ICON = SwingTools.createIcon("16/" + I18N.getMessageOrNull(I18N.getGUIBundle(), "gui.label.plotter.configuratiom_dialog.error_icon"));
 		WARNING_ICON = SwingTools.createIcon("16/" + I18N.getMessageOrNull(I18N.getGUIBundle(), "gui.label.plotter.configuratiom_dialog.warning_icon"));
 
 		focusBorder = BorderFactory.createLineBorder(BORDER_SELECTION_COLOR);
 		nonFocusBorder = BorderFactory.createLineBorder(Color.white);
-
+		draggingNotFocusedBorder = BorderFactory.createLineBorder(ProcessRenderer.INNER_DRAG_COLOR);
+		
 		dimensionAndRangeAxisRenderPanel = new DimensionAndRangeAxisTreeCellPanel();
 		globalAndValueSourceRenderPanel = new GlobalAndValueSourceTreeCellPanel();
 	}

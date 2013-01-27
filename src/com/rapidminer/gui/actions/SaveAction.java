@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -48,6 +48,7 @@ public class SaveAction extends ResourceAction {
 		setCondition(EDIT_IN_PROGRESS, DONT_CARE);
 	}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		save(RapidMinerGUI.getMainFrame().getProcess());
 	}
@@ -65,6 +66,7 @@ public class SaveAction extends ResourceAction {
 				}
 			} else {
 				SaveAsAction.saveAs(process);
+				return;
 			}
 			
 			// check if process has really been saved or user has pressed cancel in saveAs dialog

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -43,6 +43,8 @@ import com.vlsolutions.swing.docking.Dockable;
  */
 public class ProcessContextProcessEditor extends JPanel implements ProcessEditor, Dockable {
 
+	public static final String PROCESS_CONTEXT_DOCKKEY = "process_context";
+
 	private static final long serialVersionUID = 1L;
 	
 	private final ProcessContextEditor editor = new ProcessContextEditor(null, null);
@@ -67,7 +69,7 @@ public class ProcessContextProcessEditor extends JPanel implements ProcessEditor
 	public void setSelection(List<Operator> selection) { }
 
 	
-	private final DockKey DOCK_KEY = new ResourceDockKey("process_context");
+	private final DockKey DOCK_KEY = new ResourceDockKey(PROCESS_CONTEXT_DOCKKEY);
 	private Component dockComponent;
 	{
 		DOCK_KEY.setDockGroup(AbstractUIState.DOCK_GROUP_ROOT);

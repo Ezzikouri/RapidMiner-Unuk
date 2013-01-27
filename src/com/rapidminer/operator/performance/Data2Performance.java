@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -32,7 +32,10 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ValueDouble;
+import com.rapidminer.operator.ports.metadata.AttributeSetPrecondition;
+import com.rapidminer.operator.ports.metadata.ParameterConditionedPrecondition;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeInt;
 import com.rapidminer.parameter.ParameterTypeString;
@@ -101,6 +104,9 @@ public class Data2Performance extends AbstractExampleSetEvaluator {
 	public Data2Performance(OperatorDescription description) {
 		super(description);
 
+		getExampleSetInputPort().addPrecondition(new ParameterConditionedPrecondition(getExampleSetInputPort(), new AttributeSetPrecondition(getExampleSetInputPort(), AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_ATTRIBUTE_NAME)), this, PARAMETER_PERFORMANCE_TYPE, MACRO_TYPES[MACRO_TYPE_DATA]));
+		getExampleSetInputPort().addPrecondition(new ParameterConditionedPrecondition(getExampleSetInputPort(), new AttributeSetPrecondition(getExampleSetInputPort(), AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_ATTRIBUTE_NAME)), this, PARAMETER_PERFORMANCE_TYPE, MACRO_TYPES[MACRO_TYPE_STATISTICS]));
+		
 		addValue(new ValueDouble("performance", "The last calculated performance.") {
 			@Override
 			public double getDoubleValue() {
@@ -202,7 +208,7 @@ public class Data2Performance extends AbstractExampleSetEvaluator {
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_PERFORMANCE_TYPE, MACRO_TYPES, true, MACRO_TYPE_STATISTICS));
 		types.add(type);
 
-		type = new ParameterTypeString(PARAMETER_ATTRIBUTE_NAME, "The name of the attribute from which the data should be derived.", true);
+		type = new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "The name of the attribute from which the data should be derived.", getExampleSetInputPort(), true);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_PERFORMANCE_TYPE, MACRO_TYPES, true, MACRO_TYPE_DATA, MACRO_TYPE_STATISTICS));
 		types.add(type);
 

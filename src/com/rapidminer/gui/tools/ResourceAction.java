@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -23,14 +23,18 @@
 package com.rapidminer.gui.tools;
 
 
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.text.MessageFormat;
 import java.util.logging.Level;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import com.rapidminer.gui.ConditionalAction;
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
@@ -67,7 +71,7 @@ public abstract class ResourceAction extends ConditionalAction {
 				getMessage(i18nKey+".label") : 
 					MessageFormat.format(getMessage(i18nKey+".label"), i18nArgs));
 		this.key = i18nKey;
-		String mne = getMessageOrNull(i18nKey + ".mne");
+		String mne = getMessageOrNull(i18nKey + ".mne");		
 		if (mne != null && mne.length() > 0) {			
 			String name = (String)getValue(NAME);
 			if (name != null && name.length() > 0 && name.indexOf(mne.charAt(0)) == -1) {
@@ -105,6 +109,7 @@ public abstract class ResourceAction extends ConditionalAction {
 			KeyStroke stroke = KeyStroke.getKeyStroke(acc);
 			putValue(ACCELERATOR_KEY, stroke);			
 		}
+		putValue("rm_id", i18nKey);
 	}
 	
 	private static String getMessage(String key) {
@@ -115,19 +120,82 @@ public abstract class ResourceAction extends ConditionalAction {
 		return I18N.getMessageOrNull(I18N.getGUIBundle(), "gui.action."+key);
 	}
 	
+	/** Adds the action to the input and action map of the components.
+	 * 
+	 * @param condition one out of {@link JComponent#WHEN_FOCUSED}, ...
+	 * @param disableOnFocusLost if <code>true</code>, will disable the action on FocusLost event
+	 * 			and enable it again on FocusGained (if conditions of superclass are met).
+	 * @param components the {@link JComponent}s to register this action to
+	 */
+	public void addToActionMap(int condition, boolean disableOnFocusLost, boolean initiallyDisabled, String actionKey, JComponent... components) {
+		for (JComponent comp : components) {
+			if (comp == null) {
+				throw new IllegalArgumentException("components must not be null!");
+			}
+			
+			KeyStroke keyStroke = (KeyStroke)getValue(ACCELERATOR_KEY);
+			if (keyStroke != null) {
+				actionKey = actionKey == null ? key : actionKey;
+				comp.getInputMap(condition).put(keyStroke, actionKey);
+				comp.getActionMap().put(actionKey, this);
+			} else {
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.ResourceAction.add_action_key_error", key);
+			}
+			if (disableOnFocusLost) {
+				comp.addFocusListener(new FocusListener() {
+
+					@Override
+					public void focusLost(FocusEvent e) {
+						if (!e.isTemporary()) {
+							// focus lost here means disable it no matter the conditions
+							ResourceAction.this.setEnabled(false);
+							ResourceAction.super.setDisabledDueToFocusLost(true);
+						}
+					}
+
+					@Override
+					public void focusGained(FocusEvent e) {
+						if (!e.isTemporary()) {
+							// focus gained here means enable it if conditions are fulfilled
+							ResourceAction.super.setDisabledDueToFocusLost(false);
+							RapidMinerGUI.getMainFrame().getActions().enableActions();
+						}
+					}
+				});
+				if (initiallyDisabled) {
+					if (SwingUtilities.isEventDispatchThread()) {
+						super.setDisabledDueToFocusLost(true);
+						setEnabled(false);
+					} else {
+						SwingUtilities.invokeLater(new Runnable() {
+
+							@Override
+							public void run() {
+								ResourceAction.super.setDisabledDueToFocusLost(true);
+								ResourceAction.this.setEnabled(false);
+							}
+							
+						});
+					}
+				}
+			}
+		}
+	}
+	
 	/** Adds the action to the input and action map of the component.
 	 * 
 	 * @param condition one out of WHEN_IN_FOCUES, ...
 	 */
 	public void addToActionMap(JComponent component, int condition) {
-		KeyStroke keyStroke = (KeyStroke)getValue(ACCELERATOR_KEY);
-		if (keyStroke != null) {
-			component.getInputMap(condition).put(keyStroke, key);
-			component.getActionMap().put(key, this);
-		} else {
-			//LogService.getRoot().warning("Cannot add action "+key+" to input map: no accelerator defined.");
-			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.ResourceAction.add_action_key_error", key);
-		}
+		addToActionMap(component, null, condition);
+	}
+	
+	/** Adds the action to the input and action map of the component.
+	 * 
+	 * @param condition one out of WHEN_IN_FOCUES, ...
+	 */
+	public void addToActionMap(JComponent component, String actionKey, int condition) {
+		addToActionMap(condition, false, false, actionKey, component);
 	}
 	
 	/**

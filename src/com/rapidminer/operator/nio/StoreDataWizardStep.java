@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -24,18 +24,26 @@ package com.rapidminer.operator.nio;
 
 import java.util.logging.Level;
 
+import javax.swing.SwingUtilities;
+
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.RepositoryLocationSelectionWizardStep;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.nio.model.DataResultSet;
 import com.rapidminer.operator.nio.model.WizardState;
+import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.local.SimpleIOObjectEntry;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
@@ -49,7 +57,7 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 	private WizardState state;
 	
 	public StoreDataWizardStep(AbstractWizard parent, WizardState state, String preselectedLocation) {
-		super(parent, preselectedLocation);
+		super(parent, preselectedLocation, true);
 		this.state = state;
 	}
 
@@ -63,10 +71,23 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 			final RepositoryLocation location;
 			try {
 				location = new RepositoryLocation(repositoryLocationPath);
+				Entry entry = location.locateEntry();
+				if (entry != null) {
+					if (entry instanceof SimpleIOObjectEntry) {
+						// could overwrite, ask for permission
+						if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, entry.getLocation()) == ConfirmDialog.NO_OPTION) {
+							return false;
+						}
+					} else {
+						// cannot overwrite, inform user
+						SwingTools.showSimpleErrorMessage("cannot_save_data_no_dataentry", "", entry.getName());
+						return false;
+					}
+				}
 			} catch (Exception e) {
 				SwingTools.showSimpleErrorMessage("malformed_rep_location", e, repositoryLocationPath);
 				return false;
-			}	
+			}
 			state.setSelectedLocation(location);
 			new ProgressThread("importing_data", true) {
 				@Override
@@ -81,7 +102,25 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 						final ExampleSet exampleSet = state.readNow(resultSet, false, getProgressListener());
 						
 						try {
-							RepositoryManager.getInstance(null).store(exampleSet, location, null);										
+							RepositoryManager.getInstance(null).store(exampleSet, location, null);
+							SwingUtilities.invokeLater(new Runnable() {
+								@Override
+								public void run() {
+									// Select repository entry
+									if (RapidMinerGUI.getMainFrame()!=null) {
+										RapidMinerGUI.getMainFrame().getRepositoryBrowser().expandToRepositoryLocation(location);
+										// Switch to result 
+										try {
+											Entry entry = location.locateEntry();
+											if (entry !=null && entry instanceof IOObjectEntry) {
+												OpenAction.showAsResult((IOObjectEntry)entry);
+											}
+										} catch (RepositoryException e) {
+											LogService.getRoot().log(Level.WARNING, "Can not open result", e);
+										}
+									}
+								}
+							});
 						} catch (RepositoryException ex) {
 							SwingTools.showSimpleErrorMessage("cannot_store_obj_at_location", ex, location);
 							return;

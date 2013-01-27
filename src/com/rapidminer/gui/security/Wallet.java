@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -53,7 +53,7 @@ import com.rapidminer.tools.XMLException;
  *  In fact, the {@link PasswordManager} sets a new instance via {@link #setInstance(Wallet)}
  *  after editing.
  *  
- * @author Miguel B�scher
+ * @author Miguel Buescher
  *
  */
 public class Wallet {
@@ -77,7 +77,6 @@ public class Wallet {
 	public void readCache() {
 		final File userConfigFile = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
 		if (!userConfigFile.exists()) {
-			System.err.println("No file exists");
 			return;
 		}
 		//LogService.getRoot().config("Reading secrets file.");
@@ -175,12 +174,12 @@ public class Wallet {
 		}
 		Element root = doc.createElement(CACHE_FILE_NAME);
 		doc.appendChild(root);
-		for (String i : Wallet.getInstance().getKeys()){
+		for (String key : Wallet.getInstance().getKeys()){
 			Element entryElem = doc.createElement("secret");
 			root.appendChild(entryElem);
-			XMLTools.setTagContents(entryElem, "url", i);
-			XMLTools.setTagContents(entryElem, "user", wallet.get(i).getUsername());
-			XMLTools.setTagContents(entryElem, "password", Base64.encodeBytes(new String(wallet.get(i).getPassword()).getBytes()));
+			XMLTools.setTagContents(entryElem, "url", key);
+			XMLTools.setTagContents(entryElem, "user", wallet.get(key).getUsername());
+			XMLTools.setTagContents(entryElem, "password", Base64.encodeBytes(new String(wallet.get(key).getPassword()).getBytes()));
 		}
 		File file = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
 		try {

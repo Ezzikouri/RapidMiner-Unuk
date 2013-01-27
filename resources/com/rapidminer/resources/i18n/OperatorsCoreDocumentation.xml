@@ -77,6 +77,10 @@
       <name>Macro Definition and Usage</name>
    </group>
    <group>
+   	  <key>utility.annotations</key>
+   	  <name>Annotations</name>
+   </group>
+   <group>
       <key>utility.misc</key>
       <name>Miscellaneous</name>
    </group>
@@ -7773,7 +7777,7 @@
         <synopsis>Clustering based on one nominal attribute.</synopsis>
         <help>This operator creates a flat cluster model using a nominal
             attribute and dividing the exampleset by this attribute over the
-            clusters. Every value is mapped onto a cluster, including the unkown
+            clusters. Every value is mapped onto a cluster, including the unknown
             value. This operator will create a cluster attribute if not present
             yet.</help>
     <key>exampleset2clustermodel</key>
@@ -8449,5 +8453,34 @@ Thomas Breuel, Faisal Shafait. The Learning Workshop, Cliff Lodge, Snowbird, Uta
       <help>This operator writes a file object to a file or to the repository as a blob. Note that you cannot use this to save an example set, model, or other object. This is used only for uninterpreted data delivered by Open File, etc.</help>
       <key>write_file</key>
    </operator>
+   
+   <operator>
+	   <name>Create Archive File</name>
+	   <key>create_archive_file</key>
+   </operator>
      
+   <operator>
+	   <name>Add Entry to Archive File</name>
+	   <key>add_entry_to_archive_file</key>
+   </operator>
+
+   <operator>
+	   <name>Annotate</name>
+	   <key>annotate</key>
+   </operator>
+   
+   <operator>
+	   <name>Annotations to Data</name>
+	   <key>annotations_to_data</key>
+   </operator>
+   
+   <operator>
+	   <name>Data to Annotations</name>
+	   <key>data_to_annotations</key>
+   </operator>
+   
+   <operator>
+     <name>Extract Macro from Annotation</name>
+     <key>extract_macro_from_annotation</key>
+   </operator>
 </operatorHelp>

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -27,11 +27,11 @@ import java.awt.Component;
 import java.awt.Font;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 
+import com.rapidminer.gui.properties.DefaultRMCellEditor;
 import com.rapidminer.gui.properties.PropertyTable;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.operator.Operator;
@@ -45,7 +45,7 @@ import com.rapidminer.parameter.ParameterType;
  * @author Ingo Mierswa
  *          Exp $
  */
-public class DefaultPropertyKeyRenderer extends DefaultCellEditor implements PropertyKeyCellEditor {
+public class DefaultPropertyKeyRenderer extends DefaultRMCellEditor implements PropertyKeyCellEditor {
 
     private static final long serialVersionUID = 5599667832953596663L;
     

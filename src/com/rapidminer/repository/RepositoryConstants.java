@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -75,5 +75,7 @@ public interface RepositoryConstants {
 	public static final int NO_SUCH_USER = -21;
 	
 	public static final int PROCESS_FAILED = -22;
+
+	public static final int NO_SUCH_QUEUE = -23;
 
 }

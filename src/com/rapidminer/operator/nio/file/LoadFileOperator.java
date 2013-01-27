@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -35,20 +35,28 @@ import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.GenerateNewMDRule;
+import com.rapidminer.operator.ports.metadata.MDTransformationRule;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeRepositoryLocation;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
+import com.rapidminer.repository.BlobEntry;
+import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.WebServiceTools;
 
 /**
- * @author Nils Woehler
+ * @author Nils Woehler, Marius Helf
  */
 public class LoadFileOperator extends Operator {
 
@@ -69,8 +77,68 @@ public class LoadFileOperator extends Operator {
 
 	public LoadFileOperator(OperatorDescription description) {
 		super(description);
-		getTransformer().addRule(
-				new GenerateNewMDRule(fileOutputPort, FileObject.class));
+		getTransformer().addRule( new GenerateNewMDRule(fileOutputPort, FileObject.class));
+		getTransformer().addRule(new MDTransformationRule() {
+			
+			@Override
+			public void transformMD() {
+				try {
+					checkMetaData();
+				} catch (UserError e) {
+					addError(new SimpleProcessSetupError(Severity.WARNING, getPortOwner(), "passthrough", e.getMessage()));
+				}
+			}
+		});
+	}
+
+	/**
+	 * @throws UserError 
+	 * 
+	 */
+	protected void checkMetaData() throws UserError {
+		String source;
+		try {
+			switch (getParameterAsInt(PARAMETER_SOURCE_TYPE)) {
+			case SOURCE_TYPE_FILE:
+				File file = getParameterAsFile(PARAMETER_FILENAME);
+				
+				// check if file exists and is readable
+				if (!file.exists()) {
+					throw new UserError(this, "301", file);
+				} else if (!file.canRead()) {
+					throw new UserError(this, "302", file, "");
+				}
+				break;
+			case SOURCE_TYPE_URL:
+				// check only if url is valid, not if it's accessible for performance reasons
+				try {
+					// ignore this warning - only create URL to check if the parameter string represents a valid url syntax 
+					new URL(getParameterAsString(PARAMETER_URL));
+				} catch (MalformedURLException e) {
+					throw new UserError(this, e, "313", getParameterAsString(PARAMETER_URL));
+				}
+				break;
+			case SOURCE_TYPE_REPOSITORY:
+				RepositoryLocation location = getParameterAsRepositoryLocation(PARAMETER_REPOSITORY_LOCATION);
+				source = location.getAbsoluteLocation();
+				
+				// check if entry exists
+				Entry entry;
+				try {
+					entry = location.locateEntry();
+				} catch (RepositoryException e) {
+					throw new UserError(this, "319", e, source);
+				}
+				if (entry == null) {
+					throw new UserError(this, "312", source, "entry does not exist");
+				} else if (!(entry instanceof BlobEntry)) {
+					throw new UserError(this, "942", source, "blob", entry.getType());
+				}
+				break;
+			}
+		} catch (UndefinedParameterError e) {
+			// handled by parameter checks in super class
+		}
 	}
 
 	@Override
@@ -79,6 +147,14 @@ public class LoadFileOperator extends Operator {
 		switch (getParameterAsInt(PARAMETER_SOURCE_TYPE)) {
 		case SOURCE_TYPE_FILE:
 			File file = getParameterAsFile(PARAMETER_FILENAME);
+			
+			// check if file exists and is readable
+			if (!file.exists()) {
+				throw new UserError(this, "301", file);
+			} else if (!file.canRead()) {
+				throw new UserError(this, "302", file, "");
+			}
+			
 			source = file.getAbsolutePath();
 			SimpleFileObject result = new SimpleFileObject(file);
 			result.getAnnotations().setAnnotation(Annotations.KEY_SOURCE,
@@ -91,6 +167,7 @@ public class LoadFileOperator extends Operator {
 				url = new URL(getParameterAsString(PARAMETER_URL));
 				source = url.toString();
 				URLConnection connection = url.openConnection();
+				WebServiceTools.setURLConnectionDefaults(connection);
 				ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 				Tools.copyStreamSynchronously(connection.getInputStream(),
 						buffer, true);
@@ -103,16 +180,29 @@ public class LoadFileOperator extends Operator {
 				throw new UserError(this, e, "313",
 						getParameterAsString(PARAMETER_URL));
 			} catch (IOException e) {
-				throw new UserError(this, e, "316",
-						getParameterAsString(PARAMETER_URL), e.getMessage());
+				throw new UserError(this, "314", getParameterAsString(PARAMETER_URL));
 			}
 			break;
 		case SOURCE_TYPE_REPOSITORY:
 			RepositoryLocation location = getParameterAsRepositoryLocation(PARAMETER_REPOSITORY_LOCATION);
+			
+			// check if entry exists
+			Entry entry;
+			try {
+				entry = location.locateEntry();
+			} catch (RepositoryException e) {
+				throw new UserError(this, "319", e, location.getAbsoluteLocation());
+			}
+			if (entry == null) {
+				throw new UserError(this, "312", location.getAbsoluteLocation(), "entry does not exist");
+			} else if (!(entry instanceof BlobEntry)) {
+				throw new UserError(this, "942", location.getAbsoluteLocation(), "blob", entry.getType());
+			}
+
+			
 			source = location.getAbsoluteLocation();
 			RepositoryBlobObject result2 = new RepositoryBlobObject(location);
-			result2.getAnnotations().setAnnotation(Annotations.KEY_SOURCE,
-					source);
+			result2.getAnnotations().setAnnotation(Annotations.KEY_SOURCE, source);
 			fileOutputPort.deliver(result2);
 			break;
 		default:

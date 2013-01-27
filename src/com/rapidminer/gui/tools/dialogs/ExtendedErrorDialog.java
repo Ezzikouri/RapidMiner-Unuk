@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -60,6 +60,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.XmlRpcHandler;
@@ -134,7 +135,6 @@ public class ExtendedErrorDialog extends ButtonDialog {
         }
 
         layoutDefault(mainComponent, SIZE, getButtons(hasError && displayExceptionMessage, isBugReportException(error), detailedPane, error));
-        pack();
     }
 
     /**
@@ -205,7 +205,7 @@ public class ExtendedErrorDialog extends ButtonDialog {
      */
     private Collection<AbstractButton> getButtons(boolean hasError, boolean isBug, final JComponent detailedPane, final Throwable error) {
         Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
-        if (hasError) {
+		if (hasError && !(error instanceof RepositoryException)) {
             final JToggleButton showDetailsButton = new JToggleButton(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.label"), SwingTools.createIcon("24/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.show_details.icon")));
             showDetailsButton.setSelected(false);
             showDetailsButton.addActionListener(new ActionListener() {
@@ -320,16 +320,15 @@ public class ExtendedErrorDialog extends ButtonDialog {
     protected String getInfoText() {
         if (error != null) {
             StringBuilder infoText = new StringBuilder();
-            infoText.append("<div><strong>");
+			infoText.append("<div>");
 
             infoText.append(super.getInfoText());
-            infoText.append("</strong></div>");
+			infoText.append("</div>");
 
             // if already arguments are given, we can expect already a detailed error message
             if (arguments.length == 0 && error.getMessage() != null && error.getMessage().length() > 0) {
-                infoText.append("<p>");
+				infoText.append("<br/>");
                 infoText.append(Tools.escapeHTML(error.getMessage()));
-                infoText.append("</p>");
             }
 
             Throwable cause = error.getCause();
@@ -340,9 +339,9 @@ public class ExtendedErrorDialog extends ButtonDialog {
                 }
 
                 if (!"null".equals(message)) {
-                    infoText.append("<p><strong>Reason: </strong>");
+					infoText.append("<br/>");
+					infoText.append("<strong>" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.process_failed_reason.message") + " </strong>");
                     infoText.append(message);
-                    infoText.append("</p>");
                 }
             }
             return infoText.toString();

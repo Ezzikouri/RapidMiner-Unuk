@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,8 +20,8 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.gui.dnd;
 
+package com.rapidminer.gui.dnd;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -40,13 +40,16 @@ import com.rapidminer.repository.RepositoryLocation;
  */
 public class TransferableOperator implements Transferable {
 
-	public static final DataFlavor LOCAL_TRANSFERRED_OPERATORS_FLAVOR = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType+";class="+Operator.class.getName(), "transferedOperatorArray");
-	public static final DataFlavor LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType+";class="+RepositoryLocation.class.getName(), "transferedOperatorArray");
+	public static final DataFlavor LOCAL_TRANSFERRED_OPERATORS_FLAVOR = 
+			new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType + ";class=" + Operator.class.getName(), "transferedOperatorArray");
 	
+	public static final DataFlavor LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR = 
+			new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType + ";class=" + RepositoryLocation.class.getName(), "transferedOperatorArray");
+
 	private static final DataFlavor[] DATA_FLAVORS = {
-		TransferableOperator.LOCAL_TRANSFERRED_OPERATORS_FLAVOR,
-		DataFlavor.stringFlavor
-        //TransferableOperator.TRANSFERRED_OPERATOR_FLAVOR         
+			TransferableOperator.LOCAL_TRANSFERRED_OPERATORS_FLAVOR,
+			DataFlavor.stringFlavor
+			//TransferableOperator.TRANSFERRED_OPERATOR_FLAVOR         
 	};
 
 	private final Operator[] transferedOperators;
@@ -58,12 +61,13 @@ public class TransferableOperator implements Transferable {
 	public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
 		if (flavor.equals(LOCAL_TRANSFERRED_OPERATORS_FLAVOR)) {
 			return this.transferedOperators;
-		} if (flavor.equals(DataFlavor.stringFlavor)) {
+		}
+		if (flavor.equals(DataFlavor.stringFlavor)) {
 			StringBuilder b = new StringBuilder();
 			for (Operator op : transferedOperators) {
 				b.append(op.getXML(false));
 			}
-			return b.toString();	
+			return b.toString();
 //		} else if (flavor.equals(XML_SERIALIZED_TRANSFERRED_OPERATORS_FLAVOR)) {
 //			return new ByteArrayInputStream(transferedOperators[0].getXML(false).getBytes("UTF-8"));
 		} else {

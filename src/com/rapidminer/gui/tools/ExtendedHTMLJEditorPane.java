@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -59,8 +59,17 @@ public class ExtendedHTMLJEditorPane extends JEditorPane {
 	}
 	
 	public void installDefaultStylesheet() {
-    	StyleSheet css = ((HTMLEditorKit)getEditorKit()).getStyleSheet();
-		css.addRule("body {font-family:Sans;font-size:12pt}");
+		installDefaultStylesheet(((HTMLEditorKit)getEditorKit()).getStyleSheet());
+	}
+
+	public static StyleSheet makeDefaultStylesheet() {
+		StyleSheet css = new StyleSheet();
+		installDefaultStylesheet(css);
+		return css;
+	}
+
+    public static void installDefaultStylesheet(StyleSheet css ) {
+		css.addRule("body {font-family:Sans;font-size:12pt}");		
 		css.addRule("h3 {margin:0; padding:0; }");
 		//String hcolor = Integer.toHexString(SwingTools.DARKEST_BLUE.darker().darker().darker().getRGB());
 		//hcolor = hcolor.substring(2, 8);
@@ -70,7 +79,7 @@ public class ExtendedHTMLJEditorPane extends JEditorPane {
 		css.addRule("p  {margin-top:0; margin-bottom:2ex; padding:0}");
 //		css.addRule("ul {margin-top:0; margin-bottom:1ex; list-style-image:url(" + Tools.getResource("icons/help/circle.png") + "); }");
 		css.addRule("ul.ports {margin-top:0; margin-bottom:1ex; list-style-image:url(" + Tools.getResource("icons/help/circle.png") + "); }");
-		css.addRule("ul li {padding-bottom:1ex}");
+		css.addRule("ul li {padding-bottom:1ex}");		
 //		css.addRule("li.outPorts {padding-bottom:0px}");
 		css.addRule("ul.param_dep {margin-top:0; margin-bottom:1ex; list-style-type:none; list-style-image:none; }");
 //		css.addRule("ul li ul {margin-top:0; margin-bottom:1ex; list-style-type:none; list-style-image:none; }");
@@ -79,6 +88,7 @@ public class ExtendedHTMLJEditorPane extends JEditorPane {
 		//css.addRule("a  {text-decoration:none}");
 		//css.addRule("a:hover  {text-decoration:underline}");
 		css.addRule("dt  {font-weight:bold;}");
+		//css.addRule("a  {text-decoration:underline; font-weight:bold;color:blue;}");
 		css.addRule("hr  {color:red; background-color:red}");
     }
 }

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JList;
@@ -52,6 +53,7 @@ import javax.swing.border.BevelBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
+import com.rapidminer.ProcessLocation;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
@@ -59,6 +61,7 @@ import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.actions.WelcomeNewAction;
 import com.rapidminer.gui.actions.WelcomeOpenAction;
 import com.rapidminer.gui.actions.WelcomeOpenRecentAction;
+import com.rapidminer.gui.actions.WelcomeTourAction;
 import com.rapidminer.gui.actions.WelcomeTutorialAction;
 import com.rapidminer.gui.actions.WelcomeWizardAction;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
@@ -177,6 +180,7 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 		actionBar.addSeparator();
 		actionBar.addSeparator();
 		actionBar.addSeparator();
+		actionBar.addSeparator();
 		
 		button = new JButton(new WelcomeWizardAction(this.mainFrame));
 		button.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -185,11 +189,23 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 		
 		actionBar.addSeparator();
 		actionBar.addSeparator();
+		actionBar.addSeparator();
+		actionBar.addSeparator();
 		
 		button = new JButton(new WelcomeTutorialAction(this.mainFrame));
 		button.setHorizontalTextPosition(SwingConstants.CENTER);
 		button.setVerticalTextPosition(SwingConstants.BOTTOM);
 		actionBar.add(button);
+		
+//		actionBar.addSeparator();
+//		actionBar.addSeparator();
+//		actionBar.addSeparator();
+//		actionBar.addSeparator();
+//		
+//		button = new JButton(new WelcomeTourAction());
+//		button.setHorizontalTextPosition(SwingConstants.CENTER);
+//		button.setVerticalTextPosition(SwingConstants.BOTTOM);
+//		actionBar.add(button);
 		
 
 		add(actionBar, c);
@@ -328,5 +344,16 @@ public final class WelcomeScreen extends JPanel implements Dockable {
 	@Override
 	public DockKey getDockKey() {
 		return DOCK_KEY;
+	}
+	
+	/**
+	 * Updates the recent file list.
+	 */
+	public void updateRecentFileList() {
+		DefaultListModel model = new DefaultListModel();
+		for (ProcessLocation location : RapidMinerGUI.getRecentFiles()) {
+			model.addElement(location);
+		}
+		recentFileList.setModel(model);
 	}
 }

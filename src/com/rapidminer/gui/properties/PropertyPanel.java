@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.properties;
 
 import java.awt.BorderLayout;
@@ -54,9 +53,11 @@ import com.rapidminer.gui.properties.celleditors.value.AttributesValueCellEditor
 import com.rapidminer.gui.properties.celleditors.value.ColorValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.ConfigurableValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.ConfigurationWizardValueCellEditor;
+import com.rapidminer.gui.properties.celleditors.value.CronExpressionCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.DatabaseConnectionValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.DatabaseTableValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.DateFormatValueCellEditor;
+import com.rapidminer.gui.properties.celleditors.value.DateValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.DefaultPropertyValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.EnumerationValueCellEditor;
 import com.rapidminer.gui.properties.celleditors.value.ExpressionValueCellEditor;
@@ -84,9 +85,11 @@ import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeChar;
 import com.rapidminer.parameter.ParameterTypeColor;
 import com.rapidminer.parameter.ParameterTypeConfiguration;
+import com.rapidminer.parameter.ParameterTypeCronExpression;
 import com.rapidminer.parameter.ParameterTypeDatabaseConnection;
 import com.rapidminer.parameter.ParameterTypeDatabaseSchema;
 import com.rapidminer.parameter.ParameterTypeDatabaseTable;
+import com.rapidminer.parameter.ParameterTypeDate;
 import com.rapidminer.parameter.ParameterTypeDateFormat;
 import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeEnumeration;
@@ -164,6 +167,8 @@ public abstract class PropertyPanel extends JPanel {
 		registerPropertyValueCellEditor(ParameterTypeDatabaseSchema.class, DatabaseTableValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeConfigurable.class, ConfigurableValueCellEditor.class);
 		registerPropertyValueCellEditor(ParameterTypeAttributeOrderingRules.class, AttributeOrderingCellEditor.class);
+		registerPropertyValueCellEditor(ParameterTypeCronExpression.class, CronExpressionCellEditor.class);
+		registerPropertyValueCellEditor(ParameterTypeDate.class, DateValueCellEditor.class);
 	}
 
 	/**

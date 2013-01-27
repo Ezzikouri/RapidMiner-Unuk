@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.resource;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ import com.rapidminer.operator.tools.IOObjectSerializer;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.ProgressListener;
-
+import com.rapidminer.tools.Tools;
 
 /**
  * 
@@ -65,56 +66,66 @@ public class ResourceIOObjectEntry extends ResourceDataEntry implements IOObject
 		if (l != null) {
 			l.setTotal(100);
 			l.setCompleted(10);
-		}		
-		InputStream in = ResourceIOObjectEntry.class.getResourceAsStream(getResource()+".ioo");
-		if (in != null) {
+		}
+
+		InputStream in;
+		try {
+			in = Tools.getResourceInputStream(getResource() + ".ioo");
+		} catch (IOException e1) {
+			throw new RepositoryException("Resource '" + getResource() + ".ioo does not exist'.", e1);
+		}
+		try {
+			return (IOObject) IOObjectSerializer.getInstance().deserialize(in);
+		} catch (Exception e) {
+			throw new RepositoryException("Cannot load data from '" + getResource() + ".ioo': " + e, e);
+		} finally {
 			try {
-				return (IOObject)IOObjectSerializer.getInstance().deserialize(in);
-			} catch (Exception e) {
-				throw new RepositoryException("Cannot load data from '"+getResource()+".ioo': "+e, e);
-			}
-		} else {
-			throw new RepositoryException("Resource '"+getResource()+".ioo does not exist'.");
-		}		
+				in.close();
+			} catch (IOException e) {}
+		}
 	}
 
 	@Override
 	public MetaData retrieveMetaData() throws RepositoryException {
 		if (metaData == null) {
 			String mdResource = getResource() + ".md";
-			InputStream in = ResourceIOObjectEntry.class.getResourceAsStream(mdResource);
-			if (in != null) {
-				ObjectInputStream objectIn = null;
-				try {
-					objectIn = new ObjectInputStream(in);
-					this.metaData = (MetaData)objectIn.readObject();
-					if (this.metaData instanceof ExampleSetMetaData) {
-						for (AttributeMetaData amd : ((ExampleSetMetaData) metaData).getAllAttributes()) {
-							if (amd.isNominal()) {
-								amd.shrinkValueSet();
-							}
+			InputStream in;
+			try {
+				in = Tools.getResourceInputStream(mdResource);
+			} catch (IOException e1) {
+				throw new RepositoryException("Meta data resource '" + mdResource + " does not exist'.");
+			}
+			ObjectInputStream objectIn = null;
+			try {
+				objectIn = new ObjectInputStream(in);
+				this.metaData = (MetaData) objectIn.readObject();
+				if (this.metaData instanceof ExampleSetMetaData) {
+					for (AttributeMetaData amd : ((ExampleSetMetaData) metaData).getAllAttributes()) {
+						if (amd.isNominal()) {
+							amd.shrinkValueSet();
 						}
 					}
-					objectIn.close();
-				} catch (Exception e) {
-					throw new RepositoryException("Cannot load meta data from '"+mdResource+"': "+e, e);
-				} finally {
-					if (objectIn != null) {
-						try {
-							objectIn.close();
-						} catch (IOException e) { }
-					}
 				}
-			} else {
-				throw new RepositoryException("Meta data resource '"+mdResource+" does not exist'.");
-			}	
+				objectIn.close();
+			} catch (Exception e) {
+				throw new RepositoryException("Cannot load meta data from '" + mdResource + "': " + e, e);
+			} finally {
+				if (objectIn != null) {
+					try {
+						objectIn.close();
+					} catch (IOException e) {}
+				}
+				try {
+					in.close();
+				} catch (IOException e) {}
+			}
 		}
 		return metaData;
 	}
 
 	@Override
 	public void storeData(IOObject data, Operator callingOperator, ProgressListener l) throws RepositoryException {
-		throw new RepositoryException("Repository is read only.");
+		throw new RepositoryException("This is a read-only sample data entry. Cannot store data here.");
 	}
 
 	@Override

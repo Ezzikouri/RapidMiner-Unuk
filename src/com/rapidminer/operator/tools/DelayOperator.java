@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -104,7 +104,7 @@ public class DelayOperator extends Operator {
 		
 		public static List<ParameterType> getParameterTypes(ParameterHandler handler) {
 			List<ParameterType> types = new LinkedList<ParameterType>();
-			types.add(new ParameterTypeCategory(PARAMETER_DELAY, "Specifies whether execution should not be delayed, delayed by a fixed or random amount of time.", DELAY_MODES, DELAY_NONE, false));
+			types.add(new ParameterTypeCategory(PARAMETER_DELAY, "Specifies whether execution should not be delayed, delayed by a fixed or random amount of time.", DELAY_MODES, DELAY_FIXED, false));
 			ParameterType type = new ParameterTypeInt(PARAMETER_DELAY_AMOUNT, "The delay amount in ms.", 0, Integer.MAX_VALUE, 1000, false);
 			type.registerDependencyCondition(new EqualTypeCondition(handler, PARAMETER_DELAY, DELAY_MODES, true, DELAY_FIXED));
 			types.add(type);

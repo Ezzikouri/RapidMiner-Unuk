@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -61,8 +61,7 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 	private final Map<String, ParameterType> keyToTypeMap = new LinkedHashMap<String, ParameterType>();
 
 	/** Creates an empty parameters object without any parameter types. */
-	public Parameters() {
-	}
+	public Parameters() {}
 
 	/**
 	 * Constructs an instance of <code>Parameters</code> for the given list of <code>ParameterTypes</code>. The list
@@ -81,7 +80,7 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 	public Collection<ParameterType> getParameterTypes() {
 		return keyToTypeMap.values();
 	}
-	
+
 	public void addParameterType(ParameterType type) {
 		keyToTypeMap.put(type.getKey(), type);
 	}
@@ -124,19 +123,17 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 	 * known and false if no parameter type was defined for this key.
 	 */
 	public boolean setParameter(String key, String value) {
-		boolean knownType = true;
+		ParameterType parameterType = keyToTypeMap.get(key);
 		if (value == null) {
 			keyToValueMap.remove(key);
 		} else {
-			ParameterType type = keyToTypeMap.get(key);
-			if (type != null) {
-				value = type.transformNewValue(value);
-				knownType = true;
+			if (parameterType != null) {
+				value = parameterType.transformNewValue(value);
 			}
 			keyToValueMap.put(key, value);
 		}
 		fireUpdate(key);
-		return knownType;
+		return parameterType != null;
 	}
 
 	/**
@@ -170,9 +167,9 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 				throw new UndefinedParameterError(key);
 			} else {
 				//LogService.getRoot().finer("Parameter '" + key + "' is not set. Using default ('" + type.toString(defaultValue) + "').");
-				LogService.getRoot().log(Level.FINER, 
+				LogService.getRoot().log(Level.FINER,
 						"com.rapidminer.parameter.Parameters.parameter_not_set_using_default",
-						new Object[] {key, type.toString(defaultValue)});
+						new Object[] { key, type.toString(defaultValue) });
 
 			}
 			if (defaultValue == null) {
@@ -188,7 +185,7 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 	public String getParameterAsSpecified(String key) {
 		return keyToValueMap.get(key);
 	}
-	
+
 	/** As {@link #getParameter(String)}, but returns null rather than throwing an exception. */
 	public String getParameterOrNull(String key) {
 		if (keyToValueMap.containsKey(key)) {
@@ -205,9 +202,9 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 				return null;
 			} else {
 				//LogService.getRoot().finer("Parameter '" + key + "' is not set. Using default ('" + type.toString(value) + "').");
-				LogService.getRoot().log(Level.FINER, 
+				LogService.getRoot().log(Level.FINER,
 						"com.rapidminer.parameter.Parameters.parameter_not_set_using_default",
-						new Object[] {key, type.toString(value)});				
+						new Object[] { key, type.toString(value) });
 			}
 			if (value == null) {
 				return null;
@@ -354,9 +351,8 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 	}
 
 	public void copyFrom(Parameters parameters) {
-		this.keyToValueMap.putAll(parameters.keyToValueMap);		
+		this.keyToValueMap.putAll(parameters.keyToValueMap);
 	}
-
 
 	/**
 	 * Clears the parameters map and adds all given parameters.
@@ -367,16 +363,16 @@ public class Parameters extends AbstractObservable<String> implements Cloneable,
 	 */
 	public void setAll(Parameters parameters) {
 		keyToValueMap.clear();
-		keyToValueMap.putAll(parameters.keyToValueMap);		
+		keyToValueMap.putAll(parameters.keyToValueMap);
 		fireUpdate();
 	}
-	
+
 	/**
 	 * Adds all Parameters to the parameters map.
 	 * @param parameters
 	 */
-	public void addAll(Parameters parameters){
-		keyToValueMap.putAll(parameters.keyToValueMap);		
+	public void addAll(Parameters parameters) {
+		keyToValueMap.putAll(parameters.keyToValueMap);
 		fireUpdate();
 	}
 }

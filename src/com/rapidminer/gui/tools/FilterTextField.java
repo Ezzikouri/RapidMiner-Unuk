@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.tools;
 
 import java.awt.Color;
@@ -28,8 +27,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.LinkedList;
 
@@ -132,18 +129,11 @@ public class FilterTextField extends JTextField {
 			public void keyTyped(KeyEvent e) {
 			}
 		});
-		addMouseListener(new MouseAdapter() {
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				super.mouseReleased(e);
-				selectAll();
-			}
-		});
 		addFocusListener(new FocusListener() {
 
 			@Override
 			public void focusGained(FocusEvent e) {
+				selectAll();
 			}
 
 			@Override

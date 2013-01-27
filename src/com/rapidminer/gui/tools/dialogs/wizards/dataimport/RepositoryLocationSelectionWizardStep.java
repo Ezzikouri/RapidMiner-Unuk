@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -48,12 +48,24 @@ public class RepositoryLocationSelectionWizardStep extends WizardStep {
 	}
 	
 	/**
-	 * Constructor for this wizard step.
+	 * This constructor is only left for compatibility issues with the paren extension. Hence it doesn't make any sense
+	 * please refer to the {@link #RepositoryLocationSelectionWizardStep(AbstractWizard, String, boolean)} Constructor instead.
 	 */
+	@Deprecated
 	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue) {
+		this(parent, initialValue, false);
+	}
+	
+	/**
+	 * Constructor for this wizard step. If storeWizard is set to <code>true</code>, will enforce valid repository entry names.
+	 */
+	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue, boolean storeWizard) {
 		super("select_repository_location");
-		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue);
+		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue,true,false,false,true);
 		this.locationChooser.addChangeListener(parent);
+		if (storeWizard) {
+			this.locationChooser.setEnforceValidRepositoryEntryName(true);
+		}
 	}
 
 	@Override
@@ -63,7 +75,7 @@ public class RepositoryLocationSelectionWizardStep extends WizardStep {
 	
 	@Override
 	protected boolean canProceed() {
-		return locationChooser.hasSelection();
+		return locationChooser.isEntryValid();
 	}
 
 	@Override
