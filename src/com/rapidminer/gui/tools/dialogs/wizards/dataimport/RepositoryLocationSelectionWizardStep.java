@@ -59,13 +59,17 @@ public class RepositoryLocationSelectionWizardStep extends WizardStep {
 	/**
 	 * Constructor for this wizard step. If storeWizard is set to <code>true</code>, will enforce valid repository entry names.
 	 */
-	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue, boolean storeWizard) {
+	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue, boolean storeWizard,boolean onlyWriteableRepositories) {
 		super("select_repository_location");
-		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue,true,false,false,true);
+		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue,true,false,false,onlyWriteableRepositories);
 		this.locationChooser.addChangeListener(parent);
 		if (storeWizard) {
 			this.locationChooser.setEnforceValidRepositoryEntryName(true);
 		}
+	}
+	
+	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue, boolean storeWizard){
+		this(parent, initialValue, storeWizard, false);
 	}
 
 	@Override

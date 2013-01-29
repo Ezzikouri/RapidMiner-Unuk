@@ -553,9 +553,14 @@ public class ProcessRenderer extends JPanel implements DragListener {
 	private static Paint SHADOW_TOP_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, PADDING, 0, Color.WHITE);
 	private static Paint SHADOW_LEFT_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, 0, PADDING, Color.WHITE);
 
-	public static Color INNER_DRAG_COLOR = new Color(237,237,255);
-	public static Color INNER_DRAG_FRAME_COLOR = INNER_DRAG_COLOR.darker();
-
+	
+	public static final Color INNER_DRAG_COLOR = RapidMinerGUI.getBodyHighlightColor();
+	public static Color LINE_DRAG_COLOR = RapidMinerGUI.getBorderHighlightColor();
+	private static Stroke LINE_DRAG_STROKE = new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+	
+	private static Paint SHADOW_TOP_DRAG_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, PADDING, 0, INNER_DRAG_COLOR);
+	private static Paint SHADOW_LEFT_DRAG_GRADIENT = new GradientPaint(0, 0, SHADOW_COLOR, PADDING, 0, INNER_DRAG_COLOR);
+	
 	private static Stroke CONNECTION_LINE_STROKE = new BasicStroke(1.3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	private static Stroke CONNECTION_HIGHLIGHT_STROKE = new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	private static Stroke CONNECTION_COLLECTION_LINE_STROKE = new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -569,8 +574,6 @@ public class ProcessRenderer extends JPanel implements DragListener {
 	private static final Color PORT_NAME_COLOR = Color.DARK_GRAY;
 	private static final Color PORT_NAME_SELECTION_COLOR = Color.GRAY;
 	private static final Color ACTIVE_EDGE_COLOR = SwingTools.RAPID_I_ORANGE;
-
-	private static final Stroke HIGHLIGHT_DRAG_STROKE = new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 
 	private static final Stroke FRAME_STROKE_SELECTED = new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	private static final Stroke FRAME_STROKE_NORMAL = new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
@@ -1483,60 +1486,53 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		double width = getWidth(processes[index]);
 		double height = getHeight(processes[index]);
 		Shape frame = new Rectangle2D.Double(0, 0, width, height);
+		
+		Paint currentInnerColor  = INNER_COLOR;
+		Paint currentTopGradient = SHADOW_TOP_GRADIENT;
+		Paint currentLeftGradient = SHADOW_LEFT_GRADIENT;
+		Stroke currentLineStroke = LINE_STROKE;
+		Paint currentLineColor = LINE_COLOR;
 
 		if (dragStarted || (dropTargetSet && getImportDragged())) {
-			g.setPaint(INNER_DRAG_COLOR);
-			g.fill(frame);
+			switch(RapidMinerGUI.getDragHighlighteMode()){
+				case FULL:
+					currentInnerColor = INNER_DRAG_COLOR;
+					currentTopGradient = SHADOW_TOP_DRAG_GRADIENT;
+					currentLeftGradient = SHADOW_LEFT_DRAG_GRADIENT;
+				case BORDER:
+					currentLineStroke = LINE_DRAG_STROKE;
+					currentLineColor = LINE_DRAG_COLOR;
+					break;
+				default:
+					break;
+			}
+		} 
+		
+		// background color
+		g.setPaint(currentInnerColor);
+		g.fill(frame);
 
-			// process title color
-			g.setColor(PROCESS_TITLE_COLOR.darker());
-			g.setFont(PROCESS_FONT);
-			g.drawString(processes[index].getName(), PADDING + 2, PROCESS_FONT.getSize() + PADDING);
+		// process title color
+		g.setColor(PROCESS_TITLE_COLOR);
+		g.setFont(PROCESS_FONT);
+		g.drawString(processes[index].getName(), PADDING + 2, PROCESS_FONT.getSize() + PADDING);
 
-			// padding gradients
-			g.setPaint(new GradientPaint(0, 0, SHADOW_COLOR, PADDING, 0, INNER_DRAG_COLOR));
-			g.fill(new Rectangle2D.Double(0, 0, PADDING, height));
-			GeneralPath top = new GeneralPath();
-			int shadowWidth = PADDING;
-			top.moveTo(0, 0);
-			top.lineTo(width, 0);
-			top.lineTo(width, shadowWidth);
-			top.lineTo(shadowWidth, shadowWidth);
-			top.closePath();
-			g.setPaint(new GradientPaint(0, 0, SHADOW_COLOR, 0, PADDING, INNER_DRAG_COLOR));
-			g.fill(top);
+		// padding gradients
+		g.setPaint(currentTopGradient);
+		g.fill(new Rectangle2D.Double(0, 0, PADDING, height));
+		GeneralPath top = new GeneralPath();
+		int shadowWidth = PADDING;
+		top.moveTo(0, 0);
+		top.lineTo(width, 0);
+		top.lineTo(width, shadowWidth);
+		top.lineTo(shadowWidth, shadowWidth);
+		top.closePath();
+		g.setPaint(currentLeftGradient);
+		g.fill(top);
 
-			// frame color
-			g.setPaint(INNER_DRAG_FRAME_COLOR);
-			g.setStroke(HIGHLIGHT_DRAG_STROKE);
-		} else {
-
-			// background color
-			g.setPaint(INNER_COLOR);
-			g.fill(frame);
-
-			// process title color
-			g.setColor(PROCESS_TITLE_COLOR);
-			g.setFont(PROCESS_FONT);
-			g.drawString(processes[index].getName(), PADDING + 2, PROCESS_FONT.getSize() + PADDING);
-
-			// padding gradients
-			g.setPaint(SHADOW_TOP_GRADIENT);
-			g.fill(new Rectangle2D.Double(0, 0, PADDING, height));
-			GeneralPath top = new GeneralPath();
-			int shadowWidth = PADDING;
-			top.moveTo(0, 0);
-			top.lineTo(width, 0);
-			top.lineTo(width, shadowWidth);
-			top.lineTo(shadowWidth, shadowWidth);
-			top.closePath();
-			g.setPaint(SHADOW_LEFT_GRADIENT);
-			g.fill(top);
-
-			// frame color
-			g.setPaint(LINE_COLOR);
-			g.setStroke(LINE_STROKE);
-		}
+		// frame color
+		g.setPaint(currentLineColor);
+		g.setStroke(currentLineStroke);
 
 		g.draw(frame);
 
@@ -2153,7 +2149,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 			}
 
 			updateHoveringState(e);
-			
+
 			if (e.getButton() == MouseEvent.BUTTON1 && hoveringPort != null) {
 
 				// Left mouse button pressed on port with alt pressed -> remove connection
@@ -2247,6 +2243,33 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 					// calculate popup position
 					Point popupPosition = getPortLocation(hoveringPort);
+					
+					// take splitted process pane into account and add offset for each process we have to the left of our current one
+					if (hoveringPort.getPorts() != null) {
+						ExecutionUnit process;
+						if (hoveringPort.getPorts().getOwner().getOperator() == displayedChain) {
+							// this is an inner port
+							process = hoveringPort.getPorts().getOwner().getConnectionContext();
+						} else {
+							// this is an outer port of a nested operator
+							process = hoveringPort.getPorts().getOwner().getOperator().getExecutionUnit();
+						}
+						// iterate over all processes and add widths of processes to the left
+						int counter = 0;
+						for (ExecutionUnit unit : processes) {
+							if (unit == process) {
+								// only add process widths until we have the process which contains the port
+								break;
+							} else {
+								counter++;
+								popupPosition = new Point((int) (popupPosition.x + getWidth(unit) + WALL_WIDTH), popupPosition.y);
+							}
+						}
+						// add another wall width as offset if we have multiple processes
+						if (counter > 0) {
+							popupPosition = new Point((int) (popupPosition.x + WALL_WIDTH), popupPosition.y);
+						}
+					}
 
 					if (hoveringPort instanceof InputPort) {
 						popupPosition.setLocation(popupPosition.getX() + 28, popupPosition.getY() - 2);

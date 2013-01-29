@@ -152,7 +152,7 @@ import com.rapidminer.tools.patterns.Visitor;
  * 
  * @see com.rapidminer.operator.OperatorChain
  * 
- * @author Ralf Klinkenberg, Ingo Mierswa, Simon Fischer
+ * @author Ralf Klinkenberg, Ingo Mierswa, Simon Fischer, Marius Helf
  */
 public abstract class Operator extends AbstractObservable<Operator> implements ConfigurationListener, PreviewListener, LoggingHandler, ParameterHandler, ResourceConsumer {
 
@@ -428,8 +428,11 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 
 	/** Sets the user specified comment for this operator. */
 	public void setUserDescription(String description) {
-		this.userDescription = description;
-		fireUpdate(this);
+		// update only if description is different from current description
+		if ( !(userDescription == null ? description == null || description.isEmpty() : userDescription.equals(description)) ) {
+			this.userDescription = description;
+			fireUpdate(this);
+		}
 	}
 
 	/** The user specified comment for this operator. */

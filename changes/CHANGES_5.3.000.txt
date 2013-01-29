@@ -20,7 +20,10 @@ Changes from RapidMiner 5.2.8 to 5.3.0
 * Repositories View: Added button which navigates to the repository location of the currently opened process
 * Repositories View: Added popup menu item to open the selected entry in the OS file browser (only for Local Repositories)
 * Added new view: 'Macros': This view shows macros and their values in real time during process execution
-* Input sinks and output sinks of processes/subprocess now can be moved up or down by dragging them with the left mouse key while shift is pressed
+* More consistent handling of input sinks and output sinks of processes and subprocesses:
+>(1)Sinks can be moved up or down by dragging them with the left mouse key while shift key is pressed
+>(2)Removed double click on process input sink, all actions on process sinks can now be trigged via a popup menu
+* Added resize button to text parameter editor dialog
 * Added resize button to text parameter editor dialog
 * Preferences menu buttons reworked: 'OK' button saves settings permanently and closes the dialog; 
   'Apply' button saves settings permanently and does not close the dialog

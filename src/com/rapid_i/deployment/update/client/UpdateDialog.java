@@ -44,6 +44,7 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.xml.ws.WebServiceException;
 
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
@@ -258,6 +259,10 @@ public class UpdateDialog extends ButtonDialog {
 				try {
 					UpdateManager.resetService();
 					UpdateManager.getService();
+				} catch(WebServiceException e) {
+					// thrown when no internet connection is available. Simple error message to not confuse users
+					SwingTools.showVerySimpleErrorMessage("failed_update_server_simple");
+					return;
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
 					return;

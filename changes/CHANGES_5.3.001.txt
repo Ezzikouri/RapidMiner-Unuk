@@ -1,4 +1,7 @@
 Changes from RapidMiner 5.3.0 to 5.3.1
 --------------------------------------
+* Added a GUI preference option for drag target highlighting. Now it is possible to select whether the full target, the target's border or nothing at all should be highlighted when dragging operators or repository entries.
 * BUGFIX: Fixed disabled operator not always being activated when connected
-* BUGFIX: Fixed some error messages
+* BUGFIX: Fixed "Click to branch" popup sometimes appearing at the wrong position
+* BUGFIX: Fixed some error messages and dialogs
+* BUGFIX: Process is marked as changed when entering subprocess

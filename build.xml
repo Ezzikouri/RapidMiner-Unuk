@@ -26,7 +26,13 @@
 	<property name="jre64" location="jre/jre64" />
 	<property name="manual" location="../RapidMinerReferenceManual_en" />
 	<property name="manualJar" value="rm_doc.jar" />
-
+	
+	<property name="jreosx" location="jre/osx" />
+	<tstamp>
+	    <format property="current.year" pattern="yyyy" locale="en,UK"/>
+	</tstamp>
+	<property name="bundle.osx.icon" value="rapidminer_frame_icon_64.icns" />
+	
 	<property name="junit.tests.dir" value="" />
 	<property name="rapidminer.tests.dir" value="../RapidMiner_Tests" />
 
@@ -328,6 +334,45 @@
 		<!-- Now tidy up release/files if not needed anymore -->
 		<ant target="release.finish" />
 	</target>
+	
+	<!-- OS X App bundle (http://intransitione.com/blog/take-java-to-app-store/#stepone)-->
+    <!--taskdef name="bundleapp"
+             classname="com.oracle.appbundler.AppBundlerTask"   
+             classpath="lib/appbundler-1.0.jar" /-->
+
+    <!--target name="release.makeOSXAppBundle" depends="version.get, createJar">
+        <bundleapp outputdirectory="${release}"
+            name="RapidMiner"
+            displayname="RapidMiner"
+            identifier="com.rapid_i.RapidMiner"
+            mainclassname="com.rapid_i.Launcher" 
+        	shortversion="${rapidminer.shortversion}"
+        	copyright="${current.year} Rapid-I GmbH"
+        	icon="${resources}/com/rapidminer/resources/${bundle.osx.icon}">
+        	
+        	<The bundleapp task doesn't support classpathref so all 
+	             the run classpath entries must be stated here too. -->
+        	<!--classpath file="${lib}/rapidminer.jar" />
+        	<classpath file="${lib}/launcher.jar" />
+        	
+        	<Workaround since the icon parameter for bundleapp 
+	             doesn't work. (It's not a bug in AppBundler but 
+	             in the JavaAppLauncher, see Known Problems).
+	        -->
+	        <!--option value="-Xdock:icon=$APP_ROOT/Contents/Resources/${bundle.osx.icon}"/>
+	        
+        	< OSX specific options, optional -->
+        	<!--option value="-Xdock:name=RapidMiner"/>
+	        <option value="-Dcom.apple.mrj.application.apple.menu.about.name=RapidMiner"/>
+
+	        <option value="-Xmx1024M"/>
+        	
+        	<runtime dir="/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home"/>
+        </bundleapp>
+    	<copy todir="${release}/RapidMiner.app/Contents/Java" verbose="true">
+	    	<path refid="rm.classpath"/>
+    	</copy>
+    </target-->
 
 	<target name="release.makeWin32Launcher">
 		<exec executable="${makensis}">
@@ -478,7 +523,7 @@
 
 		<!-- Same as platfrom independent zip file: Call it and rename result -->
 		<ant target="release.makePlatformIndependent" />
-		<copy file="${release}/rapidminer-${rapidminer.longversion}.zip"
+				<copy file="${release}/rapidminer-${rapidminer.longversion}.zip"
 			tofile="${release}/update_rapidminer-${rapidminer.longversion}.zip" />
 	</target>
 

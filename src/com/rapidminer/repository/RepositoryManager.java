@@ -465,7 +465,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			String destinationAbsolutePath = destination.getLocation().getAbsoluteLocation();
 			// make sure same folder moves are forbidden
 			if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
-				SwingTools.showVerySimpleErrorMessage("repository_same_folder");
+				SwingTools.showVerySimpleErrorMessage("repository_copy_same_folder");
 				return;
 			}
 			// make sure moving parent folder into subfolder is forbidden
@@ -510,7 +510,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			}
 			// make sure same folder moves are forbidden
 			if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
-				SwingTools.showVerySimpleErrorMessage("repository_same_folder");
+				SwingTools.showVerySimpleErrorMessage("repository_move_same_folder");
 				return;
 			}
 			// make sure moving parent folder into subfolder is forbidden

@@ -174,7 +174,7 @@ import com.vlsolutions.swing.toolbars.ToolBarPanel;
  * notified whenever the process changes and propagates this event to its
  * children. Most of the code is enclosed within the Actions.
  * 
- * @author Ingo Mierswa, Simon Fischer, Sebastian Land
+ * @author Ingo Mierswa, Simon Fischer, Sebastian Land, Marius Helf
  */
 public class MainFrame extends ApplicationFrame implements WindowListener {
 
@@ -836,6 +836,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 
 		helpMenu.addSeparator();
 		// helpMenu.add(CHECK_FOR_UPDATES_ACTION);
+		helpMenu.add(UpdateDialog.UPDATE_ACTION);
 		helpMenu.add(ExtensionDialog.MANAGE_EXTENSIONS);
 
 		List allPlugins = Plugin.getAllPlugins();
@@ -858,8 +859,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			}
 			helpMenu.add(extensionsMenu);
 		}
-		helpMenu.addSeparator();
-		helpMenu.add(UpdateDialog.UPDATE_ACTION);
 		helpMenu.add(new AboutAction(this));
 
 		menuBar.add(helpMenu);
@@ -1225,10 +1224,15 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 				undoIndex = undoManager.getNumberOfUndos() - 1;
 				enableUndoAction();
 
-				boolean oldValue = MainFrame.this.changed;
+				boolean oldChangedValue = MainFrame.this.changed;
+				// mark as changed only if the XML has changed
+				if ((currentStateXML == null ? lastStateXML == null : currentStateXML.equals(lastStateXML))) {
+					return false;
+				}
+				
 				MainFrame.this.changed = lastStateXML != null;
 
-				if (!oldValue) {
+				if (!oldChangedValue) {
 					setTitle();
 				}
 				if (MainFrame.this.process.getProcessLocation() != null && !tutorialMode) {

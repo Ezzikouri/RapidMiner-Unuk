@@ -23,6 +23,7 @@
 
 package com.rapidminer.gui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.BufferedReader;
@@ -155,6 +156,12 @@ public class RapidMinerGUI extends RapidMiner {
 	public static final String PROPERTY_FETCH_DATA_BASE_TABLES_NAMES = "rapidminer.gui.fetch_data_base_table_names";
 	public static final String PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES = DatabaseDataReader.PROPERTY_EVALUATE_MD_FOR_SQL_QUERIES;
 
+	public static final String PROPERTY_DRAG_TARGET_HIGHLIGHTING = "rapidminer.gui.drag_target_highlighting";
+	public static final String PROPERTY_DRAG_TARGET_HIGHLIGHT_COLOR = "rapidminer.gui.drag_target_highlight_color";
+	public static final String[] PROPERTY_DRAG_TARGET_HIGHLIGHTING_VALUES = { "full", "border", "none" };
+
+	public static final int DRAG_TARGET_HIGHLIGHTING_FULL = 0;
+
 	static {
 		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_PURCHASED_NOT_INSTALLED_CHECK, "Check for recently purchased but not installed RapidMiner extensions at start up time?", true));
 		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK, "Check for new RapidMiner versions at start up time?", true));
@@ -177,7 +184,9 @@ public class RapidMinerGUI extends RapidMiner {
 
 		ParameterService.registerParameter(new ParameterTypeBoolean(RapidMinerGUI.PROPERTY_DISCONNECT_ON_DISABLE, "Should operators be disconnected upon disabling them?", true));
 
-		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_CONFIRM_EXIT, "Should RapidMiner ask if you are sure each time you exit?", true));
+		ParameterService.registerParameter(new ParameterTypeCategory(RapidMinerGUI.PROPERTY_DRAG_TARGET_HIGHLIGHTING, "Defines the way possible drag targets should be highlighted.", PROPERTY_DRAG_TARGET_HIGHLIGHTING_VALUES, DRAG_TARGET_HIGHLIGHTING_FULL));
+
+		ParameterService.registerParameter(new ParameterTypeBoolean(PROPERTY_CONFIRM_EXIT, "Should RapidMiner ask if you are sure each time you exit?", false));
 
 		// UPDATE
 		ParameterService.registerParameter(new ParameterTypeBoolean(com.rapid_i.deployment.update.client.UpdateManager.PARAMETER_UPDATE_INCREMENTALLY, "Download (small) patches rather than complete installation archives?", true));
@@ -555,5 +564,30 @@ public class RapidMinerGUI extends RapidMiner {
 	 */
 	public static SafeMode getSafeMode() {
 		return safeMode;
+	}
+
+	public enum DragHighlightMode {
+		FULL,
+		BORDER,
+		NONE
+	}
+
+	public static DragHighlightMode getDragHighlighteMode() {
+		String dragParameter = ParameterService.getParameterValue(PROPERTY_DRAG_TARGET_HIGHLIGHTING);
+		if (dragParameter.equals(PROPERTY_DRAG_TARGET_HIGHLIGHTING_VALUES[0])) {
+			return DragHighlightMode.FULL;
+		} else if (dragParameter.equals(PROPERTY_DRAG_TARGET_HIGHLIGHTING_VALUES[1])) {
+			return DragHighlightMode.BORDER;
+		} else {
+			return DragHighlightMode.NONE;
+		}
+	}
+
+	public static Color getBodyHighlightColor() {
+		return new Color(255, 255, 242);
+	}
+	
+	public static Color getBorderHighlightColor() {
+		return SwingTools.RAPID_I_ORANGE;
 	}
 }
