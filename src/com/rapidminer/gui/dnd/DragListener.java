@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.dnd;
 
 import java.awt.datatransfer.Transferable;
@@ -29,6 +30,8 @@ import java.awt.datatransfer.Transferable;
  *
  */
 public interface DragListener {
+
 	public void dragStarted(Transferable t);
+
 	public void dragEnded();
 }

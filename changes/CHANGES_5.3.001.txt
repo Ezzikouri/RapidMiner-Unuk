@@ -1,7 +1,12 @@
 Changes from RapidMiner 5.3.0 to 5.3.1
 --------------------------------------
-* Added a GUI preference option for drag target highlighting. Now it is possible to select whether the full target, the target's border or nothing at all should be highlighted when dragging operators or repository entries.
+* Changed drop target highlighting color from light-blue to light-orange
+* Process panel will not be highlighted anymore when dragging folders from the Repository View
+* Added a GUI preference option for drag target highlighting. Now it is possible to select whether the full target, the target's border or nothing at all should be highlighted.
+* Dragging repositories in the Repository View is not possible anymore
+* Process size is now automatically adjusted when entering a subprocess or when loading a process.
+* BUGFIX: 32-bit Windows version of RapidMiner will now have more than 64 MB memory available when installed on a x64 system
 * BUGFIX: Fixed disabled operator not always being activated when connected
 * BUGFIX: Fixed "Click to branch" popup sometimes appearing at the wrong position
 * BUGFIX: Fixed some error messages and dialogs
-* BUGFIX: Process is marked as changed when entering subprocess
+* BUGFIX: Process now isn't marked as changed anymore when entering a subprocess

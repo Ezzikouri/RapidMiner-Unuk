@@ -336,11 +336,11 @@
 	</target>
 	
 	<!-- OS X App bundle (http://intransitione.com/blog/take-java-to-app-store/#stepone)-->
-    <!--taskdef name="bundleapp"
+    <taskdef name="bundleapp"
              classname="com.oracle.appbundler.AppBundlerTask"   
-             classpath="lib/appbundler-1.0.jar" /-->
+             classpath="ant/appbundler-1.0.jar" />
 
-    <!--target name="release.makeOSXAppBundle" depends="version.get, createJar">
+    <target name="release.makeOSXAppBundle" depends="version.get, createJar">
         <bundleapp outputdirectory="${release}"
             name="RapidMiner"
             displayname="RapidMiner"
@@ -350,19 +350,19 @@
         	copyright="${current.year} Rapid-I GmbH"
         	icon="${resources}/com/rapidminer/resources/${bundle.osx.icon}">
         	
-        	<The bundleapp task doesn't support classpathref so all 
+        	<!--The bundleapp task doesn't support classpathref so all 
 	             the run classpath entries must be stated here too. -->
-        	<!--classpath file="${lib}/rapidminer.jar" />
+        	<classpath file="${lib}/rapidminer.jar" />
         	<classpath file="${lib}/launcher.jar" />
         	
-        	<Workaround since the icon parameter for bundleapp 
+        	<!--Workaround since the icon parameter for bundleapp 
 	             doesn't work. (It's not a bug in AppBundler but 
 	             in the JavaAppLauncher, see Known Problems).
 	        -->
-	        <!--option value="-Xdock:icon=$APP_ROOT/Contents/Resources/${bundle.osx.icon}"/>
+	        <option value="-Xdock:icon=$APP_ROOT/Contents/Resources/${bundle.osx.icon}"/>
 	        
-        	< OSX specific options, optional -->
-        	<!--option value="-Xdock:name=RapidMiner"/>
+        	<!-- OSX specific options, optional -->
+        	<option value="-Xdock:name=RapidMiner"/>
 	        <option value="-Dcom.apple.mrj.application.apple.menu.about.name=RapidMiner"/>
 
 	        <option value="-Xmx1024M"/>
@@ -372,7 +372,7 @@
     	<copy todir="${release}/RapidMiner.app/Contents/Java" verbose="true">
 	    	<path refid="rm.classpath"/>
     	</copy>
-    </target-->
+    </target>
 
 	<target name="release.makeWin32Launcher">
 		<exec executable="${makensis}">

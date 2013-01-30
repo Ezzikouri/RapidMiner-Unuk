@@ -50,32 +50,57 @@ Call SetEnvironment
 ; Searching for system memory to use
 System::Alloc 32
 Pop $1
+; writes the free RAM to $5
 System::Call "Kernel32::GlobalMemoryStatus(i) v (r1)"
 System::Call "*$1(&i4 .r2, &i4 .r3, &i4 .r4, &i4 .r5, \
                   &i4 .r6, &i4.r7, &i4 .r8, &i4 .r9)"
 System::Free $1
 
+; GlobalMemoryStatus only works for real x68 Systems not for x64 Sytems so in case of Error it calls a mightier method
+IntCmp $5 -1 bigSystem
 ; for Xmx and Xms
 IntOp $R9 $5 / 1024
 IntOp $R9 $R9 / 1024
 IntOp $R9 $R9 * 90
 IntOp $R9 $R9 / 100
 IntCmp $R9 64 less64 less64 more64
+
+bigSystem:	
+	System::Alloc 64
+Pop $0
+System::Call "*$0(i 64)"
+System::Call "Kernel32::GlobalMemoryStatusEx(i r0)"
+System::Call "*$0(i, i, l, l.r1, l, l, l, l, l)"
+System::Free $0
+
+; for Xmx and Xms
+System::Int64Op $1 / 1024
+Pop $1
+System::Int64Op $1 / 1024
+Pop $1
+System::Int64Op $1 * 90
+Pop $1
+System::Int64Op $1 / 100
+Pop $1
+IntCmp $1 64 less64 less64 more64+
+	
 less64: 
 	StrCpy $R9 64
 	Goto mem_more
+
+more64+:
+	StrCpy $R9 $1
+	Goto more64
+	
 more64:
+	Call getPreferredMemory 
+	IntCmp $R9 $R0 mem_more mem_more moreThanPreferred
+	
+moreThanPreferred:
+	StrCpy $R9 $R0
 	Goto mem_more
-
+	
 mem_more:
-	IntCmp $R9 1200 less1200 less1200 more1200
-	less1200:
-	Goto after_mem_more
-more1200: 
-	StrCpy $R9 1200
-	Goto after_mem_more
-
-after_mem_more:
   Call GetJRE
   Pop $R0
  
@@ -123,17 +148,38 @@ Function PerformUpdate
   IfFileExists $R0 UpdateFound NoUpdate
         
   UpdateFound:
-     MessageBox MB_OKCANCEL "An Update was found. Press press OK to perform the update now or press Cancel to delay the update until the next start. You need to enter the Administrator-Password to start the update" IDOK OK IDCANCEL CANCEL
 	 ;start RapidMinerUpdate.exe which will elevate administrator privileges
-	 OK:
 	 	StrCpy $R9 ""
 	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_SHOW} $R9
-		
-	CANCEL:
-		; User delayed update
-		
   NoUpdate:
 		
+FunctionEnd
+
+Function getPreferredMemory 
+;
+;  checks if an preferred memorysize exists.
+;  if it exits it writes it to $R0 else 2048 will be written to $R0
+
+  ;RapidMiner directory in UserProfile ----------- important change for new version
+  StrCpy $R8 "$PROFILE\.RapidMiner5\memory"
+ 
+  ClearErrors
+  IfFileExists $R8 foundMemory noMemory
+        
+  foundMemory:
+	 ;parse memory and write to $R0
+	 	FileOpen $4 $R8 "r"
+     	FileSeek $4 0
+		ClearErrors
+   		FileRead $4 $3
+   	  	IfErrors noMemory
+		StrCpy $R0 $3
+		Goto functionEnd
+		
+  noMemory:
+		StrCpy $R0 2048
+		
+  functionEnd:
 FunctionEnd
 
 Function GetJRE

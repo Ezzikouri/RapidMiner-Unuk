@@ -464,6 +464,7 @@ public class UpdatePanelTab extends JPanel {
 			installButton.setSelected(updateModel.isSelectedForInstallation(desc));
 
 			boolean isInstalled = false;
+			boolean updated = false;
 			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 			if (ext != null) {
 				isInstalled = true;
@@ -472,6 +473,9 @@ public class UpdatePanelTab extends JPanel {
 					boolean upToDate = installed.compareTo(desc.getVersion()) >= 0;
 					if (upToDate) {
 						installButton.setEnabled(false);
+						updated = true;
+					} else {
+						updated = false;
 					}
 				}
 			}
@@ -483,8 +487,8 @@ public class UpdatePanelTab extends JPanel {
 					loginForInstallHint.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.need_to_log_in.label"));
 				} else if (updateModel.isPurchased(desc)) {
 					// restricted, purchased but not installed yet
-					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
-					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.label"));
+					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.mne").toUpperCase().charAt(0));
 					installButton.setPurchaseFirst(false);
 					installButton.setVisible(true);
 					loginForInstallHint.setText("");
@@ -496,7 +500,6 @@ public class UpdatePanelTab extends JPanel {
 					}
 				} else {
 					// restricted, not purchased
-
 					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.label"));
 					installButton.setIcon(SwingTools.createIcon("16/shopping_cart_empty.png"));
 					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.mne").toUpperCase().charAt(0));
@@ -505,23 +508,43 @@ public class UpdatePanelTab extends JPanel {
 
 					installButton.setPurchaseFirst(true);
 				}
-			} else {
-				// not restricted / restricted but already installed
-				installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
-				installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
-				installButton.setPurchaseFirst(false);
-				installButton.setVisible(true);
-				loginForInstallHint.setText("");
+			}
+			else {
+				if (isInstalled) {
+					if (!updated) {
+						// // not restricted / restricted and installed but not updated
+						installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
+						installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+						installButton.setPurchaseFirst(false);
+						installButton.setVisible(true);
+						loginForInstallHint.setText("");
 
-				if (updateModel.isSelectedForInstallation(desc)) {
-					installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
-				} else {
-					installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+						if (updateModel.isSelectedForInstallation(desc)) {
+							installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+						} else {
+							installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+						}
+					} else {
+						installButton.setVisible(false);
+					}
+				}
+				else {
+					// not restricted / restricted but not installed
+					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.label"));
+					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+					installButton.setPurchaseFirst(false);
+					installButton.setVisible(true);
+					loginForInstallHint.setText("");
+
+					if (updateModel.isSelectedForInstallation(desc)) {
+						installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+					} else {
+						installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+					}
 				}
 			}
 		}
 	}
-
 	@Override
 	public void removeNotify() {
 		super.removeNotify();

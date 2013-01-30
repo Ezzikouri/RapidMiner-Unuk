@@ -125,6 +125,13 @@ public class DatabaseConnectionService {
 
     
     public static ConnectionEntry getConnectionEntry(String name, String repository) {
+    	// try to find local entry and return it
+        for (ConnectionEntry entry : connections) {
+            if (entry.getName().equals(name) && entry.getRepository() == null) {
+        		return entry;
+            }
+        }
+        
     	// try to find ant return entry matching both name and repository
     	for (ConnectionEntry entry : connections) {
             if (entry.getName().equals(name)) {
@@ -144,7 +151,7 @@ public class DatabaseConnectionService {
             }
         }
         
-        // return null
+        // nothing found - return null
         return null;
     }
 

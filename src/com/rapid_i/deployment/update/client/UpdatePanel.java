@@ -40,7 +40,6 @@ import com.rapid_i.deployment.update.client.listmodels.TopRatedPackageListModel;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.ResourceTabbedPane;
 import com.rapidminer.tools.NetTools;
-import com.rapidminer.tools.plugin.Dependency;
 
 /**
  * 
@@ -49,7 +48,7 @@ import com.rapidminer.tools.plugin.Dependency;
  */
 public class UpdatePanel extends JPanel {
 
-	private final PackageDescriptorCache packageDescriptorCache = new PackageDescriptorCache();
+	private final PackageDescriptorCache packageDescriptorCache;
 
 	private final UpdateDialog updateDialog;
 
@@ -65,27 +64,20 @@ public class UpdatePanel extends JPanel {
 	
 	private UpdatePackagesModel updateModel;
 
-	public UpdatePanel(UpdateDialog dialog, List<PackageDescriptor> descriptors, String[] preselectedExtensions, final UpdateServerAccount usAccount, UpdatePackagesModel updateModel) {
+	public UpdatePanel(UpdateDialog dialog,
+	                   PackageDescriptorCache packageDescriptorCache,
+	                   String[] preselectedExtensions, 
+	                   final UpdateServerAccount usAccount, 
+	                   UpdatePackagesModel updateModel) {
 
-		this.usAccount = usAccount;
-		
+		this.packageDescriptorCache = packageDescriptorCache;
+		this.usAccount = usAccount;		
 		this.updateModel = updateModel;
 
 		for (String pE : preselectedExtensions) {
-			for (PackageDescriptor desc : descriptors) {
-				if (desc.getPackageId().equals(pE)) {
-					updateModel.setSelectedForInstallation(desc, true);
-				}
-			}
-		}
-		for (PackageDescriptor desc : descriptors) {
-			if (desc.getDependencies() != null) {
-				List<Dependency> dep = Dependency.parse(desc.getDependencies());
-				if (!dep.isEmpty()) {
-					updateModel.setDependencies(desc, dep);
-				}
-			}
-		}
+			PackageDescriptor desc = packageDescriptorCache.getPackageInfo(pE);
+			updateModel.setSelectedForInstallation(desc, true);			
+		}		
 		this.updateDialog = dialog;
 
 		setLayout(new BorderLayout());

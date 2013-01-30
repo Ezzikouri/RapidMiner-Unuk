@@ -72,6 +72,7 @@ import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.ProcessEntry;
+import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryActionCondition;
 import com.rapidminer.repository.RepositoryActionConditionImplConfigRepository;
 import com.rapidminer.repository.RepositoryActionConditionImplStandard;
@@ -106,6 +107,161 @@ import com.rapidminer.tools.LogService;
  * @author Simon Fischer, Tobias Malbrecht, Marco Boeck
  */
 public class RepositoryTree extends JTree {
+
+	/**
+	 * @author Nils Woehler
+	 *
+	 */
+	private final class RepositoryTreeTransferhandler extends AbstractPatchedTransferHandler {
+
+		private static final long serialVersionUID = 1L;
+		// Remember whether the last cut/copy action was a MOVE
+		// A move will result in the entry being deleted upon drop / paste
+		// Unfortunately there is no easy way to know this from the TransferSupport
+		// passed to importData(). It is not even known in createTransferable(), so we
+		// cannot even attach it to the Transferable
+		// This implementation implies that we can only transfer from one repository tree
+		// to the same instance since this state is not passed to other instances.
+		int latestAction = 0;
+
+		@Override
+		public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
+			List<DataFlavor> flavors = Arrays.asList(transferFlavors);
+			boolean contains = flavors.contains(DataFlavor.javaFileListFlavor);
+			contains |= flavors.contains(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR);
+			return contains;
+		}
+
+		/** Imports data files using a Wizard. */
+		@Override
+		public boolean importData(final TransferSupport ts) {
+			// determine where to insert
+			final Entry droppedOn;
+			if (ts.isDrop()) {
+				Point dropPoint = ts.getDropLocation().getDropPoint();
+				TreePath path = getPathForLocation((int) dropPoint.getX(), (int) dropPoint.getY());
+				if (path == null) {
+					return false;
+				}
+				droppedOn = (Entry) path.getLastPathComponent();
+			} else {
+				droppedOn = getSelectedEntry();
+			}
+			if (droppedOn == null) {
+				return false;
+			}
+
+			try {
+				List<DataFlavor> flavors = Arrays.asList(ts.getDataFlavors());
+				if (flavors.contains(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR)) {
+					final RepositoryLocation loc = (RepositoryLocation) ts.getTransferable().getTransferData(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR);
+					if (droppedOn instanceof Folder) {
+						new ProgressThread("copy_repository_entry", true) {
+
+							@Override
+							public void run() {
+								try {
+									if ((latestAction == MOVE) || (ts.isDrop() && ts.getDropAction() == MOVE)) {
+										RepositoryManager.getInstance(null).move(loc, (Folder) droppedOn, getProgressListener());
+									} else {
+										RepositoryManager.getInstance(null).copy(loc, (Folder) droppedOn, getProgressListener());
+									}
+								} catch (RepositoryException e) {
+									SwingTools.showSimpleErrorMessage("error_in_copy_repository_entry", e, loc.toString(), e.getMessage());
+								}
+							}
+						}.start();
+						return true;
+					} else {
+						return false;
+					}
+				} else if (flavors.contains(DataFlavor.javaFileListFlavor)) {
+					List files = (List) ts.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+					File file = (File) files.get(0);
+					DataImportWizard.importData(file, droppedOn.getLocation());
+					return true;
+				} else {
+					return false;
+				}
+			} catch (UnsupportedFlavorException e) {
+				//LogService.getRoot().log(Level.WARNING, "Cannot accept drop flavor: "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.repository.RepositoryTree.accepting_flavor_error",
+								e),
+						e);
+				return false;
+			} catch (IOException e) {
+				//LogService.getRoot().log(Level.WARNING, "Error during drop: "+e, e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.repository.RepositoryTree.error_during_drop",
+								e),
+						e);
+				return false;
+			}
+		}
+
+		@Override
+		protected void exportDone(JComponent c, Transferable data, int action) {
+			if (action == MOVE) {
+				latestAction = MOVE;
+			} else {
+				latestAction = 0;
+			}
+		}
+
+		@Override
+		public int getSourceActions(JComponent c) {
+			return COPY_OR_MOVE;
+		}
+
+		@Override
+		protected Transferable createTransferable(JComponent c) {
+			TreePath path = getSelectionPath();
+			if (path != null) {
+				Entry e = (Entry) path.getLastPathComponent();
+				if(e instanceof Repository) {
+					return null;
+				}
+				final RepositoryLocation location = e.getLocation();
+				return new Transferable() {
+
+					@Override
+					public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+						if (flavor.equals(DataFlavor.stringFlavor)) {
+							return location.getAbsoluteLocation();
+						} else if (TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR.equals(flavor)) {
+							return location;
+						} else {
+							throw new IllegalArgumentException("Flavor not supported: " + flavor);
+						}
+					}
+
+					@Override
+					public DataFlavor[] getTransferDataFlavors() {
+						return new DataFlavor[] {
+								TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR,
+								DataFlavor.stringFlavor
+						};
+					}
+
+					@Override
+					public boolean isDataFlavorSupported(DataFlavor flavor) {
+						return TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR.equals(flavor) ||
+								DataFlavor.stringFlavor.equals(flavor);
+					}
+				};
+			} else {
+				return null;
+			}
+		}
+
+		@Override
+		public Icon getVisualRepresentation(Transferable t) {
+			return null;
+		}
+	}
 
 	/**
 	 * Holds the RepositoryAction entries.
@@ -312,153 +468,7 @@ public class RepositoryTree extends JTree {
 		});
 
 		setDragEnabled(true);
-		setTransferHandler(new AbstractPatchedTransferHandler() {
-
-			private static final long serialVersionUID = 1L;
-			// Remember whether the last cut/copy action was a MOVE
-			// A move will result in the entry being deleted upon drop / paste
-			// Unfortunately there is no easy way to know this from the TransferSupport
-			// passed to importData(). It is not even known in createTransferable(), so we
-			// cannot even attach it to the Transferable
-			// This implementation implies that we can only transfer from one repository tree
-			// to the same instance since this state is not passed to other instances.
-			int latestAction = 0;
-
-			@Override
-			public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
-				List<DataFlavor> flavors = Arrays.asList(transferFlavors);
-				boolean contains = flavors.contains(DataFlavor.javaFileListFlavor);
-				contains |= flavors.contains(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR);
-				return contains;
-			}
-
-			/** Imports data files using a Wizard. */
-			@Override
-			public boolean importData(final TransferSupport ts) {
-				// determine where to insert
-				final Entry droppedOn;
-				if (ts.isDrop()) {
-					Point dropPoint = ts.getDropLocation().getDropPoint();
-					TreePath path = getPathForLocation((int) dropPoint.getX(), (int) dropPoint.getY());
-					if (path == null) {
-						return false;
-					}
-					droppedOn = (Entry) path.getLastPathComponent();
-				} else {
-					droppedOn = getSelectedEntry();
-				}
-				if (droppedOn == null) {
-					return false;
-				}
-
-				try {
-					List<DataFlavor> flavors = Arrays.asList(ts.getDataFlavors());
-					if (flavors.contains(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR)) {
-						final RepositoryLocation loc = (RepositoryLocation) ts.getTransferable().getTransferData(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR);
-						if (droppedOn instanceof Folder) {
-							new ProgressThread("copy_repository_entry", true) {
-
-								@Override
-								public void run() {
-									try {
-										if ((latestAction == MOVE) || (ts.isDrop() && ts.getDropAction() == MOVE)) {
-											RepositoryManager.getInstance(null).move(loc, (Folder) droppedOn, getProgressListener());
-										} else {
-											RepositoryManager.getInstance(null).copy(loc, (Folder) droppedOn, getProgressListener());
-										}
-									} catch (RepositoryException e) {
-										SwingTools.showSimpleErrorMessage("error_in_copy_repository_entry", e, loc.toString(), e.getMessage());
-									}
-								}
-							}.start();
-							return true;
-						} else {
-							return false;
-						}
-					} else if (flavors.contains(DataFlavor.javaFileListFlavor)) {
-						List files = (List) ts.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-						File file = (File) files.get(0);
-						DataImportWizard.importData(file, droppedOn.getLocation());
-						return true;
-					} else {
-						return false;
-					}
-				} catch (UnsupportedFlavorException e) {
-					//LogService.getRoot().log(Level.WARNING, "Cannot accept drop flavor: "+e, e);
-					LogService.getRoot().log(Level.WARNING,
-							I18N.getMessage(LogService.getRoot().getResourceBundle(),
-									"com.rapidminer.repository.RepositoryTree.accepting_flavor_error",
-									e),
-							e);
-					return false;
-				} catch (IOException e) {
-					//LogService.getRoot().log(Level.WARNING, "Error during drop: "+e, e);
-					LogService.getRoot().log(Level.WARNING,
-							I18N.getMessage(LogService.getRoot().getResourceBundle(),
-									"com.rapidminer.repository.RepositoryTree.error_during_drop",
-									e),
-							e);
-					return false;
-				}
-			}
-
-			@Override
-			protected void exportDone(JComponent c, Transferable data, int action) {
-				if (action == MOVE) {
-					latestAction = MOVE;
-				} else {
-					latestAction = 0;
-				}
-			}
-
-			@Override
-			public int getSourceActions(JComponent c) {
-				return COPY_OR_MOVE;
-			}
-
-			@Override
-			protected Transferable createTransferable(JComponent c) {
-				TreePath path = getSelectionPath();
-				if (path != null) {
-					Entry e = (Entry) path.getLastPathComponent();
-					final RepositoryLocation location = e.getLocation();
-					return new Transferable() {
-
-						@Override
-						public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-							if (flavor.equals(DataFlavor.stringFlavor)) {
-								return location.getAbsoluteLocation();
-							} else if (TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR.equals(flavor)) {
-								return location;
-							} else {
-								throw new IllegalArgumentException("Flavor not supported: " + flavor);
-							}
-						}
-
-						@Override
-						public DataFlavor[] getTransferDataFlavors() {
-							return new DataFlavor[] {
-									TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR,
-									DataFlavor.stringFlavor
-							};
-						}
-
-						@Override
-						public boolean isDataFlavorSupported(DataFlavor flavor) {
-							return TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR.equals(flavor) ||
-									DataFlavor.stringFlavor.equals(flavor);
-						}
-					};
-				} else {
-					return null;
-				}
-			}
-
-			@Override
-			public Icon getVisualRepresentation(Transferable t) {
-				return null;
-			}
-		});
+		setTransferHandler(new RepositoryTreeTransferhandler());
 
 		getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
 

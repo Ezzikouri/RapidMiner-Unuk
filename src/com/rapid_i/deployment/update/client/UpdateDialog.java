@@ -194,13 +194,15 @@ public class UpdateDialog extends ButtonDialog {
 
 	private InstallButton installButton;
 
-	public UpdateDialog(List<PackageDescriptor> descriptors, String[] preselectedExtensions) {
+	private final PackageDescriptorCache packageDescriptorCache = new PackageDescriptorCache();
+
+	public UpdateDialog(String[] preselectedExtensions) {
 		super("update");
 		setModal(true);
 		UpdateServerAccount usAccount = UpdateManager.getUpdateServerAccount();
 		usAccount.addObserver(accountInfoButton);
-		updateModel = new UpdatePackagesModel(descriptors, usAccount);
-		ulp = new UpdatePanel(this, descriptors, preselectedExtensions, usAccount, updateModel);
+		updateModel = new UpdatePackagesModel(packageDescriptorCache, usAccount);
+		ulp = new UpdatePanel(this, packageDescriptorCache, preselectedExtensions, usAccount, updateModel);
 		layoutDefault(ulp, HUGE, makeOkButton("update.install"), makeCloseButton());
 		this.addWindowListener(windowListener);
 	}
@@ -273,8 +275,7 @@ public class UpdateDialog extends ButtonDialog {
 
 					@Override
 					public void run() {
-						final List<PackageDescriptor> descriptors = new LinkedList<PackageDescriptor>();
-						UpdateDialog updateDialog = new UpdateDialog(descriptors, preselectedExtensions);
+						UpdateDialog updateDialog = new UpdateDialog(preselectedExtensions);
 						if (selectUpdateTab) {
 							updateDialog.showUpdateTab();
 						}

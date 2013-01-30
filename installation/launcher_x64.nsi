@@ -64,14 +64,17 @@ System::Int64Op $1 * 90
 Pop $1
 System::Int64Op $1 / 100
 Pop $1
-
 IntCmp $1 64 less64 less64 more64
 less64: 
 	StrCpy $1 64
 	Goto after_mem_more
 more64:
-	Goto after_mem_more
+	Call getPreferredMemory
+	IntCmp $1 $R0 after_mem_more after_mem_more moreThanPreferred
 
+moreThanPreferred:
+	StrCpy $1 $R0
+	
 after_mem_more:
   Call GetJRE
   Pop $R0
@@ -120,16 +123,37 @@ Function PerformUpdate
   IfFileExists $R0 UpdateFound NoUpdate
         
   UpdateFound:
-     MessageBox MB_OKCANCEL "An Update was found. Press press OK to perform the update now or press Cancel to delay the update until the next start. You need to enter the Administrator-Password to start the update" IDOK OK IDCANCEL CANCEL
 	 ;start RapidMinerUpdate.exe which will elevate administrator privileges
-	 OK:
-	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_SHOW} $R9
-		 
-	CANCEL:
-		; User delayed update
-		
+	 	!insertmacro ShellExecWait "open" '"$EXEDIR\scripts\RapidMinerUpdate.exe"' '$R8' "" ${SW_SHOW} $R9	
   NoUpdate:
  
+FunctionEnd
+
+Function getPreferredMemory 
+;
+;  checks if an preferred memorysize exists.
+;  if it exits it writes it to $R0 else 2048 will be written to $R0
+
+  ;RapidMiner directory in UserProfile ----------- important change for new version
+  StrCpy $R8 "$PROFILE\.RapidMiner5\memory"
+ 
+  ClearErrors
+  IfFileExists $R8 foundMemory noMemory
+        
+  foundMemory:
+	 ;parse memory and write to $R0
+	 	FileOpen $4 $R8 "r"
+     	FileSeek $4 0
+		ClearErrors
+   		FileRead $4 $3
+   	  	IfErrors noMemory
+		StrCpy $R0 $3
+		Goto functionEnd
+		
+  noMemory:
+		StrCpy $R0 $1
+		
+  functionEnd:
 FunctionEnd
 
 Function GetJRE
