@@ -304,24 +304,31 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	}
 
 	public void updateErrors() {
-		List<ParsingError> errorList = new ArrayList<ParsingError>();
-
+		final List<ParsingError> errorList = new ArrayList<ParsingError>();
+		
 		canProceed = true;
 		if (headerValidator.getErrors().size() > 0) {
-			errorList.addAll(headerValidator.getErrors());
+			List<ParsingError> headerErrors = headerValidator.getErrors();
+			errorList.addAll(headerErrors);
 			canProceed = false;
 		}
 		errorList.addAll(state.getTranslator().getErrors());
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
 
-		final int size = errorList.size();
-		errorLabel.setText(size + " errors.");
-		if (size == 0) {
-			errorLabel.setIcon(SwingTools.createIcon("16/ok.png"));
-		} else {
-			errorLabel.setIcon(SwingTools.createIcon("16/error.png"));
-		}
+				final int size = errorList.size();
+				errorLabel.setText(size + " errors.");
+				if (size == 0) {
+					errorLabel.setIcon(SwingTools.createIcon("16/ok.png"));
+				} else {
+					errorLabel.setIcon(SwingTools.createIcon("16/error.png"));
+				}
+			}
+		});
 		errorTableModel.setErrors(errorList);
-		fireStateChanged();
+		fireStateChanged();	
 	}
 
 	private void updateTableModel(ExampleSet exampleSet) {
@@ -353,6 +360,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		previewTable.setTableHeader(new EditableTableHeader(columnModel));
 		// header editors and renderers and values
 		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
+		headerValidator.addHeaderRenderer(headerRenderer);
 		for (int i = 0; i < previewTable.getColumnCount(); i++) {
 			MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor(headerValidator);
 			EditableTableHeaderColumn col = (EditableTableHeaderColumn) previewTable.getColumnModel().getColumn(i);

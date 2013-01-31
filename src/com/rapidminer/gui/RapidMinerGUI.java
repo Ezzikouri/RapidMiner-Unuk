@@ -289,7 +289,11 @@ public class RapidMinerGUI extends RapidMiner {
 		//			ImportProcessAction.open(file);
 		//		}
 		if (openLocation != null) {
-			OpenAction.open(openLocation, false);
+			if(!RepositoryLocation.isAbsolute(openLocation)) {
+				SwingTools.showVerySimpleErrorMessage("malformed_repository_location", openLocation);
+			} else {
+				OpenAction.open(openLocation, false);
+			}
 		}
 
 		// check for updates

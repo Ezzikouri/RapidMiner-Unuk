@@ -43,6 +43,7 @@ import com.rapidminer.gui.tools.dialogs.ButtonDialog;
  * @author Simon Fischer
  *
  */
+@Deprecated
 public class ConfirmLicenseDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = 1L;

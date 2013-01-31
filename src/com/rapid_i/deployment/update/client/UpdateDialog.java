@@ -32,6 +32,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,7 @@ import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.NetTools;
+import com.rapidminer.tools.plugin.Dependency;
 
 /**
  * 
@@ -128,7 +130,7 @@ public class UpdateDialog extends ButtonDialog {
 						try {
 							Desktop.getDesktop().browse(new URI(UpdateManager.getBaseUrl() + "/faces/signup.xhtml"));
 						} catch (Exception ex) {
-							SwingTools.showSimpleErrorMessage("cannot_open_browser", ex);				
+							SwingTools.showSimpleErrorMessage("cannot_open_browser", ex);
 						}
 					} else {
 						if (account.isLoggedIn()) {
@@ -255,13 +257,12 @@ public class UpdateDialog extends ButtonDialog {
 			@Override
 			public void run() {
 
-
 				getProgressListener().setTotal(100);
 				getProgressListener().setCompleted(33);
 				try {
 					UpdateManager.resetService();
 					UpdateManager.getService();
-				} catch(WebServiceException e) {
+				} catch (WebServiceException e) {
 					// thrown when no internet connection is available. Simple error message to not confuse users
 					SwingTools.showVerySimpleErrorMessage("failed_update_server_simple");
 					return;
@@ -302,26 +303,40 @@ public class UpdateDialog extends ButtonDialog {
 					getProgressListener().setCompleted(10);
 					UpdateService service = UpdateManager.getService();
 
-					// Download licenses
-					Map<String, String> licenses = new HashMap<String, String>();
-					for (PackageDescriptor desc : downloadList) {
-						String license = licenses.get(desc.getLicenseName());
-						if (license == null) {
-							license = service.getLicenseTextHtml(desc.getLicenseName());
-							licenses.put(desc.getLicenseName(), license);
-						}
+					HashSet<Dependency> dependencySet = new HashSet<Dependency>();
+					List<PackageDescriptor> dependentPackageDescList = new LinkedList<PackageDescriptor>();
+					HashSet<String> pluginsSelectedForDownload = new HashSet<String>();
+					
+					for (PackageDescriptor packageDescriptor : downloadList) {
+						pluginsSelectedForDownload.add(packageDescriptor.getPackageId());
 					}
-
-					// Confirm licenses
+					
+					for (PackageDescriptor desc : downloadList) {
+							dependencySet.addAll(collectDependency(desc,pluginsSelectedForDownload));
+					}
+					
+				/*	for (PackageDescriptor desc : downloadList) {
+						HashSet<Dependency> collectDependency = collectDependency(desc, pluginsSelectedForDownload);
+						for (Dependency dependency : collectDependency) {
+							if (pluginsSelectedForDownload.contains(dependency.getPluginExtensionId())) {
+								continue;
+							}
+							dependencySet.add(dependency);
+						}
+					}*/
+					
+					for (Dependency dependency : dependencySet) {
+						dependentPackageDescList.add(packageDescriptorCache.getPackageInfo(dependency.getPluginExtensionId()));
+					}
+					
 					getProgressListener().setCompleted(20);
 					List<PackageDescriptor> acceptedList = new LinkedList<PackageDescriptor>();
-					for (PackageDescriptor desc : downloadList) {
-						if (ConfirmLicenseDialog.confirm(desc, licenses.get(desc.getLicenseName()))) {
-							acceptedList.add(desc);
-						}
-					}
+					acceptedList.addAll(downloadList);
+					acceptedList.addAll(dependentPackageDescList);
+					
+					boolean isConfirmed = ConfirmLicensesDialog.confirm(downloadList, dependentPackageDescList,acceptedList.size());
 
-					if (!acceptedList.isEmpty()) {
+					if (isConfirmed && !acceptedList.isEmpty()) {
 						UpdateManager um = new UpdateManager(service);
 						List<PackageDescriptor> installedPackages = um.performUpdates(acceptedList, getProgressListener());
 
@@ -330,7 +345,7 @@ public class UpdateDialog extends ButtonDialog {
 						ulp.repaint();
 
 						if (installedPackages.size() > 0) {
-							if (SwingTools.showConfirmDialog((installedPackages.size() == 1 ? "update.complete_restart" : "update.complete_restart1"), 
+							if (SwingTools.showConfirmDialog((installedPackages.size() == 1 ? "update.complete_restart" : "update.complete_restart1"),
 									ConfirmDialog.YES_NO_OPTION, installedPackages.size()) == ConfirmDialog.YES_OPTION) {
 								RapidMinerGUI.getMainFrame().exit(true);
 							}
@@ -343,6 +358,29 @@ public class UpdateDialog extends ButtonDialog {
 					installButton.setEnabled(true);
 				}
 			}
+
+			/**
+			 * Recursively collect all the dependent extentions of a given extension			 *
+			 * @param desc 
+			 * @param pluginsSelectedForDownload 
+			 * @return
+			 */
+			private HashSet<Dependency> collectDependency(PackageDescriptor desc, HashSet<String> pluginsSelectedForDownload) {
+				HashSet<Dependency> dependencySet = new HashSet<Dependency>();
+				List<Dependency> dependencies = Dependency.parse(desc.getDependencies());
+				for (Dependency dependency : dependencies) {
+					String packageId = dependency.getPluginExtensionId();
+					PackageDescriptor packageInfo = packageDescriptorCache.getPackageInfo(packageId);
+					if ( (!dependencySet.contains(packageInfo)) && (!pluginsSelectedForDownload.contains(packageId)) ) {
+						dependencySet.add(dependency);
+						dependencySet.addAll(collectDependency(packageInfo, pluginsSelectedForDownload));
+						
+					}
+
+				}
+				return dependencySet;
+			}
+
 		}.start();
 	}
 
