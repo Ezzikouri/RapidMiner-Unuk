@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,24 +20,28 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.event.HyperlinkEvent.EventType;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 import javax.xml.transform.Transformer;
@@ -56,14 +60,18 @@ import com.rapidminer.gui.actions.SaveAction;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
+import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.UpdateQueue;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.XMLException;
+import com.rapidminer.tools.plugin.Plugin;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
 
@@ -78,24 +86,24 @@ import com.vlsolutions.swing.docking.Dockable;
 public class OperatorDocumentationBrowser extends JPanel implements Dockable, ProcessEditor {
 
 	final ExtendedHTMLJEditorPane editor = new ExtendedHTMLJEditorPane("text/html", "<html>-</html>");
-	
+
 	private ExtendedJScrollPane scrollPane = new ExtendedJScrollPane();
 
 	public static final String DOCUMENTATION_ROOT = "core/";
-	
+
 	public Operator displayedOperator = null;
-	
+
 	public URL currentResourceURL = null;
-	
+
 	private boolean ignoreSelections = false;
-	
-	
+
 	public static final String OPERATOR_HELP_DOCK_KEY = "operator_help";
-	
+
 	private final DockKey DOCK_KEY = new ResourceDockKey(OPERATOR_HELP_DOCK_KEY);
-	
+
 	private static final long serialVersionUID = 1L;
 
+	private UpdateQueue documentationUpdateQueue = new UpdateQueue("documentation_update_queue");
 
 	/**
 	 * Prepares the dockable and its elements.
@@ -123,6 +131,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 		this.setVisible(true);
 		this.validate();
 
+		documentationUpdateQueue.start();
 	}
 
 	@Override
@@ -146,15 +155,16 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	 * It creates an absolute path that indicates the corresponding documentation XML file.
 	 */
 	private void assignDocumentation() {
+		boolean isPlugin = displayedOperator.getOperatorDescription().getProvider()!=null;
+		String documentationRoot = isPlugin
+							? displayedOperator.getOperatorDescription().getProvider().getPrefix() + "/"
+							: DOCUMENTATION_ROOT;
 		String groupPath = ((displayedOperator.getOperatorDescription().getGroup()).replace(".", "/"));
-		String opDescXMLResourcePath = DOCUMENTATION_ROOT + groupPath + "/" + displayedOperator.getOperatorDescription().getKey() + ".xml";
-		URL resourceURL = this.getClass().getClassLoader().getResource(opDescXMLResourcePath);
-		try {
-			changeDocumentation(resourceURL.openStream());
-		} catch (Exception e) {
-			// null stream will result in fallback to wiki/old offline doc
-			changeDocumentation(null);
-		}
+		String key = displayedOperator.getOperatorDescription().getKeyWithoutPrefix();
+		
+		String opDescXMLResourcePath = documentationRoot + groupPath + "/" + key + ".xml";
+		URL resourceURL = Plugin.getMajorClassLoader().getResource(opDescXMLResourcePath);
+		changeDocumentation(resourceURL);
 		currentResourceURL = resourceURL;
 	}
 
@@ -175,7 +185,7 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 
 	/**
 	 * This is the method that actually gets the Content of this Dockable.
-	 * The conversion takes place in the class OperatorDocToHtmlConverter.
+	 * The conversion takes place in the class {@link OperatorDocToHtmlConverter}.
 	 * @param xmlStream
 	 */
 	private String parseXmlAndReturnHtml(InputStream xmlStream) {
@@ -190,8 +200,6 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 		}
 	}
 
-	
-
 	/**
 	 * Event handler that handles clicking on a link to a tutorial process.
 	 */
@@ -199,45 +207,42 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 
 		public void hyperlinkUpdate(HyperlinkEvent e) {
 			if (e.getEventType().equals(EventType.ACTIVATED)) {
-				
-				// ask user if he wants to save his current proces because the example process will replace his current process
-				if (RapidMinerGUI.getMainFrame().isChanged()) {
-					// current process is flagged as unsaved
-					int returnVal = SwingTools.showConfirmDialog("save_before_show_tutorial_process", ConfirmDialog.YES_NO_CANCEL_OPTION);
-					if (returnVal == ConfirmDialog.CANCEL_OPTION) {
-						return;
-					} else if (returnVal == ConfirmDialog.YES_OPTION) {
-						SaveAction.save(RapidMinerGUI.getMainFrame().getProcess());
-					}
-				} else {
-					// current process is not flagged as unsaved
-					if (SwingTools.showConfirmDialog("show_tutorial_process", ConfirmDialog.OK_CANCEL_OPTION) == ConfirmDialog.CANCEL_OPTION) {
-						return;
-					}
-				}
-
-				if (e.getDescription().contains("l")) {
-					int index = Integer.parseInt(e.getDescription().substring(1));
-					Operator recent = displayedOperator;
-					ignoreSelections = true;
-					RapidMinerGUI.getMainFrame().setProcess(displayedOperator.getOperatorDescription().getOperatorDocumentation().getExamples().get(index).getProcess(), true);
-					Collection<Operator> displayedOperators = RapidMinerGUI.getMainFrame().getProcess().getAllOperators();
-					for (Operator item : displayedOperators) {
-						if (item.getClass().equals(recent.getClass())) {
-							RapidMinerGUI.getMainFrame().selectOperator(item);
-							ignoreSelections = false;
+				if(e.getDescription().startsWith("tutorial:")) {
+					// ask for confirmation before stopping the currently running process and opening another one!
+	            	if (RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_RUNNING || 
+	            			RapidMinerGUI.getMainFrame().getProcessState() == Process.PROCESS_STATE_PAUSED) {
+	            		if (SwingTools.showConfirmDialog("close_running_process", ConfirmDialog.YES_NO_OPTION) == ConfirmDialog.NO_OPTION) {
+	            			return;
+	            		}
+	            	}
+	            	
+					// ask user if he wants to save his current process because the example process will replace his current process
+					if (RapidMinerGUI.getMainFrame().isChanged()) {
+						// current process is flagged as unsaved
+						int returnVal = SwingTools.showConfirmDialog("save_before_show_tutorial_process", ConfirmDialog.YES_NO_CANCEL_OPTION);
+						if (returnVal == ConfirmDialog.CANCEL_OPTION) {
+							return;
+						} else if (returnVal == ConfirmDialog.YES_OPTION) {
+							SaveAction.save(RapidMinerGUI.getMainFrame().getProcess());
+						}
+					} else {
+						// current process is not flagged as unsaved
+						if (SwingTools.showConfirmDialog("show_tutorial_process", ConfirmDialog.OK_CANCEL_OPTION) == ConfirmDialog.CANCEL_OPTION) {
+							return;
 						}
 					}
-				} else {
+				
 					try {
 						if (currentResourceURL == null) {
 							// should not happen, because then there would be no link in the first place
 							return;
 						}
-						Document document = XMLTools.parse(currentResourceURL.openStream());
+						Document document = XMLTools.parse(WebServiceTools.openStreamFromURL(currentResourceURL));
 
+						int index = Integer.parseInt(e.getDescription().substring("tutorial:".length()));
+						
 						NodeList nodeList = document.getElementsByTagName("tutorialProcess");
-						Node processNode = nodeList.item(Integer.parseInt(e.getDescription()) - 1);
+						Node processNode = nodeList.item(index - 1);
 						Node process = null;
 						int i = 0;
 						while (i < processNode.getChildNodes().getLength()) {
@@ -263,14 +268,34 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 							}
 						}
 					} catch (TransformerException e1) {
-						LogService.getRoot().warning("Example process could not be created. Reason: " + e1.getLocalizedMessage());
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.ExampleProcess.creating_example_process_error", e1);
 					} catch (SAXException e1) {
-						LogService.getRoot().warning("Error parsing xml! Example process could not be created. Reason: " + e1.getLocalizedMessage());
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.ExampleProcess.parsing_xml_error", e1);
 					} catch (IOException e1) {
-						LogService.getRoot().warning("Error reading file! Example process could not be created. Reason: " + e1.getLocalizedMessage());
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.ExampleProcess.reading_file_error", e1);
 					} catch (XMLException e1) {
-						LogService.getRoot().warning("Error parsing xml! Example process could not be created. Reason: " + e1.getLocalizedMessage());
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.documentation.ExampleProcess.parsing_xml_error", e1);
 					}
+				
+				} else {
+					// open url in default browser
+					Desktop desktop = Desktop.getDesktop();
+			        if(desktop.isSupported(Desktop.Action.BROWSE)) {
+			          URI uri;
+						try {
+							uri = new java.net.URI(e.getDescription());
+							desktop.browse(uri);
+						} catch (URISyntaxException e1) {
+							LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.desktop.browse.malformed_url", e1);
+							return;
+						} catch (IOException e1) {
+							LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.desktop.browse.open_browser", e1);
+							return;
+						}
+			        } else {
+			        	LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.desktop.browse.not_supported");
+						return;
+			        }
 				}
 			}
 		}
@@ -279,14 +304,49 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	/**
 	 * Refreshes the documentation text.
 	 * 
-	 * @param xmlStream stream to the xml resource
+	 * @param resourceURL url to the xml resource
 	 */
-	private void changeDocumentation(InputStream xmlStream) {
-		String html = parseXmlAndReturnHtml(xmlStream);
-		html = html.replace(" xmlns:rmdoc=\"com.rapidminer.gui.OperatorDocumentationBrowser\"", " ");
+	private void changeDocumentation(final URL resourceURL) {
 		editor.setContentType("text/html");
-		editor.setText("<html>" + html + "</html>");
+		editor.setText("<html><div style=\"height:100%;width:100%;text-align:center;vertical-align:middle;margin-top:50px;\"><img src=\"icon:///48/hourglass.png\"/></div></html>"); 
 		editor.setCaretPosition(0);
+		documentationUpdateQueue.executeBackgroundJob(new ProgressThread("loading_documentation") {
+
+			@Override
+			public void run() {
+				InputStream xmlStream = null;
+				String html;
+				try {
+					if (resourceURL != null) {
+						xmlStream = WebServiceTools.openStreamFromURL(resourceURL);
+					}
+				} catch (IOException e) {
+					// do nothing
+				} finally {
+					html = parseXmlAndReturnHtml(xmlStream);
+					if (xmlStream != null) {
+						try {
+							xmlStream.close();
+						} catch (IOException e) {
+							//do nothing
+						}
+					}
+				}
+				html = html.replace(" xmlns:rmdoc=\"com.rapidminer.gui.OperatorDocumentationBrowser\"", " ");
+				final String finalHtml = html;
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						editor.setContentType("text/html");
+						editor.setText("<html>" + finalHtml + "</html>");
+						editor.setCaretPosition(0);
+					}
+				});
+
+			}
+
+		});
 	}
 
 	/**
@@ -297,27 +357,29 @@ public class OperatorDocumentationBrowser extends JPanel implements Dockable, Pr
 	private StyleSheet createStyleSheet() {
 		StyleSheet css = new HTMLEditorKit().getStyleSheet();
 		css.addRule("* {font-family: Arial}");
-		css.addRule("h4 {margin-bottom:2px; margin-top:2ex; padding-left:4px; padding:0; color:#446699; font-size:16pt}");
+
 		css.addRule("p {padding: 0px 20px 1px 20px; font-family: Arial;}");
 		css.addRule("ul li {padding-bottom:1ex}");
 		css.addRule("hr {color:red; background-color:red}");
 		css.addRule("h3 {color: #3399FF}");
+		css.addRule("h4 {color: #3399FF; font-size:13pt}");
+		css.addRule("h4 img {margin-right:8px;}");
 		css.addRule(".typeIcon {height: 10px; width: 10px;}");
 		css.addRule("td {vertical-align: top}");
 		css.addRule(".lilIcon {padding: 2px 4px 2px 0px}");
-		css.addRule(".HeadIcon {height: 40px; width: 40px}");
+		//css.addRule(".HeadIcon {height: 40px; width: 40px}");
 		css.addRule("td {font-style: normal}");
 
 		return css;
 	}
-	
+
 	/**
 	 * Sets the operator for which the operator documentation is shown.
 	 * @param operator
 	 */
 	public void setDisplayedOperator(Operator operator) {
-		if (operator != null && !operator.getOperatorDescription().isDeprecated() && 
-				(this.displayedOperator == null || 
+		if (operator != null && !operator.getOperatorDescription().isDeprecated() &&
+				(this.displayedOperator == null ||
 				(this.displayedOperator != null && !operator.getOperatorDescription().getName().equals(this.displayedOperator.getOperatorDescription().getName())))) {
 			this.displayedOperator = operator;
 			assignDocumentation();

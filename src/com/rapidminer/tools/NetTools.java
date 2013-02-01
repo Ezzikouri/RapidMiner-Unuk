@@ -33,17 +33,17 @@ import java.util.logging.Logger;
 import com.rapidminer.gui.tools.SwingTools;
 
 /**
- * Class providing new protocolls special for RapidMiner. Currently it supports
- * the icon:// protocoll, that will use the given path to load the icon using
- * new URL on {@link SwingTools#getIconPath(String)}.
+ * Class providing new protocols special for RapidMiner.
+ * Currently it supports the icon:// protocol, that will use the given
+ * path to load the icon using new URL on {@link SwingTools#getIconPath(String)}.
  * 
  * @author Sebastian Land
- * 
+ *
  */
 public class NetTools {
 	protected static final String ICON_PROTOCOLL = "icon";
 	protected static final String RESOURCE_PROTOCOLL = "resource";
-
+	
 	private static boolean initialized = false;
 	public static final URLStreamHandlerFactory fac = new URLStreamHandlerFactory() {
 		@Override
@@ -56,7 +56,9 @@ public class NetTools {
 						final URL resource = Tools.getResource("icons"
 								+ u.getPath());
 						if (resource != null) {
-							return resource.openConnection();
+							URLConnection conn = resource.openConnection();
+							WebServiceTools.setURLConnectionDefaults(conn);
+							return conn;
 						}
 						throw new IOException("Icon not found.");
 					}
@@ -69,7 +71,9 @@ public class NetTools {
 						final URL resource = Tools.getResource(u.getPath()
 								.substring(1, u.getPath().length()));
 						if (resource != null) {
-							return resource.openConnection();
+							URLConnection conn = resource.openConnection();
+							WebServiceTools.setURLConnectionDefaults(conn);
+							return conn;
 						}
 						throw new IOException("Resource not found.");
 					}

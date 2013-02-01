@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,6 +22,10 @@
  */
 package com.rapidminer.repository.gui;
 
+import java.util.List;
+
+import javax.swing.AbstractButton;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 
 import com.rapidminer.repository.Repository;
@@ -46,5 +50,11 @@ public interface RepositoryConfigurationPanel {
 	
 	/** Returns the actual component. */
 	public JComponent getComponent();
+
+	/** This button should be disabled when invalid values are entered. */
+	public void setOkButton(JButton okButton);
+	
+	/** Additional buttons that will be shown left of the cancel button. If no additional buttons should be added an empty list should be returned. */
+	public List<AbstractButton> getAdditionalButtons();
 
 }

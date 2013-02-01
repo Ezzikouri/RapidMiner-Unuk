@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,6 +22,9 @@
  */
 package com.rapidminer.operator.io;
 
+import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -165,23 +168,45 @@ public abstract class AbstractReader<T extends IOObject> extends Operator {
 		READER_DESCRIPTIONS.put(rd.fileExtension.toLowerCase(), rd);
 	}
 
+	/**
+	 * @depreacated call {@link #createReader(URI)}
+	 */
+	@Deprecated
+	public static AbstractReader createReader(URL url) throws OperatorCreationException {
+		try {
+			return createReader(url.toURI());
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("Failed to convert URI to URL: "+e, e);
+		}
+	}
+	
+	
 	/** Returns a reader that can read the given file or URL. The type is determined by looking at the
 	 *  file extension. Only Operators registered via {@link #registerReaderDescription(ReaderDescription)} 
 	 *  will be checked.
 	 */
-	public static AbstractReader createReader(URL url) throws OperatorCreationException {
-		String file = url.getFile();
-		int dot = file.lastIndexOf('.');
+	public static AbstractReader createReader(URI uri) throws OperatorCreationException {
+		String fileName = uri.toString();
+		int dot = fileName.lastIndexOf('.');
 		if (dot == -1) {
 			return null;
 		} else {
-			String extension = file.substring(dot+1).toLowerCase();
+			String extension = fileName.substring(dot+1).toLowerCase();
 			ReaderDescription rd = READER_DESCRIPTIONS.get(extension);
 			if (rd == null) {
 				return null;
 			}
+			
 			AbstractReader reader = OperatorService.createOperator(rd.readerClass);
-			reader.setParameter(rd.fileParameterKey, url.toString());
+			if (uri.getScheme().equals("file")) {
+				// local file
+				File file = new File(uri);
+				reader.setParameter(rd.fileParameterKey, file.getAbsolutePath());
+			} else {
+				// remote url
+				reader.setParameter(rd.fileParameterKey, uri.toString());
+			}
+			
 			return reader;
 		}
 	}

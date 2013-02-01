@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -107,7 +107,7 @@ public class Actions implements ProcessEditor {
 //	
 //	public final Action PASTE_ACTION = new PasteAction(this);
 	
-	public final Action DELETE_OPERATOR_ACTION = new DeleteOperatorAction(this);
+	public final Action DELETE_OPERATOR_ACTION = new DeleteOperatorAction();
 	
 	public final ToggleBreakpointItem TOGGLE_BREAKPOINT[] = { 
 			new ToggleBreakpointItem(this, BreakpointListener.BREAKPOINT_BEFORE), 
@@ -237,7 +237,7 @@ public class Actions implements ProcessEditor {
 //		menu.add(CUT_ACTION);
 //		menu.add(PASTE_ACTION);
 		OperatorTransferHandler.installMenuItems(menu);
-		menu.add(DELETE_OPERATOR_ACTION);
+//		menu.add(DELETE_OPERATOR_ACTION);
 		
 		menu.addSeparator();
 		if ((op != null) && singleSelection) {
@@ -304,6 +304,7 @@ public class Actions implements ProcessEditor {
 			currentStates[ConditionalAction.PROCESS_PAUSED] = processState == Process.PROCESS_STATE_PAUSED;
 			currentStates[ConditionalAction.PROCESS_RUNNING] = processState == Process.PROCESS_STATE_RUNNING;
 			currentStates[ConditionalAction.EDIT_IN_PROGRESS] = EditBlockingProgressThread.isEditing();
+			currentStates[ConditionalAction.PROCESS_SAVED] = process.hasSaveDestination();
 			ConditionalAction.updateAll(currentStates);
 			updateCheckboxStates();
 		}
@@ -347,6 +348,9 @@ public class Actions implements ProcessEditor {
 		for (Operator selectedOperator : new LinkedList<Operator>(getSelectedOperators())) {				
 			if (parent == null) {
 				parent = selectedOperator.getParent();
+			}
+			if (selectedOperator instanceof ProcessRootOperator) {
+				return;
 			}
 			selectedOperator.remove();
 		}		

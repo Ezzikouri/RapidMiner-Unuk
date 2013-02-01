@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -360,15 +360,15 @@ public class AsserterFactoryRapidMiner implements AsserterFactory {
 		asserters.add(new Asserter() {
 
 			/**
-			 * Tests the two performance vectors for equality by testing the
-			 * size, the criteria names, the main criterion and each criterion.
+			 * Tests the two file objects for equality by testing the
+			 * 
 			 * 
 			 * @param message
 			 *            message to display if an error occurs
 			 * @param expected
-			 *            expected vector
+			 *            expected file object
 			 * @param actual
-			 *            actual vector
+			 *            actual file object
 			 */
 			@Override
 			public void assertEquals(String message, Object expectedObj, Object actualObj) throws RuntimeException {

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -292,9 +292,12 @@ public class AboutBox extends JDialog {
 	private static Properties createProperties(String productVersion) {
 		Properties properties = new Properties();
 		try {
-			InputStream in = Tools.getResource(PROPERTY_FILE).openStream();
-			properties.load(in);
-			in.close();
+			URL propUrl = Tools.getResource(PROPERTY_FILE);
+			if (propUrl != null) {
+				InputStream in = propUrl.openStream();
+				properties.load(in);
+				in.close();
+			}
 		} catch (Exception e) {
 			//LogService.getGlobal().logError("Cannot read splash screen infos: " + e.getMessage());
 			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.tools.dialogs.AboutBox.reading_splash_screen_error",  e.getMessage());

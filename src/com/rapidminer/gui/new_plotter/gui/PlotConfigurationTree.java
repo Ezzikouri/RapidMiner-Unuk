@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -32,12 +32,12 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import com.rapidminer.datatable.DataTable;
+import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.gui.cellrenderer.PlotConfigurationTreeCellRenderer;
 import com.rapidminer.gui.new_plotter.gui.dnd.DataTableColumnListTransferHandler;
 import com.rapidminer.gui.new_plotter.gui.dnd.PlotConfigurationTreeTransferHandler;
 import com.rapidminer.gui.new_plotter.gui.treenodes.PlotConfigurationTreeNode;
-import com.rapidminer.gui.new_plotter.listener.DragListener;
 
 
 /**
@@ -124,9 +124,9 @@ public class PlotConfigurationTree extends JTree {
 			DragListener cellRenderer = (DragListener) getCellRenderer();
 			PlotConfigurationTreeTransferHandler plotConfigurationTreeTransferHandler = (PlotConfigurationTreeTransferHandler) newHandler;
 			if(cellRenderer != null) {
-				plotConfigurationTreeTransferHandler.removeDragStartListener(cellRenderer);
+				plotConfigurationTreeTransferHandler.removeDragListener(cellRenderer);
 			}
-			plotConfigurationTreeTransferHandler.addDragStartListener(cellRenderer);
+			plotConfigurationTreeTransferHandler.addDragListener(cellRenderer);
 		}
 		super.setTransferHandler(newHandler);
 	}

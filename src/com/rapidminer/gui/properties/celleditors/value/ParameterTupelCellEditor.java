@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.properties.celleditors.value;
 
 import java.awt.Component;
@@ -42,8 +41,9 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeTupel;
 
 /**
+ * An editor for a tuple of parameters.
  * 
- * @author Simon Fischer, Nils Woehler
+ * @author Simon Fischer, Nils Woehler, Marius Helf
  */
 public class ParameterTupelCellEditor extends AbstractCellEditor implements PropertyValueCellEditor {
 
@@ -51,6 +51,9 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 
 	private JPanel panel;
 
+	/**
+	 * The parameter types of the columns
+	 */
 	private ParameterType[] types;
 	private PropertyValueCellEditor[] editors;
 
@@ -71,13 +74,19 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 				// Otherwise any changes made after switching back to RapidMiner would
 				// not be saved for the same reasons as stated above.
 				Component oppositeComponent = e.getOppositeComponent();
-				if ((oppositeComponent == null || !SwingUtilities.isDescendingFrom(oppositeComponent, panel)) && !e.isTemporary()) {
+				if ((oppositeComponent == null || (oppositeComponent != panel && !SwingUtilities.isDescendingFrom(oppositeComponent, panel))) && !e.isTemporary()) {
 					fireEditingStopped();
 				}
 			}
 
 			@Override
 			public void focusGained(FocusEvent e) {
+				// if focus is passed to the root panel and we have at least one
+				// subcomponent (editor), then we pass the focus on to the first
+				// editor
+				if (e.getComponent() == panel && panel.getComponentCount() > 0) {
+					panel.getComponent(0).requestFocusInWindow();
+				}
 			}
 		};
 
@@ -134,14 +143,19 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 
 		// building panel
 		panel = new JPanel();
+		panel.setFocusable(true);
 		panel.setLayout(new GridLayout(1, editors.length));
 		for (int i = 0; i < types.length; i++) {
 			Component editorComponent = editors[i].getTableCellEditorComponent(null, values[i], false, 0, 0);
 
 			if (editorComponent instanceof JComboBox && ((JComboBox) editorComponent).isEditable()) {
-				ComboBoxEditor editor = ((JComboBox) editorComponent).getEditor();
-				if (editor instanceof BasicComboBoxEditor) {
-					editor.getEditorComponent().addFocusListener(focusListener);
+				if ( ((JComboBox) editorComponent).isEditable() ) {
+					ComboBoxEditor editor = ((JComboBox) editorComponent).getEditor();
+					if (editor instanceof BasicComboBoxEditor) {
+						editor.getEditorComponent().addFocusListener(focusListener);
+					}
+				} else {
+					editorComponent.addFocusListener(focusListener);
 				}
 			} else if (editorComponent instanceof JPanel) {
 				JPanel editorPanel = (JPanel) editorComponent;
@@ -154,6 +168,7 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 				editorComponent.addFocusListener(focusListener);
 			}
 			panel.add(editorComponent);
+			panel.addFocusListener(focusListener);
 		}
 	}
 
@@ -172,5 +187,34 @@ public class ParameterTupelCellEditor extends AbstractCellEditor implements Prop
 			editors[i].getTableCellEditorComponent(null, tupel[i], false, 0, 0);
 		}
 		return panel;
+	}
+	
+	/**
+	 * Loops the sub-editors and calls stopCellEditing() on them.
+	 * Returns false as soon as one editor; i.e. does not call
+	 * the function on editors appearing further down in the list
+	 * than the one returning false.
+	 */
+	@Override
+	public boolean stopCellEditing() {
+		for (int i = 0; i < editors.length; ++i) {
+			if (!editors[i].stopCellEditing()) {
+				return false; 
+			}
+		}
+		
+		return super.stopCellEditing();
+	}
+	
+	/**
+	 * Cancels editing of all sub-editors
+	 */
+	@Override
+	public void cancelCellEditing() {
+		for (int i = 0; i < editors.length; ++i) {
+			editors[i].cancelCellEditing();
+		}
+		
+		super.cancelCellEditing();
 	}
 }

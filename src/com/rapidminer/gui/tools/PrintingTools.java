@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -32,6 +32,7 @@ import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.JMenu;
 
+import com.rapidminer.gui.actions.ExportPdfAction;
 import com.rapidminer.gui.actions.ExportViewAction;
 import com.rapidminer.gui.actions.PrintAction;
 import com.rapidminer.gui.actions.PrintPreviewAction;
@@ -95,6 +96,7 @@ public class PrintingTools {
 		return DropDownButton.makeDropDownButton(new ResourceActionAdapter(true, "export_and_print"), 
 				new PrintAction(component, componentName),
 				new PrintPreviewAction(component, componentName),
+				new ExportPdfAction(component, componentName),
 				new ExportViewAction(component, componentName));
 	}
 

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -41,6 +41,7 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeTupel;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.WebServiceTools;
 import com.rapidminer.tools.math.StringToMatrixConverter;
 
 /**
@@ -103,7 +104,7 @@ public abstract class AbstractRenderer implements Renderer {
 
 		try {
 			URL url = new URL(urlString);
-			InputStream stream = url.openStream();
+			InputStream stream = WebServiceTools.openStreamFromURL(url);
 			return stream;
 		} catch (MalformedURLException e) {
 			// URL did not work? Try as file...
@@ -144,6 +145,29 @@ public abstract class AbstractRenderer implements Renderer {
 			throw new UndefinedParameterError(key, "Expected integer but found '"+value+"'.");
 		}		
 	}
+	
+	 /** Returns a single named parameter and casts it to long. */
+    @Override
+    public long getParameterAsLong(String key) throws UndefinedParameterError {
+        ParameterType type = this.getParameters().getParameterType(key);
+        String value = getParameter(key);
+        if (type != null) {
+            if (type instanceof ParameterTypeCategory) {
+                String parameterValue = value;
+                try {
+                    return Long.valueOf(parameterValue);
+                } catch (NumberFormatException e) {
+                    ParameterTypeCategory categoryType = (ParameterTypeCategory)type;
+                    return categoryType.getIndex(parameterValue);
+                }
+            }
+        }
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new UndefinedParameterError(key, "Expected integer but found '"+value+"'.");
+        }
+    }
 
 	public double[][] getParameterAsMatrix(String key) throws UndefinedParameterError {
 		String matrixLine = getParameter(key);

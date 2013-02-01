@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -30,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyVetoException;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -47,12 +48,10 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.xml.datatype.XMLGregorianCalendar;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 import com.michaelbaranov.microba.calendar.DatePicker;
-import com.rapid_i.repository.wsimport.ExecutionResponse;
-import com.rapid_i.repository.wsimport.MacroDefinition;
-import com.rapid_i.repository.wsimport.ProcessContextWrapper;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessContext;
 import com.rapidminer.ProcessLocation;
@@ -67,28 +66,31 @@ import com.rapidminer.gui.tools.ResourceTabbedPane;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
-import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.Repository;
-import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.remote.SchedulerResponse;
+import com.rapidminer.repository.remote.ProcessSchedulerConfig;
+import com.rapidminer.repository.remote.ProcessSchedulerFactory;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Observable;
 import com.rapidminer.tools.Observer;
-import com.rapidminer.tools.container.Pair;
 
 /**
  * A dialog that lets the user run a process on a remote server, either now, at
  * a fixed later point of time or scheduled by a cron expression.
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Nils Woehler
  * 
  */
 public class RunRemoteDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = 1L;
+
+	public static final String DEFAULT = "DEFAULT";
 
 	private static final DateFormat DATE_FORMAT = DateFormat.getDateTimeInstance(); //new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
 
@@ -101,7 +103,8 @@ public class RunRemoteDialog extends ButtonDialog {
 	private final JLabel dateLabel = new ResourceLabel("runremotedialog.date");
 	private final JLabel cronLabel = new ResourceLabel("runremotedialog.cronexpression");
 	private JLabel cronHelpIconLabel;
-	JButton cronEditorButton;
+	private JButton cronEditorButton;
+	private JComboBox queueComboBox;
 	private final JCheckBox startBox = new JCheckBox(new ResourceAction("runremotedialog.cronstart") {
 
 		private static final long serialVersionUID = 1L;
@@ -133,11 +136,20 @@ public class RunRemoteDialog extends ButtonDialog {
 	private final ResourceTabbedPane tabs = new ResourceTabbedPane("runremotedialog");
 
 	private ProcessContext context = new ProcessContext();
-	
+
 	private CronEditorDialog cronEditor = new CronEditorDialog();
 
-	public RunRemoteDialog(Process process) {
-		super("runremotedialog", true, new Object[]{});
+	private ResourceLabel queueLabel;
+
+	private DefaultComboBoxModel queueModel;
+
+	private boolean scheduleOnOk;
+
+	private ProcessContextEditor contextPanel;
+
+	public RunRemoteDialog(Process process, boolean scheduleOnOk) {
+		super("runremotedialog", true, new Object[] {});
+		this.scheduleOnOk = scheduleOnOk;
 		setModal(true);
 
 		dateField.setStripTime(false);
@@ -165,13 +177,15 @@ public class RunRemoteDialog extends ButtonDialog {
 		DefaultComboBoxModel aModel = new DefaultComboBoxModel(remoteRepositories.toArray());
 		repositoryBox.setModel(aModel);
 		repositoryBox.setRenderer(new DefaultListCellRenderer() {
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Component getListCellRendererComponent(JList list,
-					Object value, int index, boolean isSelected,
-					boolean cellHasFocus) {
+															Object value, int index, boolean isSelected,
+															boolean cellHasFocus) {
 				JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected,
-								cellHasFocus);
+						cellHasFocus);
 				if (value instanceof RemoteRepository) {
 					RemoteRepository repo = (RemoteRepository) value;
 					label.setText("<html>" + repo.getAlias() + "<br/><small style=\"color:gray\">(" + repo.getBaseUrl() + ")</small></html>");
@@ -205,8 +219,24 @@ public class RunRemoteDialog extends ButtonDialog {
 			public void actionPerformed(ActionEvent e) {
 				okButton.setEnabled(repositoryBox.getSelectedItem() != null);
 				lastRepositoryIndexSelected = repositoryBox.getSelectedIndex();
+				updateExecutionQueueComboBox();
 			}
 		});
+		repositoryBox.addPopupMenuListener(new PopupMenuListener() {
+
+			@Override
+			public void popupMenuWillBecomeVisible(PopupMenuEvent e) {}
+
+			@Override
+			public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+				updateExecutionQueueComboBox();
+			}
+
+			@Override
+			public void popupMenuCanceled(PopupMenuEvent e) {}
+
+		});
+
 		RepositoryManager.getInstance(null).addObserver(new Observer<Repository>() {
 
 			@Override
@@ -236,7 +266,7 @@ public class RunRemoteDialog extends ButtonDialog {
 		//		}
 		//		context.setMacros(macros);
 
-		ProcessContextEditor contextPanel = new ProcessContextEditor(process, context);
+		contextPanel = new ProcessContextEditor(process, context);
 		tabs.addTabI18N("schedule", schedulePanel);
 		tabs.addTabI18N("context", contextPanel);
 
@@ -251,6 +281,7 @@ public class RunRemoteDialog extends ButtonDialog {
 		layoutDefault(tabs, NORMAL, okButton, cancelButton);
 		enableComponents();
 		okButton.setEnabled(repositoryBox.getSelectedItem() != null);
+		updateExecutionQueueComboBox();
 	}
 
 	private JPanel makeSchedulePanel() {
@@ -314,6 +345,17 @@ public class RunRemoteDialog extends ButtonDialog {
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.insets = new Insets(0, 0, GAP, GAP);
 		repositoryPanel.add(selectButton, c);
+
+		queueModel = new DefaultComboBoxModel();
+		queueComboBox = new JComboBox(queueModel);
+
+		queueLabel = new ResourceLabel("runremotedialog.execution_queue");
+		queueLabel.setLabelFor(queueComboBox);
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.weightx = 1;
+		c.insets = new Insets(GAP, GAP, 0, GAP);
+		repositoryPanel.add(queueLabel, c);
+		repositoryPanel.add(queueComboBox, c);
 
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.fill = GridBagConstraints.BOTH;
@@ -383,11 +425,11 @@ public class RunRemoteDialog extends ButtonDialog {
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(5, 5, 5, 0);
 		cronLabelPanel.add(cronLabel, gbc);
-		
+
 		cronHelpIconLabel = new JLabel();
 		cronHelpIconLabel.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.cron_help.icon")));
 		cronHelpIconLabel.addMouseListener(new MouseAdapter() {
-			
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (cronButton.isSelected()) {
@@ -401,7 +443,7 @@ public class RunRemoteDialog extends ButtonDialog {
 		gbc.weightx = 1;
 		cronLabelPanel.add(Box.createHorizontalGlue(), gbc);
 		schedPanel.add(cronLabelPanel, c);
-		
+
 		c.insets = new Insets(0, 8 * GAP, GAP, 0);
 		c.gridwidth = GridBagConstraints.RELATIVE;
 		schedPanel.add(cronField, c);
@@ -444,6 +486,42 @@ public class RunRemoteDialog extends ButtonDialog {
 		return panel;
 	}
 
+	private void updateExecutionQueueComboBox() {
+		Repository selected = (Repository) repositoryBox.getSelectedItem();
+		if (selected != null) {
+			if (selected instanceof RemoteRepository) {
+				RemoteRepository remoteRepo = (RemoteRepository) selected;
+				List<String> processQueueNames = remoteRepo.getProcessQueueNames();
+				updateQueueComoboxModel(processQueueNames);
+				if (processQueueNames == null || processQueueNames.isEmpty()) {
+					enableQueueSelection(false);
+				} else {
+					enableQueueSelection(true);
+				}
+			} else {
+				enableQueueSelection(false);
+				updateQueueComoboxModel(null);
+			}
+		}
+	}
+
+	private void updateQueueComoboxModel(List<String> queueNames) {
+		queueModel.removeAllElements();
+		if (queueNames == null || queueNames.isEmpty()) {
+			queueModel.addElement(DEFAULT);
+		} else {
+			for (String queueName : queueNames) {
+				queueModel.addElement(queueName);
+			}
+		}
+		queueComboBox.setSelectedIndex(0);
+	}
+
+	private void enableQueueSelection(boolean enable) {
+		queueComboBox.setEnabled(enable);
+		queueLabel.setEnabled(enable);
+	}
+
 	private void enableComponents() {
 		dateLabel.setEnabled(onceButton.isSelected());
 		dateField.setEnabled(onceButton.isSelected());
@@ -457,22 +535,86 @@ public class RunRemoteDialog extends ButtonDialog {
 		endField.setEnabled(cronButton.isSelected() && endBox.isSelected());
 	}
 
-	public static void showDialog(Process process) {
+	/**
+	 * @param process may not be <code>null</code>!
+	 * @param scheduleOnOkay if <code>true</code> the process will be scheduled when the user clicks ok
+	 */
+	public static void showDialog(Process process, boolean scheduleOnOkay) {
+		showDialog(process, scheduleOnOkay, null);
+	}
+
+	public static void showDialog(Process process, boolean scheduleOnOkay, ProcessSchedulerConfig config) {
 		// no RA repositories found, show message instead of dialog
-        if (RepositoryManager.getInstance(null).getRemoteRepositories().size() <= 0) {
-        	SwingTools.showVerySimpleErrorMessage("schedule_on_ra_no_ra_repo_found");
-            return;
-        } 
-		RunRemoteDialog d = new RunRemoteDialog(process);
+		if (RepositoryManager.getInstance(null).getRemoteRepositories().size() <= 0) {
+			SwingTools.showVerySimpleErrorMessage("schedule_on_ra_no_ra_repo_found");
+			return;
+		}
+		RunRemoteDialog d = new RunRemoteDialog(process, scheduleOnOkay);
+		if (config != null) {
+			d.adaptToProcessScheduleConfig(process, config);
+		}
 		d.setVisible(true);
+	}
+
+	public ProcessSchedulerConfig createProcessScheduleConfig() throws MalformedRepositoryLocationException {
+		String queueName = queueComboBox.isEnabled() ? (String) queueComboBox.getSelectedItem() : null;
+		if (nowButton.isSelected()) {
+			return new ProcessSchedulerConfig(getRepositoryLocation(), context, queueName);
+		} else if (onceButton.isSelected()) {
+			Date onceDate = dateField.getDate();
+			return new ProcessSchedulerConfig(getRepositoryLocation(), onceDate, context, queueName);
+		} else {
+			Date start = startBox.isSelected() ? startField.getDate() : null;
+			Date end = endBox.isSelected() ? endField.getDate() : null;
+			return new ProcessSchedulerConfig(getRepositoryLocation(), cronField.getText(), start, end, context, queueName);
+		}
+	}
+
+	private RepositoryLocation getRepositoryLocation() throws MalformedRepositoryLocationException {
+		Repository repo = (Repository) repositoryBox.getSelectedItem();
+		return new RepositoryLocation(RepositoryLocation.REPOSITORY_PREFIX + repo.getName() + processField.getText());
+	}
+
+	public void adaptToProcessScheduleConfig(Process process, ProcessSchedulerConfig config) {
+		switch (config.getMode()) {
+			case CRON:
+				cronButton.setSelected(true);
+				cronField.setText(config.getCronExpression());
+				Date start = config.getStart();
+				Date end = config.getEnd();
+				startBox.setSelected(start != null);
+				endBox.setSelected(end != null);
+				try {
+					startField.setDate(start);
+					endField.setDate(end);
+				} catch (PropertyVetoException e1) {}
+				break;
+			case ONCE:
+				onceButton.setSelected(true);
+				try {
+					dateField.setDate(config.getOnceDate());
+				} catch (PropertyVetoException e) {}
+			default:
+				nowButton.setSelected(true);
+				break;
+		}
+		contextPanel.setProcess(process, config.getContext());
+		enableComponents();
+		RepositoryLocation location = config.getLocation();
+		try {
+			repositoryBox.setSelectedItem(location.getRepository());
+		} catch (RepositoryException e) {
+			repositoryBox.setSelectedIndex(lastRepositoryIndexSelected);
+		}
+		processField.setText(location.getPath());
+		queueComboBox.setSelectedItem(config.getQueueName());
 	}
 
 	@Override
 	public void ok() {
-		RemoteRepository repos = (RemoteRepository) repositoryBox.getSelectedItem();
-		if (repos != null) {
+		if (scheduleOnOk) {
 			String location = processField.getText();
-			
+
 			// check if process selected is the same as the current process in the GUI, if so check if it has been edited and ask for save
 			// before continuing. Otherwise the last version would be executed which can result in confusion (and therefore support tickets..)
 			if (RapidMinerGUI.getMainFrame().getProcess().getProcessLocation() != null) {
@@ -485,56 +627,16 @@ public class RunRemoteDialog extends ButtonDialog {
 					SaveAction.save(RapidMinerGUI.getMainFrame().getProcess());
 				}
 			}
-			
-			ProcessContextWrapper pcWrapper = new ProcessContextWrapper();
-			for (String loc : context.getInputRepositoryLocations()) {
-				pcWrapper.getInputRepositoryLocations().add(loc);
-			}
-			for (String loc : context.getOutputRepositoryLocations()) {
-				pcWrapper.getOutputRepositoryLocations().add(loc);
-			}
-			for (Pair<String, String> macro : context.getMacros()) {
-				final MacroDefinition macroDef = new MacroDefinition();
-				macroDef.setKey(macro.getFirst());
-				macroDef.setValue(macro.getSecond());
-				pcWrapper.getMacros().add(macroDef);
-			}
 
-			ExecutionResponse response;
-			if (nowButton.isSelected()) {
-				try {
-					response = repos.getProcessService().executeProcessSimple(location, null, pcWrapper);
-				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("error_connecting_to_server", e);
-					return;
-				}
-			} else if (onceButton.isSelected()) {
-				try {
-					Date date = dateField.getDate();
-					response = repos.getProcessService().executeProcessSimple(location, XMLTools.getXMLGregorianCalendar(date), pcWrapper);
-				} catch (RepositoryException e) {
-					SwingTools.showSimpleErrorMessage("error_connecting_to_server", e);
-					return;
-				}
-			} else if (cronButton.isSelected()) {
-				try {
-					XMLGregorianCalendar start = startBox.isSelected() ? XMLTools.getXMLGregorianCalendar(startField.getDate()) : null;
-					XMLGregorianCalendar end = endBox.isSelected() ? XMLTools.getXMLGregorianCalendar(endField.getDate()) : null;
-					response = repos.getProcessService().executeProcessCron(location, cronField.getText(), start, end, pcWrapper);
-				} catch (RepositoryException e) {
-					SwingTools.showSimpleErrorMessage("error_connecting_to_server ", e);
-					return;
-				}
-			} else {
-				throw new RuntimeException("No radio button selected. (This cannot happen)");
-			}
-			if (response.getStatus() != RepositoryConstants.OK) {
-				SwingTools.showSimpleErrorMessage("run_proc_remote", response.getErrorMessage());
-			} else {
-				dispose();
-				Date firstExec = response.getFirstExecution().toGregorianCalendar().getTime();
+			try {
+				SchedulerResponse response = ProcessSchedulerFactory.getInstance().getProcessScheduler().scheduleProcess(createProcessScheduleConfig(), null);
+				Date firstExec = response.getFirstExecution();
 				SwingTools.showMessageDialog("process_will_first_run", firstExec);
+			} catch (Exception e) {
+				SwingTools.showSimpleErrorMessage("run_proc_remote", e.getLocalizedMessage());
+				return;
 			}
 		}
+		dispose();
 	}
 }

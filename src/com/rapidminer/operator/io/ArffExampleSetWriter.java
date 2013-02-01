@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,11 +20,13 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.io;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,6 +37,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeDate;
 import com.rapidminer.tools.io.Encoding;
 
 /**
@@ -117,6 +120,9 @@ public class ArffExampleSetWriter extends AbstractStreamWriter {
 						out.print("?");
 					else
 						out.print("'" + example.getValueAsString(current) + "'");
+				} else if (current.isDateTime()) {
+					Date dateValue = example.getDateValue(current);
+					out.print("\"" + ParameterTypeDate.DATE_FORMAT.format(dateValue)+ "\"");
 				} else {
 					out.print(example.getValueAsString(current));
 				}
@@ -143,7 +149,9 @@ public class ArffExampleSetWriter extends AbstractStreamWriter {
 			}
 			nominalValues.append("}");
 			out.print(nominalValues.toString());
-		} else {
+		} else if (attribute.isDateTime())
+			out.print("DATE \"" + ParameterTypeDate.DATE_FORMAT.toPattern() + "\"");
+		else {
 			out.print("real");
 		}
 		out.println();

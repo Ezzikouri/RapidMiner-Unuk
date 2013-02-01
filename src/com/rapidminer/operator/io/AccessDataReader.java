@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -29,6 +29,7 @@ import java.util.List;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -92,7 +93,7 @@ public class AccessDataReader extends DatabaseDataReader {
 				try {
 					path = getParameterAsFile(AccessDataReader.PARAMETER_DATABASE_FILE).getAbsolutePath();
 					setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, DATABASE_URL_PREFIX + path);
-				} catch (UndefinedParameterError e) {
+				} catch (UserError e) {
 					// AccessDataReader.PARAMETER_DATABASE_FILE was checked for null
 				}
 			}
@@ -114,7 +115,7 @@ public class AccessDataReader extends DatabaseDataReader {
 	}
 
 
-	protected void setAccessParameters() throws UndefinedParameterError {
+	protected void setAccessParameters() throws UserError {
 		File databaseFile = getParameterAsFile(PARAMETER_DATABASE_FILE);
 		this.setParameter(DatabaseHandler.PARAMETER_DATABASE_URL, DATABASE_URL_PREFIX + databaseFile.getAbsolutePath());
 
@@ -173,7 +174,7 @@ public class AccessDataReader extends DatabaseDataReader {
 			if (file != null) {
 				return new AccessConnectionEntry(file);
 			}
-		} catch (UndefinedParameterError e) {
+		} catch (UserError e) {
 		}
 		return null;
 	}

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -156,7 +156,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 			} else {
 				// This is probably a data file
 				try {
-					newOperators = Collections.<Operator>singletonList(AbstractReader.createReader(file.toURI().toURL()));
+					newOperators = Collections.<Operator>singletonList(AbstractReader.createReader(file.toURI()));
 				} catch (OperatorCreationException e1) {
 					//LogService.getRoot().log(Level.SEVERE, "While accepting drop: ", e1);	
 					LogService.getRoot().log(Level.SEVERE,
@@ -165,15 +165,16 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 							e1);
 					SwingTools.showSimpleErrorMessage("cannot_create_reader_for_file", e1,file.getName());
 					return false;
-				} catch (MalformedURLException e) {
-					//LogService.getRoot().log(Level.SEVERE, "While accepting drop: ", e);	
-					LogService.getRoot().log(Level.SEVERE,
-							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-							"com.rapidminer.gui.dnd.ReceivingOperatorTransferHandler.error_while_accepting_drop"),
-							e);
-					SwingTools.showSimpleErrorMessage("cannot_create_reader_for_file", e, file.getName());
-					return false;
 				}
+//				} catch (MalformedURLException e) {
+//					//LogService.getRoot().log(Level.SEVERE, "While accepting drop: ", e);	
+//					LogService.getRoot().log(Level.SEVERE,
+//							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+//							"com.rapidminer.gui.dnd.ReceivingOperatorTransferHandler.error_while_accepting_drop"),
+//							e);
+//					SwingTools.showSimpleErrorMessage("cannot_create_reader_for_file", e, file.getName());
+//					return false;
+//				}
 				if (newOperators == null) {							
 					JOptionPane.showMessageDialog(RapidMinerGUI.getMainFrame().getWindow(), "No reader operator available for file "+file.getName());
 					dropEnds();
@@ -276,6 +277,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 					try {
 						ProcessEmbeddingOperator embedder = OperatorService.createOperator(ProcessEmbeddingOperator.class);
 						embedder.setParameter(ProcessEmbeddingOperator.PARAMETER_PROCESS_FILE, resolvedLocation);
+						embedder.rename("Execute " + repositoryLocation.getName());
 						newOperators = Collections.<Operator>singletonList(embedder);
 					} catch (OperatorCreationException e1) {
 						//LogService.getRoot().log(Level.WARNING, "Cannot create RepositorySource: "+e1, e1);
@@ -291,6 +293,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 					try {						
 						RepositorySource source = OperatorService.createOperator(RepositorySource.class);						
 						source.setParameter(RepositorySource.PARAMETER_REPOSITORY_ENTRY, resolvedLocation);
+						source.rename("Retrieve " + repositoryLocation.getName());
 						newOperators = Collections.<Operator>singletonList(source);
 					} catch (OperatorCreationException e1) {
 						//LogService.getRoot().log(Level.WARNING, "Cannot create RepositorySource: "+e1, e1);

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -29,6 +29,7 @@ import java.util.List;
 
 import com.rapid_i.repository.wsimport.EntryResponse;
 import com.rapid_i.repository.wsimport.FolderContentsResponse;
+import com.rapid_i.repository.wsimport.RepositoryService;
 import com.rapid_i.repository.wsimport.Response;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
@@ -42,19 +43,22 @@ import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryConstants;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.ProgressListener;
+
 /**
  * @author Simon Fischer
  */
 public class RemoteFolder extends RemoteEntry implements Folder {
 
 	private final Comparator<Entry> nameComparator = new Comparator<Entry>() {
+
 		@Override
 		public int compare(Entry o1, Entry o2) {
 			return o1.getName().compareTo(o2.getName());
-		}		
+		}
 	};
-	
+
 	private List<Folder> folders;
 	private List<DataEntry> entries;
 	private final Object lock = new Object();
@@ -65,38 +69,47 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	RemoteFolder(String location) {
 		super(location);
 	}
-	
+
 	RemoteFolder(EntryResponse response, RemoteFolder container, RemoteRepository repository) {
 		super(response, container, repository);
 	}
 
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
+		// check for possible invalid name
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
+		}
+
 		EntryResponse response = getRepository().getRepositoryService().makeFolder(getPath(), name);
 		if (response.getStatus() != RepositoryConstants.OK) {
 			throw new RepositoryException(response.getErrorMessage());
 		}
 		RemoteFolder newFolder = new RemoteFolder(response, this, getRepository());
 		if (folders != null) {
-			folders.add(newFolder);			
+			folders.add(newFolder);
 			Collections.sort(folders, nameComparator);
 			getRepository().fireEntryAdded(newFolder, this);
 		}
 		return newFolder;
 	}
-	
+
 	@Override
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
+		// check for possible invalid name
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
+		}
+
 		EntryResponse response = getRepository().getRepositoryService().createBlob(getPath(), name);
-		RemoteBlobEntry newBlob= new RemoteBlobEntry(response, this, getRepository());
-		if (this.entries != null) {				
-			entries.add(newBlob);			
+		RemoteBlobEntry newBlob = new RemoteBlobEntry(response, this, getRepository());
+		if (this.entries != null) {
+			entries.add(newBlob);
 			Collections.sort(entries, nameComparator);
 			getRepository().fireEntryAdded(newBlob, this);
 		}
-		return newBlob;		
+		return newBlob;
 	}
-
 
 	@Override
 	public List<DataEntry> getDataEntries() throws RepositoryException {
@@ -110,34 +123,41 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 				return;
 			}
 			if ((entries == null) || (folders == null)) {
-				FolderContentsResponse response;				
-				String path = getPath();				
-				response = getRepository().getRepositoryService().getFolderContents(path);				
+				FolderContentsResponse response;
+				String path = getPath();
+				RemoteRepository repository = getRepository();
+				RepositoryService repositoryService = repository.getRepositoryService();
 				entries = new LinkedList<DataEntry>();
-				folders = new LinkedList<Folder>();				
+				folders = new LinkedList<Folder>();
+				if (repositoryService == null) {
+					return;
+				}
+				response = repositoryService.getFolderContents(path);
 				if (response.getStatus() != RepositoryConstants.OK) {
 					if (response.getStatus() == RepositoryConstants.ACCESS_DENIED) {
 						readOnly = true;
 						forbidden = true;
 					} else {
-						getLogger().warning("Cannot get folder: "+response.getErrorMessage());
+						getLogger().warning("Cannot get folder: " + response.getErrorMessage());
 					}
 					return;
-				}			
+				}
 				for (EntryResponse entry : response.getEntries()) {
 					if (entry.getType().equals(Folder.TYPE_NAME)) {
-						folders.add(new RemoteFolder(entry, this, getRepository()));
+						folders.add(new RemoteFolder(entry, this, repository));
 					} else if (entry.getType().equals(ProcessEntry.TYPE_NAME)) {
-						entries.add(new RemoteProcessEntry(entry, this, getRepository()));
+						entries.add(new RemoteProcessEntry(entry, this, repository));
 					} else if (entry.getType().equals(IOObjectEntry.TYPE_NAME)) {
-						entries.add(new RemoteIOObjectEntry(entry, this, getRepository()));
+						entries.add(new RemoteIOObjectEntry(entry, this, repository));
 					} else if (entry.getType().equals(BlobEntry.TYPE_NAME)) {
-						entries.add(new RemoteBlobEntry(entry, this, getRepository()));
+						entries.add(new RemoteBlobEntry(entry, this, repository));
 					} else {
-						getLogger().warning("Unknown entry type: "+entry.getType());
+						getLogger().warning("Unknown entry type: " + entry.getType());
 					}
 				}
-			}		
+
+			}
+			return;
 		}
 	}
 
@@ -158,12 +178,12 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	}
 
 	@Override
-	public void refresh() throws RepositoryException {		
+	public void refresh() throws RepositoryException {
 		folders = null;
 		entries = null;
-		readOnly  = false;
+		readOnly = false;
 		forbidden = false;
-		ensureLoaded();		
+		ensureLoaded();
 		getRepository().fireRefreshed(this);
 	}
 
@@ -185,6 +205,11 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener l) throws RepositoryException {
+		// check for possible invalid name
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
+		}
+
 		RepositoryLocation loc;
 		try {
 			loc = new RepositoryLocation(getLocation(), name);
@@ -197,7 +222,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 			throw new RepositoryException(response.getErrorMessage());
 		}
 		RemoteIOObjectEntry entry = new RemoteIOObjectEntry(response, this, getRepository());
-		if (entries != null) {			
+		if (entries != null) {
 			entries.add(entry);
 			getRepository().fireEntryAdded(entry, this);
 		}
@@ -206,6 +231,11 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
+		// check for possible invalid name
+		if (!RepositoryLocation.isNameValid(name)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", name, getLocation()));
+		}
+
 		RepositoryLocation loc;
 		try {
 			loc = new RepositoryLocation(getLocation(), name);
@@ -244,20 +274,20 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 			int index = entries.indexOf(remoteEntry) + folders.size();
 			entries.remove(remoteEntry);
 			getRepository().fireEntryRemoved(remoteEntry, this, index);
-		}		
+		}
 	}
-	
+
 	@Override
 	public boolean isReadOnly() {
 		return readOnly;
 	}
-	
+
 	@Override
 	public boolean move(Folder newParent) throws RepositoryException {
 		boolean wasLoaded = !willBlock();
 		folders = null;
 		entries = null;
-		readOnly  = false;
+		readOnly = false;
 		forbidden = false;
 		boolean success = super.move(newParent);
 		if (wasLoaded) {
@@ -266,13 +296,13 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 		}
 		return success;
 	}
-	
+
 	@Override
 	public boolean move(Folder newParent, String newName) throws RepositoryException {
 		boolean wasLoaded = !willBlock();
 		folders = null;
 		entries = null;
-		readOnly  = false;
+		readOnly = false;
 		forbidden = false;
 		boolean success = super.move(newParent, newName);
 		if (wasLoaded) {
@@ -281,13 +311,13 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 		}
 		return success;
 	}
-	
+
 	@Override
 	public boolean rename(String newName) throws RepositoryException {
 		boolean wasLoaded = !willBlock();
 		folders = null;
 		entries = null;
-		readOnly  = false;
+		readOnly = false;
 		forbidden = false;
 		boolean success = super.rename(newName);
 		if (wasLoaded) {
@@ -304,7 +334,7 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public boolean canRefreshChild(String childName) throws RepositoryException {
-		EntryResponse entryResponse = getRepository().getRepositoryService().getEntry(getPath()+RepositoryLocation.SEPARATOR+childName);
+		EntryResponse entryResponse = getRepository().getRepositoryService().getEntry(getPath() + RepositoryLocation.SEPARATOR + childName);
 		return entryResponse.getStatus() == RepositoryConstants.OK;
 	}
 }

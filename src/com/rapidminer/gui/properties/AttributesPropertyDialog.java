@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -140,6 +140,7 @@ public class AttributesPropertyDialog extends PropertyDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				itemSearchField.clearFilter();
+				itemSearchField.requestFocusInWindow();
 			}
 		});
 		JPanel itemSearchFieldPanel = new JPanel(new GridBagLayout());
@@ -201,6 +202,7 @@ public class AttributesPropertyDialog extends PropertyDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				selectedItemSearchField.clearFilter();
+				selectedItemSearchField.requestFocusInWindow();
 			}
 		});
 		JPanel selectedItemSearchFieldPanel = new JPanel(new GridBagLayout());
@@ -218,8 +220,9 @@ public class AttributesPropertyDialog extends PropertyDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String item = selectedItemSearchField.getText();
+				selectedItemSearchField.clearFilter();
+				selectedItemSearchField.requestFocusInWindow();
 				if (selectedItems.contains(item)) {
-					selectedItemSearchField.clearFilter();
 					return;
 				}
 				if (items.contains(item)) {
@@ -227,12 +230,10 @@ public class AttributesPropertyDialog extends PropertyDialog {
 					itemListModel.removeElement(item);
 					selectedItems.add(item);
 					items.remove(item);
-					selectedItemSearchField.clearFilter();
 					return;
 				}
 				selectedItems.add(item);
 				selectedItemListModel.addElement(item);
-				selectedItemSearchField.clearFilter();
 			}
 		});
 

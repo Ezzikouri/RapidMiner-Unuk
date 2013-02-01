@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -439,7 +439,7 @@ class NominalToNumericModel extends PreprocessingModel {
 	        	break;
 	        }
 	        builder.append("Coding Type: " +  codingTypeString + Tools.getLineSeparator());
-	        if ( codingType == NominalToNumeric.INTEGERS_CODING ) {
+	        if (!useComparisonGroups) {
 		        builder.append("Model covering " + trainAttributes.size() + " attributes:" + Tools.getLineSeparator());
 		        for (Attribute attribute: trainAttributes) {
 		            builder.append(" - " + attribute.getName() + Tools.getLineSeparator());

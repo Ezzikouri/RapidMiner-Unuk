@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -37,21 +37,27 @@ import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
  *
  */
 public class ContinuousColorProvider implements ColorProvider {
-	double minValue;
-	double maxValue; 
+	private double minValue;
+	private double maxValue;
+	private double originalMinValue;
+	private double originalMaxValue;
 	
 	Color minColor;
 	Color maxColor;
 	int alpha;
 	private boolean logarithmic;
+	private boolean useGrayForOutliers;
 		
 	public ContinuousColorProvider(double minValue, double maxValue, Color minColor, Color maxColor, int alpha, boolean logarithmic) {
 		this.minValue = minValue;
 		this.maxValue = maxValue;
+		this.originalMinValue = minValue;
+		this.originalMaxValue = maxValue;
 		this.minColor = minColor;
 		this.maxColor = maxColor;
 		this.alpha = alpha;
 		this.logarithmic = logarithmic;
+		this.useGrayForOutliers = false;
 	}
 	
 	/**
@@ -61,11 +67,14 @@ public class ContinuousColorProvider implements ColorProvider {
 	public ContinuousColorProvider(PlotInstance plotInstance, double minValue, double maxValue, int alpha, boolean logarithmic) {
 		this.minValue = minValue;
 		this.maxValue = maxValue;
+		this.originalMinValue = minValue;
+		this.originalMaxValue = maxValue;
 		PlotConfiguration currentPlotConfigurationClone = plotInstance.getCurrentPlotConfigurationClone();
 		this.minColor = ColorRGB.convertToColor(currentPlotConfigurationClone.getActiveColorScheme().getGradientStartColor());
 		this.maxColor = ColorRGB.convertToColor(currentPlotConfigurationClone.getActiveColorScheme().getGradientEndColor());
 		this.alpha = alpha;
 		this.logarithmic = logarithmic;
+		this.useGrayForOutliers = false;
 	}
 	
 	
@@ -137,6 +146,28 @@ public class ContinuousColorProvider implements ColorProvider {
 		// map value to [0,1]
 		if (minValue == maxValue) {
 			value = 0.5;
+		} else if (value < minValue) {
+			Color minColor;
+			if (useGrayForOutliers)  {
+				minColor = Color.GRAY;
+			} else {
+				minColor = this.minColor;
+			}
+			if (alpha < 255) {
+				minColor = DataStructureUtils.setColorAlpha(minColor, alpha);
+			}
+			return minColor;
+		} else if (value > maxValue) {
+			Color maxColor;
+			if (useGrayForOutliers)  {
+				maxColor = Color.GRAY;
+			} else {
+				maxColor = this.maxColor;
+			}
+			if (alpha < 255) {
+				maxColor = DataStructureUtils.setColorAlpha(maxColor, alpha);
+			}
+			return maxColor;
 		} else if (logarithmic) {
 			value = (Math.log(value)-Math.log(minValue))/(Math.log(maxValue)-Math.log(minValue));
 		} else {
@@ -170,7 +201,8 @@ public class ContinuousColorProvider implements ColorProvider {
 	}
 
 	public ColorProvider clone() {
-		return new ContinuousColorProvider(minValue,maxValue,new Color(minColor.getRed(),minColor.getGreen(),minColor.getBlue()),new Color(maxColor.getRed(),maxColor.getGreen(),maxColor.getBlue()),alpha, logarithmic);
+		return new ContinuousColorProvider(minValue, maxValue, new Color(minColor.getRed(), minColor.getGreen(), minColor.getBlue()), 
+				new Color(maxColor.getRed(), maxColor.getGreen(), maxColor.getBlue()), alpha, logarithmic);
 	}
 	
 	@Override
@@ -182,5 +214,38 @@ public class ContinuousColorProvider implements ColorProvider {
 
 	public void setLogarithmic(boolean logarithmic) {
 		this.logarithmic = logarithmic;
+	}
+
+	public double getMaxValue() {
+		return maxValue;
+	}
+
+	public void setMaxValue(double maxValue) {
+		this.maxValue = maxValue;
+	}
+
+	public double getMinValue() {
+		return minValue;
+	}
+
+	public void setMinValue(double minValue) {
+		this.minValue = minValue;
+	}
+	
+	public void revertMinAndMaxValuesBackToOriginalValues() {
+		this.minValue = originalMinValue;
+		this.maxValue = originalMaxValue;
+	}
+
+	public boolean isUseGrayForOutliers() {
+		return useGrayForOutliers;
+	}
+
+	public void setUseGrayForOutliers(boolean useGrayForOutliers) {
+		this.useGrayForOutliers = useGrayForOutliers;
+	}
+	
+	public boolean isColorMinMaxValueDifferentFromOriginal(double minValue, double maxValue) {
+		return !(minValue == originalMinValue && maxValue == originalMaxValue);
 	}
 }

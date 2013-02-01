@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -33,7 +33,9 @@ import com.rapidminer.tools.config.gui.DefaultConfigurationPanel;
 
 /** Can be used to configure {@link Configurable}s. The {@link ConfigurationManager} will take
  *  care of saving the configuration to configuration files or to a database and to provide access
- *  to dialogs which can be used to edit these configurables.   
+ *  to dialogs which can be used to edit these configurables. 
+ *  
+ *  The I18N Keys can be found at the {@link Configurable} Interface.
  * 
  * @author Simon Fischer, Dominik Halfkann
  */
@@ -58,7 +60,9 @@ public abstract class Configurator<T extends Configurable> {
 		} catch (InstantiationException e) {
 			throw new ConfigurationException("Cannot instantiate "+getConfigurableClass(), e);
 		} catch (IllegalAccessException e) {
-			throw new ConfigurationException("Cannot instantiate "+getConfigurableClass(), e);
+			throw new ConfigurationException("Cannot access "+getConfigurableClass(), e);
+		} catch (Throwable e) {
+			throw new ConfigurationException("Cannot instantiate "+getConfigurableClass() + " (fatal error)", e);
 		}
 		return instance;
 	}

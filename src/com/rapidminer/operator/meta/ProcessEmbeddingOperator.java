@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.operator.meta;
 
 import java.io.IOException;
@@ -273,10 +272,10 @@ public class ProcessEmbeddingOperator extends Operator {
 		List<ParameterType> types = super.getParameterTypes();
 
 		types.add(new ParameterTypeRepositoryLocation(PARAMETER_PROCESS_FILE, "The process location which should be encapsulated by this operator", false));
-		types.add(new ParameterTypeBoolean(PARAMETER_USE_INPUT, "Indicates if the operator input should be used as input of the process", false));
-		types.add(new ParameterTypeBoolean(PARAMETER_STORE_OUTPUT, "Indicates if the operator output should be stored (if the context of the embedded process defines output locations).", true));
-		types.add(new ParameterTypeBoolean(PARAMETER_PROPAGATE_METADATA_RECURSIVELY, "Determines whether meta data is propagated through the included process.", false));
-		types.add(new ParameterTypeBoolean(PARAMETER_CACHE_PROCESS, "If checked, the process will not be loaded during execution.", false));
+		types.add(new ParameterTypeBoolean(PARAMETER_USE_INPUT, "Indicates if the operator input should be used as input of the process", true));
+		types.add(new ParameterTypeBoolean(PARAMETER_STORE_OUTPUT, "Indicates if the operator output should be stored (if the context of the embedded process defines output locations).", false));
+		types.add(new ParameterTypeBoolean(PARAMETER_PROPAGATE_METADATA_RECURSIVELY, "Determines whether meta data is propagated through the included process.", true));
+		types.add(new ParameterTypeBoolean(PARAMETER_CACHE_PROCESS, "If checked, the process will not be loaded during execution.", true));
 
 		types.add(new ParameterTypeList(PARAMETER_MACROS, "Defines macros for this sub-process.", new ParameterTypeString(PARAMETER_MACRO_NAME, "The name of the macro.", false), new ParameterTypeString(PARAMETER_MACRO_VALUE, "The value of the macro.", false), true));
 

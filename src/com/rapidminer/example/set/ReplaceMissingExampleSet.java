@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -34,6 +34,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Statistics;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 
 /**
  * An implementation of ExampleSet that allows the replacement of missing values
@@ -105,9 +106,16 @@ public class ReplaceMissingExampleSet extends AbstractExampleSet {
 			this.replacementMap.put(attribute.getName(), getStatistics(attribute, Statistics.AVERAGE));
 	}
 	
+	@Override
 	public Attributes getAttributes() {
 		return this.parent.getAttributes();
 	}
+	
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
+	}
+
 
 	@Override
 	public boolean equals(Object o) {

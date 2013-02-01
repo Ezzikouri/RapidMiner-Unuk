@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -42,6 +42,7 @@ public enum RemoteProcessState {
 	
 	private RemoteProcessState(boolean terminated, boolean successful, String iconName) {
 		this.terminated = terminated;
+		this.successful = successful;
 		this.iconName = iconName;
 	}
 	public boolean isTerminated() {

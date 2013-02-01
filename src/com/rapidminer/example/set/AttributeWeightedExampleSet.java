@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -34,6 +34,7 @@ import com.rapidminer.example.Attributes;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.ExampleTable;
+import com.rapidminer.operator.Annotations;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.tools.Tools;
 
@@ -96,6 +97,7 @@ public class AttributeWeightedExampleSet extends AbstractExampleSet {
 
 	/** Clone constructor. */
 	public AttributeWeightedExampleSet(AttributeWeightedExampleSet exampleSet) {
+		cloneAnnotationsFrom(exampleSet);
     	this.parent = (ExampleSet)exampleSet.parent.clone();
     	this.attributeWeights = (AttributeWeights)exampleSet.attributeWeights.clone();
     	
@@ -280,5 +282,13 @@ public class AttributeWeightedExampleSet extends AbstractExampleSet {
 
 	public int size() {
 		return parent.size();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.rapidminer.operator.ResultObjectAdapter#getAnnotations()
+	 */
+	@Override
+	public Annotations getAnnotations() {
+		return parent.getAnnotations();
 	}
 }

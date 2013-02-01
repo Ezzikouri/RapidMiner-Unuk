@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -224,12 +224,10 @@ public abstract class PlotterTemplate extends Observable implements Observer {
 		}
 		
 		// save crosshair lines, as we replace the plotInstance (and therefore plotConfiguration)
-		if (plotInstance != null) {
-			if (this.plotInstance != null) {
-				this.plotInstance.getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().removeAxisParallelLinesConfigurationListener(domainAxisLinesListener);
-			}
-			plotInstance.getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().addAxisParallelLinesConfigurationListener(domainAxisLinesListener);
+		if (this.plotInstance != null) {
+			this.plotInstance.getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().removeAxisParallelLinesConfigurationListener(domainAxisLinesListener);
 		}
+		plotInstance.getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().addAxisParallelLinesConfigurationListener(domainAxisLinesListener);
 		
 		this.plotInstance = plotInstance;
 		if (guiPanel != null) {

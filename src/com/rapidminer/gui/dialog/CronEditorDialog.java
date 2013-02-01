@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -28,6 +28,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Calendar;
 
 import javax.swing.Action;
@@ -46,13 +48,15 @@ import javax.swing.SpinnerNumberModel;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
+import com.rapidminer.operator.Operator;
+import com.rapidminer.parameter.ParameterTypeCronExpression;
 import com.rapidminer.tools.I18N;
 
 /**
  * Dialog to create a cron expression via GUI.
  * Call {@link #getCronExpression()} to get the cron expression after the dialog has been confirmed.
  * 
- * @author Marco Boeck
+ * @author Marco Boeck, Miguel Buescher
  *
  */
 public class CronEditorDialog extends ButtonDialog {
@@ -120,10 +124,13 @@ public class CronEditorDialog extends ButtonDialog {
 	private JCheckBox checkBoxYearRepeat;
 	private JSpinner spinnerYearStart;
 	private JSpinner spinnerYearRepeat;
-
-
+	
 	private static final long serialVersionUID = 837836954191730785L;
 
+	
+	public CronEditorDialog(Operator operator, ParameterTypeCronExpression type) {
+		this();	
+	}
 
 	/**
 	 * Creates a new cron editor dialog.
@@ -941,6 +948,7 @@ public class CronEditorDialog extends ButtonDialog {
 		// center dialog
 		setSize(480, 720);
 		setLocationRelativeTo(null);
+		
 	}
 
 	/**
@@ -1112,6 +1120,29 @@ public class CronEditorDialog extends ButtonDialog {
 			return "";
 		}
 	}
+	
+	public void setCheckboxes (boolean b) {		
+		radioButtonSecEvery.setSelected(b);				
+	}
+	
+	public void setSpinnerSecStartValue (String cronExpression) {			
+		Number nn = null;
+		try {
+			nn = NumberFormat.getInstance().parse(cronExpression);
+		} catch (ParseException e) {
+			//TODO
+		}
+		spinnerSecStart.setValue(nn);
+		spinnerSecStart.setEnabled(true);
+	}
+	
+	public void expressionparser (String [] Array){
+		if (Array[0] != "*"){
+			spinnerSecStart.setEnabled(true);
+			//spinnerSecStart.setValue(s);
+			
+		};
+	}
 
 	/**
 	 * Shows the cron editor dialog.
@@ -1146,4 +1177,322 @@ public class CronEditorDialog extends ButtonDialog {
 		return null;
 	}
 
+	//Parsing cronexpression
+	public void setSpinnerCronExpressionValues(String cronExpression) {
+		String[] numbers = cronExpression.split(" ");
+		if (!cronExpression.equals("")) {
+			for (int i = 0; i < numbers.length; i++) {
+				String currentCronExpresssion = numbers[i];
+				if (i == 0) {
+					setSpinnerSecStart(currentCronExpresssion);
+				} else if (i == 1) {
+					setSpinnerMinStart(currentCronExpresssion);
+				} else if (i == 2) {
+					setSpinnerHourStart(currentCronExpresssion);
+				} else if (i == 3) {
+					setSpinnerDayStart(currentCronExpresssion);
+				} else if (i == 4) {
+					setSpinnerMonthStart(currentCronExpresssion);
+				} else if (i == 5) {
+					setSpinnerConcreteDay(currentCronExpresssion);
+				} else if (i == 6) {
+					setSpinnerYearStart(currentCronExpresssion);
+				}
+			}
+		}
+	}
+	
+	//Parsing to second dialog buttons
+	private void setSpinnerSecStart(String currentCronExpresssion) {
+		if (currentCronExpresssion.toString().contains("*")) {
+			radioButtonSecOnce.setEnabled(true);
+			radioButtonSecEvery.setSelected(true);
+		} else if (currentCronExpresssion.toString().contains("/")) {
+			String[] repeater = currentCronExpresssion.split("/");
+			String second = repeater[0];
+			String rsecond = repeater[1];
+			spinnerSecStart.setValue(calculateNumberForCronExpression(second));
+			spinnerSecRepeat.setValue(calculateNumberForCronExpression(rsecond));
+
+			radioButtonSecOnce.setSelected(true);
+			radioButtonSecEvery.setEnabled(true);
+			spinnerSecStart.setEnabled(true);
+			checkBoxSecRepeat.setSelected(true);
+			spinnerSecRepeat.setEnabled(true);
+			checkBoxSecRepeat.setEnabled(true);
+		} else if (!currentCronExpresssion.toString().contains("*")) {
+			spinnerSecStart.setValue(calculateNumberForCronExpression(currentCronExpresssion));
+			radioButtonSecOnce.setSelected(true);
+			radioButtonSecEvery.setEnabled(true);
+			spinnerSecStart.setEnabled(true);
+			checkBoxSecRepeat.setEnabled(true);
+		}
+
+	}
+	
+	//Parsing to minute dialog buttons
+	private void setSpinnerMinStart(String currentCronExpresssion) {
+		if (currentCronExpresssion.toString().contains("*")) {
+			radioButtonMinOnce.setEnabled(true);
+			radioButtonMinEvery.setSelected(true);
+		} else if (currentCronExpresssion.toString().contains("/")) {
+			String[] repeater = currentCronExpresssion.split("/");
+			String minute = repeater[0];
+			String rminute = repeater[1];
+
+			spinnerMinStart.setValue(calculateNumberForCronExpression(minute));
+			spinnerMinRepeat.setValue(calculateNumberForCronExpression(rminute));
+
+			radioButtonMinOnce.setSelected(true);
+			radioButtonMinEvery.setEnabled(true);
+			spinnerMinStart.setEnabled(true);
+			checkBoxMinRepeat.setSelected(true);
+			spinnerMinRepeat.setEnabled(true);
+			checkBoxMinRepeat.setEnabled(true);
+		} else if (!currentCronExpresssion.toString().contains("*")) {
+			spinnerMinStart.setValue(calculateNumberForCronExpression(currentCronExpresssion));
+			radioButtonMinOnce.setSelected(true);
+			radioButtonMinEvery.setEnabled(true);
+			spinnerMinStart.setEnabled(true);
+			checkBoxMinRepeat.setEnabled(true);
+		}
+	}
+
+	//Parsing to hour dialog buttons
+	private void setSpinnerHourStart(String currentCronExpresssion) {
+		if (currentCronExpresssion.toString().contains("*")) {
+			radioButtonHourOnce.setEnabled(true);
+			radioButtonHourEvery.setSelected(true);
+		} else if (currentCronExpresssion.toString().contains("/")) {
+			String[] repeater = currentCronExpresssion.split("/");
+			String hour = repeater[0];
+			String rhour = repeater[1];
+			spinnerHourStart.setValue(calculateNumberForCronExpression(hour));
+			spinnerHourRepeat.setValue(calculateNumberForCronExpression(rhour));
+
+			radioButtonHourOnce.setSelected(true);
+			radioButtonHourEvery.setEnabled(true);
+			spinnerHourStart.setEnabled(true);
+			checkBoxHourRepeat.setSelected(true);
+			spinnerHourRepeat.setEnabled(true);
+			checkBoxHourRepeat.setEnabled(true);
+		} else if (!currentCronExpresssion.toString().contains("*")) {
+			spinnerHourStart.setValue(calculateNumberForCronExpression(currentCronExpresssion));
+			radioButtonHourOnce.setSelected(true);
+			radioButtonHourEvery.setEnabled(true);
+			spinnerHourStart.setEnabled(true);
+			checkBoxHourRepeat.setEnabled(true);
+		}
+
+	}
+
+	//Parsing to day dialog buttons
+	private void setSpinnerDayStart(String currentCronExpresssion) {
+		if (currentCronExpresssion.toString().contains("*")) {
+			radioButtonDayEvery.setSelected(true);
+			radioButtonDayEvery.setEnabled(true);
+		} else if (currentCronExpresssion.toString().contains("/")) {
+			String[] repeater = currentCronExpresssion.split("/");
+			String day = repeater[0];
+			String rday = repeater[1];
+			spinnerDayStart.setValue(calculateNumberForCronExpression(day));
+			spinnerDayRepeat.setValue(calculateNumberForCronExpression(rday));
+
+			radioButtonDayEvery.setEnabled(true);
+			spinnerDayStart.setEnabled(true);
+			spinnerDayRepeat.setEnabled(true);
+			checkBoxDayRepeat.setEnabled(true);
+			checkBoxDayRepeat.setSelected(true);
+			radioButtonDayOnce.setSelected(true);
+		} else if (!currentCronExpresssion.toString().contains("/")) {
+			spinnerDayStart.setValue(calculateNumberForCronExpression(currentCronExpresssion));
+			radioButtonDayEvery.setEnabled(true);
+			spinnerDayStart.setEnabled(true);
+			radioButtonDayOnce.setSelected(true);
+			checkBoxDayRepeat.setEnabled(true);
+		} else if (!currentCronExpresssion.toString().contains("?")) {
+			radioButtonDayEvery.setSelected(true);
+			radioButtonDayEvery.setEnabled(true);
+		}
+
+	}
+
+	//Parsing to month dialog buttons
+	private void setSpinnerMonthStart(String currentCronExpresssion) {
+		if (currentCronExpresssion.toString().contains("*")) {
+			radioButtonMonthEvery.setSelected(true);
+			radioButtonMonthEvery.setEnabled(true);
+		} else if (currentCronExpresssion.toString().contains("/")) {
+			String[] repeater = currentCronExpresssion.split("/");
+			String month = repeater[0];
+			String rmonth = repeater[1];
+			spinnerMonthStart.setValue(calculateNumberForCronExpression(month));
+			spinnerMonthRepeat.setValue(calculateNumberForCronExpression(rmonth));
+
+			radioButtonMonthOnce.setSelected(true);
+			radioButtonMonthEvery.setEnabled(true);
+			spinnerMonthStart.setEnabled(true);
+			checkBoxMonthRepeat.setSelected(true);
+			spinnerMonthRepeat.setEnabled(true);
+			checkBoxMonthRepeat.setEnabled(true);
+		} else if ((currentCronExpresssion.toString().contains("J")) ||
+				(currentCronExpresssion.toString().contains("F")) ||
+				(currentCronExpresssion.toString().contains("M")) ||
+				(currentCronExpresssion.toString().contains("A")) ||
+				(currentCronExpresssion.toString().contains("S")) ||
+				(currentCronExpresssion.toString().contains("O")) ||
+				(currentCronExpresssion.toString().contains("N")) ||
+				(currentCronExpresssion.toString().contains("D"))) {
+			calculateMonthForCronExpression(currentCronExpresssion);
+			radioButtonMonthEvery.setEnabled(true);
+			radioButtonMonthUseMonthOfYear.setSelected(true);
+			radioButtonMonthUseMonthOfYear.setEnabled(true);
+			checkBoxJanuary.setEnabled(true);
+			checkBoxFebruary.setEnabled(true);
+			checkBoxMarch.setEnabled(true);
+			checkBoxApril.setEnabled(true);
+			checkBoxMay.setEnabled(true);
+			checkBoxJune.setEnabled(true);
+			checkBoxJuly.setEnabled(true);
+			checkBoxAugust.setEnabled(true);
+			checkBoxSeptember.setEnabled(true);
+			checkBoxOctober.setEnabled(true);
+			checkBoxNovember.setEnabled(true);
+			checkBoxDecember.setEnabled(true);
+
+		} else if (!currentCronExpresssion.toString().contains("/")) {
+			spinnerMonthStart.setValue(calculateNumberForCronExpression(currentCronExpresssion));
+			radioButtonMonthEvery.setEnabled(true);
+			//radioButtonMonthEvery.setSelected(true);
+			spinnerMonthStart.setEnabled(true);
+			radioButtonMonthOnce.setSelected(true);
+			checkBoxMonthRepeat.setEnabled(true);
+		}
+
+	}
+
+	//Parsing day checkbox dialog buttons
+	private void setSpinnerConcreteDay(String currentCronExpresssion) {
+		if (!currentCronExpresssion.toString().contains("?")) {
+			calculateDayForCronExpression(currentCronExpresssion);
+			radioButtonDayUseDayOfWeek.setEnabled(true);
+			radioButtonDayUseDayOfWeek.setSelected(true);
+			checkBoxMonday.setEnabled(true);
+			checkBoxTuesday.setEnabled(true);
+			checkBoxWednesday.setEnabled(true);
+			checkBoxThursday.setEnabled(true);
+			checkBoxFriday.setEnabled(true);
+			checkBoxSaturday.setEnabled(true);
+			checkBoxSunday.setEnabled(true);
+			radioButtonDayEvery.setEnabled(true);
+			radioButtonDayEvery.setSelected(false);
+			spinnerDayStart.setEnabled(false);
+			checkBoxDayRepeat.setEnabled(false);
+		}
+	}
+
+	//Parsing to year dialog buttons
+	private void setSpinnerYearStart(String currentCronExpresssion) {
+		if (currentCronExpresssion.toString().contains("*")) {
+			radioButtonYearOnce.setEnabled(true);
+			radioButtonYearEvery.setEnabled(true);
+			radioButtonYearEvery.setSelected(true);
+			checkBoxYearEnabled.setEnabled(true);
+			checkBoxYearEnabled.setSelected(true);
+		} else if (currentCronExpresssion.toString().contains("/")) {
+			String[] repeater = currentCronExpresssion.split("/");
+			String year = repeater[0];
+			String ryear = repeater[1];
+			spinnerYearStart.setValue(calculateNumberForCronExpression(year));
+			spinnerYearRepeat.setValue(calculateNumberForCronExpression(ryear));
+
+			radioButtonYearOnce.setSelected(true);
+			radioButtonYearOnce.setEnabled(true);
+			radioButtonYearEvery.setEnabled(true);
+			spinnerYearStart.setEnabled(true);
+			checkBoxYearRepeat.setSelected(true);
+			spinnerYearRepeat.setEnabled(true);
+			checkBoxYearRepeat.setEnabled(true);
+			checkBoxYearEnabled.setEnabled(true);
+			checkBoxYearEnabled.setSelected(true);
+		} else if (!currentCronExpresssion.toString().contains("*")) {
+			spinnerYearStart.setValue(calculateNumberForCronExpression(currentCronExpresssion));
+			radioButtonYearOnce.setSelected(true);
+			radioButtonYearOnce.setEnabled(true);
+			radioButtonYearEvery.setEnabled(true);
+			checkBoxYearEnabled.setEnabled(true);
+			checkBoxYearEnabled.setSelected(true);
+			spinnerYearStart.setEnabled(true);
+			checkBoxYearRepeat.setEnabled(true);
+		}
+
+	}
+
+	//Parsing String to number for dialog buttonfields
+	private Number calculateNumberForCronExpression(String currentCronExpresssion) {
+		Number nn = null;
+		try {
+			nn = NumberFormat.getInstance().parse(currentCronExpresssion);
+		} catch (ParseException e) {
+			//TODO Should not occure except someone changes the cronexpression in RM to a wrong expression
+			return 1;
+		}
+		return nn;
+	}
+
+	//Parsing months for dialog checkboxes
+	private void calculateMonthForCronExpression(String currentCronExpresssion) {
+		String[] monthexpression = currentCronExpresssion.split(",");
+		for (int i = 0; i < monthexpression.length; i++) {
+			String month = monthexpression[i];
+			if (month.equals("JAN")) {
+				checkBoxJanuary.setSelected(true);
+			} else if (month.equals("FEB")) {
+				checkBoxFebruary.setSelected(true);
+			} else if (month.equals("MAR")) {
+				checkBoxMarch.setSelected(true);
+			} else if (month.equals("APR")) {
+				checkBoxApril.setSelected(true);
+			} else if (month.equals("MAY")) {
+				checkBoxMay.setSelected(true);
+			} else if (month.equals("JUN")) {
+				checkBoxJune.setSelected(true);
+			} else if (month.equals("JUL")) {
+				checkBoxJuly.setSelected(true);
+			} else if (month.equals("AUG")) {
+				checkBoxAugust.setSelected(true);
+			} else if (month.equals("SEP")) {
+				checkBoxSeptember.setSelected(true);
+			} else if (month.equals("OCT")) {
+				checkBoxOctober.setSelected(true);
+			} else if (month.equals("NOV")) {
+				checkBoxNovember.setSelected(true);
+			} else if (month.equals("DEC")) {
+				checkBoxDecember.setSelected(true);
+			}
+		}
+	}
+
+	//Parsing days for dialog checkboxes
+	private void calculateDayForCronExpression(String currentCronExpresssion) {
+		String[] dayexpression = currentCronExpresssion.split(",");
+		for (int i = 0; i < dayexpression.length; i++) {
+			String day = dayexpression[i];
+			if (day.equals("MON")) {
+				checkBoxMonday.setSelected(true);
+			} else if (day.equals("TUE")) {
+				checkBoxTuesday.setSelected(true);
+			} else if (day.equals("WED")) {
+				checkBoxWednesday.setSelected(true);
+			} else if (day.equals("THU")) {
+				checkBoxThursday.setSelected(true);
+			} else if (day.equals("FRI")) {
+				checkBoxFriday.setSelected(true);
+			} else if (day.equals("SAT")) {
+				checkBoxSaturday.setSelected(true);
+			} else if (day.equals("SUN")) {
+				checkBoxSunday.setSelected(true);
+			}
+		}
+	}
 }

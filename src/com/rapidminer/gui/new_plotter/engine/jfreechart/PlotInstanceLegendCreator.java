@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -72,6 +72,7 @@ import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.legend.CustomLegendItem;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.legend.FlankedShapeLegendItem;
 import com.rapidminer.gui.new_plotter.utility.ColorProvider;
+import com.rapidminer.gui.new_plotter.utility.ContinuousColorProvider;
 import com.rapidminer.gui.new_plotter.utility.ContinuousSizeProvider;
 import com.rapidminer.gui.new_plotter.utility.DataStructureUtils;
 import com.rapidminer.gui.new_plotter.utility.ShapeProvider;
@@ -473,7 +474,12 @@ public class PlotInstanceLegendCreator {
 			for (int i = 0; i < width; ++i) {
 				
 				float fraction = (float)i/(width-1.0f);
-				double fractionValue = minValue + fraction * (maxValue - minValue);
+				double fractionValue;
+				if (colorProvider instanceof ContinuousColorProvider && ((ContinuousColorProvider)colorProvider).isColorMinMaxValueDifferentFromOriginal(((ContinuousColorProvider)colorProvider).getMinValue(), ((ContinuousColorProvider)colorProvider).getMaxValue())) {
+					fractionValue = ((ContinuousColorProvider)colorProvider).getMinValue() + fraction * (((ContinuousColorProvider)colorProvider).getMaxValue() - ((ContinuousColorProvider)colorProvider).getMinValue());
+				} else {
+					fractionValue = minValue + fraction * (maxValue - minValue);
+				}
 				colors[i] = colorProvider.getColorForValue(fractionValue);
 				fractions[i] = fraction;
 			}
@@ -490,7 +496,11 @@ public class PlotInstanceLegendCreator {
 			Rectangle itemShape = new Rectangle(width, height);
 			
 
-			return createFlankedShapeLegendItem(label, minValue, maxValue, itemShape, shapeFillPaint, true, dateFormat);
+			if (colorProvider instanceof ContinuousColorProvider) {
+				return createFlankedShapeLegendItem(label, ((ContinuousColorProvider) colorProvider).getMinValue(), ((ContinuousColorProvider) colorProvider).getMaxValue(), itemShape, shapeFillPaint, true, dateFormat);
+			} else {
+				return createFlankedShapeLegendItem(label, minValue, maxValue, itemShape, shapeFillPaint, true, dateFormat);
+			}
 		} else if (dimension == PlotDimension.SHAPE) {
 			// shape provider probably never supports numerical values
 			return null;

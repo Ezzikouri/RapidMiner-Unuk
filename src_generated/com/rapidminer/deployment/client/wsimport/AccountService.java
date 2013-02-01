@@ -38,4 +38,15 @@ public interface AccountService {
         @WebParam(name = "basePackage", targetNamespace = "")
         String basePackage);
 
+    /**
+     * 
+     * @return
+     *     returns java.util.List<java.lang.String>
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getLicensedProducts", targetNamespace = "http://ws.update.deployment.rapid_i.com/", className = "com.rapidminer.deployment.client.wsimport.GetLicensedProducts")
+    @ResponseWrapper(localName = "getLicensedProductsResponse", targetNamespace = "http://ws.update.deployment.rapid_i.com/", className = "com.rapidminer.deployment.client.wsimport.GetLicensedProductsResponse")
+    public List<String> getLicensedProducts();
+
 }

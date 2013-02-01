@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -50,7 +50,6 @@ import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.repository.db.DBRepository;
-import com.rapidminer.repository.gui.NewRepositoryDialog;
 import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.repository.resource.ResourceRepository;
@@ -114,7 +113,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 
 	private RepositoryManager() {
 		if (sampleRepository == null) {
-			sampleRepository = new ResourceRepository(SAMPLE_REPOSITORY_NAME, "/" + Tools.RESOURCE_PREFIX + "samples");
+			sampleRepository = new ResourceRepository(SAMPLE_REPOSITORY_NAME, "samples");
 		}
 		repositories.add(sampleRepository);
 		repositories.add(new DBRepository());
@@ -264,8 +263,16 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			}
 		}
 		if (empty) {
-			SwingTools.showMessageDialog("please_create_repository");
-			NewRepositoryDialog.createNew();
+//			SwingTools.showMessageDialog("please_create_repository");
+//			NewRepositoryDialog.createNew();
+			try {
+				LocalRepository defaultRepo = new LocalRepository("Local Repository");
+				RepositoryManager.getInstance(null).addRepository(defaultRepo);				
+				defaultRepo.createFolder("data");
+				defaultRepo.createFolder("processes");
+			} catch (RepositoryException e) {
+				LogService.getRoot().log(Level.WARNING, "com.rapidminer.repository.RepositoryManager.failed_to_create_default", e);
+			}
 		}
 	}
 
@@ -454,6 +461,18 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				throw new RepositoryException(e);
 			}
 		} else if (entry instanceof Folder) {
+			String sourceAbsolutePath = entry.getLocation().getAbsoluteLocation();
+			String destinationAbsolutePath = destination.getLocation().getAbsoluteLocation();
+			// make sure same folder moves are forbidden
+			if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
+				SwingTools.showVerySimpleErrorMessage("repository_same_folder");
+				return;
+			}
+			// make sure moving parent folder into subfolder is forbidden
+			if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
+				SwingTools.showVerySimpleErrorMessage("repository_copy_into_subfolder");
+				return;
+			}
 			Folder destinationFolder = destination.createFolder(newName);
 			List<Entry> allChildren = new LinkedList<Entry>();
 			allChildren.addAll(((Folder) entry).getSubfolders());
@@ -482,6 +501,23 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		if (entry == null) {
 			throw new RepositoryException("No such entry: " + source);
 		} else {
+			String sourceAbsolutePath = source.getAbsoluteLocation();
+			String destinationAbsolutePath;
+			if (!(entry instanceof Folder)) {
+				destinationAbsolutePath = destination.getLocation().getAbsoluteLocation() + RepositoryLocation.SEPARATOR + source.getName();
+			} else {
+				destinationAbsolutePath = destination.getLocation().getAbsoluteLocation();
+			}
+			// make sure same folder moves are forbidden
+			if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
+				SwingTools.showVerySimpleErrorMessage("repository_same_folder");
+				return;
+			}
+			// make sure moving parent folder into subfolder is forbidden
+			if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
+				SwingTools.showVerySimpleErrorMessage("repository_move_into_subfolder");
+				return;
+			}
 			if (destination.getLocation().getRepository() != source.getRepository()) {
 				copy(source, destination, newName, listener);
 				entry.delete();

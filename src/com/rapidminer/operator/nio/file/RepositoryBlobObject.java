@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -29,6 +29,7 @@ import java.io.InputStream;
 
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.repository.BlobEntry;
+import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.Tools;
@@ -38,7 +39,7 @@ import com.rapidminer.tools.Tools;
  * Simple implementation of a {@link FileObject} backed by a
  * {@link RepositoryLocation}. The repository entry has to be of type 'blob'.
  * 
- * @author Nils Woehler
+ * @author Nils Woehler, Marius Helf
  * 
  */
 public class RepositoryBlobObject extends FileObject {
@@ -55,16 +56,21 @@ public class RepositoryBlobObject extends FileObject {
 
 	@Override
 	public InputStream openStream() throws OperatorException {
-		BlobEntry entry;
+		BlobEntry blobEntry;
 		try {
-			if( location.locateEntry() instanceof BlobEntry){				
-				entry = (BlobEntry) location.locateEntry();
-				return entry.openInputStream();
+			Entry entry = location.locateEntry();
+			if (entry != null) {
+				if (entry instanceof BlobEntry) {
+					blobEntry = (BlobEntry) entry;
+					return blobEntry.openInputStream();
+				} else {
+					throw new OperatorException("942", null, location.getAbsoluteLocation(), "blob", entry.getType());
+				}
 			} else {
-				throw new OperatorException("942", null, location.getPath(),"blob",location.locateEntry().getType());
+				throw new OperatorException("312", null, location.getAbsoluteLocation(), "entry does not exist");
 			}
 		} catch (RepositoryException e) {
-			throw new OperatorException("319", e, location.getPath());
+			throw new OperatorException("319", e, location.getAbsoluteLocation());
 		}
 
 	}
@@ -75,24 +81,36 @@ public class RepositoryBlobObject extends FileObject {
 			try {
 				file = File.createTempFile("rm_file_", ".dump");
 				FileOutputStream fos = new FileOutputStream(file);
-				BlobEntry entry;
-				if( location.locateEntry() instanceof BlobEntry){				
-					entry = (BlobEntry) location.locateEntry();
-				} else {
-					throw new OperatorException("942", null, location.getPath(),"blob",location.locateEntry().getType());
+				BlobEntry blobEntry;
+				try {
+					Entry entry = location.locateEntry();
+					if (entry != null) {
+						if (entry instanceof BlobEntry) {
+							blobEntry = (BlobEntry) entry;
+						} else {
+							throw new OperatorException("942", null, location.getAbsoluteLocation(), "blob", entry.getType());
+						}
+					} else {
+						throw new OperatorException("312", null, location.getAbsoluteLocation(), "entry does not exist");
+					}
+
+					InputStream in = blobEntry.openInputStream();
+					try {
+						Tools.copyStreamSynchronously(in, fos, true);
+						file.deleteOnExit();
+					} finally {
+						in.close();
+					}
+				} finally {
+					fos.close();
 				}
-				InputStream in = entry.openInputStream();
-				Tools.copyStreamSynchronously(in, fos, true);
-				file.deleteOnExit();
 			} catch (IOException e) {
 				throw new OperatorException("303", e, file, e.getMessage());
 			} catch (RepositoryException e) {
-				throw new OperatorException("319", e, location.getPath());
+				throw new OperatorException("319", e, location.getAbsoluteLocation());
 			}
-			return file;
-		} else {
-			return file;
 		}
+		return file;
 	}
 
 	@Override

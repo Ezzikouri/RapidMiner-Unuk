@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -41,10 +41,10 @@ import com.rapidminer.gui.viewer.MetaDataViewerTableModel;
 
 /** Instances of this class can be used to annotate {@link IOObject}s, {@link Attribute}s, etc. 
  * 
- * @author Simon Fischer
+ * @author Simon Fischer, Marius Helf
  *
  */
-public class Annotations implements Serializable, Map<String,String> {
+public class Annotations implements Serializable, Map<String,String>, Cloneable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -54,6 +54,8 @@ public class Annotations implements Serializable, Map<String,String> {
 
 	/** Source, e.g. URI, or SQL query of data. */
 	public static final String KEY_SOURCE    = "Source";
+	
+	public static final String KEY_FILENAME  = "Filename";
 	
 	/** User defined comment. */
 	public static final String KEY_COMMENT   = "Comment";
@@ -106,13 +108,14 @@ public class Annotations implements Serializable, Map<String,String> {
 		KEY_DC_SOURCE,
 		KEY_DC_RELATION,
 		KEY_DC_AUDIENCE,
-		KEY_DC_INSTRUCTIONAL_METHOD
+		KEY_DC_INSTRUCTIONAL_METHOD,
 	};
 	
 	/** All keys that are supposed to be used with {@link IOObject}s. */
 	public static final String[] ALL_KEYS_IOOBJECT = {
 		KEY_SOURCE,
 		KEY_COMMENT,
+		KEY_FILENAME,
 		
 		KEY_DC_AUTHOR,
 		KEY_DC_TITLE,
@@ -128,7 +131,8 @@ public class Annotations implements Serializable, Map<String,String> {
 		KEY_DC_SOURCE,
 		KEY_DC_RELATION,
 		KEY_DC_AUDIENCE,
-		KEY_DC_INSTRUCTIONAL_METHOD
+		KEY_DC_INSTRUCTIONAL_METHOD,
+		
 	};
 	
 	/** Keys that can be assigned to {@link Attribute}s. 
@@ -287,5 +291,38 @@ public class Annotations implements Serializable, Map<String,String> {
 		List<String> result = new LinkedList<String>();
 		result.addAll(keySet());
 		return result;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	protected Annotations clone() {
+		return new Annotations(this);
+	}
+
+	/**
+	 * Copies all annotations from the input argument to this Annotations object.
+	 * Existing entries will be overwritten.
+	 * 
+	 */
+	public void addAll(Annotations annotations) {
+		if (annotations != null) {
+			this.keyValueMap.putAll(annotations);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		if (!(obj instanceof Annotations)) {
+			return false;
+		}
+		return keyValueMap.equals(((Annotations)obj).keyValueMap);
 	}
 }

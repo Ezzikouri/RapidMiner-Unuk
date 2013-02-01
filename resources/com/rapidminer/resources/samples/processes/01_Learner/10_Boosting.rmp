@@ -1,26 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<process version="5.0">
+<process version="5.3.000">
   <context>
     <input/>
     <output/>
     <macros/>
   </context>
-  <operator activated="true" class="process" expanded="true" name="Root">
+  <operator activated="true" class="process" compatibility="5.0.000" expanded="true" name="Root">
     <description>In this process the boosting method AdaBoost with a decision tree base learner. Since the data set contains missing values, we have to apply a preprocessing operator which replaces these missing values by the average of the non-missing values in the corresponding columns.</description>
     <parameter key="logverbosity" value="3"/>
     <parameter key="random_seed" value="2001"/>
     <parameter key="send_mail" value="1"/>
+    <parameter key="notification_email" value=""/>
     <parameter key="process_duration_for_mail" value="30"/>
     <parameter key="encoding" value="SYSTEM"/>
     <process expanded="true" height="584" width="918">
-      <operator activated="true" class="retrieve" expanded="true" height="60" name="Retrieve" width="90" x="45" y="30">
+      <operator activated="true" class="retrieve" compatibility="5.0.000" expanded="true" height="60" name="Retrieve" width="90" x="45" y="30">
         <parameter key="repository_entry" value="../../data/Labor-Negotiations"/>
       </operator>
-      <operator activated="true" class="replace_missing_values" expanded="true" height="94" name="MissingValueReplenishment" width="90" x="180" y="30">
+      <operator activated="true" class="replace_missing_values" compatibility="5.0.000" expanded="true" height="94" name="MissingValueReplenishment" width="90" x="179" y="30">
         <parameter key="return_preprocessing_model" value="false"/>
         <parameter key="create_view" value="false"/>
         <parameter key="attribute_filter_type" value="0"/>
         <parameter key="attribute" value=""/>
+        <parameter key="attributes" value=""/>
         <parameter key="use_except_expression" value="false"/>
         <parameter key="value_type" value="0"/>
         <parameter key="use_value_type_exception" value="false"/>
@@ -33,14 +35,12 @@
         <parameter key="default" value="3"/>
         <list key="columns"/>
       </operator>
-      <operator activated="true" class="adaboost" expanded="true" height="76" name="AdaBoost" width="90" x="313" y="30">
+      <operator activated="true" class="adaboost" compatibility="5.0.000" expanded="true" height="76" name="AdaBoost" width="90" x="313" y="30">
         <parameter key="iterations" value="10"/>
         <process expanded="true">
-          <operator activated="true" class="decision_stump" expanded="true" name="DecisionStump">
+          <operator activated="true" class="decision_stump" compatibility="5.0.000" expanded="true" name="DecisionStump">
             <parameter key="criterion" value="gain_ratio"/>
-            <parameter key="minimal_size_for_split" value="4"/>
             <parameter key="minimal_leaf_size" value="1"/>
-            <parameter key="minimal_gain" value="0.1"/>
           </operator>
           <connect from_port="training set" to_op="DecisionStump" to_port="training set"/>
           <connect from_op="DecisionStump" from_port="model" to_port="model"/>

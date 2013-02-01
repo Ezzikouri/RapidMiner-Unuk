@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -45,6 +45,7 @@ public class ToggleBreakpointItem extends ToggleAction {
 
 	{
 		setCondition(OPERATOR_SELECTED, MANDATORY);
+		setCondition(ROOT_SELECTED, DISALLOWED);
 	}
 
 	public ToggleBreakpointItem(final Actions actions, final int position) {

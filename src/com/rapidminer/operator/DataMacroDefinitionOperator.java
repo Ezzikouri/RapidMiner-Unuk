@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -134,7 +134,8 @@ public class DataMacroDefinitionOperator extends Operator {
 		super(description);
 
 		exampleSetInput.addPrecondition(new ParameterConditionedPrecondition(exampleSetInput, new AttributeSetPrecondition(exampleSetInput, AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_ATTRIBUTE_NAME)), this, PARAMETER_MACRO_TYPE, MACRO_TYPES[MACRO_TYPE_DATA]));
-
+		exampleSetInput.addPrecondition(new ParameterConditionedPrecondition(exampleSetInput, new AttributeSetPrecondition(exampleSetInput, AttributeSetPrecondition.getAttributesByParameter(this, PARAMETER_ATTRIBUTE_NAME)), this, PARAMETER_MACRO_TYPE, MACRO_TYPES[MACRO_TYPE_STATISTICS]));
+		
 		getTransformer().addRule(new PassThroughRule(exampleSetInput, exampleSetOutput, false));
 
 

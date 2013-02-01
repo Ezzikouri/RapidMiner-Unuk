@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -95,7 +95,7 @@ public class TransformedRegression extends AbstractMetaLearner {
 			unmodifiedMetaData.removeAttribute(labelMD);
 			AttributeMetaData transformedMD = labelMD.copy();
 			transformedMD.setName("transformation(" + labelMD.getName() + ")");
-			// TODO: Transform values instead of setting unkown
+			// TODO: Transform values instead of setting unknown
 			transformedMD.setValueSetRelation(SetRelation.UNKNOWN);
 			transformedMD.setMean(new MDReal());
 

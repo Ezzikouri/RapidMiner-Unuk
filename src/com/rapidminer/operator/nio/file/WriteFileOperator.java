@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -62,18 +62,17 @@ public class WriteFileOperator extends Operator {
 	public static final int DESTINATION_TYPE_FILE = 0;
 	public static final int DESTINATION_TYPE_REPOSITORY = 1;
 	public static final String PARAMETER_MIME_TYPE = "mime_type";
-	
+
 	private static final String MIME_TYPE_OCTESTSTREAM = "application/octet-stream";
 	private static final String[] MIME_TYPES = new String[] {
-			MIME_TYPE_OCTESTSTREAM, 
-			"application/xml", 
+			MIME_TYPE_OCTESTSTREAM,
+			"application/xml",
 			"application/zip",
 			"application/vnd.ms-excel",
-			"text/html", 
+			"text/html",
 			"text/csv"
-		};
-	
-	
+	};
+
 	public InputPort fileInputPort = getInputPorts().createPort("file", FileObject.class);
 	public OutputPort fileOutputPort = getOutputPorts().createPort("file");
 
@@ -85,40 +84,55 @@ public class WriteFileOperator extends Operator {
 	@Override
 	public void doWork() throws OperatorException {
 		FileObject fileObject = fileInputPort.getData(FileObject.class);
-		OutputStream out;
+		OutputStream out = null;
 		String destName;
-		
-		switch (getParameterAsInt(PARAMETER_DESTINATION_TYPE)) {
-		case DESTINATION_TYPE_FILE:
-			File file = getParameterAsFile(PARAMETER_FILENAME);
-			destName = file.getAbsolutePath();
-			try {
-				out = new FileOutputStream(file);
-			} catch (FileNotFoundException e) {
-				throw new UserError(this, 303, file, e);
-			}
-			break;
-		case DESTINATION_TYPE_REPOSITORY:
-			RepositoryLocation location = getParameterAsRepositoryLocation(PARAMETER_REPOSITORY_LOCATION);
-			destName = location.toString();
-			try {
-				BlobEntry blob = RepositoryManager.getInstance(getProcess().getRepositoryAccessor()).getOrCreateBlob(location);
-				out = blob.openOutputStream(getParameterAsString(PARAMETER_MIME_TYPE));
-			} catch (RepositoryException e) {
-				throw new UserError(this, 315, location, e);
-			}
-			break;
-		default:
-			// cannot happen
-			throw new OperatorException("Illegal destination type: "
-					+ getParameterAsString(PARAMETER_DESTINATION_TYPE));
-		}
+
 		try {
-			Tools.copyStreamSynchronously(fileObject.openStream(), out, true);
-		} catch (IOException e) {
-			throw new UserError(this, 322, destName, e);
+
+			switch (getParameterAsInt(PARAMETER_DESTINATION_TYPE)) {
+				case DESTINATION_TYPE_FILE:
+					File file = getParameterAsFile(PARAMETER_FILENAME);
+					destName = file.getAbsolutePath();
+					try {
+						out = new FileOutputStream(file);
+					} catch (FileNotFoundException e) {
+						throw new UserError(this, 303, file, e);
+					}
+					break;
+				case DESTINATION_TYPE_REPOSITORY:
+					RepositoryLocation location = getParameterAsRepositoryLocation(PARAMETER_REPOSITORY_LOCATION);
+					destName = location.toString();
+					try {
+						BlobEntry blob = RepositoryManager.getInstance(getProcess().getRepositoryAccessor()).getOrCreateBlob(location);
+						out = blob.openOutputStream(getParameterAsString(PARAMETER_MIME_TYPE));
+					} catch (RepositoryException e) {
+						throw new UserError(this, 315, location, e);
+					}
+					break;
+				default:
+					// cannot happen
+					throw new OperatorException("Illegal destination type: "
+							+ getParameterAsString(PARAMETER_DESTINATION_TYPE));
+			}
+			try {
+				Tools.copyStreamSynchronously(fileObject.openStream(), out, true);
+			} catch (IOException e) {
+				throw new UserError(this, 322, destName, e);
+			} finally {
+				if (out != null) {
+					try {
+						out.close();
+					} catch (IOException e) {}
+				}
+			}
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {}
+			}
 		}
-		
+
 		fileOutputPort.deliver(fileObject);
 	}
 
@@ -138,18 +152,18 @@ public class WriteFileOperator extends Operator {
 		parameterTypes.add(parameterTypeFile);
 
 		ParameterTypeRepositoryLocation parameterTypeRepositoryLocation = new ParameterTypeRepositoryLocation(
-				PARAMETER_REPOSITORY_LOCATION, "Repository entry to open. This must point to a blob.", true);
+				PARAMETER_REPOSITORY_LOCATION, "Repository entry to open. This must point to a blob.", true, false, false, true, true,true);
 		parameterTypeRepositoryLocation.setExpert(false);
 		parameterTypeRepositoryLocation.registerDependencyCondition(new EqualTypeCondition(
 				this, PARAMETER_DESTINATION_TYPE, DESTINATION_TYPES, true,
 				DESTINATION_TYPE_REPOSITORY));
 		parameterTypes.add(parameterTypeRepositoryLocation);
 
-		ParameterType mimeType = new ParameterTypeStringCategory(PARAMETER_MIME_TYPE, "If saved to the repository, this specifies the mime type to assign to the blob.", 
+		ParameterType mimeType = new ParameterTypeStringCategory(PARAMETER_MIME_TYPE, "If saved to the repository, this specifies the mime type to assign to the blob.",
 				MIME_TYPES, MIME_TYPE_OCTESTSTREAM);
 		mimeType.setExpert(true);
 		mimeType.registerDependencyCondition(new EqualTypeCondition(
-				this, PARAMETER_DESTINATION_TYPE, DESTINATION_TYPES, true,
+				this, PARAMETER_DESTINATION_TYPE, DESTINATION_TYPES, false,
 				DESTINATION_TYPE_REPOSITORY));
 		parameterTypes.add(mimeType);
 

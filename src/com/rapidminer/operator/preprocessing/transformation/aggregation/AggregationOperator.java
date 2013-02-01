@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -411,13 +411,14 @@ public class AggregationOperator extends AbstractDataProcessing {
 
         // postprocessing for remaining compatibility: Old versions automatically added group "all". Must remain this way for old operator
         // version
-        if (getCompatibilityLevel().isAtMost(VERSION_5_1_6)) {
+		if (getCompatibilityLevel().isAtMost(VERSION_5_1_6)) {
             if (groupAttributes.length == 0) {
                 Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL);
                 table.addAttribute(resultGroupAttribute);
                 table.getDataRow(0).set(resultGroupAttribute, resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME));
 
                 ExampleSet resultSet = table.createExampleSet();
+                resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
                 for (Attribute attribute : newAttributes) {
                     resultSet.getAttributes().remove(attribute);
                     resultSet.getAttributes().addRegular(attribute);
@@ -425,21 +426,25 @@ public class AggregationOperator extends AbstractDataProcessing {
                 return resultSet;
             } else {
                 // make attributes nominal
+                ExampleSet resultSet = table.createExampleSet();
+                resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
                 try {
                     NumericToNominal toNominalOperator = OperatorService.createOperator(NumericToPolynominal.class);
                     toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
                     toNominalOperator.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES));
                     toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");
-                    return toNominalOperator.apply(table.createExampleSet());
+                    return toNominalOperator.apply(resultSet);
                 } catch (OperatorCreationException e) {
                     // otherwise compatibility could not be ensured
-                    return table.createExampleSet();
+                    return resultSet;
                 }
             }
         }
         
         // for recent version table is correct: Deliver example set
-        return table.createExampleSet();
+        ExampleSet resultSet = table.createExampleSet();
+        resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
+        return resultSet;
     }
 
     private void parseLeaf(LeafAggregationTreeNode node, double[] dataOfUpperLevels, List<double[]> allGroupCombinations, List<List<Aggregator>> allAggregators, DataRowFactory factory, Attribute[] newAttributes, List<AggregationFunction> aggregationFunctions) {

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -73,6 +73,7 @@ import com.rapidminer.tools.math.function.expressions.Maximum;
 import com.rapidminer.tools.math.function.expressions.Minimum;
 import com.rapidminer.tools.math.function.expressions.Missing;
 import com.rapidminer.tools.math.function.expressions.ParameterValue;
+import com.rapidminer.tools.math.function.expressions.Random;
 import com.rapidminer.tools.math.function.expressions.Signum;
 import com.rapidminer.tools.math.function.expressions.date.Date2String;
 import com.rapidminer.tools.math.function.expressions.date.Date2StringCustom;
@@ -470,7 +471,7 @@ public class ExpressionParser {
 		List<FunctionDescription> processFunctions = new LinkedList<FunctionDescription>();
 		processFunctions.add(new FunctionDescription("param()", "Parameter",
 				"Delivers the specified parameter of the specified operator; example: param(\"Read Excel\", \"file\")", 2));
-		processFunctions.add(new FunctionDescription("macro()", "Macro", "Delivers the macro of the given argument; example: macro(\"x\")", -1));
+		processFunctions.add(new FunctionDescription("macro()", "Macro", "Delivers the value of the macro with the name specified by the first argument as string; example: macro(\"myMacro\"). Optionally a default value can be specified, which is delivered if the macro is not defined: macro(\"myMacro\", \"default value\")", -1));
 		FUNCTIONS.put(FUNCTION_GROUPS[6], processFunctions);
 
 		// miscellaneous functions
@@ -617,6 +618,8 @@ public class ExpressionParser {
 		if (process != null) {
 			parser.addFunction("param", new ParameterValue(process));
 			parser.addFunction("macro", new MacroValue(process));
+			parser.removeFunction("rand");
+			parser.addFunction("rand", new Random(process));
 		}
 	}
 

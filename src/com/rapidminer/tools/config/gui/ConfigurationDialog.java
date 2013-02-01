@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -69,6 +69,9 @@ import com.rapidminer.tools.config.Configurator;
 
 /**
  * A dialog, providing access to {@link Configurable}s of a specified typeID. Offers options to create, delete or modify {Configurable}s.
+ * 
+ * The I18N Keys for this dialog can be found at the {@link Configurable} interface.
+ * 
  * @author Dominik Halfkann
  *
  * @param <T> A subclass of {@link Configurable} which should be configured through the dialog.
@@ -79,7 +82,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	
 	public static Action getOpenWindowAction(String typeID) {
 		final String finalTypeID = typeID;
-		Action OPEN_WINDOW = new ResourceAction("configuration." + ConfigurationManager.getInstance().getConfigurator(typeID).getI18NBaseKey()) {
+		Action OPEN_WINDOW = new ResourceAction(true, "configuration." + ConfigurationManager.getInstance().getConfigurator(typeID).getI18NBaseKey()) {
 			{
 				setCondition(EDIT_IN_PROGRESS, DONT_CARE);
 			}
@@ -152,6 +155,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 		this.configurator = configurator;
 		this.configurationPanel = configurator.createConfigurationPanel();
 		setI18NVariables(this.I18NKey);
+		this.setModal(true);
 		
 		JPanel allButtonPanel = new JPanel(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -249,11 +253,11 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	public JPanel makeConfigurableManagementPanel() {
 		JPanel panel = new JPanel(createGridLayout(1, 2));
 		JScrollPane configurableListPane = new ExtendedJScrollPane(configurableList);
-		configurableListPane.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui." + I18NKey + ".list")));
+		configurableListPane.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui.border." + I18NKey + ".list")));
 		panel.add(configurableListPane);
 		//panel.add(new JPanel());
 		JComponent configPanel = configurationPanel.getComponent();
-		configPanel.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui." + I18NKey + ".configuration")));
+		configPanel.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui.border." + I18NKey + ".configuration")));
 		panel.add(configPanel);
 		return panel;
 	}
@@ -410,6 +414,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 	/** Opens a new entry, updates the configuration panel with the new entry's values **/
 	private void openEntry(T entry) {
 		configurationPanel.updateComponents(entry);
+		SAVE_ENTRY_ACTION.setEnabled(entry.getSource() == null);
 		// Update currently edited entry
 		currentlyEditedEntry = entry;
 		//isNewEntry = false;
@@ -439,7 +444,7 @@ public class ConfigurationDialog<T extends Configurable> extends ButtonDialog {
 						break;
 					}
 				}
-				if (sameNameEntry == null || (sameNameEntry != null && sameNameEntry.equals(currentlyEditedEntry))) {
+				if (sameNameEntry == null || sameNameEntry.equals(currentlyEditedEntry)) {
 					// unique or unchanged name, overwrite currently edited entry if applicable
 					if (currentlyEditedEntry != null) {
 						model.removeElement(currentlyEditedEntry);

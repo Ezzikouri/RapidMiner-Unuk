@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -279,11 +279,8 @@ public class XMLImporter {
         this(listener);
     }
 
-    private int messageCount = 0;
-
     public void addMessage(String msg) {
         LogService.getRoot().info(msg);
-        messageCount++;
         messages.append("<li>");
         messages.append(msg);
         messages.append("</li>");

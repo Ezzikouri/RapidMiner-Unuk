@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -72,11 +72,13 @@ public class DefaultAggregationFunctionMetaDataProvider implements AggregationFu
         } else {
             // not matching type: Return null and register error
         	if (matchingValueTypes.length == 1) {
-        		port.addError(new SimpleMetaDataError(Severity.ERROR, port, "aggregation.incompatible_value_type", 
-        				sourceAttribute.getName(), 
-        				aggregationFunctionName, 
-        				Ontology.VALUE_TYPE_NAMES[sourceAttribute.getValueType()], 
-        				Ontology.VALUE_TYPE_NAMES[matchingValueTypes[0]]));
+        		if (port!=null) {
+	        		port.addError(new SimpleMetaDataError(Severity.ERROR, port, "aggregation.incompatible_value_type", 
+	        				sourceAttribute.getName(), 
+	        				aggregationFunctionName, 
+	        				Ontology.VALUE_TYPE_NAMES[sourceAttribute.getValueType()], 
+	        				Ontology.VALUE_TYPE_NAMES[matchingValueTypes[0]]));
+        		}
         	} else {
         		boolean first = true;
         		StringBuilder b = new StringBuilder();
@@ -88,12 +90,14 @@ public class DefaultAggregationFunctionMetaDataProvider implements AggregationFu
         			}
         			b.append(Ontology.VALUE_TYPE_NAMES[matchingValueTypes[i]]);
         		}
-        		port.addError(new SimpleMetaDataError(Severity.ERROR, port, "aggregation.incompatible_value_type_multiple", 
-        				sourceAttribute.getName(), 
-        				aggregationFunctionName, 
-        				Ontology.VALUE_TYPE_NAMES[sourceAttribute.getValueType()],
-        				b.toString(),
-        				Ontology.VALUE_TYPE_NAMES[matchingValueTypes[matchingValueTypes.length - 1]]));
+        		if (port!=null) {
+	        		port.addError(new SimpleMetaDataError(Severity.ERROR, port, "aggregation.incompatible_value_type_multiple", 
+	        				sourceAttribute.getName(), 
+	        				aggregationFunctionName, 
+	        				Ontology.VALUE_TYPE_NAMES[sourceAttribute.getValueType()],
+	        				b.toString(),
+	        				Ontology.VALUE_TYPE_NAMES[matchingValueTypes[matchingValueTypes.length - 1]]));
+        		}
         	}
             return null;
         }

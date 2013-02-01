@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -50,6 +50,7 @@ import javax.swing.table.TableModel;
 
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.actions.MoveColumnAction;
+import com.rapidminer.gui.operatortree.actions.CutCopyPasteDeleteAction;
 import com.rapidminer.gui.tools.actions.AddToSortingColumnsAction;
 import com.rapidminer.gui.tools.actions.EqualColumnWidthsAction;
 import com.rapidminer.gui.tools.actions.FitAllColumnWidthsAction;
@@ -92,7 +93,7 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     public static final int TIME_FORMAT = 1;
     public static final int DATE_TIME_FORMAT = 2;
 
-
+    private Action COPY_ACTION = CutCopyPasteDeleteAction.COPY_ACTION;
     private Action ROW_ACTION = new SelectRowAction(this, IconSize.SMALL);
     private Action COLUMN_ACTION = new SelectColumnAction(this, IconSize.SMALL);
     private Action FIT_COLUMN_ACTION = new FitColumnWidthAction(this, IconSize.SMALL);
@@ -660,10 +661,15 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
                 Point p = e.getPoint();
                 int row = rowAtPoint(p);
                 int c = columnAtPoint(p);
-                int column = convertColumnIndexToModel(c);
+                // NOT needed here because we are operating on the view only
+//                int column = convertColumnIndexToModel(c);
 
-                setRowSelectionInterval(row, row);
-                setColumnSelectionInterval(column, column);
+                // only set cell selection if clicked cell is outside current selection
+                if ((row != -1 && (row < getSelectedRow() || row > getSelectedRow() + getSelectedRowCount() - 1)) ||
+                		(c != -1 && (c < getSelectedColumn() || c > getSelectedColumn() + getSelectedColumnCount() - 1))) {
+                	setRowSelectionInterval(row, row);
+                	setColumnSelectionInterval(c, c);
+                }
 
                 JPopupMenu menu = createPopupMenu();
 
@@ -683,6 +689,8 @@ public class ExtendedJTable extends JTable implements Tableable, MouseListener {
     }
 
     public void populatePopupMenu(JPopupMenu menu) {
+    	menu.add(COPY_ACTION);
+    	menu.addSeparator();
         menu.add(ROW_ACTION);
         menu.add(COLUMN_ACTION);
 

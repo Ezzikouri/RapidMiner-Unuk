@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -29,6 +29,7 @@ import java.awt.GradientPaint;
 import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.Collections;
@@ -66,6 +67,7 @@ import com.rapidminer.gui.tools.dialogs.ExtendedErrorDialog;
 import com.rapidminer.gui.tools.dialogs.InputDialog;
 import com.rapidminer.gui.tools.dialogs.LongMessageDialog;
 import com.rapidminer.gui.tools.dialogs.MessageDialog;
+import com.rapidminer.gui.tools.dialogs.RepositoryEntryInputDialog;
 import com.rapidminer.gui.tools.dialogs.ResultViewDialog;
 import com.rapidminer.gui.tools.dialogs.SelectionInputDialog;
 import com.rapidminer.gui.tools.syntax.SyntaxStyle;
@@ -374,18 +376,38 @@ public class SwingTools {
         return transformToolTipText(description, true, TOOL_TIP_LINE_LENGTH, escapeSlashes);
     }
 
+    /** This method transforms the given tool tip text into HTML. Lines are splitted at linebreaks
+     *  and additional line breaks are added after ca. {@link #TOOL_TIP_LINE_LENGTH} characters.
+     *  @param escapeSlashes Inidicates if forward slashes ("/") are escaped by the html code "&#47;"
+     *  @param escapeHTML Indicates if previously added html tags are escaped
+     */
+    public static String transformToolTipText(String description, boolean escapeSlashes, boolean escapeHTML) {
+        return transformToolTipText(description, true, TOOL_TIP_LINE_LENGTH, escapeSlashes, escapeHTML);
+    }
     
     public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength) {
     	return transformToolTipText(description, addHTMLTags, lineLength, false);
+    }
+    
+    /** This method transforms the given tool tip text into HTML. Lines are splitted at linebreaks
+     *  and additional line breaks are added after ca. lineLength characters.
+     *  @param escapeSlashes Inidicates if forward slashes ("/") are escaped by the html code "&#47;"
+     */
+    public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength, boolean escapeSlashes) {
+    	return transformToolTipText(description, addHTMLTags, lineLength, escapeSlashes, true);
     }
     
     
     /** This method transforms the given tool tip text into HTML. Lines are splitted at linebreaks
      *  and additional line breaks are added after ca. lineLength characters.
      *  @param escapeSlashes Inidicates if forward slashes ("/") are escaped by the html code "&#47;"
+     *  @param escapeHTML Indicates if previously added html tags are escaped
      *  TODO: Use <div style="width:XXXpx"> */
-    public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength, boolean escapeSlashes) {
-        String completeText = Tools.escapeHTML(description.trim());
+    public static String transformToolTipText(String description, boolean addHTMLTags, int lineLength, boolean escapeSlashes, boolean escapeHTML) {
+    	String completeText = description.trim();
+    	if (escapeHTML) {
+        	completeText = Tools.escapeHTML(completeText);
+        }
         if (escapeSlashes) {
         	completeText = completeText.replaceAll("/", "&#47;");
         }
@@ -527,6 +549,22 @@ public class SwingTools {
             return null;
         }
     }
+    
+    /**
+     * This method will present a repository entry dialog to enter a text. This text will be returned
+     * if the user confirmed the edit. Otherwise null is returned. Prevents invalid repository names.
+     * The key will be used for the properties gui.dialog.input.-key-.title, gui.dialog.input.-key-.message and
+     * gui.dialog.input.-key-.icon
+     */
+    public static String showRepositoryEntryInputDialog(final String key, String text, Object...keyArguments) {
+        RepositoryEntryInputDialog dialog = new RepositoryEntryInputDialog(key, text, keyArguments);
+        dialog.setVisible(true);
+        if (dialog.wasConfirmed()) {
+            return dialog.getInputText();
+        } else {
+            return null;
+        }
+    }
 
     /**
      * The key will be used for the properties gui.dialog.-key-.title and
@@ -568,18 +606,40 @@ public class SwingTools {
     public static void showVerySimpleErrorMessage(final String key, final Object... arguments) {
         if (SwingUtilities.isEventDispatchThread()) {
             ErrorDialog dialog = new ErrorDialog(key, arguments);
+            dialog.setModal(true);
             dialog.setVisible(true);
         } else {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
                     ErrorDialog dialog = new ErrorDialog(key, arguments);
+                    dialog.setModal(true);
                     dialog.setVisible(true);
                 }
             });
         }
     }
 
+    public static void showVerySimpleErrorMessageAndWait(final String key, final Object... arguments) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            ErrorDialog dialog = new ErrorDialog(key, arguments);
+            dialog.setModal(true);
+            dialog.setVisible(true);
+        } else {
+            try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+				    @Override
+				    public void run() {
+				        ErrorDialog dialog = new ErrorDialog(key, arguments);
+				        dialog.setModal(true);
+				        dialog.setVisible(true);
+				    }
+				});
+			} catch (InvocationTargetException e) {
+				LogService.getRoot().log(Level.WARNING, "Error showing error message: "+e, e);
+			} catch (InterruptedException e) {}
+        }
+    }
     /**
      * This is the normal method which could be used by GUI classes for errors caused by
      * some exception (e.g. IO issues). Of course these error message methods should never be

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,8 +22,16 @@
  */
 package com.rapidminer.repository.gui;
 
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.swing.AbstractButton;
+import javax.swing.JButton;
+
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryException;
 
 /** Dialog to configure an existing repository.
  * 
@@ -40,15 +48,27 @@ public class RepositoryConfigurationDialog extends ButtonDialog {
 	public RepositoryConfigurationDialog(Repository repository) {
 		super("repositoryconfigdialog", true,new Object[]{});
 		this.repository = repository;
+		JButton okButton = makeOkButton();
 		configurationPanel = repository.makeConfigurationPanel();
+		configurationPanel.setOkButton(okButton);
 		configurationPanel.configureUIElementsFrom(repository);
+		
+		List<AbstractButton> buttons = new LinkedList<AbstractButton>();
+		buttons.addAll(configurationPanel.getAdditionalButtons());
+		buttons.add(makeCancelButton());
+		buttons.add(okButton);
 
-		layoutDefault(configurationPanel.getComponent(), DEFAULT_SIZE, makeCancelButton(), makeOkButton());
+		layoutDefault(configurationPanel.getComponent(), DEFAULT_SIZE, buttons);
 	}
 
 	@Override
 	protected void ok() {
 		configurationPanel.configure(repository);
+		try {
+			repository.refresh();
+		} catch (RepositoryException e) {
+			SwingTools.showSimpleErrorMessage("cannot_refresh_folder", e);
+		}
 		super.ok();
 	}
 	

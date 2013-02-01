@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -52,9 +52,10 @@ public class CSVFileSelectionWizardStep extends FileSelectionWizardStep {
 			}
 			@Override
 			public String getDescription() {
-				return "Delimiter separated files";
+				return "Delimiter separated files (.csv, .tsv)";
 			}		
 		});
+		this.fileChooser.setAcceptAllFileFilterUsed(true);
 		this.configuration = configuration;
 	}
 

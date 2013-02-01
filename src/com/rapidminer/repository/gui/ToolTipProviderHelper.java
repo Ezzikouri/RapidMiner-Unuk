@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -25,7 +25,7 @@ package com.rapidminer.repository.gui;
 import java.awt.Component;
 import java.util.logging.Level;
 
-import com.rapidminer.gui.flow.ExampleSetMetaDataTableModel;
+import com.rapidminer.gui.metadata.MetaDataRendererFactoryRegistry;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.repository.BlobEntry;
@@ -91,9 +91,11 @@ public class ToolTipProviderHelper {
 			if (!e.willBlock()) {
 				try {
 					MetaData metaData = e.retrieveMetaData();
-					if ((metaData != null) && (metaData instanceof ExampleSetMetaData)) {
-						return ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
-					}
+					Component renderer = MetaDataRendererFactoryRegistry.getInstance().createRenderer(metaData);
+					return renderer;
+//					if ((metaData != null) && (metaData instanceof ExampleSetMetaData)) {
+//						return ExampleSetMetaDataTableModel.makeTableForToolTip((ExampleSetMetaData) metaData);
+//					}
 				} catch (Exception ex) {
 					//LogService.getRoot().log(Level.WARNING, "Error retrieving meta data for " + e.getLocation() + ": " + ex, ex);
 					LogService.getRoot().log(Level.WARNING,

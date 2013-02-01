@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -41,6 +41,15 @@ public class DoubleArrayDataRow extends DataRow {
 		this.data = data;
 	}
 	
+	public DoubleArrayDataRow(DoubleArrayDataRow dataRow) {
+		this.data = dataRow.getData();
+	}
+	
+		
+	public double[] getData() {
+		return data;
+	}
+
 	@Override
 	protected double get(int index, double defaultValue) {
 		return data[index];

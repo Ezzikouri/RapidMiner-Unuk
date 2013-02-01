@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -32,9 +32,12 @@ import java.util.Map;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.SimpleProcessSetupError;
+import com.rapidminer.operator.ports.DummyPortPairExtender;
 import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.PortPairExtender;
 import com.rapidminer.operator.ports.quickfix.DictionaryQuickFix;
 import com.rapidminer.operator.ports.quickfix.ParameterSettingQuickFix;
 import com.rapidminer.parameter.ParameterType;
@@ -77,10 +80,15 @@ public class ParameterSetter extends Operator {
 	/** The parameter name for &quot;A list mapping operator names from the set to operator names in the process setup.&quot; */
 	public static final String PARAMETER_NAME_MAP = "name_map";
 
+	private PortPairExtender dummyPorts = new DummyPortPairExtender("through", getInputPorts(), getOutputPorts());
 	private InputPort parameterInput = getInputPorts().createPort("parameter set", ParameterSet.class);
-
+	private OutputPort parameterPassThrough = getOutputPorts().createPassThroughPort("parameter set");
+	
 	public ParameterSetter(OperatorDescription description) {
 		super(description);
+		dummyPorts.start();
+		getTransformer().addRule(dummyPorts.makePassThroughRule());
+		getTransformer().addPassThroughRule(parameterInput, parameterPassThrough);
 	}
 
 	@Override
@@ -95,6 +103,8 @@ public class ParameterSetter extends Operator {
 			nameMap.put(keyValue[0], keyValue[1]);
 		}
 		parameterSet.applyAll(getProcess(), nameMap);
+		parameterPassThrough.deliver(parameterSet);
+		dummyPorts.passDataThrough();
 	}
 
 	@Override

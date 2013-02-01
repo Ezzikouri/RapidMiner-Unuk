@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -60,7 +60,7 @@ public class ConfirmLicenseDialog extends ButtonDialog {
 		c.weightx = 1;
 		c.weighty = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
-		JEditorPane pane = new JEditorPane("text/plain", license);
+		JEditorPane pane = new JEditorPane("text/html", license);
 		pane.setEditable(false);
 		JScrollPane scrollPane = new JScrollPane(pane);
 		scrollPane.setPreferredSize(new Dimension(400, 400));
@@ -90,7 +90,7 @@ public class ConfirmLicenseDialog extends ButtonDialog {
 		
 		okButton = makeOkButton();
 		okButton.setEnabled(false);
-		layoutDefault(main, makeCancelButton("skip_install"), okButton);
+		layoutDefault(main, okButton, makeCancelButton("skip_install"));
 	}
 
 	private void enableButtons() {

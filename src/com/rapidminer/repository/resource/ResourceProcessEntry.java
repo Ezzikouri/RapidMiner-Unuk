@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.resource;
 
 import java.io.IOException;
@@ -43,18 +44,20 @@ public class ResourceProcessEntry extends ResourceDataEntry implements ProcessEn
 
 	@Override
 	public String retrieveXML() throws RepositoryException {
-		InputStream in = ResourceProcessEntry.class.getResourceAsStream(getResource()+".rmp");
-		if (in == null) {
-			throw new RepositoryException("Missing resource: "+getResource()+".rmp");
+		InputStream in = null;
+		try {
+			in = Tools.getResourceInputStream(getResource() + ".rmp");
+		} catch (IOException e1) {
+			throw new RepositoryException("Missing resource: " + getResource() + ".rmp", e1);
 		}
 		try {
 			return Tools.readTextFile(new InputStreamReader(in));
 		} catch (IOException e) {
-			throw new RepositoryException("IO error reading "+getResource()+": "+e.getMessage());
+			throw new RepositoryException("IO error reading " + getResource() + ": " + e.getMessage());
 		} finally {
 			try {
 				in.close();
-			} catch (IOException e) { }
+			} catch (IOException e) {}
 		}
 
 	}

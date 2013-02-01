@@ -11,8 +11,10 @@ import javax.swing.Action;
 import javax.swing.JFrame;
 
 import com.rapidminer.ProcessLocation;
+import com.rapidminer.ProcessStorageListener;
 import com.rapidminer.gui.actions.Actions;
 import com.rapidminer.gui.actions.RunAction;
+import com.rapidminer.gui.actions.RunRemoteNowAction;
 import com.rapidminer.gui.actions.ToggleAction;
 import com.rapidminer.gui.flow.ProcessPanel;
 import com.rapidminer.gui.operatortree.OperatorTree;
@@ -24,6 +26,7 @@ import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.tools.LoggingViewer;
 import com.rapidminer.gui.tools.StatusBar;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.repository.gui.RepositoryBrowser;
 import com.vlsolutions.swing.docking.Dockable;
 import com.vlsolutions.swing.docking.DockingDesktop;
 
@@ -86,11 +89,11 @@ public interface MainUIState extends MenusUI, TutorialState, ProcessState {
 
 	public OperatorDocViewer getOperatorDocViewer();
 
-	public ProcessPanel getProcessPanel();
-
 	public void registerDockable(Dockable dockable);
 
 	public ProcessContextProcessEditor getProcessContextEditor();
+
+	RepositoryBrowser getRepositoryBrowser();
 
 	public Component getXMLEditor();
 
@@ -126,8 +129,18 @@ public interface MainUIState extends MenusUI, TutorialState, ProcessState {
 	Action getPropagateRealMetadataAction();
 
 	Action getRewireRecursively();
+	
+	RunRemoteNowAction getRunRemoteNowAction();
 
 	RunAction getRunAction();
 
 	ToggleAction getToggleExpertModeAction();
+
+	void removeProcessStorageListener(ProcessStorageListener listener);
+
+	void addProcessStorageListener(ProcessStorageListener listener);
+
+	void addViewSwitchToUndo();
+
+	DockableMenu getDockableMenu();
 }

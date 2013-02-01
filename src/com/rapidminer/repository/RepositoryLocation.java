@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -39,6 +39,7 @@ public class RepositoryLocation {
 
     public static final char SEPARATOR = '/';
     public static final String REPOSITORY_PREFIX = "//";
+    public static final String[] blacklistedStrings = new String[] { "/", "\\", ":", "<", ">", "*", "?", "\"", "|" };
 
     private String repositoryName;
     private String[] path;
@@ -118,12 +119,6 @@ public class RepositoryLocation {
         }
         path = path.substring(1);
         this.path = path.split(""+SEPARATOR);
-    }
-
-    private static void checkName(String name) throws MalformedRepositoryLocationException {
-        if (name.contains(""+SEPARATOR)) {
-            throw new MalformedRepositoryLocationException("Names must not contain '"+SEPARATOR+"'.");
-        }
     }
 
     /** Returns the absolute location of this RepoositoryLocation. */
@@ -270,5 +265,45 @@ public class RepositoryLocation {
 
     public RepositoryAccessor getAccessor() {
         return accessor;
+    }
+    
+    /**
+     * Checks if the given name is valid as a repository entry.
+     * Checks against a blacklist of characters.
+     * @param name
+     * @return
+     */
+    public static boolean isNameValid(String name) {
+    	if (name == null) {
+    		throw new IllegalArgumentException("name must not be null!");
+    	}
+    	if ("".equals(name.trim())) {
+    		return false;
+    	}
+    	
+    	for (String forbiddenString : blacklistedStrings) {
+    		if (name.contains(forbiddenString)) {
+    			return false;
+    		}
+    	}
+    	return true;
+    }
+    
+    /**
+     * Returns the sub{@link String} in the given name which is invalid or <code>null</code> if there are no
+     * illegal characters.
+     * @return
+     */
+    public static String getIllegalCharacterInName(String name) {
+    	if (name == null || "".equals(name.trim())) {
+    		return null;
+    	}
+    	
+    	for (String forbiddenString : blacklistedStrings) {
+    		if (name.contains(forbiddenString)) {
+    			return forbiddenString;
+    		}
+    	}
+    	return null;
     }
 }

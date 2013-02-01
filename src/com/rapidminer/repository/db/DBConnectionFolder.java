@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -96,17 +96,17 @@ public class DBConnectionFolder implements Folder {
 
 	@Override
 	public boolean rename(String newName) throws RepositoryException {
-		throw new RepositoryException("Cannot rename connection entry.");
+		throw new RepositoryException("This is a read-only view on a database. Cannot rename entries.");
 	}
 
 	@Override
 	public boolean move(Folder newParent) throws RepositoryException {
-		throw new RepositoryException("Cannot move connection entry.");
+		throw new RepositoryException("This is a read-only view on a database. Cannot move entries.");
 	}
 	
 	@Override
 	public boolean move(Folder newParent, String newName) throws RepositoryException {
-		throw new RepositoryException("Cannot move connection entry.");
+		throw new RepositoryException("This is a read-only view on a database. Cannot move or rename entries");
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class DBConnectionFolder implements Folder {
 
 	@Override
 	public void delete() throws RepositoryException {
-		throw new RepositoryException("Cannot delete connection entry.");		
+		throw new RepositoryException("This is a read-only view on a database. Cannot delete entries.");		
 	}
 
 	@Override
@@ -169,22 +169,22 @@ public class DBConnectionFolder implements Folder {
 
 	@Override
 	public Folder createFolder(String name) throws RepositoryException {
-		throw new RepositoryException("Cannot create folder in connection entry.");
+		throw new RepositoryException("This is a read-only view on a database. Cannot create folders.");
 	}
 
 	@Override
 	public IOObjectEntry createIOObjectEntry(String name, IOObject ioobject, Operator callingOperator, ProgressListener progressListener) throws RepositoryException {
-		throw new RepositoryException("Cannot create items in connection entry.");
+		throw new RepositoryException("This is a read-only view on a database. Cannot create new entries.");
 	}
 
 	@Override
 	public ProcessEntry createProcessEntry(String name, String processXML) throws RepositoryException {
-		throw new RepositoryException("Cannot create items in connection entry.");		
+		throw new RepositoryException("This is a read-only view on a database. Cannot create new entries.");		
 	}
 
 	@Override
 	public BlobEntry createBlobEntry(String name) throws RepositoryException {
-		throw new RepositoryException("Cannot create items in connection entry.");
+		throw new RepositoryException("This is a read-only view on a database. Cannot create new entries.");
 	}
 	
 	protected ConnectionEntry getConnectionEntry() {

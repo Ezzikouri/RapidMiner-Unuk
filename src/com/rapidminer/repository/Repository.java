@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -21,6 +21,8 @@
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
 package com.rapidminer.repository;
+
+import javax.swing.JButton;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -60,5 +62,6 @@ public interface Repository extends Folder {
     /** Returns true if the repository is configurable. In that case,*/
     public boolean isConfigurable();
 
+    /** Creates a configuration panel.*/
     public RepositoryConfigurationPanel makeConfigurationPanel();
 }

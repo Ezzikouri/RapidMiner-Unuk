@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -121,7 +121,7 @@ public class DataResultSetTranslationConfiguration {
             }
             boolean firstRowAsNames = readerOperator.getParameterAsBoolean(PARAMETER_FIRST_ROW_AS_NAMES);
             if (firstRowAsNames) {
-                annotationsMap.put(0, ANNOTATION_NAME);
+            	annotationsMap.put(0, ANNOTATION_NAME);
             }
 
             // reading date format settings
@@ -187,6 +187,8 @@ public class DataResultSetTranslationConfiguration {
             	}
             }
             setFaultTolerant(readerOperator.getParameterAsBoolean(AbstractDataResultSetReader.PARAMETER_ERROR_TOLERANT));
+        } else {
+        	annotationsMap.put(0, ANNOTATION_NAME);
         }
     }
 

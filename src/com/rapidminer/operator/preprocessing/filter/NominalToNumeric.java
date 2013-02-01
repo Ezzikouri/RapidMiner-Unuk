@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -34,6 +34,7 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.OperatorVersion;
 import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.annotation.ResourceConsumptionEstimator;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
@@ -129,6 +130,8 @@ public class NominalToNumeric extends PreprocessingOperator {
 	// values for the naming scheme chooser
 	public static final int UNDERSCORE_NAMING_SCHEME = 0;
 	public static final int EQUAL_SIGN_NAMING_SCHEME = 1;
+	
+	private static final OperatorVersion VERSION_5_2_8 = new OperatorVersion(5, 2, 8);
 
 	public NominalToNumeric(OperatorDescription description) {
 		super(description);
@@ -371,7 +374,8 @@ public class NominalToNumeric extends PreprocessingOperator {
 		List<ParameterType> types = super.getParameterTypes();
 		
 
-		types.add(new ParameterTypeCategory(PARAMETER_CODING_TYPE, "The coding of the numerical attributes.", ENCODING_TYPES, INTEGERS_CODING, false));
+		types.add(new ParameterTypeCategory(PARAMETER_CODING_TYPE, "The coding of the numerical attributes.", ENCODING_TYPES,
+				getCompatibilityLevel().isAtMost(VERSION_5_2_8) ? INTEGERS_CODING : DUMMY_CODING, false));
 
 		ParameterType type;
 		
@@ -379,7 +383,7 @@ public class NominalToNumeric extends PreprocessingOperator {
 				PARAMETER_USE_COMPARISON_GROUPS,
 				"If checked, for each selected attribute in the input set a value has to be specified as comparsion group, which will not appear in the final result set. If not checked, all values of the selected attributes will result in an indicator attribute in the result example set. ",
 				false,
-				false);
+				true);
 		type.registerDependencyCondition(new EqualTypeCondition(this, PARAMETER_CODING_TYPE, ENCODING_TYPES, true, DUMMY_CODING));
 		types.add(type);
 
@@ -410,4 +414,9 @@ public class NominalToNumeric extends PreprocessingOperator {
 
 		return types;
 	}
+	
+	@Override
+    public OperatorVersion[] getIncompatibleVersionChanges() {
+        return new OperatorVersion[] { VERSION_5_2_8 };
+    }
 }

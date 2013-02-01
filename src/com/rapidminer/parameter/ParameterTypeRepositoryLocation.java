@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -30,7 +30,7 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 
 	private static final long serialVersionUID = 1L;
 
-	private boolean allowFolders, allowEntries, allowAbsoluteEntries;
+	private boolean allowFolders, allowEntries, allowAbsoluteEntries, enforceValidRepositoryEntryName, onlyWriteableLocations;
 	
 	/** Creates a new parameter type for files with the given extension. If the extension is null
 	 *  no file filters will be used. */
@@ -41,22 +41,42 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 	/** Creates a new parameter type for files with the given extension. If the extension is null
 	 *  no file filters will be used. */
 	public ParameterTypeRepositoryLocation(String key, String description, boolean allowEntries, boolean allowDirectories, boolean optional) {
-		super(key, description, null);
-		
-		setOptional(optional);	
-		setAllowEntries(allowEntries);
-		setAllowFolders(allowDirectories);
+		this(key, description, allowEntries, allowDirectories,false, optional,false,false);
+	}
+	
+	public ParameterTypeRepositoryLocation(String key, String description, boolean allowEntries, boolean allowDirectories, boolean allowAbsoluteEntries, boolean optional, boolean enforceValidRepositoryEntryName){
+		this(key, description, allowEntries, allowDirectories,allowAbsoluteEntries, optional,enforceValidRepositoryEntryName,false);
 	}
 	
 	/** Creates a new parameter type for files with the given extension. If the extension is null
-	 *  no file filters will be used. */
-	public ParameterTypeRepositoryLocation(String key, String description, boolean allowEntries, boolean allowDirectories, boolean allowAbsoluteEntries, boolean optional) {
+	 *  no file filters will be used. If {@link #enforceValidRepositoryEntryName} is set to <code>true</code>, will
+	 *  enforce valid repository entry names.
+	 **/
+	public ParameterTypeRepositoryLocation(String key, String description, boolean allowEntries, boolean allowDirectories, boolean allowAbsoluteEntries, boolean optional, boolean enforceValidRepositoryEntryName, boolean onlyWriteableLocations) {
 		super(key, description, null);
 		
 		setOptional(optional);	
 		setAllowEntries(allowEntries);
 		setAllowFolders(allowDirectories);
 		setAllowAbsoluteEntries(allowAbsoluteEntries);
+		setEnforceValidRepositoryEntryName(enforceValidRepositoryEntryName);
+		setOnlyWriteableLocations(onlyWriteableLocations);
+	}
+	
+	/** Creates a new parameter type for files with the given extension. If the extension is null
+	 *  no file filters will be used. */
+	public ParameterTypeRepositoryLocation(String key, String description, boolean allowEntries, boolean allowDirectories, boolean allowAbsoluteEntries, boolean optional) {
+		this(key, description, allowEntries, allowDirectories,allowAbsoluteEntries, optional,false,false);
+	}
+
+	
+	public boolean isOnlyWriteableLocations() {
+		return onlyWriteableLocations;
+	}
+
+	
+	public void setOnlyWriteableLocations(boolean onlyWriteableLocations) {
+		this.onlyWriteableLocations = onlyWriteableLocations;
 	}
 
 	public boolean isAllowFolders() {
@@ -81,5 +101,13 @@ public class ParameterTypeRepositoryLocation extends ParameterTypeString {
 	
 	public boolean isAllowAbsoluteEntries() {
 		return this.allowAbsoluteEntries;
+	}
+
+	public boolean isEnforceValidRepositoryEntryName() {
+		return enforceValidRepositoryEntryName;
+	}
+
+	public void setEnforceValidRepositoryEntryName(boolean enforceValidRepositoryEntryName) {
+		this.enforceValidRepositoryEntryName = enforceValidRepositoryEntryName;
 	}
 }

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -308,6 +308,10 @@ public class ManagedExtension {
         }
         return ext;
     }
+    
+    public static ManagedExtension remove(String packageId) {
+    	return MANAGED_EXTENSIONS.remove(packageId);
+    }
 
     public String getPackageId() {
         return packageID;
@@ -411,14 +415,6 @@ public class ManagedExtension {
             }
         }
         return result;
-    }
-
-    static void checkForLicenseConflicts() {
-        Collection<ManagedExtension> lgpl = getActiveByLicense("GPL");
-        Collection<ManagedExtension> comm = getActiveByLicense(UpdateManager.COMMERCIAL_LICENSE_NAME);
-        if (!lgpl.isEmpty() && !comm.isEmpty()) {
-            new LicenseConflictDialog(lgpl, comm).setVisible(true);
-        }
     }
 
     /** Returns true if uninstall was successful. */

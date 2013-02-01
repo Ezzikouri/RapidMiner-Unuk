@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,7 +22,6 @@
  */
 package com.rapidminer.gui.tools.autocomplete;
 
-import java.awt.Component;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.ArrayList;
@@ -48,7 +47,9 @@ import javax.swing.text.Document;
  * 
  */
 public class AutoCompleteComboBoxAddition {
+
 	private final class AutoCompletionDocumentListener implements DocumentListener {
+
 		@Override
 		public void insertUpdate(DocumentEvent e) {
 			try {
@@ -64,18 +65,22 @@ public class AutoCompleteComboBoxAddition {
 				Document document = e.getDocument();
 				String documentText = document.getText(0, document.getLength());
 				final String result = checkForMatch(documentText, vectorOfStrings, caseSensitive);
-				final String newString = (result == null) ? documentText : result;
+				// don't do anything if there is no match
+				if (result == null) {
+					return;
+				}
 				final int startSelect = document.getLength();
-				final int endSelect = newString.length();
+				final int endSelect = result.length();
 				final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
 
 				if (startSelect == e.getOffset() + e.getLength()) {
 					SwingUtilities.invokeLater(new Runnable() {
+
 						@Override
 						public void run() {
-							comboBox.getModel().setSelectedItem(newString);
+							comboBox.getModel().setSelectedItem(result);
 							editorComponent.getDocument().removeDocumentListener(docListener);
-							editorComponent.setText(newString);
+							editorComponent.setText(result);
 							editorComponent.getDocument().addDocumentListener(docListener);
 							editorComponent.setCaretPosition(startSelect);
 							editorComponent.setSelectionStart(startSelect);
@@ -83,8 +88,7 @@ public class AutoCompleteComboBoxAddition {
 						}
 					});
 				}
-			} catch (BadLocationException e1) {
-			}
+			} catch (BadLocationException e1) {}
 		}
 
 		@Override
@@ -120,7 +124,6 @@ public class AutoCompleteComboBoxAddition {
 	/** the JComboBox to which it is attached */
 	private final JComboBox comboBox;
 	private final BasicComboBoxEditor comboBoxEditor;
-	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Adds an auto completion feature to the given JComboBox. Will set {@link JComboBox#setEditable(boolean)} to true.
@@ -140,29 +143,29 @@ public class AutoCompleteComboBoxAddition {
 		comboBox.setEditor(comboBoxEditor);
 		docListener = new AutoCompletionDocumentListener();
 		((JTextField) comboBox.getEditor().getEditorComponent()).getDocument().addDocumentListener(docListener);
+
 		// workaround for java bug #6433257
-		for (Component c : comboBox.getComponents()) {
+		comboBoxEditor.getEditorComponent().addFocusListener(new FocusAdapter() {
 
-			c.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				// if we did not prevent this, it would auto fill each time the combo box is re-created after a
+				// custom value has been entered,
+				// therefore overwriting any value which happens to be a prefix of something with the first match.
+				// this happens due to some RapidLookComboBoxEditor mechanics.
+				allowAutoFill = true;
+			}
 
-				@Override
-				public void focusGained(FocusEvent e) {
-					// if we did not prevent this, it would auto fill each time the combo box is re-created after a
-					// custom value has been entered,
-					// therefore overwriting any value which happens to be a prefix of something with the first match.
-					// this happens due to some RapidLookComboBoxEditor mechanics.
-					allowAutoFill = true;
-				}
-
-				@Override
-				public void focusLost(FocusEvent e) {
-					allowAutoFill = false;
+			@Override
+			public void focusLost(FocusEvent e) {
+				allowAutoFill = false;
+				if (!e.isTemporary()) {
 					final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
 					editorComponent.setCaretPosition(editorComponent.getCaretPosition());
 				}
+			}
 
-			});
-		}
+		});
 	}
 
 	/**

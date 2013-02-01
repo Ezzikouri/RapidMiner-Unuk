@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -79,7 +79,7 @@ public class ProcessContextEditor extends JPanel {
 	
 	/** Sets the process and edited context. See class comment to find out why you can pass in
 	 *  a context here. */
-	protected void setProcess(Process process, ProcessContext context) {		
+	public void setProcess(Process process, ProcessContext context) {		
 		if (context == null) {
 			context = process != null ? process.getContext() : null;		
 		}

@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -23,16 +23,28 @@
 package com.rapidminer.operator;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 
+import com.rapidminer.operator.nio.file.BufferedFileObject;
+import com.rapidminer.operator.nio.file.FileObject;
 import com.rapidminer.operator.ports.DummyPortPairExtender;
+import com.rapidminer.operator.ports.InputPort;
+import com.rapidminer.operator.ports.OutputPort;
+import com.rapidminer.operator.ports.Port;
 import com.rapidminer.operator.ports.PortPairExtender;
+import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeString;
+import com.rapidminer.parameter.PortProvider;
+import com.rapidminer.parameter.conditions.PortConnectedCondition;
 import com.rapidminer.tools.Tools;
 
 
@@ -69,6 +81,10 @@ public class CommandLineOperator extends Operator {
 
 	public static final String PARAMETER_LOG_STDERR = "log_stderr";
 
+	private InputPort stdin = getInputPorts().createPort("in", new MetaData(FileObject.class));
+	private OutputPort stdout = getOutputPorts().createPort("out");
+	private OutputPort stderr = getOutputPorts().createPort("err");
+
 	private PortPairExtender dummyPorts = new DummyPortPairExtender("through", getInputPorts(), getOutputPorts());
 
 	public CommandLineOperator(OperatorDescription description) {
@@ -77,24 +93,85 @@ public class CommandLineOperator extends Operator {
 		dummyPorts.start();
 
 		getTransformer().addRule(dummyPorts.makePassThroughRule());
+		getTransformer().addGenerationRule(stdout, FileObject.class);
+		getTransformer().addGenerationRule(stderr, FileObject.class);
 	}
 
 	@Override
 	public void doWork() throws OperatorException {
 		String command = getParameterAsString(PARAMETER_COMMAND);
-		boolean logOut = getParameterAsBoolean(PARAMETER_LOG_STDOUT);
-		boolean logErr = getParameterAsBoolean(PARAMETER_LOG_STDERR);
-
+		final boolean logOut = !stdout.isConnected() && getParameterAsBoolean(PARAMETER_LOG_STDOUT);
+		final boolean logErr = !stderr.isConnected() && getParameterAsBoolean(PARAMETER_LOG_STDERR);
+		final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<Throwable>(3));
 		try {
-			Process process = Runtime.getRuntime().exec(command);
-			if (logErr)
-				logOutput("stderr:", process.getErrorStream());
-			if (logOut)
-				logOutput("stdout:", process.getInputStream());
+			final Process process = Runtime.getRuntime().exec(command);
+			final ByteArrayOutputStream stdOutBuf = new ByteArrayOutputStream();
+			final ByteArrayOutputStream stdErrBuf = new ByteArrayOutputStream();
+			
+			if (stdin.isConnected()) {
+				final FileObject input = stdin.getData(FileObject.class);
+				new Thread(getName()+"-stdin") {
+					public void run() {
+						try {
+							Tools.copyStreamSynchronously(input.openStream(), process.getOutputStream(), true);
+						} catch (Exception e) {
+							exceptions.add(e);
+						}	
+					};
+				}.start();					
+			}		
+
+			new Thread(getName()+"-stdout") {
+				public void run() {
+					try {
+						if (logOut) {
+							logOutput("stdout:", process.getInputStream());
+						} else {
+							Tools.copyStreamSynchronously(process.getInputStream(), stdOutBuf, true);
+						}
+					} catch (Exception e) {
+						exceptions.add(e);						
+					}
+				}
+			}.start();
+			new Thread(getName()+"-stderr") {
+				public void run() {
+					try {
+						if (logErr) {
+							logOutput("stderr:", process.getErrorStream());
+						} else {
+							Tools.copyStreamSynchronously(process.getErrorStream(), stdErrBuf, true);
+						}
+					} catch (Exception e) {
+						exceptions.add(e);						
+					}
+				}
+			}.start();
+			
 			Tools.waitForProcess(this, process, command);
 			getLogger().info("Program exited succesfully.");
+
+			if (stdout.isConnected()) {
+				stdout.deliver(new BufferedFileObject(stdOutBuf.toByteArray()));
+			}
+			if (stderr.isConnected()) {
+				stderr.deliver(new BufferedFileObject(stdErrBuf.toByteArray()));
+			}
 		} catch (IOException e) {
 			throw new UserError(this, e, 310, new Object[] { command, e.getMessage() });
+		} finally {
+			getLogger().log(Level.WARNING, "com.rapidminer.operator.CommandLineOperator.errors_occurred", new Object[] {exceptions.size(), command});
+			for (Throwable t : exceptions) {
+				getLogger().log(Level.WARNING, t.toString(), t);
+			}
+			if (!exceptions.isEmpty()) {
+				Throwable t = exceptions.get(0);
+				if (t instanceof OperatorException) {
+					throw (OperatorException)t;
+				} else {
+					throw new UserError(this, t, 310, new Object[] { command, t.getMessage() });
+				}
+			}
 		}
 
 		dummyPorts.passDataThrough();
@@ -116,8 +193,17 @@ public class CommandLineOperator extends Operator {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeString(PARAMETER_COMMAND, "Command to execute.", false, false));
-		types.add(new ParameterTypeBoolean(PARAMETER_LOG_STDOUT, "If set to true, the stdout stream of the command is redirected to the logfile.", true));
-		types.add(new ParameterTypeBoolean(PARAMETER_LOG_STDERR, "If set to true, the stderr stream of the command is redirected to the logfile.", true));
+		ParameterTypeBoolean t = new ParameterTypeBoolean(PARAMETER_LOG_STDOUT, "If set to true, the stdout stream of the command is redirected to the logfile.", true);
+		t.registerDependencyCondition(new PortConnectedCondition(this, new PortProvider() {
+			@Override public Port getPort() { return stdout; }
+		}, false, false));
+		types.add(t);
+
+		ParameterTypeBoolean e = new ParameterTypeBoolean(PARAMETER_LOG_STDERR, "If set to true, the stderr stream of the command is redirected to the logfile.", true);
+		e.registerDependencyCondition(new PortConnectedCondition(this, new PortProvider() {
+			@Override public Port getPort() { return stderr; }
+		}, false, false));
+		types.add(e);
 		return types;
 	}
 

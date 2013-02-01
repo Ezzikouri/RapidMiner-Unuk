@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -22,6 +22,7 @@
  */
 package com.rapidminer.gui.new_plotter.templates.gui;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -39,10 +40,12 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import com.rapidminer.gui.actions.ExportPdfAction;
 import com.rapidminer.gui.new_plotter.templates.SeriesMultipleTemplate;
 import com.rapidminer.gui.new_plotter.templates.actions.ExportImageAction;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
@@ -150,11 +153,15 @@ public class SeriesMultipleTemplatePanel extends PlotterTemplatePanel implements
 		ExtendedJScrollPane plotSeriesScrollPane = new ExtendedJScrollPane(plotSeriesList);
 		this.add(plotSeriesScrollPane, gbc);
 		
+		JPanel exportPanel = new JPanel(new BorderLayout());
 		JButton exportImageButton = new JButton(new ExportImageAction(seriesMultipleTemplate));
+		JButton exportPdfButton = new JButton(new ExportPdfAction(seriesMultipleTemplate));
+		exportPanel.add(exportPdfButton, BorderLayout.PAGE_START);
+		exportPanel.add(exportImageButton, BorderLayout.PAGE_END);
 		gbc.gridy = 4;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.weighty = 0;
-		this.add(exportImageButton, gbc);
+		this.add(exportPanel, gbc);
 	}
 
 	@Override

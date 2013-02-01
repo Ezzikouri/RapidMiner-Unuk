@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -268,7 +268,9 @@ public abstract class AbstractExampleSetJoin extends Operator {
         MemoryExampleTable unionTable = joinData(es1, es2, originalAttributeSources, unionAttributeList);
 
         // create new example set
-        joinOutput.deliver(unionTable.createExampleSet(unionSpecialAttributes));
+        ExampleSet result = unionTable.createExampleSet(unionSpecialAttributes);
+        result.getAnnotations().addAll(es1.getAnnotations());
+		joinOutput.deliver(result);
     }
     
     /**

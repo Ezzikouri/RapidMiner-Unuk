@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -98,7 +98,10 @@ public class RepositoryLocationValueCellEditor extends AbstractCellEditor implem
 			    
 				String locationName = RepositoryLocationChooser.selectLocation(processLocation, textField.getText(), panel, 
 						type.isAllowEntries(), 
-						type.isAllowFolders());
+						type.isAllowFolders(),
+						false,
+						type.isEnforceValidRepositoryEntryName(),
+						type.isOnlyWriteableLocations());
 //				if (locationName != null) {
 //					if ((operator != null) && (operator.getProcess() != null)) {
 //						try {

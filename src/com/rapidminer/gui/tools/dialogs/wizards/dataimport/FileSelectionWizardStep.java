@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -43,6 +43,7 @@ public class FileSelectionWizardStep extends WizardStep {
 	
 	public FileSelectionWizardStep(AbstractWizard parent, FileFilter ... fileFilters) {
 		this(parent, (File)null, fileFilters);
+		setDefaultFileFilter(fileChooser, fileFilters);
 	}
 	
 	public FileSelectionWizardStep(AbstractWizard parent, File preselected, FileFilter ... fileFilters) {
@@ -52,8 +53,17 @@ public class FileSelectionWizardStep extends WizardStep {
 			this.fileChooser.setSelectedFile(preselected);
 		}
 		this.fileChooser.setControlButtonsAreShown(false);
+		setDefaultFileFilter(fileChooser, fileFilters);
 		if (this.fileChooser instanceof ExtendedJFileChooser) {
 			((ExtendedJFileChooser) fileChooser).addChangeListener(parent);
+		}
+	}
+	
+	private void setDefaultFileFilter(JFileChooser fileChooser, FileFilter... fileFilters) {
+		if (fileFilters!=null && fileFilters.length==1) {
+			// Select single file filter as default
+			fileChooser.setFileFilter(fileFilters[0]);
+			fileChooser.setAcceptAllFileFilterUsed(true);
 		}
 	}
 	
@@ -65,7 +75,8 @@ public class FileSelectionWizardStep extends WizardStep {
 	@Override
 	protected boolean canProceed() {
 		if (fileChooser instanceof ExtendedJFileChooser) {
-			return ((ExtendedJFileChooser) fileChooser).isFileSelected();
+			File selectedFile = getSelectedFile();
+			return selectedFile != null && selectedFile.exists();
 		}
 		return true;
 	}

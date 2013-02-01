@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -40,6 +40,7 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ResourceDockKey;
+import com.rapidminer.gui.tools.UpdateQueue;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.container.Pair;
 import com.vlsolutions.swing.docking.DockKey;
@@ -59,41 +60,24 @@ public class MacroViewer extends JPanel implements Dockable, ProcessEditor {
 
 	private static final String MACRO_VIEWER_DOCK_KEY = "macro_viewer";
 	private static final DockKey DOCK_KEY = new ResourceDockKey(MACRO_VIEWER_DOCK_KEY);
-	
+
 	private JTable macroTable;
 	private ExtendedJScrollPane scrollPane = new ExtendedJScrollPane();
 
-	private List<Pair<String, String>> data = new ArrayList<Pair<String,String>>();
-	private String[] names = {"Macro", "Value"};
-	private Process currentProcess; 
+	private List<Pair<String, String>> data = new ArrayList<Pair<String, String>>();
+	private String[] names = { "Macro", "Value" };
+	private Process currentProcess;
 
-	private Observer macroObserver = new Observer() {
-		
-		@Override
-		public void update(Observable o, Object arg) {
-			final List<Pair<String,String>> newData = new ArrayList<Pair<String,String>>();
-			
-			Iterator<String> macroNames = RapidMinerGUI.getMainFrame().getProcess().getMacroHandler().getDefinedMacroNames();
-			while(macroNames.hasNext()){
-				String name = macroNames.next();
-				String value = RapidMinerGUI.getMainFrame().getProcess().getMacroHandler().getMacro(name);
-					newData.add(new Pair<String, String>(name, value));
-			}
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					data = newData;
-					dataModel.fireTableDataChanged();		
-				}				
-			});
-			
-		}
-	};
+	private UpdateQueue updateQueue;
+	private Observer macroObserver;
+
 	private AbstractTableModel dataModel = new AbstractTableModel() {
+
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
+
 		@Override
 		public int getColumnCount() {
 			return 2;
@@ -106,44 +90,66 @@ public class MacroViewer extends JPanel implements Dockable, ProcessEditor {
 
 		@Override
 		public Object getValueAt(int row, int col) {
-			
-			if (col == 0){
+
+			if (col == 0) {
 				return data.get(row).getFirst();
-			}else{
+			} else {
 				return data.get(row).getSecond();
 			}
-			
+
 		}
+
 		public String getColumnName(int column) {
 			return names[column];
 		};
+
 		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			if (columnIndex == 0){
+			if (columnIndex == 0) {
 				return false;
-			}else{
+			} else {
 				return true;
 			}
-			
+
 		};
+
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
 			String content = (String) aValue;
 			data.get(rowIndex).setSecond(content);
 			RapidMinerGUI.getMainFrame().getProcess().getMacroHandler().addMacro(data.get(rowIndex).getFirst(), content);
 		};
-		
+
 	};
-	
-	public MacroViewer(){
+
+	public MacroViewer() {
 		setLayout(new BorderLayout());
-		
-		macroTable =  new ExtendedJTable(dataModel, true, false, true);
+
+		macroTable = new ExtendedJTable(dataModel, true, false, true);
 		//macroTable.setModel(dataModel);
 		macroTable.setFillsViewportHeight(true);
-		
+
 		scrollPane = new ExtendedJScrollPane(macroTable);
 		add(scrollPane, BorderLayout.CENTER);
+
+		updateQueue = new UpdateQueue(MACRO_VIEWER_DOCK_KEY);
+		updateQueue.start();
+		macroObserver = new Observer() {
+
+			@Override
+			public void update(Observable o, Object arg) {
+				updateQueue.execute(new Runnable() {
+
+					@Override
+					public void run() {
+						updateMacros();
+						try {
+							Thread.sleep(1000);  // Sleep 1sec to avoid update flooding
+						} catch (InterruptedException e) {}
+					}
+				});
+			}
+		};
 	}
-	
+
 	@Override
 	public Component getComponent() {
 		return this;
@@ -156,14 +162,35 @@ public class MacroViewer extends JPanel implements Dockable, ProcessEditor {
 
 	@Override
 	public void processChanged(Process process) {
-		if (currentProcess!=null){
+		if (currentProcess != null) {
 			currentProcess.getMacroHandler().deleteObserver(macroObserver);
 		}
-		process.getMacroHandler().addObserver(macroObserver);	
-		currentProcess = process;	
+		process.getMacroHandler().addObserver(macroObserver);
+		currentProcess = process;
 	}
 
-	@Override public void setSelection(List<Operator> selection) { }
-	@Override public void processUpdated(Process process) { }
+	@Override
+	public void setSelection(List<Operator> selection) {}
+
+	@Override
+	public void processUpdated(Process process) {}
+
+	private void updateMacros() {
+		final List<Pair<String, String>> newData = new ArrayList<Pair<String, String>>();
+		Iterator<String> macroNames = RapidMinerGUI.getMainFrame().getProcess().getMacroHandler().getDefinedMacroNames();
+		while (macroNames.hasNext()) {
+			String name = macroNames.next();
+			String value = RapidMinerGUI.getMainFrame().getProcess().getMacroHandler().getMacro(name);
+			newData.add(new Pair<String, String>(name, value));
+		}
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				data = newData;
+				dataModel.fireTableDataChanged();
+			}
+		});
+	}
 
 }

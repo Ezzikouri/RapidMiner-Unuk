@@ -1,4 +1,5 @@
-<project name="buildExtension">
+<project name="buildExtension" xmlns:ac="antlib:net.sf.antcontrib">
+	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar" />
 	<property file="build.properties" />
 
 	<property name="extension.updateServerId" value="rmx_${extension.namespace}" />
@@ -15,6 +16,7 @@
 	<property name="release.targetDir" location="${rm.dir}/release" />
 	<property name="release.files" location="${release.targetDir}/files" />
 	<property name="check.build" location="${rm.dir}/build" />
+	<property name="extension.install.directory" location="${rm.plugins}" />
 
 	<!-- compiler options -->
 	<property name="compiler.version" value="modern" />
@@ -24,13 +26,17 @@
 
 	<!-- Update and release server properties -->
 	<property file="${rm.dir}/server.properties" />
+	<property file="${rm.dir}/local-build.properties" />
+
+	<!-- Location of changes files -->
+	<property name="changes.dir" location="changes" />
 
 	<condition property="build.compiletime" value="">
-	   <not>  
-	      <isset property="build.compiletime"/>
-	   </not>
+		<not>
+			<isset property="build.compiletime" />
+		</not>
 	</condition>
-	
+
 	<!-- Class Paths -->
 	<path id="build.libraries">
 		<fileset dir="${build.compiletime}">
@@ -72,21 +78,19 @@
 		<pathelement location="${java.home}/classes" />
 	</path>
 
-
-	<!-- HTTP and Documentation tasks -->
-	<taskdef onerror="fail" resource="antlib.xml" classpath="${rm.ant}/rapidAntTasks.jar" />
-
-	<!-- RPM Tasks-->
-	<taskdef onerror="fail" resource="org/freecompany/redline/ant/antlib.xml" classpath="${rm.ant}/redline-1.1.3.jar" />
-
-	<!-- FOR Tasks and other ant-contrib tasks -->
-	<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="${rm.ant}/ant-contrib-1.0b3.jar" />
-
-
-
 	<target name="init" depends="version.get, init.setEncoding" unless="lock.isInitialized">
 		<tstamp />
+		<!-- HTTP and Documentation tasks -->
+		<taskdef onerror="fail" resource="antlib.xml" classpath="ant/rapidAntTasks.jar" />
 
+		<!-- RPM Tasks-->
+		<taskdef onerror="fail" resource="org/freecompany/redline/ant/antlib.xml" classpath="ant/redline-1.1.3.jar" />
+
+		<!-- FOR Tasks -->
+		<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar" />
+
+		<!-- SCP Tasks -->
+		<copy file="ant/jsch-0.1.42.jar" todir="${ant.library.dir}" failonerror="false" />
 		<!-- Building properties here, because they depend on version number -->
 		<property name="release.name" value="rapidminer-${extension.name}-${extension.longversion}.jar" />
 		<property name="release.installer.name" value="rapidminer-${extension.name}-${extension.longversion}-installer.exe" />
@@ -113,7 +117,7 @@
 		<delete dir="${javadoc.targetDir}" />
 		<mkdir dir="${build.build}" />
 		<mkdir dir="${javadoc.targetDir}" />
-		<delete>
+		<delete failonerror="false">
 			<fileset dir="${release.targetDir}" includes="rapidminer-${extension.name}-${extension.version}*.*" />
 		</delete>
 
@@ -129,7 +133,7 @@
 		<property name="lock.isCopied" value="true" />
 	</target>
 
-	<target name="build" depends="init, copy-resources" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
+	<target name="build" depends="init, copy-resources, merge.changes" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<!-- testing if rapid miner must be built beforehand -->
 		<available file="${rm.lib}/rapidminer.jar" property="build.rmAvailable" />
 		<antcall target="build.rm" />
@@ -140,7 +144,7 @@
 		<!-- building extension-->
 		<echo message="RapidMiner Extension ${extension.name}: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner Extension ${extension.name}: using Java version: ${java.version}" />
-		<javac encoding="${build.encoding}" debug="${compiler.debug}" destdir="${build.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m">
+		<javac encoding="${build.encoding}" debug="${compiler.debug}" destdir="${build.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" source="1.6" target="1.6">
 			<src>
 				<path refid="build.sources.path" />
 			</src>
@@ -156,52 +160,49 @@
 		<property name="lock.isBuilt" value="true" />
 	</target>
 
-	<target name="build.dependencies.prepare" description="If the fileset with id build.dependentExtension is defined, it is copied into the union build.dependentExtensions.actual, otherwise an empty union with that id is created. Necessary to prevent build.dependent from failing for (3rdparty) extensions which do not specify the fileset with their dependencies.">
-		<trycatch>
-			<try>
-				<union id="build.dependentExtensions.actual">
-					<fileset refid="build.dependentExtensions" />
-				</union>
-
-				<pathconvert pathsep="${line.separator}" property="echo.path.compile" refid="build.dependentExtensions">
-				</pathconvert>
-				<echo message="Dependencies of ${extension.name}:" />
-				<echo>${echo.path.compile}</echo>
-
-			</try>
-			<catch>
-				<echo message="No dependencies defined for ${extension.name}." />
-				<union id="build.dependentExtensions.actual">
-					<fileset dir=".">
-						<exclude name="**/*" />
-					</fileset>
-				</union>
-			</catch>
-		</trycatch>
+	<target name="build.dependencies.prepare.unset" description="If the fileset with id build.dependentExtension is defined, it is copied into the union build.dependentExtensions.actual, otherwise an empty union with that id is created. Necessary to prevent build.dependent from failing for (3rdparty) extensions which do not specify the fileset with their dependencies." unless="build.dependentExtensions">
+		<echo message="No dependencies defined for ${extension.name}." />
+		<union id="build.dependentExtensions.actual">
+			<fileset dir=".">
+				<exclude name="**/*" />
+			</fileset>
+		</union>
 	</target>
 
-	<target name="build.dependencies" depends="build.dependencies.prepare" description="Builds dependencies defined in the fileset build.dependentExtensions (yes, the id is semantically incorrect). That fileset contains the build.xml files of the dependencies.">
+
+	<target name="build.dependencies.prepare.set" description="If the fileset with id build.dependentExtension is defined, it is copied into the union build.dependentExtensions.actual, otherwise an empty union with that id is created. Necessary to prevent build.dependent from failing for (3rdparty) extensions which do not specify the fileset with their dependencies." if="build.dependentExtensions">
+		<echo message="Searching for dependencies for ${extension.name}..." />
+		<union id="build.dependentExtensions.actual">
+			<fileset refid="build.dependentExtensions" />
+		</union>
+
+		<pathconvert pathsep="${line.separator}" property="echo.path.compile" refid="build.dependentExtensions" />
+		<echo message="Dependencies of ${extension.name}:" />
+		<echo>${echo.path.compile}</echo>
+	</target>
+
+	<target name="build.dependencies" depends="build.dependencies.prepare.set, build.dependencies.prepare.unset" description="Builds dependencies defined in the fileset build.dependentExtensions (yes, the id is semantically incorrect). That fileset contains the build.xml files of the dependencies.">
 		<!-- building all dependend plugins-->
 		<echo message="Building plugin dependencies of ${extension.name}..." />
 		<!--<subant target="install" verbose="true" inheritall="false">
 			<union refid="build.dependentExtensions.actual" />
 		</subant>-->
 
-		<for param="buildfile">
+		<ac:for param="buildfile">
 			<path>
 				<union refid="build.dependentExtensions.actual" />
 			</path>
-			<sequential>
+			<ac:sequential>
 				<ant antfile="@{buildfile}" target="install" inheritall="false" useNativeBasedir="true" />
-			</sequential>
-		</for>
+			</ac:sequential>
+		</ac:for>
 
 		<echo message="...Finished" />
 	</target>
 
 	<target name="build.rm" unless="build.rmAvailable" description="This target will build the rapidminer, if not already done.">
 		<ant antfile="${rm.dir}/build.xml" target="createJar" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
-		<ant antfile="${rm.dir}/build.xml" target="test.compile" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
+		<ant antfile="${rm.dir}/build.xml" target="test.build" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
 	</target>
 
 	<target name="unzipLibs" unless="build.noRebundleJars">
@@ -213,13 +214,12 @@
 
 	<target name="createJar" depends="clean, build, version.get, unzipLibs" unless="lock.isJared" description="Generate the jar file">
 		<echo message="Creating jar..." />
+		<mkdir dir="${release.targetDir}/libfiles" />
 		<delete file="${release.targetDir}/${release.name}" />
 		<pathconvert pathsep=" " property="manifest.classpath" refid="build.libraries" dirsep="/">
 			<map from="${build.lib}/" to="" />
 		</pathconvert>
 		<echo message="Manifest Classpath: ${manifest.classpath}" />
-
-		<mkdir dir="${release.targetDir}/libfiles" />
 
 		<jar jarfile="${release.targetDir}/${release.name}" update="false">
 			<fileset dir="${build.build}" includes="**/*">
@@ -263,10 +263,8 @@
 	</target>
 
 	<target name="install" depends="createJar">
-		<move file="${release.targetDir}/${release.name}" todir="${rm.plugins}" overwrite="true" />
+		<move file="${release.targetDir}/${release.name}" todir="${extension.install.directory}" overwrite="true" />
 	</target>
-
-
 
 	<!-- Building release versions -->
 
@@ -292,6 +290,7 @@
 				<include name=".project" />
 				<include name=".classpath" />
 				<include name="licenses/README*" />
+				<include name="src_3rdparty/**/*" />
 			</zipfileset>
 			<zipfileset refid="build.sources" prefix="${extension.name.long}/src" />
 			<zipfileset file="${release.targetDir}/${release.name}" />
@@ -331,7 +330,6 @@ Name "${extension.name.long}"
 
 
 	<!-- Publishing release -->
-
 	<target name="release.publish" depends="release.makeAll" description="This target builds a full release and uploads all files to source-forge.">
 		<echo message="Publishing release ${extension.longversion}..." />
 		<!-- move files to proper directory for scping them to sf-net.-->
@@ -347,7 +345,7 @@ Name "${extension.name.long}"
 
 		<echo message="Uploading to ${server.sf.user},${server.sf.project}@frs.sourceforge.net/${server.sf.url.rapidminer}..." />
 		<!-- scping -->
-		<scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net/${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="true" trust="true">
+		<scp remoteTodir="${server.sf.user},${server.sf.project.rapidminer}@frs.sourceforge.net:${server.sf.url.rapidminer}" password="${server.sf.password}" failonerror="true" trust="true">
 			<fileset dir="${release.targetDir}/scp" includes="**/*.*" />
 		</scp>
 
@@ -397,16 +395,36 @@ Name "${extension.name.long}"
 		<antcall target="release.publishToRapidShare" />
 		<antcall target="release.publish" />
 		<antcall target="update.publish" />
+		<antcall target="update.uploadChanges" />
+	</target>
+
+	<target name="changes.testExistence">
+		<available file="${changes.dir}" property="changes.exist" />
+	</target>
+
+	<!-- Upload current changes.txt to corresponding marketplace project url -->
+	<target name="update.uploadChanges" depends="init" description="Uploading current CHANGES file to the Marketplace">
+		<echo message="Uploading current CHANGES File to Rapid-I Marketplace" />
+		<put targetUrl="${server.marketplace.url}/admin/upload-changes/${extension.updateServerId}/${extension.longversion}" uploadFile="${changes.current}" username="${server.marketplace.user}" password="${server.marketplace.password}" />
+	</target>
+
+	<!-- Merge all Changes files in the changes folder to one file -->
+	<target name="merge.changes" depends="init, changes.testExistence" description="Merge all changes file from folder changes to CHANGES.txt" if="changes.exist">
+		<echo message="Merging all changes files in ${changes.dir}" />
+		<concat destfile="CHANGES-ALL.txt" fixlastline="true">
+			<sort>
+				<fileset dir="${changes.dir}" includes="*.txt" />
+				<reverse xmlns="antlib:org.apache.tools.ant.types.resources.comparators">
+					<name />
+				</reverse>
+			</sort>
+		</concat>
 	</target>
 
 	<!-- Uploading updates -->
-
 	<target name="update.publish" depends="createJar" description="This will generate a new update and upload files for all platforms (currently only platform independent). The update number will ne increased automatically.">
-		<echo message="Publishing update ${extension.longversion} using ${server.update.user}..." />
-		<echo message="...Platform Independent on update server" />
-		<put targetUrl="${server.update.url}/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.update.user}" password="${server.update.password}" />
-		<echo message="...Platform Independent on marketplace" />
-		<put targetUrl="${server.marketplace.url}/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.marketplace.user}" password="${server.marketplace.password}" />
+		<echo message="Publishing update ${extension.longversion} on Marketplace ${server.marketplace.user}..." />
+		<put targetUrl="${server.marketplace.url}/admin/upload/${extension.updateServerId}/${extension.longversion}/ANY" uploadFile="${release.targetDir}/${release.name}" username="${server.marketplace.user}" password="${server.marketplace.password}" />
 	</target>
 
 	<target name="update" description="This target will perform a full update including file generation and uploading them to the update server.">
@@ -438,11 +456,10 @@ Name "${extension.name.long}"
 
 
 	<!-- Version handling -->
-
 	<target name="version.get">
 		<property name="extension.shortversion" value="${extension.version}.${extension.revision}" />
 		<property name="extension.longversion" value="${extension.version}.${extension.revision}.${extension.update}" />
-
+		<property name="changes.current" value="${changes.dir}/CHANGES_${extension.longversion}.txt" />
 		<echo message="Long version: ${extension.longversion}; short version: ${extension.shortversion}" />
 
 		<!-- <antcall target="version.updateFiles" /> -->
@@ -474,7 +491,7 @@ Name "${extension.name.long}"
 
 	<!-- StyleChecks -->
 	<target name="check.build">
-		<javac debug="false" destdir="${rm.dir}/build" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m">
+		<javac debug="false" destdir="${rm.dir}/build" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" target="1.6" source="1.6">
 			<compilerarg value="${compiler.arguments}" />
 			<classpath refid="build.classpath" />
 			<src path="${rm.dir}/src" />
@@ -554,7 +571,6 @@ Name "${extension.name.long}"
 
 
 	<!-- JavaDoc -->
-
 	<target name="javaDoc.makeZip" depends="javaDoc.generate" description="This generates new java doc from source files a zips them for relase into the release dir.">
 		<echo message="Releasing java doc..." />
 		<zip destfile="${release.targetDir}/${release.javadoc.name}">

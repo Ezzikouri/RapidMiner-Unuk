@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import com.rapidminer.operator.OperatorException;
+
 /**
  * Simple implementation of a {@link FileObject} backed by a {@link File}.
  * 
@@ -39,8 +40,7 @@ public class SimpleFileObject extends FileObject {
 	private static final long serialVersionUID = 1L;
 
 	private File file;
-	
-	
+
 	public SimpleFileObject(File file) {
 		super();
 		this.file = file;
@@ -59,11 +59,10 @@ public class SimpleFileObject extends FileObject {
 	public File getFile() {
 		return file;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "File: "+getFile().getAbsolutePath();
+		return "File: " + getFile().getAbsolutePath();
 	}
-
 
 }

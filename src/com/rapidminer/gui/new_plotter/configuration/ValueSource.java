@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -37,9 +37,9 @@ import com.rapidminer.gui.new_plotter.configuration.DataTableColumn.ValueType;
 import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
 import com.rapidminer.gui.new_plotter.configuration.LineFormat.LineStyle;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.FillStyle;
+import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.ItemShape;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.VisualizationType;
-import com.rapidminer.gui.new_plotter.configuration.SeriesFormat.IndicatorType;
 import com.rapidminer.gui.new_plotter.listener.AggregationWindowingListener;
 import com.rapidminer.gui.new_plotter.listener.SeriesFormatListener;
 import com.rapidminer.gui.new_plotter.listener.ValueSourceListener;
@@ -238,15 +238,15 @@ public class ValueSource implements AggregationWindowingListener, SeriesFormatLi
 			try {
 				aggregationFunction = AbstractAggregationFunction.createAggregationFunction(functionType.toString());
 			} catch (InstantiationException e) {
-				throw new RuntimeException("Unkown aggregation function type " + functionType);
+				throw new RuntimeException("Unknown aggregation function type " + functionType);
 			} catch (IllegalAccessException e) {
-				throw new RuntimeException("Unkown aggregation function type " + functionType);
+				throw new RuntimeException("Unknown aggregation function type " + functionType);
 			} catch (ClassNotFoundException e) {
-				throw new RuntimeException("Unkown aggregation function type " + functionType);
+				throw new RuntimeException("Unknown aggregation function type " + functionType);
 			} catch (NoSuchMethodException e) {
-				throw new RuntimeException("Unkown aggregation function type " + functionType);
+				throw new RuntimeException("Unknown aggregation function type " + functionType);
 			} catch (InvocationTargetException e) {
-				throw new RuntimeException("Unkown aggregation function type " + functionType);
+				throw new RuntimeException("Unknown aggregation function type " + functionType);
 			}
 			aggregationFunctionMap.put(seriesUsage, aggregationFunction);
 			aggregationFunctionTypeMap.put(seriesUsage, functionType);

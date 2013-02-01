@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.gui.actions;
 
 import com.rapidminer.Process;
@@ -41,10 +42,9 @@ import com.rapidminer.repository.gui.RepositoryTree;
  * @author Simon Fischer
  */
 public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
-	
+
 	private static final long serialVersionUID = 1L;
 
-	
 	public StoreProcessAction(RepositoryTree tree) {
 		super(tree, Entry.class, false, "repository_store_process");
 	}
@@ -58,15 +58,15 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 			overwriteProcess(ProcessEntry.class.cast(entry));
 		}
 	}
-	
+
 	private void storeInFolder(final Folder folder) {
 		// get current process name (if present)
 		String currentName = null;
 		if (RapidMinerGUI.getMainFrame().getProcess().getProcessLocation() != null) {
 			currentName = RapidMinerGUI.getMainFrame().getProcess().getProcessLocation().getShortName();
 		}
-		
-		final String name = SwingTools.showInputDialog("store_process", currentName);
+
+		final String name = SwingTools.showRepositoryEntryInputDialog("store_process", currentName);
 		if (name != null) {
 			if (name.isEmpty()) {
 				SwingTools.showVerySimpleErrorMessage("please_enter_non_empty_name");
@@ -83,58 +83,68 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 			}
 
 			ProgressThread storeProgressThread = new ProgressThread("store_process") {
+
 				public void run() {
 					getProgressListener().setTotal(100);
+					Process process = RapidMinerGUI.getMainFrame().getProcess();
+					RepositoryProcessLocation processLocation = null;
 					try {
+						processLocation = new RepositoryProcessLocation(new RepositoryLocation(folder.getLocation(), name));
 						getProgressListener().setCompleted(10);
-						Process process = RapidMinerGUI.getMainFrame().getProcess();
+						Process.checkIfSavable(process);
 						folder.createProcessEntry(name, process.getRootOperator().getXML(false));
-						process.setProcessLocation(new RepositoryProcessLocation(new RepositoryLocation(folder.getLocation(), name)));
+						process.setProcessLocation(processLocation);
 						tree.expandPath(tree.getSelectionPath());
 						RapidMinerGUI.addToRecentFiles(process.getProcessLocation());
 						RapidMinerGUI.getMainFrame().processHasBeenSaved();
 					} catch (Exception e) {
-						SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e, name);
+						SwingTools.showSimpleErrorMessage("cannot_save_process", e, processLocation, e.getMessage());
 						RapidMinerGUI.getMainFrame().getProcess().setProcessLocation(null);
 					} finally {
 						getProgressListener().setCompleted(10);
 						getProgressListener().complete();
 					}
 				}
-			};					
+			};
 			storeProgressThread.start();
 		}
 	}
-	
+
 	private void overwriteProcess(final ProcessEntry processEntry) {
 		if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, processEntry.getLocation()) == ConfirmDialog.YES_OPTION) {
 			ProgressThread storeProgressThread = new ProgressThread("store_process") {
+
 				@Override
 				public void run() {
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
-					try {								
+					try {
 						Process process = RapidMinerGUI.getMainFrame().getProcess();
 						process.setProcessLocation(new RepositoryProcessLocation(processEntry.getLocation()));
 						processEntry.storeXML(process.getRootOperator().getXML(false));
 						RapidMinerGUI.addToRecentFiles(process.getProcessLocation());
 						RapidMinerGUI.getMainFrame().processHasBeenSaved();
 					} catch (Exception e) {
-						SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e, processEntry.getName());								
+						SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e, processEntry.getName());
 					} finally {
 						getProgressListener().setCompleted(100);
 						getProgressListener().complete();
 					}
-				}						
+				}
 			};
 			storeProgressThread.start();
 		}
 	}
-	
+
 	@Override
 	public void enable() {
 		Entry entry = tree.getSelectedEntry();
-		setEnabled((Folder.class.isInstance(entry) || ProcessEntry.class.isInstance(entry)));
+		if (entry.isReadOnly()) {
+			setEnabled(false);
+		} else {
+			setEnabled((Folder.class.isInstance(entry) || ProcessEntry.class.isInstance(entry)));
+		}
+
 	}
 
 }

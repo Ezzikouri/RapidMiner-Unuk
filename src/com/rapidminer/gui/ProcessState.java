@@ -4,6 +4,7 @@
 package com.rapidminer.gui;
 
 import com.rapidminer.Process;
+import com.rapidminer.gui.flow.ProcessPanel;
 
 /**
  * This interface gives access to the process related methods.
@@ -34,13 +35,14 @@ public interface ProcessState {
 	public void pauseProcess();
 
 	/**
-	 * Sets a new process and registers the MainFrame listener. Please note that
-	 * this method only invoke {@link #processChanged()} if the parameter
-	 * newProcess is true.
-	 * 
-	 * Note: {@link MainFrame#processChanged()} is deprecated.
+	 * Sets a new process and registers the MainFrame's listeners.
 	 */
 	public void setProcess(Process process, boolean newProcess);
+
+	/**
+	 * Sets a new process and registers the MainFrame's listeners.
+	 */
+	public void setProcess(Process process, boolean newProcess, boolean addToUndoList);
 
 	/** Returns true if the process has changed since the last save. */
 	public boolean isChanged();
@@ -57,5 +59,7 @@ public interface ProcessState {
 	public void fireProcessUpdated();
 
 	public void processHasBeenSaved();
+
+	public ProcessPanel getProcessPanel();
 
 }

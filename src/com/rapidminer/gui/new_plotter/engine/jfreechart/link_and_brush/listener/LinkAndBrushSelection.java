@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.jfree.data.Range;
 
+import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.tools.container.Pair;
 
 /**
@@ -35,12 +36,15 @@ import com.rapidminer.tools.container.Pair;
 public class LinkAndBrushSelection {
 
 	public enum SelectionType {
-		ZOOM_IN, ZOOM_OUT, RESTORE_AUTO_BOUNDS, SELECTION, RESTORE_SELECTION
+		ZOOM_IN, ZOOM_OUT, RESTORE_AUTO_BOUNDS, SELECTION, RESTORE_SELECTION, COLOR_ZOOM, COLOR_SELECTION, RESTORE_COLOR
 	}
 
 	private final List<Pair<Integer, Range>> domainAxisRanges;
 	private final List<Pair<Integer, Range>> valueAxisRanges;
 	private final SelectionType type;
+	private Double minColorValue;
+	private Double maxColorValue;
+	private PlotInstance plotInstance;
 
 	/**
 	 * 
@@ -49,12 +53,27 @@ public class LinkAndBrushSelection {
 	 * @param rangeAxisRanges a list of pairs with indices for range axis and their zoomed ranges
 	 */
 	public LinkAndBrushSelection(SelectionType type, List<Pair<Integer, Range>> domainAxisRanges, List<Pair<Integer, Range>> rangeAxisRanges) {
+		this(type, domainAxisRanges, rangeAxisRanges, null, null, null);
+	}
+	
+	/**
+	 * 
+	 * @param type the zooming type
+	 * @param domainAxisRanges a list of pairs with indices for domain axis and their zoomed ranges
+	 * @param rangeAxisRanges a list of pairs with indices for range axis and their zoomed ranges
+	 * @param minColorValue the min color value
+	 * @param maxColorValue the max color value
+	 */
+	public LinkAndBrushSelection(SelectionType type, List<Pair<Integer, Range>> domainAxisRanges, List<Pair<Integer, Range>> rangeAxisRanges, Double minColorValue, Double maxColorValue, PlotInstance plotInstance) {
 		if (domainAxisRanges == null || rangeAxisRanges == null) {
 			throw new IllegalArgumentException("Null range axes are not allowed!");
 		}
 		this.type = type;
 		this.domainAxisRanges = domainAxisRanges;
 		this.valueAxisRanges = rangeAxisRanges;
+		this.minColorValue = minColorValue;
+		this.maxColorValue = maxColorValue;
+		this.plotInstance = plotInstance;
 	}
 
 	/**
@@ -86,6 +105,28 @@ public class LinkAndBrushSelection {
 	 */
 	public List<Pair<Integer, Range>> getValueAxisRanges() {
 		return valueAxisRanges;
+	}
+
+	/**
+	 * @return the min color value
+	 */
+	public Double getMinColorValue() {
+		return minColorValue;
+	}
+
+	/**
+	 * @return the max color value
+	 */
+	public Double getMaxColorValue() {
+		return maxColorValue;
+	}
+
+	public PlotInstance getPlotInstance() {
+		return plotInstance;
+	}
+
+	public void setPlotInstance(PlotInstance plotInstance) {
+		this.plotInstance = plotInstance;
 	}
 
 }

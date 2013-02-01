@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -30,7 +30,7 @@ import javax.swing.ImageIcon;
 import com.rapid_i.repository.wsimport.ExecutionResponse;
 import com.rapid_i.repository.wsimport.ProcessContextWrapper;
 import com.rapidminer.RepositoryProcessLocation;
-import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.MainUIState;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
@@ -54,11 +54,11 @@ public class RunRemoteNowAction extends AbstractAction {
 
 	private static final long serialVersionUID = 1;
 	
-    private final MainFrame mainFrame;
+    private final MainUIState mainFrame;
     
-    public RunRemoteNowAction(MainFrame mainFrame) {
+    public RunRemoteNowAction(MainUIState abstractUIState) {
         super(I18N.getMessage(I18N.getGUIBundle(), "gui.action.run_remote_now.label"));
-        this.mainFrame = mainFrame;
+        this.mainFrame = abstractUIState;
         
         String tip = I18N.getMessageOrNull(I18N.getGUIBundle(), "gui.action.run_remote_now.tip");
 		if (tip != null) {
@@ -83,6 +83,9 @@ public class RunRemoteNowAction extends AbstractAction {
      * @param location
      */
     public static synchronized void executeProcessOnRA(final RepositoryLocation repoLoc) {
+    	if (repoLoc == null) {
+    		return;
+    	}
     	// check if user really wants to execute process on RA
     	if (!DecisionRememberingConfirmDialog.confirmAction("execute_process_remotely_now", RapidMinerGUI.PROPERTY_RUN_REMOTE_NOW)) {
     		return;
@@ -108,7 +111,7 @@ public class RunRemoteNowAction extends AbstractAction {
 				try {
 		    		Repository repo = repoLoc.getRepository();
 		    		// check preconditions, e.g. process has a valid processLocation and the repository is a RemoteRepository
-		    		if (repoLoc != null && repoLoc.locateEntry() instanceof RemoteProcessEntry && repo instanceof RemoteRepository) {
+		    		if (repoLoc.locateEntry() instanceof RemoteProcessEntry && repo instanceof RemoteRepository) {
 		    			try {
 		    				String processLocString = repoLoc.getPath();
 		    				ProcessContextWrapper pcWrapper = new ProcessContextWrapper();

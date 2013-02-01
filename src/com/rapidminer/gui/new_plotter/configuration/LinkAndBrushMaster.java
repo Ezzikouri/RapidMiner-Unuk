@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -32,10 +32,13 @@ import java.util.Map;
 import org.jfree.data.Range;
 
 import com.rapidminer.gui.new_plotter.PlotConfigurationError;
+import com.rapidminer.gui.new_plotter.configuration.DimensionConfig.PlotDimension;
+import com.rapidminer.gui.new_plotter.data.DimensionConfigData;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushListener;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelection.SelectionType;
 import com.rapidminer.gui.new_plotter.engine.jfreechart.link_and_brush.listener.LinkAndBrushSelectionListener;
+import com.rapidminer.gui.new_plotter.utility.ContinuousColorProvider;
 import com.rapidminer.tools.container.Pair;
 
 /**
@@ -47,6 +50,7 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 	private final PlotConfiguration plotConfig;
 
 	private boolean zoomedIn = false;
+	private boolean useGrayForOutliers = false;
 
 	private Map<Integer, Range> rangeAxisIndexToZoomMap = new HashMap<Integer, Range>();
 	private Range domainAxisZoom;
@@ -148,6 +152,54 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 			clearZooming(false);
 		}
 		
+		if (e.getType() == SelectionType.COLOR_ZOOM) {
+			Double minColorValue = e.getMinColorValue();
+			Double maxColorValue = e.getMaxColorValue();
+			if (e.getPlotInstance() != null) {
+				DimensionConfigData dimensionConfigData = e.getPlotInstance().getPlotData().getDimensionConfigData(plotConfig.getDefaultDimensionConfigs().get(PlotDimension.COLOR));
+				ContinuousColorProvider colProv = null;
+				if (minColorValue != null && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.setMinValue(minColorValue);
+				}
+				if (maxColorValue != null  && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.setMaxValue(maxColorValue);
+				}
+				if (colProv != null) {
+					colProv.setUseGrayForOutliers(useGrayForOutliers);
+				}
+			}
+		} else if (e.getType() == SelectionType.COLOR_SELECTION) {
+			Double minColorValue = e.getMinColorValue();
+			Double maxColorValue = e.getMaxColorValue();
+			if (e.getPlotInstance() != null) {
+				DimensionConfigData dimensionConfigData = e.getPlotInstance().getPlotData().getDimensionConfigData(plotConfig.getDefaultDimensionConfigs().get(PlotDimension.COLOR));
+				ContinuousColorProvider colProv = null;
+				if (minColorValue != null && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.setMinValue(minColorValue);
+				}
+				if (maxColorValue != null  && dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.setMaxValue(maxColorValue);
+				}
+				if (colProv != null) {
+					colProv.setUseGrayForOutliers(useGrayForOutliers);
+				}
+			}
+		}
+		
+		if (e.getType() == SelectionType.RESTORE_COLOR) {
+			if (e.getPlotInstance() != null) {
+				DimensionConfigData dimensionConfigData = e.getPlotInstance().getPlotData().getDimensionConfigData(plotConfig.getDefaultDimensionConfigs().get(PlotDimension.COLOR));
+				if (dimensionConfigData != null && dimensionConfigData.getColorProvider() instanceof ContinuousColorProvider) {
+					ContinuousColorProvider colProv = (ContinuousColorProvider) dimensionConfigData.getColorProvider();
+					colProv.revertMinAndMaxValuesBackToOriginalValues();
+				}
+			}
+		}
+		
 		informLinkAndBrushListeners(e);
 	}
 	
@@ -243,5 +295,13 @@ public class LinkAndBrushMaster implements LinkAndBrushSelectionListener {
 				it.remove();
 			}
 		}
+	}
+
+	public boolean isUseGrayForOutliers() {
+		return useGrayForOutliers;
+	}
+
+	public void setUseGrayForOutliers(boolean useGrayForOutliers) {
+		this.useGrayForOutliers = useGrayForOutliers;
 	}
 }

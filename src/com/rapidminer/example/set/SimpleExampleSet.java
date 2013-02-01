@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -138,6 +138,7 @@ public class SimpleExampleSet extends AbstractExampleSet {
 	 *  
 	 *  Don't use this method directly but use the clone method instead. */
 	public SimpleExampleSet(SimpleExampleSet exampleSet) {
+		cloneAnnotationsFrom(exampleSet);
 		this.exampleTable = exampleSet.exampleTable;
 		this.attributes = (Attributes)exampleSet.getAttributes().clone();
 	}
