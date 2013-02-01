@@ -68,6 +68,7 @@ import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
+import com.rapidminer.parameter.conditions.EqualStringCondition;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
@@ -443,7 +444,7 @@ public class UpdatePanelTab extends JPanel {
 			for (Component component : extensionButtonPane.getComponents()) {
 				component.setVisible(true);
 			}
-			installButton.setEnabled(true);
+			installButton.setVisible(false);
 			extensionButtonPane.setVisible(true);
 			StyleSheet css = new StyleSheet();//.makeDefaultStylesheet();
 			css.addRule("a  {text-decoration:underline; color:blue;}");
@@ -472,12 +473,21 @@ public class UpdatePanelTab extends JPanel {
 				if (installed != null) {
 					boolean upToDate = installed.compareTo(desc.getVersion()) >= 0;
 					if (upToDate) {
+						installButton.setVisible(false);
 						installButton.setEnabled(false);
 						updated = true;
 					} else {
+						installButton.setVisible(true);
+						installButton.setEnabled(true);
 						updated = false;
 					}
 				}
+				//TODO: If there is no new RapidMiner Version RapidMiner will have a null Extension ID.
+				//Thats why this will check if the extension is RapidMiner as product.
+			} else if (desc.getName().equals("RapidMiner")) {
+				installButton.setVisible(false);
+				installButton.setEnabled(false);
+				extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.product_homepage.label"));
 			}
 
 			if (desc.isRestricted() && !isInstalled) {
@@ -489,6 +499,7 @@ public class UpdatePanelTab extends JPanel {
 					// restricted, purchased but not installed yet
 					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.label"));
 					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.mne").toUpperCase().charAt(0));
+					extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
 					installButton.setPurchaseFirst(false);
 					installButton.setVisible(true);
 					loginForInstallHint.setText("");
@@ -503,6 +514,7 @@ public class UpdatePanelTab extends JPanel {
 					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.label"));
 					installButton.setIcon(SwingTools.createIcon("16/shopping_cart_empty.png"));
 					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.mne").toUpperCase().charAt(0));
+					extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
 					installButton.setVisible(true);
 					loginForInstallHint.setText("");
 
@@ -515,6 +527,7 @@ public class UpdatePanelTab extends JPanel {
 						// // not restricted / restricted and installed but not updated
 						installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
 						installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+						extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
 						installButton.setPurchaseFirst(false);
 						installButton.setVisible(true);
 						loginForInstallHint.setText("");
@@ -529,17 +542,22 @@ public class UpdatePanelTab extends JPanel {
 					}
 				}
 				else {
-					// not restricted / restricted but not installed
-					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.label"));
-					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
-					installButton.setPurchaseFirst(false);
-					installButton.setVisible(true);
-					loginForInstallHint.setText("");
+					// not restricted / restricted but not installed. 
+					// TODO: RapidMiner Name Check because RM is stated as not installed per default.
+					if (!desc.getName().equals("RapidMiner")) {
+						installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.label"));
+						installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+						extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
+						installButton.setPurchaseFirst(false);
+						loginForInstallHint.setText("");
 
-					if (updateModel.isSelectedForInstallation(desc)) {
-						installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
-					} else {
-						installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+						if (updateModel.isSelectedForInstallation(desc)) {
+							installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+						} else {
+							installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+						}
+						installButton.setVisible(true);
+						installButton.setEnabled(true);
 					}
 				}
 			}

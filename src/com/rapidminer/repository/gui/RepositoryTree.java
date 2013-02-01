@@ -67,6 +67,7 @@ import com.rapidminer.gui.tools.ResourceActionAdapter;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
+import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DataImportWizard;
 import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
@@ -156,6 +157,59 @@ public class RepositoryTree extends JTree {
 				if (flavors.contains(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR)) {
 					final RepositoryLocation loc = (RepositoryLocation) ts.getTransferable().getTransferData(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR);
 					if (droppedOn instanceof Folder) {
+						// check if user action is allowed
+						String sourceAbsolutePath = loc.getAbsoluteLocation();
+						String destinationAbsolutePath = ((Folder) droppedOn).getLocation().getAbsoluteLocation();
+						// checks for MOVE
+						if ((latestAction == MOVE) || (ts.isDrop() && ts.getDropAction() == MOVE)) {
+							// make sure same folder moves are forbidden
+							if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
+								SwingTools.showVerySimpleErrorMessage("repository_move_same_folder");
+								return false;
+							}
+							// make sure moving parent folder into subfolder is forbidden
+							if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
+								SwingTools.showVerySimpleErrorMessage("repository_move_into_subfolder");
+								return false;
+							}
+							try {
+								String effectiveNewName = loc.locateEntry().getName();
+								// entry should be moved into its own parent folder, invalid
+								String sourceParentLocation = loc.locateEntry().getContainingFolder().getLocation().getAbsoluteLocation();
+								if (sourceParentLocation.equals(destinationAbsolutePath)) {
+									SwingTools.showVerySimpleErrorMessage("repository_move_same_folder");
+									return false;
+								}
+								// overwrite folder is forbidden
+								for (Folder folderEntry : ((Folder) droppedOn).getSubfolders()) {
+									if (folderEntry.getName().equals(effectiveNewName)) {
+										SwingTools.showVerySimpleErrorMessage("repository_folder_already_exists", effectiveNewName);
+										return false;
+									}
+								}
+								if (((Folder) droppedOn).containsEntry(effectiveNewName)) {
+									// entry already exists, overwrite?
+									if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, ((Folder) droppedOn).getLocation().getAbsoluteLocation() + RepositoryLocation.SEPARATOR + effectiveNewName) == ConfirmDialog.NO_OPTION) {
+										return false;
+									}
+								}
+							} catch (RepositoryException e) {
+								SwingTools.showSimpleErrorMessage("error_in_copy_repository_entry", e, loc.toString(), e.getMessage());
+								return false;
+							}
+						} else {
+							// checks for COPY
+							// make sure same folder moves are forbidden
+							if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
+								SwingTools.showVerySimpleErrorMessage("repository_copy_same_folder");
+								return false;
+							}
+							// make sure moving parent folder into subfolder is forbidden
+							if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
+								SwingTools.showVerySimpleErrorMessage("repository_copy_into_subfolder");
+								return false;
+							}
+						}
 						new ProgressThread("copy_repository_entry", true) {
 
 							@Override

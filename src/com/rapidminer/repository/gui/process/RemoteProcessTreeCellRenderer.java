@@ -36,6 +36,7 @@ import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.RemoteProcessState;
 import com.rapidminer.repository.remote.RemoteRepository;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
 
 /**
@@ -47,16 +48,17 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 
 	private static final long serialVersionUID = 1L;
 
-	private Icon PROCESS_PENDING_ICON = SwingTools.createIcon("16/gear_new.png");
-	private Icon PROCESS_RUNNING_ICON = SwingTools.createIcon("16/gear_run.png");
-	private Icon PROCESS_STOPPED_ICON = SwingTools.createIcon("16/gear_stop.png");
-	private Icon PROCESS_FAILED_ICON  = SwingTools.createIcon("16/gear_error.png");
-	private Icon PROCESS_DONE_ICON    = SwingTools.createIcon("16/gear_ok.png");
-	private Icon PROCESS_ZOMBIE_ICON       = SwingTools.createIcon("16/skull.png");
+	private static final Icon PROCESS_PENDING_ICON = SwingTools.createIcon("16/gear_new.png");
+	private static final Icon PROCESS_RUNNING_ICON = SwingTools.createIcon("16/gear_run.png");
+	private static final Icon PROCESS_STOPPED_ICON = SwingTools.createIcon("16/gear_stop.png");
+	private static final Icon PROCESS_FAILED_ICON = SwingTools.createIcon("16/gear_error.png");
+	private static final Icon PROCESS_DONE_ICON = SwingTools.createIcon("16/gear_ok.png");
+	private static final Icon PROCESS_ZOMBIE_ICON = SwingTools.createIcon("16/skull.png");
+	private static final Icon CONNECTION_FAILED_ICON = SwingTools.createIcon("16/error.png");
 	
-	private Icon SERVER_ICON = SwingTools.createIcon("16/application_server_run.png");	
-	private Icon OPERATOR_ICON = SwingTools.createIcon("16/element_selection.png");
-	private Icon RESULT_ICON = SwingTools.createIcon("16/plug_new_next.png");
+	private static final Icon SERVER_ICON = SwingTools.createIcon("16/application_server_run.png");
+	private static final Icon OPERATOR_ICON = SwingTools.createIcon("16/element_selection.png");
+	private static final Icon RESULT_ICON = SwingTools.createIcon("16/plug_new_next.png");
 	
 	@Override
 	public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -69,7 +71,6 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 			RemoteProcessState processState = RemoteProcessState.valueOf(processResponse.getState());			
 			Calendar startTime = processResponse.getStartTime() != null ? processResponse.getStartTime().toGregorianCalendar() : null;
 			Calendar endTime = processResponse.getCompletionTime() != null ? processResponse.getCompletionTime().toGregorianCalendar() : null;
-			
 			StringBuilder b = new StringBuilder();
 			b.append("<html><body>");
 			b.append(""+processResponse.getProcessLocation());
@@ -122,7 +123,16 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 		} else if (value instanceof OutputLocation) {
 			label.setText(value.toString());
 			label.setIcon(RESULT_ICON);
-		} else {
+		} else if (value == RemoteProcessesTreeModel.EMPTY_PROCESS_LIST) {
+			label.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.remoteprocessviewer.empty"));
+			label.setIcon(null);
+		} else if (value == RemoteProcessesTreeModel.PENDING_PROCESS_LIST) {
+			label.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.remoteprocessviewer.pending"));
+			label.setIcon(null);
+		} else if (value == RemoteProcessesTreeModel.ERROR_PROCESS_LIST) {
+			label.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.remoteprocessviewer.error"));
+			label.setIcon(CONNECTION_FAILED_ICON);
+		}else {
 			label.setText(value.toString());
 		}
 		return label;

@@ -45,6 +45,11 @@ public class FileSystemService {
     public static File getMainUserConfigFile() {
         return FileSystemService.getUserConfigFile(RAPIDMINER_CONFIG_FILE_NAME + "." + System.getProperty("os.name"));
     }
+    
+    /** Returns the memory configuration file containing the max memory. */
+    public static File getMemoryConfigFile() {
+        return new File(getUserRapidMinerDir(), "memory");
+    }
 
     /**
      * Returns the configuration file in the user dir/.RapidMiner5 and automatically adds

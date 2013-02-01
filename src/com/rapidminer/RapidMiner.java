@@ -75,6 +75,7 @@ import com.rapidminer.tools.cipher.KeyGeneratorTool;
 import com.rapidminer.tools.config.ConfigurationManager;
 import com.rapidminer.tools.jdbc.DatabaseService;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
+import com.rapidminer.tools.parameter.ParameterChangeListener;
 import com.rapidminer.tools.plugin.Plugin;
 import com.rapidminer.tools.usagestats.UsageStatistics;
 
@@ -272,6 +273,8 @@ public class RapidMiner {
 	public static final String PROPERTY_RAPIDMINER_GENERAL_NUMBER_OF_THREADS = "rapidminer.general.number_of_threads";
 
 	// ---  INIT PROPERTIES  ---
+	
+	public static final String PROPERTY_RAPIDMINER_MAX_MEMORY = " maxMemory";
 
 	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_SET = "http.proxySet";
 	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_HOST = "http.proxyHost";
@@ -421,6 +424,33 @@ public class RapidMiner {
 		ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST, "The proxy host to use for SOCKS.", true), "system");
 		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT, "The proxy port to use for SOCKS.", 0, 65535, true), "system");
 		ParameterService.registerParameter(new ParameterTypeInt(WebServiceTools.WEB_SERVICE_TIMEOUT, "The timeout in milliseconds for webservice and url connections.", 1, Integer.MAX_VALUE, 20000),"system");
+		//TODO: Re-add this after the 5.3.001 Release
+		/*
+		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_MAX_MEMORY, "The amount of memory (in MB) used by RapidMiner.", 64, Integer.MAX_VALUE, 512), "system");
+		
+		// add parameter change listener early so we are guaranteed to notice changes to MAX_MEMORY setting by the user 
+		ParameterService.registerParameterChangeListener(new ParameterChangeListener() {
+			
+			@Override
+			public void informParameterSaved() {
+				// nothing to do here
+			}
+			
+			@Override
+			public void informParameterChanged(String key, String value) {
+				if (PROPERTY_RAPIDMINER_MAX_MEMORY.equals(key)) {
+					try {
+						// make sure it's an int
+						Integer.parseInt(value);
+						Tools.writeTextFile(FileSystemService.getMemoryConfigFile(), value);
+					} catch (IOException e) {
+						LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.writing_memory_file_error", e.getMessage()), e);
+					} catch (NumberFormatException e) {
+						LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.writing_memory_file_error", e.getMessage()), e);
+					}
+				}
+			}
+		});*/
 	}
 
 	private static InputHandler inputHandler = new ConsoleInputHandler();

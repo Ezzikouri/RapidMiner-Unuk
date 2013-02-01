@@ -165,7 +165,7 @@ echo Starting RapidMiner from '%RAPIDMINER_HOME%' using classes from '%RAPIDMINE
 rem echo The used classpath is '%COMPLETE_CLASSPATH%'...
 
 :checkJavaVersion
-set CHECK_VERSION_FILE="%HOMEPATH%\check_rm_java_version"
+set CHECK_VERSION_FILE="%APPDATA%\check_rm_java_version"
 @echo Creating file %CHECK_VERSION_FILE%
 "%JAVA%" -version 2>&1 | findstr /i "version" >  %CHECK_VERSION_FILE%
 

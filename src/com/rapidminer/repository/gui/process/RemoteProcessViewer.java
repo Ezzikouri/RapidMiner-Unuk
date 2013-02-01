@@ -231,6 +231,7 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 		toolBar.add(sinceWhenCombo);
 
 		ToolTipWindow window = new ToolTipWindow(new TipProvider() {
+
 			@Override
 			public Component getCustomComponent(Object id) {
 				if (id instanceof TreePath) {
@@ -293,8 +294,17 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 						b.append("<a href=\""+repos.getProcessLogURI(pr.getId()).toString()+"\">View Log</a>");
 						b.append("</body></html>");
 						return b.toString();
+					} else if (last instanceof RemoteRepository) {
+						return ((RemoteRepository) last).getDescription();
+					} else if (last == RemoteProcessesTreeModel.EMPTY_PROCESS_LIST) {
+						return I18N.getMessage(I18N.getGUIBundle(), "gui.label.remoteprocessviewer.empty");
+					} else if (last == RemoteProcessesTreeModel.ERROR_PROCESS_LIST) {
+						return I18N.getMessage(I18N.getGUIBundle(), "gui.label.remoteprocessviewer.error");
+					} else if (last == RemoteProcessesTreeModel.EMPTY_PROCESS_LIST) {
+						return I18N.getMessage(I18N.getGUIBundle(), "gui.label.remoteprocessviewer.pending");
+
 					} else {
-						RepositoryLocation loc = getSelectedRepositoryLocation((TreePath)o);
+						RepositoryLocation loc = getSelectedRepositoryLocation((TreePath) o);
 						if (loc != null) {
 							try {
 								return ToolTipProviderHelper.getTip(loc.locateEntry());
@@ -316,7 +326,6 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 				}
 			}
 		}, tree);
-
 		sinceWhenCombo.addActionListener(new ActionListener() {			
 			@Override
 			public void actionPerformed(ActionEvent e) {

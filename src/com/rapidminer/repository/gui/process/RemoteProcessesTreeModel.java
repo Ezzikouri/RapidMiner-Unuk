@@ -62,12 +62,24 @@ import com.rapidminer.tools.LogService;
 public class RemoteProcessesTreeModel implements TreeModel {
 
 	private static final long UPDATE_PERIOD = 2500;
+	
+	/** Object returned by {@link #getChild(Object, int)} if the list is empty or an error has occurred. */
+	public static final Object EMPTY_PROCESS_LIST = new Object();
+	public static final Object PENDING_PROCESS_LIST = new Object();
+	public static final Object ERROR_PROCESS_LIST = new Object();
 
+	private enum ProcessListState {
+		PENDING,
+		READY,
+		ERROR
+	}
 	private class ProcessList {
 
 		private List<Integer> knownIds = new LinkedList<Integer>();
 		private Map<Integer, ProcessResponse> processResponses = new HashMap<Integer, ProcessResponse>();
-
+		
+		private ProcessListState state = ProcessListState.PENDING;
+		
 		public int add(ProcessResponse pr) {
 			int newIndex = -1;
 			if (!processResponses.containsKey(pr.getId())) {
@@ -75,9 +87,18 @@ public class RemoteProcessesTreeModel implements TreeModel {
 				knownIds.add(pr.getId());
 			}
 			processResponses.put(pr.getId(), pr);
+			state = ProcessListState.READY;
 			return newIndex;
 		}
 
+		public ProcessListState getState() {
+			return state;
+		}
+		
+		public void setState(ProcessListState state) {
+			this.state = state;
+		}
+		
 		public ProcessResponse getByIndex(int index) {
 			return processResponses.get(knownIds.get(index));
 		}
@@ -102,7 +123,8 @@ public class RemoteProcessesTreeModel implements TreeModel {
 			return -1;
 		}
 
-		private TreeModelEvent trim(Set<Integer> processIds, RemoteRepository repos) {
+		private void trim(Set<Integer> processIds, RemoteRepository repos) {
+			boolean wasEmpty = knownIds.isEmpty();
 			List<Integer> removedIndices = new LinkedList<Integer>();
 			List<Object> removedObjects = new LinkedList<Object>();
 			Iterator<Integer> i = knownIds.iterator();
@@ -117,20 +139,22 @@ public class RemoteProcessesTreeModel implements TreeModel {
 				}
 				index++;
 			}
-			if (!removedIndices.isEmpty()) {
+			if (!wasEmpty && knownIds.isEmpty()) {
+				// list was not empty before, but now is empty, so we fire structure changed. Model will return only EMPTY_PROCESS_LIST
+				fireStructureChanged(new TreeModelEvent(this, new Object[] { root, repos }));
+			} else if (!removedIndices.isEmpty()) {
 				int[] indices = new int[removedIndices.size()];
 				for (int j = 0; j < removedIndices.size(); j++) {
 					indices[j] = removedIndices.get(j);
 				}
-				return new TreeModelEvent(this, new Object[] { root, repos }, indices, removedObjects.toArray());
+				fireDelete(new TreeModelEvent(this, new Object[] { root, repos }, indices, removedObjects.toArray()));
 			} else {
-				return null;
+				return;
 			}
 		}
 	}
 
 	private final class UpdateTask extends TimerTask {
-
 		@Override
 		public void run() {
 			final List<RemoteRepository> newRepositories = RemoteRepository.getAll();
@@ -172,18 +196,22 @@ public class RemoteProcessesTreeModel implements TreeModel {
 							final Collection<Integer> processIds = processService.getRunningProcesses(since);
 							// First, delete removed ids
 							SwingUtilities.invokeAndWait(new Runnable() {
-
 								@Override
 								public void run() {
 									if (processIds != null) {
-										TreeModelEvent deleteEvent = processList.trim(new HashSet<Integer>(processIds), repos);
-										if (deleteEvent != null) {
-											fireDelete(deleteEvent);
+										if (processIds.isEmpty()) {
+											processList.setState(ProcessListState.READY);
+											fireStructureChanged(new TreeModelEvent(this, new Object[] { root, repos }));
+										} else {
+											if (processList.getState() != ProcessListState.ERROR) {
+												processList.setState(ProcessListState.READY);
+											}
 										}
+										processList.trim(new HashSet<Integer>(processIds), repos);
 									}
 								}
 							});
-
+							// Now, update model for new / existing IDs
 							for (Integer processId : processIds) {
 								ProcessResponse oldProcess = processList.getById(processId);
 								// we update if we don't know the id yet or if the process is not complete						
@@ -193,6 +221,12 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 										@Override
 										public void run() {
+											// If was empty before, fire event to remove EMPTY_PROCESS_LIST
+											if (processList.size() == 0) {
+												fireDelete(new TreeModelEvent(this, new Object[] { root, repos },
+														new int[] { 0 },
+														new Object[] { EMPTY_PROCESS_LIST }));
+											}
 											int newIndex = processList.add(newResponse);
 											fireAdd(new TreeModelEvent(this, new Object[] { root, repos },
 													new int[] { newIndex },
@@ -216,17 +250,21 @@ public class RemoteProcessesTreeModel implements TreeModel {
 								}
 							}
 						} catch (Exception ex) {
+							if(processList.getState()!=ProcessListState.ERROR){
 							LogService.getRoot().log(Level.WARNING,
 									I18N.getMessage(LogService.getRoot().getResourceBundle(),
 											"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.fetching_remote_process_list_error",
-											ex),
-									ex);
-							fireStructureChanged(new TreeModelEvent(this, new TreePath(new Object[] { root, repos })));
+											ex)
+									);
+								setIntoState(repos, ProcessListState.ERROR);
+							}
 						}
 					}
 				}
 			}
 		}
+
+
 	}
 
 	private Map<RemoteRepository, ProcessList> processes = new HashMap<RemoteRepository, ProcessList>();
@@ -260,7 +298,21 @@ public class RemoteProcessesTreeModel implements TreeModel {
 		if (parent == root) {
 			return repositories.get(index);
 		} else if (parent instanceof RemoteRepository) {
-			return processes.get(parent).getByIndex(index);
+			ProcessList processList = processes.get(parent);
+			if (processList.size() == 0) {
+				if (processList.getState()== ProcessListState.PENDING) {
+					return PENDING_PROCESS_LIST;
+				} else if (processList.getState() == ProcessListState.READY) {
+					return EMPTY_PROCESS_LIST;
+				} else
+					return ERROR_PROCESS_LIST;
+
+			} else {
+				if (processList.getState() == ProcessListState.ERROR) {
+					return ERROR_PROCESS_LIST;
+				}
+				return processList.getByIndex(index);
+			}
 		} else if (parent instanceof ProcessResponse) {
 			ProcessResponse proResponse = (ProcessResponse) parent;
 			if (proResponse.getException() != null) {
@@ -292,8 +344,8 @@ public class RemoteProcessesTreeModel implements TreeModel {
 			return repositories.size();
 		} else if (parent instanceof RemoteRepository) {
 			ProcessList list = processes.get(parent);
-			if (list == null) {
-				return 0;
+			if ((list == null) || (list.size() == 0)) {
+				return 1; // if empty, just display single message string
 			} else {
 				return list.size();
 			}
@@ -319,7 +371,9 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 	@Override
 	public int getIndexOfChild(Object parent, Object child) {
-		if (parent == root) {
+		if (child == RemoteProcessesTreeModel.EMPTY_PROCESS_LIST) {
+			return 0;
+		} else if (parent == root) {
 			return repositories.indexOf(child);
 		} else if (parent instanceof RemoteRepository) {
 			return processes.get(parent).indexOf((ProcessResponse) child);
@@ -383,16 +437,40 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 	private void fireStructureChanged(TreeModelEvent e) {
 		for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+			
 			l.treeStructureChanged(e);
 		}
 	}
 
 	public void setSince(Date since) {
+		if (((since == null) && (this.since == null)) ||
+				((since != null) && since.equals(this.since))) {
+			return;
+		}
 		if (since == null) {
 			this.since = null;
 		} else {
 			this.since = XMLTools.getXMLGregorianCalendar(since);
 		}
+
+		Iterator<RemoteRepository> iterator = repositories.iterator();
+		while (iterator.hasNext()) {
+			final RemoteRepository repos = iterator.next();
+			setIntoState(repos, ProcessListState.PENDING);
+
+		}
+		// update all models and reset state into PENDING
+		
+		
+	}
+
+	private void setIntoState(final RemoteRepository repos, ProcessListState state) {
+		ProcessList processList = processes.get(repos);
+		if (processList.getState() == state) {
+			return; // nothing to do
+		}
+		processList.setState(state);
+		fireStructureChanged(new TreeModelEvent(this, new TreePath(new Object[] { root, repos })));
 	}
 
 	public void observe(RemoteRepository rep) {

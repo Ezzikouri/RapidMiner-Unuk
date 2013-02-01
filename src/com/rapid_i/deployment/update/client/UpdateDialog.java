@@ -31,11 +31,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -301,42 +299,19 @@ public class UpdateDialog extends ButtonDialog {
 					installButton.setEnabled(false);
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
-					UpdateService service = UpdateManager.getService();
+				
 
-					HashSet<Dependency> dependencySet = new HashSet<Dependency>();
-					List<PackageDescriptor> dependentPackageDescList = new LinkedList<PackageDescriptor>();
-					HashSet<String> pluginsSelectedForDownload = new HashSet<String>();
-					
-					for (PackageDescriptor packageDescriptor : downloadList) {
-						pluginsSelectedForDownload.add(packageDescriptor.getPackageId());
-					}
-					
-					for (PackageDescriptor desc : downloadList) {
-							dependencySet.addAll(collectDependency(desc,pluginsSelectedForDownload));
-					}
-					
-				/*	for (PackageDescriptor desc : downloadList) {
-						HashSet<Dependency> collectDependency = collectDependency(desc, pluginsSelectedForDownload);
-						for (Dependency dependency : collectDependency) {
-							if (pluginsSelectedForDownload.contains(dependency.getPluginExtensionId())) {
-								continue;
-							}
-							dependencySet.add(dependency);
-						}
-					}*/
-					
-					for (Dependency dependency : dependencySet) {
-						dependentPackageDescList.add(packageDescriptorCache.getPackageInfo(dependency.getPluginExtensionId()));
-					}
+					List<PackageDescriptor> dependentPackageDescList = resolveDependency(downloadList,packageDescriptorCache );
 					
 					getProgressListener().setCompleted(20);
 					List<PackageDescriptor> acceptedList = new LinkedList<PackageDescriptor>();
 					acceptedList.addAll(downloadList);
 					acceptedList.addAll(dependentPackageDescList);
 					
-					boolean isConfirmed = ConfirmLicensesDialog.confirm(downloadList, dependentPackageDescList,acceptedList.size());
+					boolean isConfirmed = ConfirmLicensesDialog.confirm(downloadList, dependentPackageDescList);
 
-					if (isConfirmed && !acceptedList.isEmpty()) {
+					if (isConfirmed) {
+						UpdateService service = UpdateManager.getService();
 						UpdateManager um = new UpdateManager(service);
 						List<PackageDescriptor> installedPackages = um.performUpdates(acceptedList, getProgressListener());
 
@@ -358,34 +333,53 @@ public class UpdateDialog extends ButtonDialog {
 					installButton.setEnabled(true);
 				}
 			}
-
-			/**
-			 * Recursively collect all the dependent extentions of a given extension			 *
-			 * @param desc 
-			 * @param pluginsSelectedForDownload 
-			 * @return
-			 */
-			private HashSet<Dependency> collectDependency(PackageDescriptor desc, HashSet<String> pluginsSelectedForDownload) {
-				HashSet<Dependency> dependencySet = new HashSet<Dependency>();
-				List<Dependency> dependencies = Dependency.parse(desc.getDependencies());
-				for (Dependency dependency : dependencies) {
-					String packageId = dependency.getPluginExtensionId();
-					PackageDescriptor packageInfo = packageDescriptorCache.getPackageInfo(packageId);
-					if ( (!dependencySet.contains(packageInfo)) && (!pluginsSelectedForDownload.contains(packageId)) ) {
-						dependencySet.add(dependency);
-						dependencySet.addAll(collectDependency(packageInfo, pluginsSelectedForDownload));
-						
-					}
-
-				}
-				return dependencySet;
-			}
-
+			
 		}.start();
 	}
 
 	@Override
 	protected void ok() {
 		ulp.startUpdate();
+	}
+	
+	/**
+	 * Recursively collect all the dependent extentions of a given extension			 *
+	 * @param desc 
+	 * @param pluginsSelectedForDownload 
+	 * @return
+	 */
+	private static HashSet<Dependency> collectDependency(PackageDescriptor desc, HashSet<String> pluginsSelectedForDownload, PackageDescriptorCache packageDescriptorCache ) {
+		HashSet<Dependency> dependencySet = new HashSet<Dependency>();
+		List<Dependency> dependencies = Dependency.parse(desc.getDependencies());
+		for (Dependency dependency : dependencies) {
+			String packageId = dependency.getPluginExtensionId();
+			PackageDescriptor packageInfo = packageDescriptorCache.getPackageInfo(packageId);
+			if ( (!dependencySet.contains(packageInfo)) && (!pluginsSelectedForDownload.contains(packageId)) ) {
+				dependencySet.add(dependency);
+				dependencySet.addAll(collectDependency(packageInfo, pluginsSelectedForDownload,packageDescriptorCache ));
+				
+			}
+
+		}
+		return dependencySet;
+	}
+
+	public static List<PackageDescriptor> resolveDependency(final List<PackageDescriptor> downloadList,PackageDescriptorCache packageDescriptorCache ) {
+		HashSet<Dependency> dependencySet = new HashSet<Dependency>();
+		List<PackageDescriptor> dependentPackageDescList = new LinkedList<PackageDescriptor>();
+		HashSet<String> pluginsSelectedForDownload = new HashSet<String>();
+		
+		for (PackageDescriptor packageDescriptor : downloadList) {
+			pluginsSelectedForDownload.add(packageDescriptor.getPackageId());
+		}
+		
+		for (PackageDescriptor desc : downloadList) {
+				dependencySet.addAll(collectDependency(desc,pluginsSelectedForDownload,packageDescriptorCache));
+		}
+		
+		for (Dependency dependency : dependencySet) {
+			dependentPackageDescList.add(packageDescriptorCache.getPackageInfo(dependency.getPluginExtensionId()));
+		}
+		return dependentPackageDescList;
 	}
 }

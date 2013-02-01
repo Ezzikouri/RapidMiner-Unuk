@@ -108,7 +108,7 @@ public class TreeModelGraphCreator extends GraphCreatorAdaptor {
 			    if (labelString != null) {
 			        result.append("<html><b>Class:</b>&nbsp;" + labelString + "<br>");
 			        result.append("<b>Size:</b>&nbsp;" + tree.getFrequencySum() + "<br>");
-			        result.append(SwingTools.transformToolTipText("<b>Class Frequencies:</b>&nbsp;" + tree.getCounterMap().toString()) + "</html>");
+			        result.append("<b>Class frequencies:</b>&nbsp;" + SwingTools.transformToolTipText(tree.getCounterMap().toString()) + "</html>");
 			    }
             } else {
                 result.append("<html><b>Subtree Size:</b>&nbsp;" + tree.getSubtreeFrequencySum() + "</html>");

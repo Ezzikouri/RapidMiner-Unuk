@@ -24,9 +24,7 @@ package com.rapidminer.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -61,7 +59,6 @@ import com.rapidminer.operator.ports.Ports;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.Parameters;
 import com.rapidminer.parameter.conditions.ParameterCondition;
-import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.NetTools;
 import com.rapidminer.tools.OperatorService;

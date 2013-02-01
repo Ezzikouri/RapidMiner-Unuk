@@ -202,26 +202,16 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
 
-					// Download licenses
-					Map<String, String> licenses = new HashMap<String, String>();
-					for (PackageDescriptor desc : downloadList) {
-						String license = licenses.get(desc.getLicenseName());
-						if (license == null) {
-							license = service.getLicenseText(desc.getLicenseName());
-							licenses.put(desc.getLicenseName(), license);
-						}
-					}
-
-					// Confirm licenses
+					List<PackageDescriptor> dependentPackageDescList = UpdateDialog.resolveDependency(downloadList,packageDescriptorCache);
+					
 					getProgressListener().setCompleted(20);
 					List<PackageDescriptor> acceptedList = new LinkedList<PackageDescriptor>();
-					for (PackageDescriptor desc : downloadList) {
-						if (ConfirmLicenseDialog.confirm(desc, licenses.get(desc.getLicenseName()))) {
-							acceptedList.add(desc);
-						}
-					}
+					acceptedList.addAll(downloadList);
+					acceptedList.addAll(dependentPackageDescList);
+					
+					boolean isConfirmed = ConfirmLicensesDialog.confirm(downloadList, dependentPackageDescList);	
 
-					if (!acceptedList.isEmpty()) {
+					if (isConfirmed) {
 						UpdateManager um = new UpdateManager(service);
 						List<PackageDescriptor> performedUpdates = um.performUpdates(acceptedList, getProgressListener());
 						if (performedUpdates.size() > 0) {

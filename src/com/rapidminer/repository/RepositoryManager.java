@@ -44,8 +44,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.rapidminer.RapidMiner;
-import com.rapidminer.gui.tools.SwingTools;
-import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.operator.Operator;
@@ -465,13 +463,11 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			String destinationAbsolutePath = destination.getLocation().getAbsoluteLocation();
 			// make sure same folder moves are forbidden
 			if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
-				SwingTools.showVerySimpleErrorMessage("repository_copy_same_folder");
-				return;
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_copy_same_folder"));
 			}
 			// make sure moving parent folder into subfolder is forbidden
 			if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
-				SwingTools.showVerySimpleErrorMessage("repository_copy_into_subfolder");
-				return;
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_copy_into_subfolder"));
 			}
 			Folder destinationFolder = destination.createFolder(newName);
 			List<Entry> allChildren = new LinkedList<Entry>();
@@ -510,13 +506,11 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			}
 			// make sure same folder moves are forbidden
 			if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
-				SwingTools.showVerySimpleErrorMessage("repository_move_same_folder");
-				return;
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_move_same_folder"));
 			}
 			// make sure moving parent folder into subfolder is forbidden
 			if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
-				SwingTools.showVerySimpleErrorMessage("repository_move_into_subfolder");
-				return;
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_move_into_subfolder"));
 			}
 			if (destination.getLocation().getRepository() != source.getRepository()) {
 				copy(source, destination, newName, listener);
@@ -526,24 +520,18 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 				Entry toDeleteEntry = null;
 				for (Folder folderEntry : destination.getSubfolders()) {
 					if (folderEntry.getName().equals(effectiveNewName)) {
-						SwingTools.showVerySimpleErrorMessage("repository_folder_already_exists", effectiveNewName);
-						return;
+						throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_folder_already_exists", effectiveNewName));
 					}
 				}
 				if (destination.containsEntry(effectiveNewName)) {
-					if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, destination.getLocation().getAbsoluteLocation() + RepositoryLocation.SEPARATOR + effectiveNewName) == ConfirmDialog.NO_OPTION) {
-						return;
-					} else {
-						// overwrite selected by user, find Entry to delete and delete it, then move original entry
-						for (DataEntry dataEntry : destination.getDataEntries()) {
-							if (dataEntry.getName().equals(effectiveNewName)) {
-								toDeleteEntry = dataEntry;
-							}
-						}
-						if (toDeleteEntry != null) {
-							toDeleteEntry.delete();
+					for (DataEntry dataEntry : destination.getDataEntries()) {
+						if (dataEntry.getName().equals(effectiveNewName)) {
+							toDeleteEntry = dataEntry;
 						}
 					}
+					if (toDeleteEntry != null) {
+						toDeleteEntry.delete();
+}
 				}
 				if (listener != null) {
 					listener.setTotal(100);
