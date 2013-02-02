@@ -30,6 +30,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -202,20 +203,19 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 					getProgressListener().setTotal(100);
 					getProgressListener().setCompleted(10);
 
-					List<PackageDescriptor> dependentPackageDescList = UpdateDialog.resolveDependency(downloadList,packageDescriptorCache);
-					
+					HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency = UpdateDialog.resolveDependency(downloadList, packageDescriptorCache);
+
 					getProgressListener().setCompleted(20);
-					List<PackageDescriptor> acceptedList = new LinkedList<PackageDescriptor>();
-					acceptedList.addAll(downloadList);
-					acceptedList.addAll(dependentPackageDescList);
-					
-					boolean isConfirmed = ConfirmLicensesDialog.confirm(downloadList, dependentPackageDescList);	
+
+					LinkedList<PackageDescriptor> installablePackageList = UpdateDialog.getPackagesforInstallation(dependency);
+
+					boolean isConfirmed = ConfirmLicensesDialog.confirm(dependency);
 
 					if (isConfirmed) {
 						UpdateManager um = new UpdateManager(service);
-						List<PackageDescriptor> performedUpdates = um.performUpdates(acceptedList, getProgressListener());
+						List<PackageDescriptor> performedUpdates = um.performUpdates(installablePackageList, getProgressListener());
 						if (performedUpdates.size() > 0) {
-							if (SwingTools.showConfirmDialog((performedUpdates.size() == 1 ? "update.complete_restart" : "update.complete_restart1"), 
+							if (SwingTools.showConfirmDialog((performedUpdates.size() == 1 ? "update.complete_restart" : "update.complete_restart1"),
 									ConfirmDialog.YES_NO_OPTION, performedUpdates.size()) == ConfirmDialog.YES_OPTION) {
 								RapidMinerGUI.getMainFrame().exit(true);
 							}

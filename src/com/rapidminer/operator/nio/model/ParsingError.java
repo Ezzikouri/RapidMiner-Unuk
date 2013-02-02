@@ -128,7 +128,8 @@ public class ParsingError {
 	@Override
 	public boolean equals(Object o) {
 		if (o instanceof ParsingError) {
-			return ((ParsingError)o).toString().equals(this.toString());
+			return ((ParsingError)o).toString().equals(this.toString()) && 
+					((ParsingError)o).getColumns().equals(this.columns);
 		} else {
 			return false;
 		}

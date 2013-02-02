@@ -360,9 +360,9 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		previewTable.setTableHeader(new EditableTableHeader(columnModel));
 		// header editors and renderers and values
 		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
+		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor(headerValidator);
 		headerValidator.addHeaderRenderer(headerRenderer);
 		for (int i = 0; i < previewTable.getColumnCount(); i++) {
-			MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor(headerValidator);
 			EditableTableHeaderColumn col = (EditableTableHeaderColumn) previewTable.getColumnModel().getColumn(i);
 			col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
 			col.setHeaderRenderer(headerRenderer);

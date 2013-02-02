@@ -39,6 +39,7 @@ import com.rapidminer.operator.nio.model.ParsingError;
  */
 public class MetaDataValidator {
 
+	private Object lock = new Object();
 	private DataResultSetTranslationConfiguration configuration;
 	private MetaDataDeclarationWizardStep wizardStep;
 	private List<ParsingError> errorList = new ArrayList<ParsingError>();
@@ -55,40 +56,38 @@ public class MetaDataValidator {
 
 			@Override
 			public void run() {
-				errorList = new ArrayList<ParsingError>();
-				ColumnMetaData[] metaData = configuration.getColumnMetaData();
-				Map<String, List<Integer>> columnRoles = new HashMap<String, List<Integer>>();
-				Map<String, List<Integer>> columnNames = new HashMap<String, List<Integer>>();
-				
-				int counter = 1;
-				for (ColumnMetaData columnMetaData : metaData) {
-					if (columnRoles.containsKey(columnMetaData.getRole())) {
-						columnRoles.get(columnMetaData.getRole()).add(counter);
-					} else {
-						columnRoles.put(columnMetaData.getRole(), new ArrayList<Integer>(Arrays.asList((counter))));
+				synchronized(lock) {
+					errorList = new ArrayList<ParsingError>();
+					ColumnMetaData[] metaData = configuration.getColumnMetaData();
+					Map<String, List<Integer>> columnRoles = new HashMap<String, List<Integer>>();
+					Map<String, List<Integer>> columnNames = new HashMap<String, List<Integer>>();
+					
+					int counter = 1;
+					for (ColumnMetaData columnMetaData : metaData) {
+						if (columnRoles.containsKey(columnMetaData.getRole())) {
+							columnRoles.get(columnMetaData.getRole()).add(counter);
+						} else {
+							columnRoles.put(columnMetaData.getRole(), new ArrayList<Integer>(Arrays.asList((counter))));
+						}
+						if (columnNames.containsKey(columnMetaData.getUserDefinedAttributeName())) {
+							columnNames.get(columnMetaData.getUserDefinedAttributeName()).add(counter);
+						} else {
+							columnNames.put(columnMetaData.getUserDefinedAttributeName(), new ArrayList<Integer>(Arrays.asList((counter))));
+						}
+						counter++;
 					}
-					if (columnNames.containsKey(columnMetaData.getUserDefinedAttributeName())) {
-						columnNames.get(columnMetaData.getUserDefinedAttributeName()).add(counter);
-					} else {
-						columnNames.put(columnMetaData.getUserDefinedAttributeName(), new ArrayList<Integer>(Arrays.asList((counter))));
+					for (Entry<String, List<Integer>> roleEntry : columnRoles.entrySet()) {
+						if (roleEntry.getValue().size() > 1 && !roleEntry.getKey().equals("attribute")) {
+							errorList.add(new ParsingError(roleEntry.getValue(), ParsingError.ErrorCode.SAME_ROLE_FOR_MULTIPLE_COLUMNS, roleEntry.getKey()));
+						}
 					}
-					counter++;
+					for (Entry<String, List<Integer>> nameEntry : columnNames.entrySet()) {
+						if (nameEntry.getValue().size() > 1) {
+							errorList.add(new ParsingError(nameEntry.getValue(), ParsingError.ErrorCode.SAME_NAME_FOR_MULTIPLE_COLUMNS, nameEntry.getKey()));
+						}
+					}
+					wizardStep.updateErrors();
 				}
-				counter = 0;
-				for (Entry<String, List<Integer>> roleEntry : columnRoles.entrySet()) {
-					if (roleEntry.getValue().size() > 1 && !roleEntry.getKey().equals("attribute")) {
-						errorList.add(new ParsingError(roleEntry.getValue(), ParsingError.ErrorCode.SAME_ROLE_FOR_MULTIPLE_COLUMNS, roleEntry.getKey()));
-					}
-					counter++;
-				}
-				counter = 0;
-				for (Entry<String, List<Integer>> nameEntry : columnNames.entrySet()) {
-					if (nameEntry.getValue().size() > 1) {
-						errorList.add(new ParsingError(nameEntry.getValue(), ParsingError.ErrorCode.SAME_NAME_FOR_MULTIPLE_COLUMNS, nameEntry.getKey()));
-					}
-					counter++;
-				}
-				wizardStep.updateErrors();
 			}
 		}.start();
 	}

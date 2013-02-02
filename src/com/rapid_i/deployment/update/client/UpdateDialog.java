@@ -31,6 +31,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -301,19 +302,18 @@ public class UpdateDialog extends ButtonDialog {
 					getProgressListener().setCompleted(10);
 				
 
-					List<PackageDescriptor> dependentPackageDescList = resolveDependency(downloadList,packageDescriptorCache );
-					
+					HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency = resolveDependency(downloadList,packageDescriptorCache );
+
 					getProgressListener().setCompleted(20);
-					List<PackageDescriptor> acceptedList = new LinkedList<PackageDescriptor>();
-					acceptedList.addAll(downloadList);
-					acceptedList.addAll(dependentPackageDescList);
 					
-					boolean isConfirmed = ConfirmLicensesDialog.confirm(downloadList, dependentPackageDescList);
+					LinkedList<PackageDescriptor> installablePackageList = getPackagesforInstallation(dependency);
+					
+					boolean isConfirmed = ConfirmLicensesDialog.confirm(dependency);
 
 					if (isConfirmed) {
 						UpdateService service = UpdateManager.getService();
 						UpdateManager um = new UpdateManager(service);
-						List<PackageDescriptor> installedPackages = um.performUpdates(acceptedList, getProgressListener());
+						List<PackageDescriptor> installedPackages = um.performUpdates(installablePackageList, getProgressListener());
 
 						updateModel.clearFromSelectionMap(installedPackages);
 						ulp.validate();
@@ -342,6 +342,17 @@ public class UpdateDialog extends ButtonDialog {
 		ulp.startUpdate();
 	}
 	
+	public static LinkedList<PackageDescriptor> getPackagesforInstallation(HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency) {
+		HashSet<PackageDescriptor> installabledPackages = new HashSet<PackageDescriptor>();
+		for (PackageDescriptor packageDescriptor : dependency.keySet()) {
+			installabledPackages.add(packageDescriptor);
+			installabledPackages.addAll(dependency.get(packageDescriptor));
+		}
+		LinkedList<PackageDescriptor> installablePackageList = new LinkedList<PackageDescriptor>();
+		installablePackageList.addAll(installabledPackages);
+		return installablePackageList;
+	}
+
 	/**
 	 * Recursively collect all the dependent extentions of a given extension			 *
 	 * @param desc 
@@ -364,22 +375,24 @@ public class UpdateDialog extends ButtonDialog {
 		return dependencySet;
 	}
 
-	public static List<PackageDescriptor> resolveDependency(final List<PackageDescriptor> downloadList,PackageDescriptorCache packageDescriptorCache ) {
-		HashSet<Dependency> dependencySet = new HashSet<Dependency>();
-		List<PackageDescriptor> dependentPackageDescList = new LinkedList<PackageDescriptor>();
+	public static HashMap<PackageDescriptor,HashSet<PackageDescriptor>>  resolveDependency(final List<PackageDescriptor> downloadList,PackageDescriptorCache packageDescriptorCache ) {
+		
+		HashMap<PackageDescriptor,HashSet<PackageDescriptor>> dependentPackageMap = new HashMap<PackageDescriptor, HashSet<PackageDescriptor>>();
+		
 		HashSet<String> pluginsSelectedForDownload = new HashSet<String>();
 		
 		for (PackageDescriptor packageDescriptor : downloadList) {
 			pluginsSelectedForDownload.add(packageDescriptor.getPackageId());
+			dependentPackageMap.put(packageDescriptor, new HashSet<PackageDescriptor>());
 		}
 		
 		for (PackageDescriptor desc : downloadList) {
-				dependencySet.addAll(collectDependency(desc,pluginsSelectedForDownload,packageDescriptorCache));
+			HashSet<Dependency> dependencySet = collectDependency(desc,pluginsSelectedForDownload,packageDescriptorCache);
+			for (Dependency dependency : dependencySet) {
+				dependentPackageMap.get(desc).add(packageDescriptorCache.getPackageInfo(dependency.getPluginExtensionId()));
+			}
+			
 		}
-		
-		for (Dependency dependency : dependencySet) {
-			dependentPackageDescList.add(packageDescriptorCache.getPackageInfo(dependency.getPluginExtensionId()));
-		}
-		return dependentPackageDescList;
+		return dependentPackageMap;
 	}
 }

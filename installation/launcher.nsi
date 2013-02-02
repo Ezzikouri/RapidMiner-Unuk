@@ -85,7 +85,8 @@ Pop $1
 IntCmp $1 64 less64 less64 more64+
 	
 less64: 
-	StrCpy $R9 64
+	; CHANGED FROM 64 to 384 - 64MB RAM is insufficient for RM and is therefore useless as a fallback
+	StrCpy $R9 384
 	Goto mem_more
 
 more64+:
@@ -93,7 +94,7 @@ more64+:
 	Goto more64
 	
 more64:
-	Call getPreferredMemory 
+	Call getPreferredMemory
 	IntCmp $R9 $R0 mem_more mem_more moreThanPreferred
 	
 moreThanPreferred:
@@ -101,6 +102,16 @@ moreThanPreferred:
 	Goto mem_more
 	
 mem_more:
+	IntCmp $R9 1200 less1200 less1200 more1200
+	
+less1200:
+	Goto after_mem_more
+	
+more1200: 
+	StrCpy $R9 1200
+	Goto after_mem_more
+
+after_mem_more:
   Call GetJRE
   Pop $R0
  

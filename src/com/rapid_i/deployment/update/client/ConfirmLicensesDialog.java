@@ -23,23 +23,26 @@
 
 package com.rapid_i.deployment.update.client;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
@@ -64,14 +67,13 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 
 	private static final long serialVersionUID = 4276757146820898347L;
 	private JButton okButton;
-	private JRadioButton accept, reject;
 	private JEditorPane licensePane = new JEditorPane("text/html", "");
 	private static final int LIST_WIDTH = 330;
 	private JList selectedForInstallList;
 	private JList dependentPackages;
 	private ResourceLabel licenseLabel;
 	private Map<String, String> licenseNameToLicenseTextMap = new HashMap<String, String>();
-	
+
 	private static String LOADING_LICENSE_TEXT = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">"
 			+ "<html xmlns=\"http://www.w3.org/1999/xhtml\" dir=\"ltr\" lang=\"en\" xml:lang=\"en\">" + "<head>" + "<table cellpadding=0 cellspacing=0>" + "<tr><td>"
 			+ "<img src=\"" + SwingTools.getIconPath("48/hourglass.png") + "\" /></td>" + "<td width=\"5\">" + "</td>" + "<td>" + I18N.getGUILabel("loading_license") + "</td></tr>" + "</table>" + "</head>" + "</html>";
@@ -80,12 +82,12 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 			+ "<html xmlns=\"http://www.w3.org/1999/xhtml\" dir=\"ltr\" lang=\"en\" xml:lang=\"en\">" + "<head>" + "<table cellpadding=0 cellspacing=0>" + "<tr><td>"
 			+ "<img src=\"" + SwingTools.getIconPath("48/error.png") + "\" /></td>" + "<td width=\"5\">" + "</td>" + "<td>" + I18N.getGUILabel("error_loading_license") + "</td></tr>" + "</table>" + "</head>" + "</html>";
 
-	
 	// this variable checks if license loading has failed. 
 	// If so we cannot allow the user to install the packages because he hasn't seen the license
 	private boolean licenseLoadingFailed = true;
+	private JCheckBox acceptReject;
 
-	public ConfirmLicensesDialog(List<PackageDescriptor> selectedList, List<PackageDescriptor> dependencyList) {
+	public ConfirmLicensesDialog(HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency) {
 		super("confirm_licenses", "updates");
 		setModal(true);
 
@@ -104,10 +106,25 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 		label.setFont(label.getFont().deriveFont(Font.BOLD));
 		main.add(label, c);
 
-		selectedForInstallList = new JList(selectedList.toArray());
+		Set<PackageDescriptor> selectedPackages = dependency.keySet();
+		selectedForInstallList = new JList(selectedPackages.toArray());
 		label.setLabelFor(selectedForInstallList);
 
-		dependentPackages = new JList(dependencyList.toArray());
+		HashMap<PackageDescriptor, HashSet<PackageDescriptor>> invertedDependency = new HashMap<PackageDescriptor, HashSet<PackageDescriptor>>();
+
+		for (PackageDescriptor source : selectedPackages) {
+			for (PackageDescriptor dep : dependency.get(source)) {
+				if (!invertedDependency.containsKey(dep)) {
+					invertedDependency.put(dep, new HashSet<PackageDescriptor>());
+					invertedDependency.get(dep).add(source);
+				} else {
+					invertedDependency.get(dep).add(source);
+				}
+			}
+		}
+
+		Set<PackageDescriptor> depPackages = invertedDependency.keySet();
+		dependentPackages = new JList(depPackages.toArray());
 
 		c.gridx = 0;
 		c.gridy = GridBagConstraints.RELATIVE;
@@ -119,8 +136,8 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 		selectedForInstallPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		selectedForInstallPane.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.LIGHT_GRAY));
 		selectedForInstallList.addListSelectionListener(new LicenseListSelectionListener(dependentPackages));
-		PackageListCellRenderer cellRenderer = new PackageListCellRenderer();
-		selectedForInstallList.setCellRenderer(cellRenderer);
+		PackageListCellRenderer sourceCellRenderer = new PackageListCellRenderer();
+		selectedForInstallList.setCellRenderer(sourceCellRenderer);
 		main.add(selectedForInstallPane, c);
 
 		c.gridx = 0;
@@ -142,7 +159,8 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 		dependentPackagesPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		dependentPackagesPane.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.LIGHT_GRAY));
 		dependentPackages.addListSelectionListener(new LicenseListSelectionListener(selectedForInstallList));
-		dependentPackages.setCellRenderer(cellRenderer);
+		PackageListCellRenderer depCellRenderer = new PackageListCellRenderer(invertedDependency);
+		dependentPackages.setCellRenderer(depCellRenderer);
 		main.add(dependentPackagesPane, c);
 
 		c.gridx = 1;
@@ -164,49 +182,26 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 		scrollPane.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.LIGHT_GRAY));
 		main.add(scrollPane, c);
 
-		accept = new JRadioButton(new ResourceAction("accept_license") {
+		acceptReject = new JCheckBox(new ResourceAction("accept_license") {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				enableButtons();
+				if (acceptReject.isSelected()) {
+					enableButtons();
+				}else{
+					okButton.setEnabled(false);
+				}
 			}
 		});
-
-		reject = new JRadioButton(new ResourceAction("reject_license") {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				enableButtons();
-			}
-		});
-
-		ButtonGroup group = new ButtonGroup();
-		group.add(accept);
-		group.add(reject);
-		reject.setSelected(true);
-
-		c.gridx = 0;
-		c.gridy = GridBagConstraints.RELATIVE;
-		c.weighty = 0;
-		c.insets = new Insets(10, 0, 2, 0);
-		main.add(accept, c);
-
-		c.gridx = 0;
-		c.gridy = GridBagConstraints.RELATIVE;
-		c.weighty = 0;
-		c.insets = new Insets(0, 0, 0, 0);
-		main.add(reject, c);
 
 		okButton = this.makeOkButton("update.install");
-		okButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.install.label", selectedList.size() + dependencyList.size()));
+		okButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.install.label", selectedPackages.size() + depPackages.size()));
 		okButton.setEnabled(false);
 
-		layoutDefault(main, HUGE, okButton, makeCancelButton("skip_install"));
-		
+		layoutDefault(main, HUGE, acceptReject,okButton, makeCancelButton("skip_install"));
+
 		enableButtons();
 	}
 
@@ -215,14 +210,13 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 	}
 
 	private void enableButtons() {
-		okButton.setEnabled(accept.isSelected() && !licenseLoadingFailed);
-		accept.setEnabled(!licenseLoadingFailed);
-		reject.setEnabled(!licenseLoadingFailed);
+		okButton.setEnabled(acceptReject.isSelected() && !licenseLoadingFailed);
+		acceptReject.setEnabled(!licenseLoadingFailed);
 	}
-	
+
 	private void setLicensePaneContent(final PackageDescriptor desc) {
 		licenseLabel.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.license_label.label", desc.getName()));
-		
+
 		final String licenseName = desc.getLicenseName(); //TODO can the license name be used as a key for the license text?
 
 		String licenseText = licenseNameToLicenseTextMap.get(licenseName);
@@ -243,7 +237,7 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 						setLicenseText(licenseText);
 					} catch (Exception e) {
 						licenseLoadingFailed = true;
-						setLicenseText(ERROR_LOADING_LICENSE_TEXCT); 
+						setLicenseText(ERROR_LOADING_LICENSE_TEXCT);
 					}
 					enableButtons();
 				}
@@ -267,8 +261,8 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 	/** Returns true iff the user chooses to confirm the license. 
 	 * @param numberOfTotalPackages 
 	 * @param updateModel */
-	public static boolean confirm(List<PackageDescriptor> selectedList, List<PackageDescriptor> dependencyList) {
-		ConfirmLicensesDialog d = new ConfirmLicensesDialog(selectedList, dependencyList);
+	public static boolean confirm(HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency) {
+		ConfirmLicensesDialog d = new ConfirmLicensesDialog(dependency);
 		d.setInitialSelection();
 		d.setVisible(true);
 		return d.wasConfirmed();
@@ -308,5 +302,22 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 
 			}
 		}
+	}
+	
+	@Override
+	/** Overriding makeButtonPanel in order to display accept licence checkbox. **/
+	protected JPanel makeButtonPanel(AbstractButton... buttons) {
+		JPanel buttonPanel = new JPanel(new BorderLayout());
+		JPanel buttonPanelRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, GAP, GAP));
+		for (AbstractButton button : buttons) {
+			if (button != null) {
+				buttonPanelRight.add(button);
+			}
+		}
+		buttonPanel.add(buttonPanelRight, BorderLayout.CENTER);
+		JPanel buttonPanelLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, GAP, 2 * GAP));
+		buttonPanelLeft.add(acceptReject, false);
+		buttonPanel.add(buttonPanelLeft, BorderLayout.WEST);
+		return buttonPanel;
 	}
 }

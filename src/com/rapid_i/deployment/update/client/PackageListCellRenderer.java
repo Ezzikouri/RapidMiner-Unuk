@@ -32,6 +32,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.beans.Transient;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -67,14 +68,21 @@ public class PackageListCellRenderer implements ListCellRenderer {
 	private Map<String, Icon> icons = new HashMap<String, Icon>();
 	private double iconScalingFactor;
 	private int textPixelSize=0;
+	private HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependecyMap = null;
+	
 
 	public PackageListCellRenderer(double iconScalingFactor,int textPixelSize) {
 		this.iconScalingFactor=iconScalingFactor;
 		this.textPixelSize = textPixelSize;
 	}
 	
-	public PackageListCellRenderer() {
-		this(45,0);		
+	public PackageListCellRenderer(HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependecyMap) {
+		this(45,0);
+		this.dependecyMap = dependecyMap;
+	}
+	
+	public PackageListCellRenderer(){
+		this(45,0);
 	}
 
 	private Icon getIcon(PackageDescriptor pd) {
@@ -176,6 +184,11 @@ public class PackageListCellRenderer implements ListCellRenderer {
 
 			text += "</div>";
 			text += "<div style='margin-top:5px;'>" + getLicenseType(desc.getLicenseName()) + "</div>";
+			
+			if(dependecyMap!=null && dependecyMap.get(desc).size()>0 ){
+				text += "<div style='margin-top:5px;'>" + getSourcePackages(desc) + "</div>";
+			}
+			
 			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 			if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
 
@@ -193,6 +206,15 @@ public class PackageListCellRenderer implements ListCellRenderer {
 		}
 		
 		return panel;
+	}
+
+	private String getSourcePackages(PackageDescriptor desc) {
+		StringBuffer text = new StringBuffer("<b>Required by:</b> ");
+		for (PackageDescriptor dep : dependecyMap.get(desc)) {
+			text.append(dep.getName()+",");		
+		}
+		text.deleteCharAt(text.length()-1);
+		return text.toString();
 	}
 
 	private String getLicenseType(String licenseName) {
