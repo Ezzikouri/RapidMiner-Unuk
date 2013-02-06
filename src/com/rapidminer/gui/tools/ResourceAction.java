@@ -59,13 +59,13 @@ public abstract class ResourceAction extends ConditionalAction {
 	private final String key;
 
 	private final String iconName;
-	
+
 	public ResourceAction(String i18nKey, Object ... i18nArgs) {
 		this(false, i18nKey, i18nArgs);
-		
+
 		setCondition(EDIT_IN_PROGRESS, DONT_CARE);
 	}
-	
+
 	public ResourceAction(boolean smallIcon, String i18nKey, Object ... i18nArgs) {
 		super((i18nArgs == null) || (i18nArgs.length == 0) ? 
 				getMessage(i18nKey+".label") : 
@@ -74,20 +74,14 @@ public abstract class ResourceAction extends ConditionalAction {
 		String mne = getMessageOrNull(i18nKey + ".mne");		
 		if (mne != null && mne.length() > 0) {			
 			String name = (String)getValue(NAME);
-			if (name != null && name.length() > 0 && name.indexOf(mne.charAt(0)) == -1) {
-				if (name.indexOf(mne.toUpperCase().charAt(0)) != -1) {
-					mne = mne.toUpperCase();
-					//LogService.getRoot().warning("Mnemonic key "+mne+" not found for action " + i18nKey + " ("+name+"), converting to upper case.");
-					LogService.getRoot().log(Level.WARNING, 
-							"com.rapidminer.gui.tools.ResourceAction.key_not_found_converting_upper_case", 
-							new Object[] {mne, i18nKey, name});
-				} else {
-					//LogService.getRoot().warning("Mnemonic key "+mne+" not found for action " + i18nKey + " ("+name+")");
-					LogService.getRoot().log(Level.WARNING, 
-							"com.rapidminer.gui.tools.ResourceAction.key_not_found", 
-							new Object[] {mne, i18nKey, name});
-				}
+			if (name != null && name.length() > 0 && 
+					(name.indexOf(mne.charAt(0)) == -1) && 
+					(name.indexOf(Character.toLowerCase(mne.charAt(0))) == -1)) {
+				LogService.getRoot().log(Level.WARNING, 
+						"com.rapidminer.gui.tools.ResourceAction.key_not_found", 
+						new Object[] {mne, i18nKey, name});
 			}
+			mne = mne.toUpperCase();
 			putValue(MNEMONIC_KEY, (int)mne.charAt(0));
 		}
 		String tip = getMessageOrNull(i18nKey + ".tip");
@@ -95,7 +89,7 @@ public abstract class ResourceAction extends ConditionalAction {
 			putValue(SHORT_DESCRIPTION, 
 					(i18nArgs == null) || (i18nArgs.length == 0) ?
 							tip :
-							MessageFormat.format(tip, i18nArgs));
+								MessageFormat.format(tip, i18nArgs));
 		}
 		this.iconName = getMessageOrNull(i18nKey + ".icon");
 		if (getIconName() != null) {
@@ -111,15 +105,15 @@ public abstract class ResourceAction extends ConditionalAction {
 		}
 		putValue("rm_id", i18nKey);
 	}
-	
+
 	private static String getMessage(String key) {
 		return I18N.getMessage(I18N.getGUIBundle(), "gui.action."+key);
 	}
-	
+
 	private static String getMessageOrNull(String key) {
 		return I18N.getMessageOrNull(I18N.getGUIBundle(), "gui.action."+key);
 	}
-	
+
 	/** Adds the action to the input and action map of the components.
 	 * 
 	 * @param condition one out of {@link JComponent#WHEN_FOCUSED}, ...
@@ -132,7 +126,7 @@ public abstract class ResourceAction extends ConditionalAction {
 			if (comp == null) {
 				throw new IllegalArgumentException("components must not be null!");
 			}
-			
+
 			KeyStroke keyStroke = (KeyStroke)getValue(ACCELERATOR_KEY);
 			if (keyStroke != null) {
 				actionKey = actionKey == null ? key : actionKey;
@@ -174,14 +168,14 @@ public abstract class ResourceAction extends ConditionalAction {
 								ResourceAction.super.setDisabledDueToFocusLost(true);
 								ResourceAction.this.setEnabled(false);
 							}
-							
+
 						});
 					}
 				}
 			}
 		}
 	}
-	
+
 	/** Adds the action to the input and action map of the component.
 	 * 
 	 * @param condition one out of WHEN_IN_FOCUES, ...
@@ -189,7 +183,7 @@ public abstract class ResourceAction extends ConditionalAction {
 	public void addToActionMap(JComponent component, int condition) {
 		addToActionMap(component, null, condition);
 	}
-	
+
 	/** Adds the action to the input and action map of the component.
 	 * 
 	 * @param condition one out of WHEN_IN_FOCUES, ...
@@ -197,7 +191,7 @@ public abstract class ResourceAction extends ConditionalAction {
 	public void addToActionMap(JComponent component, String actionKey, int condition) {
 		addToActionMap(condition, false, false, actionKey, component);
 	}
-	
+
 	/**
 	 * This returns the i18n key of this action.
 	 */

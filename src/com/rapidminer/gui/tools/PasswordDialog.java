@@ -133,7 +133,7 @@ public class PasswordDialog extends ButtonDialog {
 		if (authentication == null) {
 			authentication = new UserCredential(forUrl, null, null);
 		}
-		if (i18nKey == null) {
+		if (i18nKey == null || i18nKey.contains("authentication")) {
 			i18nKey = "authentication";
 			args = new Object[] { authentication.getURL() };
 		}

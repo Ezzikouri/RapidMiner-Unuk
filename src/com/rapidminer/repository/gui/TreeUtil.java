@@ -46,6 +46,7 @@ public class TreeUtil {
 	public static void restoreSelectionPath(JTree parentTree) {
 		if (selectedPath != null) {
 			parentTree.setSelectionPath(selectedPath);
+			parentTree.scrollPathToVisible(parentTree.getSelectionPath());
 		}
 	}
 	

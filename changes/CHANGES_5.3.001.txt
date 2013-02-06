@@ -1,6 +1,5 @@
 Changes from RapidMiner 5.3.0 to 5.3.1
 --------------------------------------
-* Improved RapidAnalytics Processes view.
 * Changed drop target highlighting color from light-blue to light-orange
 * Process panel will not be highlighted anymore when dragging folders from the Repository View
 * Added a GUI preference option for drag target highlighting. Now it is possible to select whether the full target, the target's border or nothing at all should be highlighted.

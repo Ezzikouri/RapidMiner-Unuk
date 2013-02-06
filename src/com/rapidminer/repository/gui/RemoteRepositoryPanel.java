@@ -23,6 +23,8 @@
 
 package com.rapidminer.repository.gui;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -35,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.AbstractButton;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -49,9 +52,11 @@ import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.remote.RemoteRepository;
+import com.rapidminer.tools.I18N;
 
 /** Panel to add remote repositories
  * 
@@ -62,14 +67,26 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 
 	private static final long serialVersionUID = 1L;
 
-	private static final ImageIcon OKAY_ICON = SwingTools.createIcon("24/ok.png");
-	private static final ImageIcon ERROR_ICON = SwingTools.createIcon("24/error.png");
-	private static final ImageIcon QUESTION_ICON = SwingTools.createIcon("24/symbol_questionmark.png");
-
 	private final JTextField urlField = new JTextField("http://localhost:8080/", 30);
 	private final JTextField aliasField = new JTextField("NewRepository", 30);
 	private final JTextField userField = new JTextField(System.getProperty("user.name"), 20);
 	private final JPasswordField passwordField = new JPasswordField(20);
+
+	private static final String UNKNOWN_STATUS_LABEL = I18N.getGUILabel("check_connection_settings.unknown");
+	private static final String SUCCESS_STATUS_LABEL = I18N.getGUILabel("check_connection_settings.success");
+	private static final String CHECKING_STATUS_LABEL = I18N.getGUILabel("check_connection_settings.checking");
+
+	private static final ImageIcon SUCCESS_ICON = SwingTools.createIcon("16/ok.png");
+	private static final ImageIcon FAILURE_ICON = SwingTools.createIcon("16/error.png");
+	private static final ImageIcon UNKOWN_ICON = SwingTools.createIcon("16/unknown.png");
+
+	private static final Color UNKOWN_STATUS_COLOR = Color.GRAY;
+	private static final Color FAILURE_STATUS_COLOR = Color.RED;
+	private static final Color SUCCESS_STATUS_COLOR = Color.GREEN.darker().darker();
+	private static final Color CHECKING_STATUS_COLOR = Color.BLACK;
+
+	private JButton okButton;
+	private JLabel checkLabel = new JLabel(UNKNOWN_STATUS_LABEL);
 
 	private final ResourceAction checkConnectionSettingsAction = new ResourceAction(false, "check_connection_settings") {
 
@@ -77,22 +94,29 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			new ProgressThread("check_connection_settings", true) {
+			enableComponents(false);
+			new ProgressThread("check_connection_settings", false) {
 
 				@Override
 				public void run() {
 					getProgressListener().setTotal(100);
 
+					setCheckButtonVisible(false);
+
+					adaptConnectionLabel(CHECKING_STATUS_LABEL, null, CHECKING_STATUS_COLOR);
+
 					getProgressListener().setCompleted(43);
 
-					boolean configCorrect = RemoteRepository.checkConfiguration(urlField.getText(), userField.getText(), passwordField.getPassword());
-					if (configCorrect) {
-						checkButton.setIcon(OKAY_ICON);
+					String errorMessage = RemoteRepository.checkConfiguration(urlField.getText(), userField.getText(), passwordField.getPassword());
+
+					if (errorMessage == null) {
+						adaptConnectionLabel(SUCCESS_STATUS_LABEL, SUCCESS_ICON, SUCCESS_STATUS_COLOR);
 					} else {
-						// show error
-						checkButton.setIcon(ERROR_ICON);
+						adaptConnectionLabel(I18N.getMessage(I18N.getGUIBundle(), "gui.label.check_connection_settings.failure", errorMessage)
+								, FAILURE_ICON, FAILURE_STATUS_COLOR);
 					}
 
+					enableComponents(true);
 					getProgressListener().complete();
 				}
 			}.start();
@@ -100,7 +124,7 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 
 	};
 
-	private final JButton checkButton = new JButton(checkConnectionSettingsAction);
+	private final LinkButton checkButton = new LinkButton(checkConnectionSettingsAction, true);
 
 	private KeyListener resetCheckButtonKeyListener = new KeyListener() {
 
@@ -109,7 +133,7 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 
 		@Override
 		public void keyReleased(KeyEvent e) {
-			resetCheckButtonIcon();
+			resetConnectionStatusLabel();
 		}
 
 		@Override
@@ -171,6 +195,26 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		gbl.setConstraints(passwordField, c);
 		add(passwordField);
 
+		// connection status
+		c.insets = new Insets(4, 4, 4, 4);
+		c.gridwidth = GridBagConstraints.RELATIVE;
+		c.fill = GridBagConstraints.BOTH;
+		label = new ResourceLabel("connection_status");
+		gbl.setConstraints(label, c);
+		add(label);
+
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.fill = GridBagConstraints.BOTH;
+		JPanel checkPanel = new JPanel(new GridBagLayout());
+		checkPanel.setPreferredSize(new Dimension(200,25));
+		gbl.setConstraints(checkPanel, c);
+		add(checkPanel);
+
+		c.gridwidth = GridBagConstraints.RELATIVE;
+		checkPanel.add(checkLabel, c);
+		c.insets = new Insets(0, 0, 2, 0);
+		checkPanel.add(checkButton, c);
+
 		aliasField.selectAll();
 		urlField.selectAll();
 		userField.selectAll();
@@ -178,6 +222,8 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		userField.addKeyListener(resetCheckButtonKeyListener);
 		passwordField.addKeyListener(resetCheckButtonKeyListener);
 		urlField.addKeyListener(resetCheckButtonKeyListener);
+
+		resetConnectionStatusLabel();
 	}
 
 	@Override
@@ -209,6 +255,22 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 			}
 		};
 		pt.start();
+	}
+
+	private void setCheckButtonVisible(boolean visible) {
+		checkButton.setVisible(visible);
+		checkLabel.setVisible(!visible);
+	}
+
+	private void enableComponents(boolean enabled) {
+		aliasField.setEditable(enabled);
+		urlField.setEditable(enabled);
+		passwordField.setEditable(enabled);
+		userField.setEditable(enabled);
+		if (okButton != null) {
+			okButton.setEnabled(enabled);
+		}
+
 	}
 
 	@Override
@@ -254,17 +316,27 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 
 	@Override
 	public void setOkButton(JButton okButton) {
-		// NOOP
+		this.okButton = okButton;
 	}
 
 	@Override
 	public List<AbstractButton> getAdditionalButtons() {
 		LinkedList<AbstractButton> buttons = new LinkedList<AbstractButton>();
-		buttons.add(checkButton);
+//		buttons.add(checkButton);
 		return buttons;
 	}
 
-	private void resetCheckButtonIcon() {
-		checkButton.setIcon(QUESTION_ICON);
+	private void resetConnectionStatusLabel() {
+		adaptConnectionLabel(UNKNOWN_STATUS_LABEL, UNKOWN_ICON, UNKOWN_STATUS_COLOR);
+		setCheckButtonVisible(true);
 	}
+
+	private void adaptConnectionLabel(String text, Icon icon, Color color) {
+		checkLabel.setText(text);
+		checkLabel.setIcon(icon);
+		checkLabel.setBackground(color);
+		checkLabel.setForeground(color);
+
+	}
+
 }

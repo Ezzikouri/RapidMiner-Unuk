@@ -47,26 +47,7 @@ Section ""
 ; This will set the environment variables accordingly
 Call SetEnvironment 
 
-; Searching for system memory to use
-System::Alloc 32
-Pop $1
-; writes the free RAM to $5
-System::Call "Kernel32::GlobalMemoryStatus(i) v (r1)"
-System::Call "*$1(&i4 .r2, &i4 .r3, &i4 .r4, &i4 .r5, \
-                  &i4 .r6, &i4.r7, &i4 .r8, &i4 .r9)"
-System::Free $1
-
-; GlobalMemoryStatus only works for real x68 Systems not for x64 Sytems so in case of Error it calls a mightier method
-IntCmp $5 -1 bigSystem
-; for Xmx and Xms
-IntOp $R9 $5 / 1024
-IntOp $R9 $R9 / 1024
-IntOp $R9 $R9 * 90
-IntOp $R9 $R9 / 100
-IntCmp $R9 64 less64 less64 more64
-
-bigSystem:	
-	System::Alloc 64
+System::Alloc 64
 Pop $0
 System::Call "*$0(i 64)"
 System::Call "Kernel32::GlobalMemoryStatusEx(i r0)"
@@ -82,18 +63,15 @@ System::Int64Op $1 * 90
 Pop $1
 System::Int64Op $1 / 100
 Pop $1
-IntCmp $1 64 less64 less64 more64+
+IntCmp $1 384 less384 less384 more384
 	
-less64: 
+less384: 
 	; CHANGED FROM 64 to 384 - 64MB RAM is insufficient for RM and is therefore useless as a fallback
 	StrCpy $R9 384
 	Goto mem_more
-
-more64+:
-	StrCpy $R9 $1
-	Goto more64
 	
-more64:
+more384:
+	StrCpy $R9 $1
 	Call getPreferredMemory
 	IntCmp $R9 $R0 mem_more mem_more moreThanPreferred
 	

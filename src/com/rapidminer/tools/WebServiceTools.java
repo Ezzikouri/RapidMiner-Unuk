@@ -107,7 +107,23 @@ public class WebServiceTools {
         setURLConnectionDefaults(connection);
         return connection.getInputStream();
 	}
-
+	
+	/**
+	 * Opens an {@link InputStream} from the given {@link URL} and sets the timeout specified to the connection.
+	 */
+	public static InputStream openStreamFromURL(URL url, int timeout) throws IOException {
+		if (url == null) {
+			throw new IllegalArgumentException("url must not be null!");
+		}
+		
+		URLConnection connection = url.openConnection();
+		
+		connection.setConnectTimeout(timeout);
+		connection.setReadTimeout(timeout);
+		
+        return connection.getInputStream();
+	}
+	
 	/** Clears all (Java-)cached credentials for Web services. */
 	public static void clearAuthCache() {
 		try {

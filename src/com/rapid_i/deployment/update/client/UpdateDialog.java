@@ -30,11 +30,14 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -57,6 +60,7 @@ import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.NetTools;
+import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.plugin.Dependency;
 
 /**
@@ -197,6 +201,12 @@ public class UpdateDialog extends ButtonDialog {
 
 	private final PackageDescriptorCache packageDescriptorCache = new PackageDescriptorCache();
 
+	private boolean isConfirmed = false;
+
+	private LinkedList<PackageDescriptor> installablePackageList;
+
+	private JButton closeButton;
+
 	public UpdateDialog(String[] preselectedExtensions) {
 		super("update");
 		setModal(true);
@@ -204,7 +214,8 @@ public class UpdateDialog extends ButtonDialog {
 		usAccount.addObserver(accountInfoButton);
 		updateModel = new UpdatePackagesModel(packageDescriptorCache, usAccount);
 		ulp = new UpdatePanel(this, packageDescriptorCache, preselectedExtensions, usAccount, updateModel);
-		layoutDefault(ulp, HUGE, makeOkButton("update.install"), makeCloseButton());
+		closeButton = makeCloseButton();
+		layoutDefault(ulp, HUGE,  makeOkButton(), closeButton);
 		this.addWindowListener(windowListener);
 	}
 
@@ -292,56 +303,116 @@ public class UpdateDialog extends ButtonDialog {
 	}
 
 	public void startUpdate(final List<PackageDescriptor> downloadList) {
-		new ProgressThread("installing_updates", true) {
+		installButton.setEnabled(false);
+
+		new ProgressThread("resolving_dependencies", true) {
 
 			@Override
 			public void run() {
 				try {
-					installButton.setEnabled(false);
+
+					closeButton.setEnabled(false);
 					getProgressListener().setTotal(100);
-					getProgressListener().setCompleted(10);
-				
+					final HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency = resolveDependency(downloadList, packageDescriptorCache);
+					installablePackageList = getPackagesforInstallation(dependency);
+					getProgressListener().setCompleted(30);
+					final HashMap<String, String> licenseNameToLicenseTextMap = collectLicenses(installablePackageList,getProgressListener(),100,30,100);
 
-					HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency = resolveDependency(downloadList,packageDescriptorCache );
+					SwingUtilities.invokeLater(new Runnable() {
 
-					getProgressListener().setCompleted(20);
-					
-					LinkedList<PackageDescriptor> installablePackageList = getPackagesforInstallation(dependency);
-					
-					boolean isConfirmed = ConfirmLicensesDialog.confirm(dependency);
+						@Override
+						public void run() {
+							isConfirmed = ConfirmLicensesDialog.confirm(dependency, licenseNameToLicenseTextMap);
+							new ProgressThread("installing_updates", true) {
 
-					if (isConfirmed) {
-						UpdateService service = UpdateManager.getService();
-						UpdateManager um = new UpdateManager(service);
-						List<PackageDescriptor> installedPackages = um.performUpdates(installablePackageList, getProgressListener());
+								@Override
+								public void run() {
+									try {
+										if (isConfirmed) {
 
-						updateModel.clearFromSelectionMap(installedPackages);
-						ulp.validate();
-						ulp.repaint();
+											getProgressListener().setTotal(100);
+											getProgressListener().setCompleted(20);
 
-						if (installedPackages.size() > 0) {
-							if (SwingTools.showConfirmDialog((installedPackages.size() == 1 ? "update.complete_restart" : "update.complete_restart1"),
-									ConfirmDialog.YES_NO_OPTION, installedPackages.size()) == ConfirmDialog.YES_OPTION) {
-								RapidMinerGUI.getMainFrame().exit(true);
-							}
+											UpdateService service = UpdateManager.getService();
+											UpdateManager um = new UpdateManager(service);
+											List<PackageDescriptor> installedPackages = um.performUpdates(installablePackageList, getProgressListener());
+											getProgressListener().setCompleted(40);
+
+											updateModel.clearFromSelectionMap(installedPackages);
+											ulp.validate();
+											ulp.repaint();
+
+											if (installedPackages.size() > 0) {
+												int confirmation = SwingTools.showConfirmDialog((installedPackages.size() == 1 ? "update.complete_restart" : "update.complete_restart1"),
+														ConfirmDialog.YES_NO_OPTION, installedPackages.size());
+												if (confirmation == ConfirmDialog.YES_OPTION) {
+													RapidMinerGUI.getMainFrame().exit(true);
+												} else if (confirmation == ConfirmDialog.NO_OPTION) {
+													if (installedPackages.size() == installablePackageList.size()) {
+														dispose();
+													}
+												}
+											}
+											
+											getProgressListener().setCompleted(100);
+
+										}
+									} catch (Exception e) {
+										SwingTools.showSimpleErrorMessage("error_fetching_license", e, e.getMessage());
+									} finally {
+										getProgressListener().complete();
+										installButton.setEnabled(true);
+									}
+								}
+
+							}.start();
 						}
-					}
+					});
+					closeButton.setEnabled(true);
+					getProgressListener().complete();
 				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
+					SwingTools.showSimpleErrorMessage("error_fetching_licenses", e, e.getMessage());
 				} finally {
 					getProgressListener().complete();
 					installButton.setEnabled(true);
 				}
 			}
-			
 		}.start();
+
+	}
+
+	/**
+	 * @param Start, int end 
+	 * @param Total 
+	 * @param progressListener 
+	 * @param installablePackageList2
+	 * @return
+	 * @throws URISyntaxException 
+	 * @throws MalformedURLException 
+	 */
+	protected static HashMap<String, String> collectLicenses(LinkedList<PackageDescriptor> installablePackageList, ProgressListener progressListener, int total, int start, int end) throws MalformedURLException, URISyntaxException {
+		int range = end - start;
+		double perIterationPercent = (range * 1.0 / installablePackageList.size());
+		int iterCnt = 1;
+		HashMap<String, String> licenseNameToLicenseTextMap = null;
+		licenseNameToLicenseTextMap = new HashMap<String, String>();
+		UpdateService service = UpdateManager.getService();
+		for (PackageDescriptor packageDescriptor : installablePackageList) {
+			String licenseName = packageDescriptor.getLicenseName();
+			String licenseText = service.getLicenseTextHtml(licenseName);
+			licenseNameToLicenseTextMap.put(licenseName, licenseText);
+			progressListener.setCompleted((int)(start + (iterCnt*perIterationPercent)));
+			iterCnt++;
+
+		}
+		return licenseNameToLicenseTextMap;
 	}
 
 	@Override
 	protected void ok() {
 		ulp.startUpdate();
 	}
-	
+
 	public static LinkedList<PackageDescriptor> getPackagesforInstallation(HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency) {
 		HashSet<PackageDescriptor> installabledPackages = new HashSet<PackageDescriptor>();
 		for (PackageDescriptor packageDescriptor : dependency.keySet()) {
@@ -359,39 +430,39 @@ public class UpdateDialog extends ButtonDialog {
 	 * @param pluginsSelectedForDownload 
 	 * @return
 	 */
-	private static HashSet<Dependency> collectDependency(PackageDescriptor desc, HashSet<String> pluginsSelectedForDownload, PackageDescriptorCache packageDescriptorCache ) {
+	private static HashSet<Dependency> collectDependency(PackageDescriptor desc, HashSet<String> pluginsSelectedForDownload, PackageDescriptorCache packageDescriptorCache) {
 		HashSet<Dependency> dependencySet = new HashSet<Dependency>();
 		List<Dependency> dependencies = Dependency.parse(desc.getDependencies());
 		for (Dependency dependency : dependencies) {
 			String packageId = dependency.getPluginExtensionId();
 			PackageDescriptor packageInfo = packageDescriptorCache.getPackageInfo(packageId);
-			if ( (!dependencySet.contains(packageInfo)) && (!pluginsSelectedForDownload.contains(packageId)) ) {
+			if ((!dependencySet.contains(packageInfo)) && (!pluginsSelectedForDownload.contains(packageId))) {
 				dependencySet.add(dependency);
-				dependencySet.addAll(collectDependency(packageInfo, pluginsSelectedForDownload,packageDescriptorCache ));
-				
+				dependencySet.addAll(collectDependency(packageInfo, pluginsSelectedForDownload, packageDescriptorCache));
+
 			}
 
 		}
 		return dependencySet;
 	}
 
-	public static HashMap<PackageDescriptor,HashSet<PackageDescriptor>>  resolveDependency(final List<PackageDescriptor> downloadList,PackageDescriptorCache packageDescriptorCache ) {
-		
-		HashMap<PackageDescriptor,HashSet<PackageDescriptor>> dependentPackageMap = new HashMap<PackageDescriptor, HashSet<PackageDescriptor>>();
-		
+	public static HashMap<PackageDescriptor, HashSet<PackageDescriptor>> resolveDependency(final List<PackageDescriptor> downloadList, PackageDescriptorCache packageDescriptorCache) {
+
+		HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependentPackageMap = new HashMap<PackageDescriptor, HashSet<PackageDescriptor>>();
+
 		HashSet<String> pluginsSelectedForDownload = new HashSet<String>();
-		
+
 		for (PackageDescriptor packageDescriptor : downloadList) {
 			pluginsSelectedForDownload.add(packageDescriptor.getPackageId());
 			dependentPackageMap.put(packageDescriptor, new HashSet<PackageDescriptor>());
 		}
-		
+
 		for (PackageDescriptor desc : downloadList) {
-			HashSet<Dependency> dependencySet = collectDependency(desc,pluginsSelectedForDownload,packageDescriptorCache);
+			HashSet<Dependency> dependencySet = collectDependency(desc, pluginsSelectedForDownload, packageDescriptorCache);
 			for (Dependency dependency : dependencySet) {
 				dependentPackageMap.get(desc).add(packageDescriptorCache.getPackageInfo(dependency.getPluginExtensionId()));
 			}
-			
+
 		}
 		return dependentPackageMap;
 	}

@@ -32,9 +32,14 @@ import java.lang.management.OperatingSystemMXBean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Helper class to get system information.
+ * 
+ * @author Nils Woehler
+ */
 public class SystemInfoUtilities {
 
-	private static final int _1024 = 1024;
+	private static final int BITS_TO_BYTES_FACTOR = 1024;
 	private static Logger LOGGER = Logger.getLogger(SystemInfoUtilities.class.getSimpleName());
 
 	public enum Arch {
@@ -83,12 +88,11 @@ public class SystemInfoUtilities {
 		long memory = 0L;
 
 		// if the system bean is an implementation by sun, we are almost done
-		if (operatingSystemBean instanceof com.sun.management.OperatingSystemMXBean) {
+		try {
 			memory = ((com.sun.management.OperatingSystemMXBean)
 					operatingSystemBean)
 							.getTotalPhysicalMemorySize();
-		} else {
-
+		} catch (Throwable t) { // fallback because sun implementation is not available
 			switch (getOperatingSystem()) {
 				case OSX:
 					memory = readOSXTotalMemory();
@@ -108,8 +112,8 @@ public class SystemInfoUtilities {
 			}
 		}
 
-		memory /= _1024; // kbyte
-		memory /= _1024; // mbyte
+		memory /= BITS_TO_BYTES_FACTOR; // kbyte
+		memory /= BITS_TO_BYTES_FACTOR; // mbyte
 		return memory;
 	}
 
@@ -143,7 +147,7 @@ public class SystemInfoUtilities {
 	private static Long readWindowsTotalMemory() throws IOException {
 		String[] command = "wmic OS get TotalVisibleMemorySize /Value".split(" ");
 		String line = executeMemoryInfoProcess(command); // Output should be something like 'TotalVisibleMemorySize=8225260'
-		return Long.parseLong(line.substring(line.indexOf("=") + 1)) * _1024; // convert it to bytes
+		return Long.parseLong(line.substring(line.indexOf("=") + 1)) * BITS_TO_BYTES_FACTOR; // convert it to bytes
 	}
 
 	/**
@@ -163,7 +167,7 @@ public class SystemInfoUtilities {
 		String line = executeMemoryInfoProcess(command); // output should be something like 'Memory size: 8192 Megabytes'
 		line = line.substring(line.indexOf(":") + 2); // shorten output to '8192 Megabytes'
 		line = line.substring(0, line.indexOf(" ")); // shorten to just '8192'
-		return Long.parseLong(line) * _1024 * _1024;
+		return Long.parseLong(line) * BITS_TO_BYTES_FACTOR * BITS_TO_BYTES_FACTOR;
 	}
 
 	/**
@@ -174,7 +178,7 @@ public class SystemInfoUtilities {
 		String line = executeMemoryInfoProcess(command); // should output something like 'MemTotal:       12297204 kB'
 		line = line.substring(line.indexOf(":") + 1).trim(); // shorten to '12297204 kB'
 		line = line.substring(0, line.indexOf(" ")); // shorten to just '12297204'
-		return Long.parseLong(line) * _1024;
+		return Long.parseLong(line) * BITS_TO_BYTES_FACTOR;
 	}
 
 	/**
