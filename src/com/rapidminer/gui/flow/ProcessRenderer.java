@@ -35,7 +35,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
@@ -793,7 +792,6 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		this.processPanel = processPanel;
 		setLayout(null); // for absolute positioning of tipPane
 
-
 		if (processPanel != null) {
 			processPanel.addComponentListener(new ComponentAdapter() {
 
@@ -804,7 +802,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 				}
 			});
 		}
-		
+
 		transferHandler = new ReceivingOperatorTransferHandler() {
 
 			private static final long serialVersionUID = 7526109471182298215L;
@@ -1003,17 +1001,19 @@ public class ProcessRenderer extends JPanel implements DragListener {
 						return false;
 					}
 				}
-				
+
 				boolean canImport = canImportTransferable(ts.getTransferable());
 				canImport &= super.canImport(ts);
-				if (dropTargetSet && !dragStarted && canImport && !getImportDragged()) {
+				if (ts.isDrop() && dropTargetSet && !dragStarted && canImport && !getImportDragged()) {
 					setImportDragged(true);
 				}
 				return canImport;
 			}
 
 			@Override
-			protected void dropEnds() {}
+			protected void dropEnds() {
+				setImportDragged(false);
+			}
 
 			@Override
 			protected Process getProcess() {
@@ -1567,7 +1567,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 		g.draw(frame);
 
-		if(drawComicTutorial) {
+		if (drawComicTutorial) {
 //		drawComicTutorial(g); TODO re-add when it is ready
 		}
 
@@ -3318,13 +3318,10 @@ public class ProcessRenderer extends JPanel implements DragListener {
 				Math.abs(dragStart.getY() - e.getY()));
 	}
 
-	
 	public void processChanged() {
 		autoFit();
 	}
-	
 
-	
 	public void processUpdated() {
 		if (displayedChain.getNumberOfSubprocesses() != processes.length) {
 			showOperatorChain(displayedChain);
@@ -3748,14 +3745,13 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 	@Override
 	public void dragStarted(Transferable t) {
-		
+
 		// check if transferable can be imported
-		if(!canImportTransferable(t)) {
+		if (!canImportTransferable(t)) {
 			return;
 		}
-		
+
 		DataFlavor[] transferDataFlavors = t.getTransferDataFlavors();
-		
 		dragStarted = true;
 		for (DataFlavor flavor : transferDataFlavors) {
 
@@ -3765,7 +3761,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 					// get repository location
 					location = (RepositoryLocation) t.getTransferData(flavor);
-					
+
 					// check if golf is dragged
 					if (location.getAbsoluteLocation().equals("//Samples/data/Golf")) {
 						onGolfDataDragged();
@@ -3805,10 +3801,10 @@ public class ProcessRenderer extends JPanel implements DragListener {
 	private boolean getImportDragged() {
 		return importDragged;
 	}
-	
+
 	private boolean canImportTransferable(Transferable t) {
-		for(DataFlavor flavor : t.getTransferDataFlavors()) {
-			
+		for (DataFlavor flavor : t.getTransferDataFlavors()) {
+
 			// check if folder is being dragged. Folders cannot be dropped on the process panel
 			if (flavor == TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR) {
 				RepositoryLocation location;
@@ -3816,10 +3812,10 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 					// get repository location
 					location = (RepositoryLocation) t.getTransferData(flavor);
-					
+
 					// locate entry
 					Entry locateEntry = location.locateEntry();
-					
+
 					// if entry is folder, return false
 					if (locateEntry instanceof Folder) {
 						return false;
@@ -3828,7 +3824,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 				} catch (UnsupportedFlavorException e) {} catch (IOException e) {} catch (RepositoryException e) {}
 			}
 		}
-		
+
 		return true;
 	}
 }

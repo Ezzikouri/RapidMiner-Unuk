@@ -185,18 +185,15 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 	}
 
 	@Override
-	public void makeRepository() {
+	public void makeRepository() throws RepositoryException {
 		File file = new File(fileField.getText());
 		file.mkdir();
 		String alias = aliasField.getText().trim();
 		if (alias.length() == 0) {
 			alias = file.getName();
 		}
-		try {
-			RepositoryManager.getInstance(null).addRepository(new LocalRepository(alias, file));
-		} catch (RepositoryException e) {
-			SwingTools.showSimpleErrorMessage("cannot_create_repository", e);
-		}
+		
+		RepositoryManager.getInstance(null).addRepository(new LocalRepository(alias, file));		
 	}
 
 	@Override

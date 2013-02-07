@@ -28,10 +28,14 @@ import java.util.HashSet;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
+import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
+import com.rapidminer.repository.RepositoryLocation;
+
 /**
  *  A utility class to save and restore expansion states and selection paths of the repository tree.
  * 
- * @author Nils Woehler
+ * @author Nils Woehler, Venkatesh Umaashankar
  *
  */
 public class TreeUtil {
@@ -49,27 +53,30 @@ public class TreeUtil {
 			parentTree.scrollPathToVisible(parentTree.getSelectionPath());
 		}
 	}
-	
+
 	public static void saveExpansionState(JTree tree) {
 
 		expandedNodes = new HashSet<String>();
-		
+
 		TreeUtil.saveSelectionPath(tree.getSelectionPath());
 
 		for (int i = 0; i < tree.getRowCount(); i++) {
 			TreePath path = tree.getPathForRow(i);
 			if (tree.isExpanded(path)) {
-				expandedNodes.add(path.toString());
+				expandedNodes.add(((Entry) path.getLastPathComponent()).getLocation().getAbsoluteLocation());
 			}
 		}
 	}
 
 	public static void restoreExpansionState(JTree tree) {
-
-		for (int i = 0; i < tree.getRowCount(); i++) {
-			TreePath path = tree.getPathForRow(i);
-			if (expandedNodes.contains(path.toString())) {
-				tree.expandPath(path);
+		
+		for (String absoluteLocation : expandedNodes) {
+			try {
+				((RepositoryTree) tree).expandAndSelectIfExists(new RepositoryLocation(absoluteLocation));
+			} catch (MalformedRepositoryLocationException e) {
+				/*
+				 * ignore incase of exception, this location will not be expanded. 
+				 */
 			}
 		}
 		restoreSelectionPath(tree);

@@ -27,21 +27,15 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.beans.Transient;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
@@ -52,72 +46,13 @@ import com.rapidminer.tools.I18N;
  * @author Venkatesh Umaashankar
  *
  */
-public class PackageListCellRenderer implements ListCellRenderer {
+public class PackageListCellRenderer extends AbstractPackageDescriptorListCellRenderer {
 
-	private static RenderingHints HI_QUALITY_HINTS = new RenderingHints(null);
-
-	static {
-		HI_QUALITY_HINTS.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		HI_QUALITY_HINTS.put(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		HI_QUALITY_HINTS.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-	}
-
-	private static String MARKED_FOR_INSTALL_COLOR = "#0066CC";
-	private static String MARKED_FOR_UPDATE__COLOR = "#3399FF";
-
-	private Map<String, Icon> icons = new HashMap<String, Icon>();
-	private double iconScalingFactor;
-	private int textPixelSize=0;
+	private int textPixelSize = 0;
 	private HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependecyMap = null;
-	
 
-	public PackageListCellRenderer(double iconScalingFactor,int textPixelSize) {
-		this.iconScalingFactor=iconScalingFactor;
-		this.textPixelSize = textPixelSize;
-	}
-	
 	public PackageListCellRenderer(HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependecyMap) {
-		this(45,0);
 		this.dependecyMap = dependecyMap;
-	}
-	
-	public PackageListCellRenderer(){
-		this(45,0);
-	}
-
-	private Icon getIcon(PackageDescriptor pd) {
-		if (pd.getIcon() == null) {
-			return null;
-		} else {
-			Icon result = icons.get(pd.getPackageId());
-			if (result == null) {
-				result = new ImageIcon(pd.getIcon());
-				icons.put(pd.getPackageId(), result);
-			}
-			return result;
-		}
-	}
-
-	private Icon getResizedIcon(Icon originalIcon,double scalingFactor) {
-		if (originalIcon == null)
-			return null;
-		int width = originalIcon.getIconWidth();
-		int height = originalIcon.getIconHeight();
-		if (width != scalingFactor) {
-			double scale = (scalingFactor / width);
-			BufferedImage bi = new BufferedImage(
-					(int) (scale * width),
-					(int) (scale * height),
-					BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g = bi.createGraphics();
-			g.setRenderingHints(HI_QUALITY_HINTS);
-			g.scale(scale, scale);
-			originalIcon.paintIcon(null, g, 0, 0);
-			g.dispose();
-			return new ImageIcon(bi);
-		} else {
-			return originalIcon;
-		}
 	}
 
 	@Override
@@ -170,9 +105,9 @@ public class PackageListCellRenderer implements ListCellRenderer {
 		if (value instanceof PackageDescriptor) {
 			PackageDescriptor desc = (PackageDescriptor) value;
 
-			Icon packageIcon = getResizedIcon(getIcon(desc),iconScalingFactor);
+			Icon packageIcon = getResizedIcon(getIcon(desc));
 
-			text = "<html><body style='width: " + (packageIcon != null ? (300 - packageIcon.getIconWidth()) : 314) + ((textPixelSize>0)?";font-size:":"")+textPixelSize+"px;" +
+			text = "<html><body style='width: " + (packageIcon != null ? (300 - packageIcon.getIconWidth()) : 314) + ((textPixelSize > 0) ? ";font-size:" : "") + textPixelSize + "px;" +
 					(packageIcon == null ? "margin-left:40px;" : "") + "'>";
 
 			// add name and version
@@ -184,53 +119,39 @@ public class PackageListCellRenderer implements ListCellRenderer {
 
 			text += "</div>";
 			text += "<div style='margin-top:5px;'>" + getLicenseType(desc.getLicenseName()) + "</div>";
-			
-			if(dependecyMap!=null && dependecyMap.get(desc).size()>0 ){
+
+			if (dependecyMap != null && dependecyMap.get(desc).size() > 0) {
 				text += "<div style='margin-top:5px;'>" + getSourcePackages(desc) + "</div>";
 			}
-			
-			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
-			if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
 
-				text += "</body></html>";
+			text += "</body></html>";
 
-				label.setIcon(packageIcon);
-				label.setVerticalTextPosition(SwingConstants.TOP);
-				label.setForeground(Color.BLACK);
-			} else {
-				text = "<html><div style=\"width:250px;\">" + value.toString() + "</div></html>";
-			}
+			label.setIcon(packageIcon);
+			label.setVerticalTextPosition(SwingConstants.TOP);
+			label.setForeground(Color.BLACK);
 			label.setText(text);
 
-			
 		}
-		
+
 		return panel;
 	}
 
 	private String getSourcePackages(PackageDescriptor desc) {
-		StringBuffer text = new StringBuffer("<b>Required by:</b> ");
+		StringBuffer text = new StringBuffer("");
+		boolean first = true;
 		for (PackageDescriptor dep : dependecyMap.get(desc)) {
-			text.append(dep.getName()+",");		
+			if (!first) {
+				text.append(", ");
+			} else {
+				first = false;
+			}
+			text.append(dep.getName());
 		}
-		text.deleteCharAt(text.length()-1);
-		return text.toString();
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.label.required_by", text.toString());
 	}
 
 	private String getLicenseType(String licenseName) {
-		return "<b>License Type:</b> "+licenseName;  //TODO I18N
-	}
-
-	private String getMarkedForInstallationHtml() {
-		return "<div style='" + getActionStyle(MARKED_FOR_INSTALL_COLOR) + "'><img src='icon:///16/nav_down_blue.png'/>&nbsp;" + I18N.getGUILabel("marked.for.installation") + "</div>";
-	}
-
-	private String getMarkedForUpdateHtml() {
-		return "<div style='" + getActionStyle(MARKED_FOR_UPDATE__COLOR) + "'><img src=\"icon:///16/nav_refresh_blue.png\"/>&nbsp;" + I18N.getGUILabel("marked.for.update") + "</div>";
-	}
-
-	private String getActionStyle(String color) {
-		return "height:18px;min-height:18px;line-height:18px;vertical-align:middle;color:" + color + ";margin-top:3px;";
+		return I18N.getMessage(I18N.getGUIBundle(), "gui.label.license_type", licenseName);
 	}
 
 }

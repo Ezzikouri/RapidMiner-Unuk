@@ -23,10 +23,8 @@
 
 package com.rapid_i.deployment.update.client;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -36,7 +34,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -146,7 +143,7 @@ public class ConfirmLicensesDialog extends ButtonDialog {
 		selectedForInstallPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		selectedForInstallPane.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.LIGHT_GRAY));
 		selectedForInstallList.addListSelectionListener(new LicenseListSelectionListener(dependentPackages));
-		PackageListCellRenderer sourceCellRenderer = new PackageListCellRenderer();
+		PackageListCellRenderer sourceCellRenderer = new PackageListCellRenderer(null);
 		selectedForInstallList.setCellRenderer(sourceCellRenderer);
 		main.add(selectedForInstallPane, c);
 

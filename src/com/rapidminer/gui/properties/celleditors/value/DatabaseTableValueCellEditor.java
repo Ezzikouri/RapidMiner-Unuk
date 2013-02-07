@@ -158,10 +158,6 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 											}
 											
 										}
-										// after list has been changed, check if selected item still exists
-										if (!list.contains(selected)) {
-											setSelectedItem(getElementAt(0));
-										}
 										//list.addAll(tableMap.keySet());
 										getProgressListener().setCompleted(90);
 									} catch (SQLException e) {

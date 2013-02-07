@@ -75,7 +75,6 @@ import com.rapidminer.tools.cipher.KeyGeneratorTool;
 import com.rapidminer.tools.config.ConfigurationManager;
 import com.rapidminer.tools.jdbc.DatabaseService;
 import com.rapidminer.tools.jdbc.connection.DatabaseConnectionService;
-import com.rapidminer.tools.parameter.ParameterChangeListener;
 import com.rapidminer.tools.plugin.Plugin;
 import com.rapidminer.tools.usagestats.UsageStatistics;
 
@@ -312,11 +311,15 @@ public class RapidMiner {
 		// scan language definitons. skip comments
 		Vector<String> languages = new Vector<String>();
 		Scanner scanLanguageDefs = new Scanner(RapidMiner.class.getResourceAsStream("/com/rapidminer/resources/i18n/language_definitions.txt"));
-		while (scanLanguageDefs.hasNextLine()) {
-			String nextLine = scanLanguageDefs.nextLine();
-			if (!nextLine.contains("#")) {
-				languages.add(nextLine);
+		try {
+			while (scanLanguageDefs.hasNextLine()) {
+				String nextLine = scanLanguageDefs.nextLine();
+				if (!nextLine.contains("#")) {
+					languages.add(nextLine);
+				}
 			}
+		} finally {
+			scanLanguageDefs.close();
 		}
 
 		// if there is less then one language, take default language
@@ -423,7 +426,7 @@ public class RapidMiner {
 
 		ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST, "The proxy host to use for SOCKS.", true), "system");
 		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT, "The proxy port to use for SOCKS.", 0, 65535, true), "system");
-		ParameterService.registerParameter(new ParameterTypeInt(WebServiceTools.WEB_SERVICE_TIMEOUT, "The timeout in milliseconds for webservice and url connections.", 1, Integer.MAX_VALUE, 20000),"system");
+		ParameterService.registerParameter(new ParameterTypeInt(WebServiceTools.WEB_SERVICE_TIMEOUT, "The timeout in milliseconds for webservice and url connections. Restart required to take effect.", 1, Integer.MAX_VALUE, 20000),"system");
 		//TODO: Re-add this after the 5.3.001 Release
 		/*
 		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_MAX_MEMORY, "The amount of memory (in MB) used by RapidMiner.", 64, Integer.MAX_VALUE, 512), "system");

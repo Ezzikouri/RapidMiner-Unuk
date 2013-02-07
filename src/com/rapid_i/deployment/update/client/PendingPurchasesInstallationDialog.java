@@ -109,19 +109,12 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 		this.packages = packages;
 		remindNeverButton = remindNeverButton();
 		remindLaterButton = remindLaterButton();
-		okButton = makeOkButton();
+		okButton = makeOkButton("install_purchased");
 		layoutDefault(makeContentPanel(), NORMAL, okButton, remindNeverButton, remindLaterButton);
 		this.setPreferredSize(new Dimension(404, 430));
 		this.setMaximumSize(new Dimension(404, 430));
 		this.setMinimumSize(new Dimension(404, 300));
 		this.setSize(new Dimension(404, 430));
-	}
-
-	@Override
-	protected JButton makeOkButton() {
-		JButton okButton = makeOkButton("update.install");
-		okButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.install.label", packages.size()));
-		return okButton;
 	}
 
 	private JPanel makeContentPanel() {
@@ -273,7 +266,7 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 					remindNeverButton.setEnabled(true);
 					getProgressListener().complete();
 				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("error_fetching_license", e, e.getMessage());
+					SwingTools.showSimpleErrorMessage("error_resolving_dependencies", e, e.getMessage());
 				}
 
 			}

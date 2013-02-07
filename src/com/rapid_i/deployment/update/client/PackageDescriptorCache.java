@@ -101,12 +101,14 @@ public class PackageDescriptorCache {
 				PackageDescriptor descriptor = updateService.getPackageInfo(packageId, updateService.getLatestVersion(packageId, targetPlatform), targetPlatform);
 				// First add to cache, so we do never load it again
 				descriptors.put(packageId, descriptor);
-				// Now fetch all dependencies
-				if (descriptor.getDependencies() != null) {
-					List<Dependency> dependencies = Dependency.parse(descriptor.getDependencies());
-					for (Dependency dependency : dependencies) {
-						// Get the info, so load it and its dependencies as side effect
-						getPackageInfo(dependency.getPluginExtensionId());
+				if (descriptor != null) {
+					// Now fetch all dependencies
+					if (descriptor.getDependencies() != null) {
+						List<Dependency> dependencies = Dependency.parse(descriptor.getDependencies());
+						for (Dependency dependency : dependencies) {
+							// Get the info, so load it and its dependencies as side effect
+							getPackageInfo(dependency.getPluginExtensionId());
+						}
 					}
 				}
 			} catch (Exception e) {

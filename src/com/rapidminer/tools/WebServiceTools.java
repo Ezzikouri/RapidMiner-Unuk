@@ -44,12 +44,13 @@ public class WebServiceTools {
 	
 	public static final String WEB_SERVICE_TIMEOUT = "connection.timeout";
 
-	private static final int TIMEOUT = Integer.parseInt(ParameterService.getParameterValue(WEB_SERVICE_TIMEOUT));
-	
 	private static final int TIMEOUT_URL_CONNECTION = Integer.parseInt(ParameterService.getParameterValue(WEB_SERVICE_TIMEOUT));
+	
+	// three minutes
+	private static final int READ_TIMEOUT = 180000;
 
 	public static void setTimeout(BindingProvider port) {
-		setTimeout(port, TIMEOUT);
+		setTimeout(port, TIMEOUT_URL_CONNECTION);
 	}
 	
 	/** Sets the timeout for this web service client. Every port created
@@ -65,6 +66,7 @@ public class WebServiceTools {
 		ctxt.put("com.sun.xml.ws.internal.connect.timeout", timeout);
 		ctxt.put("com.sun.xml.ws.request.timeout", timeout); 
 		ctxt.put("com.sun.xml.internal.ws.request.timeout", timeout);
+		
 		// We don't want to use proprietary Sun code
 //		ctxt.put(BindingProviderProperties.REQUEST_TIMEOUT, timeout);
 //		ctxt.put(BindingProviderProperties.CONNECT_TIMEOUT, timeout);
@@ -88,7 +90,7 @@ public class WebServiceTools {
 		}
 		
 		connection.setConnectTimeout(TIMEOUT_URL_CONNECTION);
-		connection.setReadTimeout(TIMEOUT_URL_CONNECTION);
+		connection.setReadTimeout(READ_TIMEOUT);
 	}
 	
 	/**
@@ -109,7 +111,7 @@ public class WebServiceTools {
 	}
 	
 	/**
-	 * Opens an {@link InputStream} from the given {@link URL} and sets the timeout specified to the connection.
+	 * Opens an {@link InputStream} from the given {@link URL} and sets the read and connection timeout provided by timeout.
 	 */
 	public static InputStream openStreamFromURL(URL url, int timeout) throws IOException {
 		if (url == null) {

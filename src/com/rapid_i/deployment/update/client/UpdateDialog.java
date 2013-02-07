@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -310,8 +309,13 @@ public class UpdateDialog extends ButtonDialog {
 			@Override
 			public void run() {
 				try {
-
-					closeButton.setEnabled(false);
+					SwingUtilities.invokeLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							closeButton.setEnabled(false);
+						}
+					});
 					getProgressListener().setTotal(100);
 					final HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency = resolveDependency(downloadList, packageDescriptorCache);
 					installablePackageList = getPackagesforInstallation(dependency);
@@ -358,7 +362,7 @@ public class UpdateDialog extends ButtonDialog {
 
 										}
 									} catch (Exception e) {
-										SwingTools.showSimpleErrorMessage("error_fetching_license", e, e.getMessage());
+										SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
 									} finally {
 										getProgressListener().complete();
 										installButton.setEnabled(true);
@@ -368,10 +372,16 @@ public class UpdateDialog extends ButtonDialog {
 							}.start();
 						}
 					});
-					closeButton.setEnabled(true);
+					SwingUtilities.invokeLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							closeButton.setEnabled(true);
+						}
+					});
 					getProgressListener().complete();
 				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("error_fetching_licenses", e, e.getMessage());
+					SwingTools.showSimpleErrorMessage("error_resolving_dependencies", e, e.getMessage());
 				} finally {
 					getProgressListener().complete();
 					installButton.setEnabled(true);

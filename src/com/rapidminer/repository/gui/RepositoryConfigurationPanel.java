@@ -29,6 +29,7 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
 
 /** Panel to configure a repository.
@@ -38,8 +39,9 @@ import com.rapidminer.repository.RepositoryManager;
  */
 public interface RepositoryConfigurationPanel {
 
-	/** (Asynchronously) creates a new repository and adds it to the {@link RepositoryManager}. */
-	public void makeRepository();
+	/** (Asynchronously) creates a new repository and adds it to the {@link RepositoryManager}. 
+	 * @throws RepositoryException */
+	public void makeRepository() throws RepositoryException;
 
 	/** Configures the UI elements to show the properties defined by the given repository. */
 	public void configureUIElementsFrom(Repository repository);
