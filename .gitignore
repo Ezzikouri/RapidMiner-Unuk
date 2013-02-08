@@ -6,3 +6,7 @@
 /lib/plugins
 /lib/launcher.jar
 /lib/rapidminer.jar
+/resources_generated
+/deploy
+/dev
+/CHANGES-ALL.txt
