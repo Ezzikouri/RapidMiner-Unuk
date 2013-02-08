@@ -39,9 +39,11 @@ import com.rapidminer.operator.nio.model.ParsingError;
  */
 public class MetaDataValidator {
 
+	private Object lock = new Object();
 	private DataResultSetTranslationConfiguration configuration;
 	private MetaDataDeclarationWizardStep wizardStep;
 	private List<ParsingError> errorList = new ArrayList<ParsingError>();
+	private List<MetaDataTableHeaderCellEditor> headerRenderer = new ArrayList<MetaDataTableHeaderCellEditor>();
 	
 	public MetaDataValidator(MetaDataDeclarationWizardStep wizardStep,DataResultSetTranslationConfiguration configuration) {
 		this.configuration = configuration;
@@ -49,41 +51,53 @@ public class MetaDataValidator {
 	}
 
 	public void validate() {
-		errorList = new ArrayList<ParsingError>();
-		ColumnMetaData[] metaData = configuration.getColumnMetaData();
-		Map<String, List<Integer>> columnRoles = new HashMap<String, List<Integer>>();
-		Map<String, List<Integer>> columnNames = new HashMap<String, List<Integer>>();
 		
-		int counter = 1;
-		for (ColumnMetaData columnMetaData : metaData) {
-			if (columnRoles.containsKey(columnMetaData.getRole())) {
-				columnRoles.get(columnMetaData.getRole()).add(counter);
-			} else {
-				columnRoles.put(columnMetaData.getRole(), new ArrayList<Integer>(Arrays.asList((counter))));
+		new Thread("validating_column_meta_data") {
+
+			@Override
+			public void run() {
+				synchronized(lock) {
+					errorList = new ArrayList<ParsingError>();
+					ColumnMetaData[] metaData = configuration.getColumnMetaData();
+					Map<String, List<Integer>> columnRoles = new HashMap<String, List<Integer>>();
+					Map<String, List<Integer>> columnNames = new HashMap<String, List<Integer>>();
+					
+					int counter = 1;
+					for (ColumnMetaData columnMetaData : metaData) {
+						if (columnRoles.containsKey(columnMetaData.getRole())) {
+							columnRoles.get(columnMetaData.getRole()).add(counter);
+						} else {
+							columnRoles.put(columnMetaData.getRole(), new ArrayList<Integer>(Arrays.asList((counter))));
+						}
+						if (columnNames.containsKey(columnMetaData.getUserDefinedAttributeName())) {
+							columnNames.get(columnMetaData.getUserDefinedAttributeName()).add(counter);
+						} else {
+							columnNames.put(columnMetaData.getUserDefinedAttributeName(), new ArrayList<Integer>(Arrays.asList((counter))));
+						}
+						counter++;
+					}
+					for (Entry<String, List<Integer>> roleEntry : columnRoles.entrySet()) {
+						if (roleEntry.getValue().size() > 1 && !roleEntry.getKey().equals("attribute")) {
+							errorList.add(new ParsingError(roleEntry.getValue(), ParsingError.ErrorCode.SAME_ROLE_FOR_MULTIPLE_COLUMNS, roleEntry.getKey()));
+						}
+					}
+					for (Entry<String, List<Integer>> nameEntry : columnNames.entrySet()) {
+						if (nameEntry.getValue().size() > 1) {
+							errorList.add(new ParsingError(nameEntry.getValue(), ParsingError.ErrorCode.SAME_NAME_FOR_MULTIPLE_COLUMNS, nameEntry.getKey()));
+						}
+					}
+					wizardStep.updateErrors();
+				}
 			}
-			if (columnNames.containsKey(columnMetaData.getUserDefinedAttributeName())) {
-				columnNames.get(columnMetaData.getUserDefinedAttributeName()).add(counter);
-			} else {
-				columnNames.put(columnMetaData.getUserDefinedAttributeName(), new ArrayList<Integer>(Arrays.asList((counter))));
-			}
-			counter++;
-		}
-		
-		for (Entry<String, List<Integer>> roleEntry : columnRoles.entrySet()) {
-			if (roleEntry.getValue().size() > 1 && !roleEntry.getKey().equals("attribute")) {
-				errorList.add(new ParsingError(roleEntry.getValue(), ParsingError.ErrorCode.SAME_ROLE_FOR_MULTIPLE_COLUMNS, roleEntry.getKey()));
-			}
-		}
-		for (Entry<String, List<Integer>> nameEntry : columnNames.entrySet()) {
-			if (nameEntry.getValue().size() > 1) {
-				errorList.add(new ParsingError(nameEntry.getValue(), ParsingError.ErrorCode.SAME_NAME_FOR_MULTIPLE_COLUMNS, nameEntry.getKey()));
-			}
-		}
-		
-		wizardStep.updateErrors();
+		}.start();
 	}
 	
 	public List<ParsingError> getErrors() {
 		return errorList;
+	}
+
+	public void addHeaderRenderer(MetaDataTableHeaderCellEditor headerRenderer) {
+		// TODO Auto-generated method stub
+		this.headerRenderer.add(headerRenderer);
 	}
 }

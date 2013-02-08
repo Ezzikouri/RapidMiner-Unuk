@@ -30,9 +30,9 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 import javax.swing.Action;
@@ -45,6 +45,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -83,7 +84,12 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 	JCheckBox neverAskAgain = new JCheckBox(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.purchased_not_installed.not_check_on_startup"));
 
 	private final List<String> packages;
-
+	private boolean isConfirmed;
+	private LinkedList<PackageDescriptor> installablePackageList;
+	private JButton remindNeverButton;
+	private JButton remindLaterButton;
+	private JButton okButton;
+	
 	private class PurchasedNotInstalledModel extends AbstractPackageListModel {
 
 		private static final long serialVersionUID = 1L;
@@ -101,7 +107,10 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 	public PendingPurchasesInstallationDialog(List<String> packages) {
 		super("purchased_not_installed");
 		this.packages = packages;
-		layoutDefault(makeContentPanel(), NORMAL, makeOkButton("confirm.yes"), remindNeverButton(), remindLaterButton());
+		remindNeverButton = remindNeverButton();
+		remindLaterButton = remindLaterButton();
+		okButton = makeOkButton("install_purchased");
+		layoutDefault(makeContentPanel(), NORMAL, okButton, remindNeverButton, remindLaterButton);
 		this.setPreferredSize(new Dimension(404, 430));
 		this.setMaximumSize(new Dimension(404, 430));
 		this.setMinimumSize(new Dimension(404, 300));
@@ -119,7 +128,8 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 
 		southPanel.add(question, BorderLayout.CENTER);
 		southPanel.add(neverAskAgain, BorderLayout.SOUTH);
-		panel.add(southPanel, BorderLayout.SOUTH);
+		panel.add(southPanel, BorderLayout.SOUTH);		
+		
 		return panel;
 	}
 
@@ -194,52 +204,75 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 			SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
 			return;
 		}
-		new ProgressThread("installing_updates", true) {
+
+		new ProgressThread("resolving_dependencies", true) {
 
 			@Override
 			public void run() {
 				try {
 					getProgressListener().setTotal(100);
-					getProgressListener().setCompleted(10);
+					remindLaterButton.setEnabled(false);
+					remindNeverButton.setEnabled(false);
+					final HashMap<PackageDescriptor, HashSet<PackageDescriptor>> dependency = UpdateDialog.resolveDependency(downloadList, packageDescriptorCache);
+					getProgressListener().setCompleted(30);
+					installablePackageList = UpdateDialog.getPackagesforInstallation(dependency);
+					final HashMap<String, String> licenseNameToLicenseTextMap = UpdateDialog.collectLicenses(installablePackageList,getProgressListener(),100,30,100);
+					SwingUtilities.invokeLater(new Runnable() {
 
-					// Download licenses
-					Map<String, String> licenses = new HashMap<String, String>();
-					for (PackageDescriptor desc : downloadList) {
-						String license = licenses.get(desc.getLicenseName());
-						if (license == null) {
-							license = service.getLicenseText(desc.getLicenseName());
-							licenses.put(desc.getLicenseName(), license);
-						}
-					}
+						@Override
+						public void run() {
+							isConfirmed = ConfirmLicensesDialog.confirm(dependency, licenseNameToLicenseTextMap);
+							new ProgressThread("installing_updates", true) {
 
-					// Confirm licenses
-					getProgressListener().setCompleted(20);
-					List<PackageDescriptor> acceptedList = new LinkedList<PackageDescriptor>();
-					for (PackageDescriptor desc : downloadList) {
-						if (ConfirmLicenseDialog.confirm(desc, licenses.get(desc.getLicenseName()))) {
-							acceptedList.add(desc);
-						}
-					}
+								@Override
+								public void run() {
+									try {
+										if (isConfirmed) {
 
-					if (!acceptedList.isEmpty()) {
-						UpdateManager um = new UpdateManager(service);
-						List<PackageDescriptor> performedUpdates = um.performUpdates(acceptedList, getProgressListener());
-						if (performedUpdates.size() > 0) {
-							if (SwingTools.showConfirmDialog((performedUpdates.size() == 1 ? "update.complete_restart" : "update.complete_restart1"), 
-									ConfirmDialog.YES_NO_OPTION, performedUpdates.size()) == ConfirmDialog.YES_OPTION) {
-								RapidMinerGUI.getMainFrame().exit(true);
-							}
+											getProgressListener().setTotal(100);
+											getProgressListener().setCompleted(20);
+
+											UpdateService service = UpdateManager.getService();
+											UpdateManager um = new UpdateManager(service);
+											List<PackageDescriptor> installedPackages = um.performUpdates(installablePackageList, getProgressListener());
+											getProgressListener().setCompleted(40);
+
+											if (installedPackages.size() > 0) {
+												int confirmation = SwingTools.showConfirmDialog((installedPackages.size() == 1 ? "update.complete_restart" : "update.complete_restart1"),
+														ConfirmDialog.YES_NO_OPTION, installedPackages.size());
+												if (confirmation == ConfirmDialog.YES_OPTION) {
+													RapidMinerGUI.getMainFrame().exit(true);
+												} else if (confirmation == ConfirmDialog.NO_OPTION) {
+													if (installedPackages.size() == installablePackageList.size()) {
+														dispose();
+													}
+												}
+											}
+
+											getProgressListener().complete();
+
+										}
+									} catch (Exception e) {
+										SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
+									} finally {
+										getProgressListener().complete();
+									}
+								}
+
+							}.start();
 						}
-					} else {
-						getProgressListener().complete();
-					}
-				} catch (Exception e) {
-					SwingTools.showSimpleErrorMessage("error_installing_update", e, e.getMessage());
-				} finally {
+					});
+					remindLaterButton.setEnabled(true);
+					remindNeverButton.setEnabled(true);
 					getProgressListener().complete();
+				} catch (Exception e) {
+					SwingTools.showSimpleErrorMessage("error_resolving_dependencies", e, e.getMessage());
 				}
+
 			}
+
 		}.start();
+
 	}
 
 	private void checkNeverAskAgain() {

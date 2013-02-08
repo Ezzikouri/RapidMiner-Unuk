@@ -27,6 +27,9 @@ import java.awt.event.ActionEvent;
 import javax.swing.Action;
 
 import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.ProcessEntry;
+import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.gui.RepositoryTree;
 
 /**
@@ -58,5 +61,15 @@ public class CopyEntryRepositoryAction extends AbstractRepositoryAction<Entry> {
 	@Override
 	public void actionPerformed(Entry cast) {
 		// not needed because we override actionPerformed(ActionEvent e) which is the only caller
+	}
+
+	@Override
+	public void enable() {
+		Entry entry = tree.getSelectedEntry();
+		if (entry != null && entry instanceof Repository) {
+			setEnabled(false);
+		} else {
+			super.enable();
+		}
 	}
 }

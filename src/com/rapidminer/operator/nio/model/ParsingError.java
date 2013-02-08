@@ -38,8 +38,8 @@ public class ParsingError {
 		MORE_THAN_TWO_VALUES("more than two values for binominal attribute"),
 		ROW_TOO_LONG("row too long"),
 		FILE_SYNTAX_ERROR("file syntax error"),
-		SAME_ROLE_FOR_MULTIPLE_COLUMNS("duplicate column role"),
-		SAME_NAME_FOR_MULTIPLE_COLUMNS("duplicate column name");
+		SAME_ROLE_FOR_MULTIPLE_COLUMNS("duplicate role"),
+		SAME_NAME_FOR_MULTIPLE_COLUMNS("duplicate attribute name");
 		
 		private final String message;
 		private ErrorCode(String message) {
@@ -123,5 +123,15 @@ public class ParsingError {
 	@Override
 	public String toString() {
 		return "line "+getRow()+", column "+getColumn()+": "+getErrorCode().getMessage() + "("+getOriginalValue()+")";
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof ParsingError) {
+			return ((ParsingError)o).toString().equals(this.toString()) && 
+					((ParsingError)o).getColumns().equals(this.columns);
+		} else {
+			return false;
+		}
 	}
 }

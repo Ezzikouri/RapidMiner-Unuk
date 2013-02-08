@@ -1,3 +1,4 @@
+
 package com.rapid_i;
 
 import java.awt.BorderLayout;
@@ -100,7 +101,7 @@ public class Launcher {
 						} else {
 							message += "failed";
 						}
-					} catch (Throwable e) { 
+					} catch (Throwable e) {
 						// important: not only URI Syntax Exception since the program must not crash in any case!!!
 						// For example: RapidNet integration as applet into Siebel would cause problem with new File(...)
 						message += "failed";
@@ -115,15 +116,17 @@ public class Launcher {
 
 	private static JProgressBar bar;
 	private static JFrame dialog;
+
 	private static boolean updateGUI(File rmHome, File updateZip, File updateScript) {
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
+
 				@Override
 				public void run() {
 					dialog = new JFrame("Updating RapidMiner");
 					bar = new JProgressBar(0, 1000);
 					dialog.setLayout(new BorderLayout());
-					dialog.add(new JLabel("Updating RapidMiner"), BorderLayout.NORTH);				
+					dialog.add(new JLabel("Updating RapidMiner"), BorderLayout.NORTH);
 					dialog.add(bar, BorderLayout.CENTER);
 					dialog.pack();
 					dialog.setLocationRelativeTo(null);
@@ -155,10 +158,11 @@ public class Launcher {
 			}
 		}
 		SwingUtilities.invokeLater(new Runnable() {
+
 			public void run() {
-				dialog.dispose();	
+				dialog.dispose();
 			}
-		});	
+		});
 		return success;
 	}
 
@@ -170,30 +174,30 @@ public class Launcher {
 			while ((line = updateReader.readLine()) != null) {
 				String[] split = line.split(" ", 2);
 				if (split.length != 2) {
-					LOGGER.warning("Ignoring unparseable update script entry: "+line);
+					LOGGER.warning("Ignoring unparseable update script entry: " + line);
 				}
 				if ("DELETE".equals(split[0])) {
 					toDelete.add(split[1].trim());
 				} else {
-					LOGGER.warning("Ignoring unparseable update script entry: "+line);
+					LOGGER.warning("Ignoring unparseable update script entry: " + line);
 				}
-			}		
+			}
 			for (String string : toDelete) {
-				File file = new File(rmHome, string);				
+				File file = new File(rmHome, string);
 				LOGGER.info("DELETE " + file);
 				file.delete();
 			}
 			return true;
 		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, "Cannot read update script: "+e, e);
+			LOGGER.log(Level.SEVERE, "Cannot read update script: " + e, e);
 			if (gui) {
-				JOptionPane.showMessageDialog(dialog, "Cannot read update script: "+e, "Update Failed", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(dialog, "Cannot read update script: " + e, "Update Failed", JOptionPane.ERROR_MESSAGE);
 			}
 			return false;
 		} finally {
 			try {
 				in.close();
-			} catch (IOException e) { }
+			} catch (IOException e) {}
 		}
 	}
 
@@ -201,16 +205,22 @@ public class Launcher {
 	private static boolean updateDiffZip(File rmHome, File updateZip, boolean gui) {
 		//try {
 		LOGGER.info("Updating using update file " + updateZip);
-		ZipFile zip;
+		ZipFile zip = null;
 		try {
 			zip = new ZipFile(updateZip);
 		} catch (Exception e1) {
-			LOGGER.log(Level.SEVERE, "Update file corrupt: "+e1, e1);
+			LOGGER.log(Level.SEVERE, "Update file corrupt: " + e1, e1);
 			if (gui) {
-				JOptionPane.showMessageDialog(dialog, "Update file corrupt: "+e1, "Update Failed", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(dialog, "Update file corrupt: " + e1, "Update Failed", JOptionPane.ERROR_MESSAGE);
 			}
 			return false;
-		}			
+		} finally {
+			if (zip != null) {
+				try {
+					zip.close();
+				} catch (IOException e) {}
+			}
+		}
 
 		final int size = zip.size();
 		Enumeration<? extends ZipEntry> enumeration = zip.entries();
@@ -222,7 +232,7 @@ public class Launcher {
 				continue;
 			}
 			String name = entry.getName();
-			if (!"META-INF/UPDATE".equals(name)) {					
+			if (!"META-INF/UPDATE".equals(name)) {
 				if (name.startsWith("rapidminer/")) {
 					name = name.substring("rapidminer/".length());
 				}
@@ -235,12 +245,13 @@ public class Launcher {
 					}
 					final int fi = i;
 					SwingUtilities.invokeLater(new Runnable() {
+
 						@Override
 						public void run() {
 							bar.setValue(fi * 1000 / size);
 						}
 					});
-					byte[] buf = new byte[10*1024];
+					byte[] buf = new byte[10 * 1024];
 					int length;
 					InputStream in = zip.getInputStream(entry);
 					OutputStream out = new FileOutputStream(dest);
@@ -265,16 +276,16 @@ public class Launcher {
 			try {
 				executeUpdateScript(rmHome, zip.getInputStream(updateEntry), gui);
 			} catch (IOException e) {
-				LOGGER.log(Level.SEVERE, "Cannot read update script: "+e, e);
+				LOGGER.log(Level.SEVERE, "Cannot read update script: " + e, e);
 				if (gui) {
-					JOptionPane.showMessageDialog(dialog, "Cannot read update script: "+e, "Update Failed", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(dialog, "Cannot read update script: " + e, "Update Failed", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		}
 		try {
 			zip.close();
 		} catch (IOException e1) {
-			LOGGER.log(Level.WARNING, "Cannot close update file: "+enumeration, enumeration);
+			LOGGER.log(Level.WARNING, "Cannot close update file: " + enumeration, enumeration);
 		}
 		try {
 			if (updateZip.delete()) {
@@ -290,9 +301,9 @@ public class Launcher {
 	}
 
 	public static void main(String[] args) throws ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException,
-	IllegalAccessException, InvocationTargetException, ZipException, IOException {
-		ensureRapidMinerHomeSet();		
-		LOGGER.info("Launching RapidMiner, platform "+getPlatform());
+			IllegalAccessException, InvocationTargetException, ZipException, IOException {
+		ensureRapidMinerHomeSet();
+		LOGGER.info("Launching RapidMiner, platform " + getPlatform());
 		String rapidMinerHomeProperty = System.getProperty(PROPERTY_RAPIDMINER_HOME);
 		if (rapidMinerHomeProperty == null) {
 			LOGGER.info("RapidMiner HOME is not set. Ignoring potential update installation. (If that happens, you weren't able to download updates anyway.)");
@@ -305,24 +316,25 @@ public class Launcher {
 				updateScript = null;
 			}
 			File[] updates = updateDir.listFiles(new FileFilter() {
+
 				@Override
 				public boolean accept(File pathname) {
 					return pathname.getName().startsWith("rmupdate");
-				}			
+				}
 			});
 			File updateZip = null;
 			if (updates != null) {
 				switch (updates.length) {
-				case 0:
-					break;
-				case 1:
-					updateZip = updates[0];
-					break;
-				default:
-					LOGGER.warning("Multiple updates found: " + Arrays.toString(updates) + ". Ignoring all.");
+					case 0:
+						break;
+					case 1:
+						updateZip = updates[0];
+						break;
+					default:
+						LOGGER.warning("Multiple updates found: " + Arrays.toString(updates) + ". Ignoring all.");
 				}
 			}
-			if ((updateZip != null) || (updateScript !=  null)) {
+			if ((updateZip != null) || (updateScript != null)) {
 				if (updateGUI(rmHome, updateZip, updateScript)) {
 					relaunch();
 					return; // not reached
@@ -344,8 +356,8 @@ public class Launcher {
 		if (version == null) {
 			//return "ANY";
 			return null;
-		} else {			
-			return version.split("-")[1]; 
+		} else {
+			return version.split("-")[1];
 		}
 
 	}
@@ -368,7 +380,7 @@ public class Launcher {
 		} else {
 			// does not happen
 			return version;
-		}		
+		}
 	}
 
 	public static boolean isDevelopmentBuild() {

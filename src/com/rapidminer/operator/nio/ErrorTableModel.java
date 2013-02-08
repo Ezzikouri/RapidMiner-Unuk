@@ -91,20 +91,22 @@ public class ErrorTableModel extends AbstractTableModel {
 	}
 	
 	public void setErrors(Collection<ParsingError> errors) {
-		this.errors.clear();
-		this.errors.addAll(errors);
-		Collections.sort(this.errors, new Comparator<ParsingError>() {
-			@Override
-			public int compare(ParsingError o1, ParsingError o2) {
-				int rowDiff = o1.getRow() - o2.getRow();
-				if (rowDiff != 0) {
-					return rowDiff;
-				} else {
-					return o1.getColumn() - o2.getColumn();
+		if (!this.errors.equals(errors)) {
+			this.errors.clear();
+			this.errors.addAll(errors);
+			Collections.sort(this.errors, new Comparator<ParsingError>() {
+				@Override
+				public int compare(ParsingError o1, ParsingError o2) {
+					int rowDiff = o1.getRow() - o2.getRow();
+					if (rowDiff != 0) {
+						return rowDiff;
+					} else {
+						return o1.getColumn() - o2.getColumn();
+					}
 				}
-			}
-		});
-		fireTableStructureChanged();
+			});
+			fireTableStructureChanged();
+		}
 	}
 
 	public ParsingError getErrorInRow(int index) {

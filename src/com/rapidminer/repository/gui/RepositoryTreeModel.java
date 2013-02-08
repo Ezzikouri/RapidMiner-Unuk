@@ -140,13 +140,18 @@ public class RepositoryTreeModel implements TreeModel {
 		public void folderRefreshed(Folder folder) {
 			TreeModelEvent e = makeChangeEvent(folder);
 			if (parentTree != null) {
-				TreeUtil.saveExpansionState(parentTree);
+				TreeUtil.saveExpansionState(parentTree);				
 			}
 			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 				l.treeStructureChanged(e);
 			}
 			if (parentTree != null) {
-				TreeUtil.restoreExpansionState(parentTree);
+				SwingUtilities.invokeLater(new Runnable() {					
+					@Override
+					public void run() {
+						TreeUtil.restoreExpansionState(parentTree);						
+					}
+				});				
 			}
 
 		}

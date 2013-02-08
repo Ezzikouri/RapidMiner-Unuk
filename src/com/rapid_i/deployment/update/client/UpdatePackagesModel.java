@@ -45,19 +45,17 @@ import com.rapidminer.tools.plugin.Dependency;
  */
 public class UpdatePackagesModel extends Observable {
 
-	private final List<PackageDescriptor> descriptors;
-
 	private final Map<PackageDescriptor, Boolean> selectionMap = new HashMap<PackageDescriptor, Boolean>();
-
-	private final Map<PackageDescriptor, List<Dependency>> dependencyMap = new HashMap<PackageDescriptor, List<Dependency>>();
 
 	private UpdateServerAccount usAccount;
 
 	/** Read the comment of {@link #isPurchased(PackageDescriptor)}. */
 	private Set<String> purchasedPackages = new HashSet<String>();
 
-	public UpdatePackagesModel(List<PackageDescriptor> descriptors, final UpdateServerAccount usAccount) {
-		this.descriptors = descriptors;
+	private PackageDescriptorCache cache;
+
+	public UpdatePackagesModel(PackageDescriptorCache cache, final UpdateServerAccount usAccount) {
+		this.cache = cache;
 		this.usAccount = usAccount;
 	}
 
@@ -104,9 +102,9 @@ public class UpdatePackagesModel extends Observable {
 				select = false;
 			}
 			if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
-				if (select) {
-					resolveDependencies(desc);
-				}
+//				if (select) {
+//					resolveDependencies(desc);
+//				}
 			} else if (desc.getPackageTypeName().equals("STAND_ALONE")) {
 				String longVersion = RapidMiner.getLongVersion();
 				String myVersion = ManagedExtension.normalizeVersion(longVersion);
@@ -148,10 +146,6 @@ public class UpdatePackagesModel extends Observable {
 		return downloadList;
 	}
 
-	public void setDependencies(PackageDescriptor desc, List<Dependency> dependencies) {
-
-	}
-
 	public boolean isUpToDate(PackageDescriptor desc) {
 		ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 		if (ext != null) {
@@ -164,25 +158,6 @@ public class UpdatePackagesModel extends Observable {
 			}
 		} else {
 			return false;
-		}
-	}
-
-	private void resolveDependencies(PackageDescriptor desc) {
-		List<Dependency> deps = dependencyMap.get(desc);
-		if (deps != null) {
-			for (Dependency dep : deps) {
-				for (PackageDescriptor other : descriptors) {
-					if (other.getPackageId().equals(dep.getPluginExtensionId())) {
-						Boolean selected = selectionMap.get(other);
-						boolean selectedB = (selected != null) && selected.booleanValue();
-						if (!selectedB && !isUpToDate(other)) {
-							selectionMap.put(other, true);
-							resolveDependencies(other);
-						}
-						break;
-					}
-				}
-			}
 		}
 	}
 
@@ -216,14 +191,27 @@ public class UpdatePackagesModel extends Observable {
 		if (descriptor.isRestricted()) {
 			b.append("&nbsp;<img src=\"icon:///").append("16/currency_euro.png").append("\"/>");
 		}
-		b.append("</h1>");
+		b.append("</h1><hr/>");
 		Date date = new Date(descriptor.getCreationTime().toGregorianCalendar().getTimeInMillis());
-		b.append("<hr><p><strong>Version ").append(descriptor.getVersion()).append(", released ").append(Tools.formatDate(date));
-		b.append(", ").append(Tools.formatBytes(descriptor.getSize())).append("</strong></p>");
+		String keyStyle=" style=\"padding-right:5px;color:gray;width:80px;\"";
+		b.append("<table style=\"margin:5px 0 10px 5px\"><thead><tr><td "+keyStyle+">Version</td><td>").append(descriptor.getVersion());
+		b.append("</td></tr><tr><td "+keyStyle+">Release date</td><td>").append(Tools.formatDate(date));
+		b.append("</td></tr><tr><td "+keyStyle+">File size</td><td>").append(Tools.formatBytes(descriptor.getSize())).append("</td></tr>");
+		b.append("</td></tr><tr><td "+keyStyle+">License</td><td>").append(descriptor.getLicenseName()).append("</td></tr>");
 		if ((descriptor.getDependencies() != null) && !descriptor.getDependencies().isEmpty()) {
-			b.append("<div>Depends on: " + descriptor.getDependencies() + "</div>");
+			b.append("<tr><td "+keyStyle+">Dependencies</td><td>");
+			boolean first = true;
+			for (Dependency dependency : Dependency.parse(descriptor.getDependencies())) {
+				if (!first) {
+					b.append(", ");
+				} else {
+					first = false;
+				}
+				b.append(cache.getPackageInfo(dependency.getPluginExtensionId()).getName()); 
+			}
+			b.append("</td></tr>");
 		}
-		b.append("<div>").append(descriptor.getLongDescription()).append("</div>");
+		b.append("</table><div>").append(descriptor.getLongDescription()).append("</div>");
 		// Before you are shocked, read the comment of isPurchased() :-)
 		if (UpdateManager.COMMERCIAL_LICENSE_NAME.equals(descriptor.getLicenseName())) {
 			if (isPurchased(descriptor)) {
@@ -242,5 +230,4 @@ public class UpdatePackagesModel extends Observable {
 		b.append("</body></html>");
 		return b.toString();
 	}
-
 }

@@ -22,6 +22,7 @@
  */
 package com.rapidminer.tools.plugin;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -76,6 +77,9 @@ public class Dependency {
 	}
 	
 	public static List<Dependency> parse(String dependencyString) {
+		if ((dependencyString == null) || dependencyString.isEmpty()) {
+			return Collections.emptyList();
+		}
 		List<Dependency> result = new LinkedList<Dependency>();
 		String[] singleDependencies = dependencyString.trim().split(";");
 		for (int i = 0; i < singleDependencies.length; i++) {

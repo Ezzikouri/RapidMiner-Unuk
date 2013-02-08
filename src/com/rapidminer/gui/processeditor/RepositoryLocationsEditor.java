@@ -100,7 +100,12 @@ class RepositoryLocationsEditor<T extends Ports> extends JPanel {
 				editors.clear();
 				int numberOfRows = table.getModel().getRowCount();
 				for (int i = 0; i < numberOfRows; i++) {
-					editors.add(createEditor(i));
+					if (!model.isInput()){
+						editors.add(createEditor(i,true));
+					}else{
+						editors.add(createEditor(i));
+					}
+					
 				}
 			}
 		}
@@ -110,6 +115,11 @@ class RepositoryLocationsEditor<T extends Ports> extends JPanel {
 		private static final long serialVersionUID = 1L;
 
 		private final boolean input;
+		
+		public boolean isInput() {
+			return input;
+		}
+
 		private ProcessContext context;
 
 		private Observer<ProcessContext> contextObserver = new Observer<ProcessContext>() {
@@ -296,9 +306,13 @@ class RepositoryLocationsEditor<T extends Ports> extends JPanel {
 		toolBar.setBorder(null);
 		add(toolBar, BorderLayout.NORTH);
 	}
+	
+	private RepositoryLocationValueCellEditor createEditor(int index){
+		return createEditor(index,false);
+	}
 
-	private RepositoryLocationValueCellEditor createEditor(int index) {
-		RepositoryLocationValueCellEditor editor = new RepositoryLocationValueCellEditor(new ParameterTypeRepositoryLocation(prefix + " " + (index + 1), prefix + " " + (index+1), true));
+	private RepositoryLocationValueCellEditor createEditor(int index,boolean onlyWriteableLocations) {
+		RepositoryLocationValueCellEditor editor = new RepositoryLocationValueCellEditor(new ParameterTypeRepositoryLocation(prefix + " " + (index + 1), prefix + " " + (index+1),true, false,false,true,false,onlyWriteableLocations));
 		editor.setOperator(process.getRootOperator());
 		return editor;
 	}

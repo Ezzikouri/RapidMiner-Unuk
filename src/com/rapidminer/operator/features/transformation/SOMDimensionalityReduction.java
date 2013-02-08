@@ -65,7 +65,7 @@ public class SOMDimensionalityReduction extends Operator {
 	/** The parameter name for &quot;Defines the size of the SOM net, by setting the length of every edge of the net.&quot; */
 	public static final String PARAMETER_NET_SIZE = "net_size";
 
-	/** The parameter name for &quot;Defines the number of trainnig rounds&quot; */
+	/** The parameter name for &quot;Defines the number of training rounds&quot; */
 	public static final String PARAMETER_TRAINING_ROUNDS = "training_rounds";
 
 	/** The parameter name for &quot;Defines the strength of an adaption in the first round. The strength will decrease every round until it reaches the learning_rate_end in the last round.&quot; */
@@ -189,7 +189,7 @@ public class SOMDimensionalityReduction extends Operator {
 		type = new ParameterTypeInt(PARAMETER_NET_SIZE, "Defines the size of the SOM net, by setting the length of every edge of the net.", 1, Integer.MAX_VALUE, 30);
 		type.setExpert(false);
 		types.add(type);
-		type = new ParameterTypeInt(PARAMETER_TRAINING_ROUNDS, "Defines the number of trainnig rounds", 1, Integer.MAX_VALUE, 30);
+		type = new ParameterTypeInt(PARAMETER_TRAINING_ROUNDS, "Defines the number of training rounds", 1, Integer.MAX_VALUE, 30);
 		type.setExpert(false);
 		types.add(type);
 		types.add(new ParameterTypeDouble(PARAMETER_LEARNING_RATE_START, "Defines the strength of an adaption in the first round. The strength will decrease every round until it reaches the learning_rate_end in the last round.", 0.0d,

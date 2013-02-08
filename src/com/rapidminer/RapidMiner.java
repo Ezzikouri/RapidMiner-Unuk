@@ -272,6 +272,8 @@ public class RapidMiner {
 	public static final String PROPERTY_RAPIDMINER_GENERAL_NUMBER_OF_THREADS = "rapidminer.general.number_of_threads";
 
 	// ---  INIT PROPERTIES  ---
+	
+	public static final String PROPERTY_RAPIDMINER_MAX_MEMORY = " maxMemory";
 
 	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_SET = "http.proxySet";
 	public static final String PROPERTY_RAPIDMINER_HTTP_PROXY_HOST = "http.proxyHost";
@@ -309,11 +311,15 @@ public class RapidMiner {
 		// scan language definitons. skip comments
 		Vector<String> languages = new Vector<String>();
 		Scanner scanLanguageDefs = new Scanner(RapidMiner.class.getResourceAsStream("/com/rapidminer/resources/i18n/language_definitions.txt"));
-		while (scanLanguageDefs.hasNextLine()) {
-			String nextLine = scanLanguageDefs.nextLine();
-			if (!nextLine.contains("#")) {
-				languages.add(nextLine);
+		try {
+			while (scanLanguageDefs.hasNextLine()) {
+				String nextLine = scanLanguageDefs.nextLine();
+				if (!nextLine.contains("#")) {
+					languages.add(nextLine);
+				}
 			}
+		} finally {
+			scanLanguageDefs.close();
 		}
 
 		// if there is less then one language, take default language
@@ -420,7 +426,34 @@ public class RapidMiner {
 
 		ParameterService.registerParameter(new ParameterTypeString(PROPERTY_RAPIDMINER_SOCKS_PROXY_HOST, "The proxy host to use for SOCKS.", true), "system");
 		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_SOCKS_PROXY_PORT, "The proxy port to use for SOCKS.", 0, 65535, true), "system");
-		ParameterService.registerParameter(new ParameterTypeInt(WebServiceTools.WEB_SERVICE_TIMEOUT, "The timeout in milliseconds for webservice and url connections.", 1, Integer.MAX_VALUE, 20000),"system");
+		ParameterService.registerParameter(new ParameterTypeInt(WebServiceTools.WEB_SERVICE_TIMEOUT, "The timeout in milliseconds for webservice and url connections. Restart required to take effect.", 1, Integer.MAX_VALUE, 20000),"system");
+		//TODO: Re-add this after the 5.3.001 Release
+		/*
+		ParameterService.registerParameter(new ParameterTypeInt(PROPERTY_RAPIDMINER_MAX_MEMORY, "The amount of memory (in MB) used by RapidMiner.", 64, Integer.MAX_VALUE, 512), "system");
+		
+		// add parameter change listener early so we are guaranteed to notice changes to MAX_MEMORY setting by the user 
+		ParameterService.registerParameterChangeListener(new ParameterChangeListener() {
+			
+			@Override
+			public void informParameterSaved() {
+				// nothing to do here
+			}
+			
+			@Override
+			public void informParameterChanged(String key, String value) {
+				if (PROPERTY_RAPIDMINER_MAX_MEMORY.equals(key)) {
+					try {
+						// make sure it's an int
+						Integer.parseInt(value);
+						Tools.writeTextFile(FileSystemService.getMemoryConfigFile(), value);
+					} catch (IOException e) {
+						LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.writing_memory_file_error", e.getMessage()), e);
+					} catch (NumberFormatException e) {
+						LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.RapidMiner.writing_memory_file_error", e.getMessage()), e);
+					}
+				}
+			}
+		});*/
 	}
 
 	private static InputHandler inputHandler = new ConsoleInputHandler();

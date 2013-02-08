@@ -20,10 +20,10 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.local;
 
 import java.io.File;
-import java.util.logging.Level;
 
 import javax.swing.event.EventListenerList;
 
@@ -43,7 +43,6 @@ import com.rapidminer.repository.gui.LocalRepositoryPanel;
 import com.rapidminer.repository.gui.RepositoryConfigurationPanel;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
-import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
 /** A repository backed by the local file system. Each entry is backed by one or more files.
@@ -59,13 +58,13 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	public enum LocalState {
 		ACCESSIBLE(null), NOT_ACCESSIBLE(I18N.getMessage(I18N.getGUIBundle(), "gui.repository.not_accessible.message"));
-		
+
 		private String state;
-		
+
 		private LocalState(String state) {
 			this.state = state;
 		}
-		
+
 		@Override
 		public String toString() {
 			return state;
@@ -82,35 +81,24 @@ public class LocalRepository extends SimpleFolder implements Repository {
 	public LocalRepository(String name) throws RepositoryException {
 		this(name, getDefaultRepositoryFolder(name));
 	}
-	
+
 	/** Creates a file-based repository in the given location. */
 	public LocalRepository(String name, File root) throws RepositoryException {
 		super(name, null, null);
 		this.root = root;
-		try {
-			mkdir();
-		} catch (Exception e) {
-			//LogService.getRoot().log(Level.WARNING, "Failed to create repository directory: "+e, e);
-			LogService.getRoot().log(Level.WARNING,
-					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-							"com.rapidminer.repository.local.LocalRepository.creating_repository_directory_error", 
-							e),
-							e);
-//			throw new RepositoryException(e.getMessage());
-			
-		}
+		mkdir();
 		if (!root.isDirectory()) {
-			throw new RepositoryException("Folder '"+root+"' is not a directory.");
+			throw new RepositoryException("Folder '" + root + "' is not a directory.");
 		}
 		if (!root.canWrite()) {
-			throw new RepositoryException("Folder '"+root+"' is not writable.");
+			throw new RepositoryException("Folder '" + root + "' is not writable.");
 		}
 		setRepository(this);
 	}
 
 	public File getRoot() {
 		return this.root;
-	}	
+	}
 
 	@Override
 	public boolean rename(String newName) {
@@ -135,7 +123,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public void removeRepositoryListener(RepositoryListener l) {
-		listeners.remove(RepositoryListener.class, l);		
+		listeners.remove(RepositoryListener.class, l);
 	}
 
 	protected void fireEntryRenamed(Entry entry) {
@@ -156,7 +144,6 @@ public class LocalRepository extends SimpleFolder implements Repository {
 		}
 	}
 
-
 	protected void fireEntryRemoved(Entry removedEntry, Folder parent, int index) {
 		for (RepositoryListener l : listeners.getListeners(RepositoryListener.class)) {
 			l.entryRemoved(removedEntry, parent, index);
@@ -165,7 +152,7 @@ public class LocalRepository extends SimpleFolder implements Repository {
 
 	@Override
 	public String getDescription() {
-		return "This is a local repository stored on your local computer at "+getFile()+"."; 
+		return "This is a local repository stored on your local computer at " + getFile() + ".";
 	}
 
 	@Override
@@ -227,12 +214,10 @@ public class LocalRepository extends SimpleFolder implements Repository {
 	}
 
 	@Override
-	public void postInstall() {
-	}
+	public void postInstall() {}
 
 	@Override
-	public void preRemove() {
-	}
+	public void preRemove() {}
 
 	@Override
 	public boolean isConfigurable() {
@@ -243,18 +228,17 @@ public class LocalRepository extends SimpleFolder implements Repository {
 	public RepositoryConfigurationPanel makeConfigurationPanel() {
 		return new LocalRepositoryPanel(null, false);
 	}
-	
+
 	/** Returns the folder which, by default, contains RM repositories, e.g. .RapidMiner5/repositories */
 	private static File getDefaultRepositoryContainerFolder() {
 		File dir = FileSystemService.getUserConfigFile("repositories");
 		dir.mkdir();
 		return dir;
 	}
-	
+
 	/** Returns the default folder in which a repository with this alias would be stored. */
 	public static final File getDefaultRepositoryFolder(String forAlias) {
 		return new File(getDefaultRepositoryContainerFolder(), forAlias);
 	}
 
 }
-

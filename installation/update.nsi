@@ -63,9 +63,6 @@ Section ""
         RmDir /r $R1\update
         ClearErrors
         RmDir /r $R1\deleteMe
-        
-        ;show dialog
-        MessageBox MB_OK "Update was successful"
      
      Quit
    

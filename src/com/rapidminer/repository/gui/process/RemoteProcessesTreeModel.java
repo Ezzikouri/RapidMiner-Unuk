@@ -402,5 +402,5 @@ public class RemoteProcessesTreeModel implements TreeModel {
 	public void ignore(RemoteRepository rep) {
 		observedRepositories.remove(rep);
 	}
-
+	
 }

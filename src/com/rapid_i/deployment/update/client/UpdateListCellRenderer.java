@@ -27,20 +27,13 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.beans.Transient;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 
 import com.rapidminer.RapidMiner;
@@ -53,15 +46,7 @@ import com.rapidminer.tools.I18N;
  * 
  * @author Simon Fischer
  */
-final class UpdateListCellRenderer implements ListCellRenderer {
-
-	private static RenderingHints HI_QUALITY_HINTS = new RenderingHints(null);
-
-	static {
-		HI_QUALITY_HINTS.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		HI_QUALITY_HINTS.put(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-		HI_QUALITY_HINTS.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-	}
+final class UpdateListCellRenderer extends AbstractPackageDescriptorListCellRenderer {
 
 	private final UpdatePackagesModel updateModel;
 
@@ -71,49 +56,12 @@ final class UpdateListCellRenderer implements ListCellRenderer {
 	private static String UP_TO_DATE_COLOR = "#006600";
 	private static String UPDATES_AVAILABLE_COLOR = "#CC9900";
 
-	UpdateListCellRenderer(UpdatePackagesModel updateModel) {
+	public UpdateListCellRenderer(UpdatePackagesModel updateModel) {
 		this.updateModel = updateModel;
 	}
 
-	UpdateListCellRenderer(boolean allPurchased) {
+	public UpdateListCellRenderer(boolean allPurchased) {
 		this.updateModel = null;
-	}
-
-	private Map<String, Icon> icons = new HashMap<String, Icon>();
-
-	private Icon getIcon(PackageDescriptor pd) {
-		if (pd.getIcon() == null) {
-			return null;
-		} else {
-			Icon result = icons.get(pd.getPackageId());
-			if (result == null) {
-				result = new ImageIcon(pd.getIcon());
-				icons.put(pd.getPackageId(), result);
-			}
-			return result;
-		}
-	}
-
-	private Icon getResizedIcon(Icon originalIcon) {
-		if (originalIcon == null)
-			return null;
-		int width = originalIcon.getIconWidth();
-		int height = originalIcon.getIconHeight();
-		if (width != 48) {
-			double scale = (48.0 / width);
-			BufferedImage bi = new BufferedImage(
-					(int) (scale * width),
-					(int) (scale * height),
-					BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g = bi.createGraphics();
-			g.setRenderingHints(HI_QUALITY_HINTS);
-			g.scale(scale, scale);
-			originalIcon.paintIcon(null, g, 0, 0);
-			g.dispose();
-			return new ImageIcon(bi);
-		} else {
-			return originalIcon;
-		}
 	}
 
 	private String getFirstSentence(String text) {

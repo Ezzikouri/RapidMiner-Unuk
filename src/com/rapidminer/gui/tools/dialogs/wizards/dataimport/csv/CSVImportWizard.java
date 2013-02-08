@@ -232,7 +232,7 @@ public class CSVImportWizard extends DataImportWizard {
 
 		if (showStoreInRepositoryStep) {
 			addStep(new RepositoryLocationSelectionWizardStep(this,
-					preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null, true) {
+					preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null, true,true) {
 				@Override
 				protected boolean performLeavingAction(WizardStepDirection direction) {
 					return transferData(reader, getRepositoryLocation());

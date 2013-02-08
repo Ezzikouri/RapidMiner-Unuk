@@ -77,6 +77,7 @@ import javax.swing.tree.TreePath;
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.datatable.DataTableExampleSetAdapter;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.new_plotter.MasterOfDesaster;
@@ -109,6 +110,7 @@ import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.ParameterService;
 
 /**
  * @author Nils Woehler
@@ -173,7 +175,7 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 
 	private JPopupMenu dimensionConfigPopupMenu;
 
-	private static final Color DROP_BORDER_COLOR = ProcessRenderer.INNER_DRAG_FRAME_COLOR;
+	private static final Color DROP_BORDER_COLOR = ProcessRenderer.LINE_DRAG_COLOR;
 	
 	private static final Border ONGOING_DROP_BORDER = BorderFactory.createLineBorder(DROP_BORDER_COLOR, 2);
 
@@ -1120,17 +1122,34 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	public void dragStarted(Transferable t) {
 		TransferSupport support = new TransferSupport(this, t);
 		boolean doesSupportFlavor = ((PlotConfigurationTreeTransferHandler) plotConfigurationTree.getTransferHandler()).doesSupportFlavor(support);
+		
 		if (doesSupportFlavor) {
 			if (SwingUtilities.isEventDispatchThread()) {
-				plotConfigurationTreeScrollPane.setBorder(ONGOING_DROP_BORDER);
-				plotConfigurationTree.setBackground(ProcessRenderer.INNER_DRAG_COLOR);
+				switch(RapidMinerGUI.getDragHighlighteMode()){
+					case FULL:
+						plotConfigurationTree.setBackground(ProcessRenderer.INNER_DRAG_COLOR);
+					case BORDER:
+						plotConfigurationTreeScrollPane.setBorder(ONGOING_DROP_BORDER);
+						break;
+					default:
+						break;
+					
+				}
 			} else {
 				SwingUtilities.invokeLater(new Runnable() {
 
 					@Override
 					public void run() {
-						plotConfigurationTreeScrollPane.setBorder(ONGOING_DROP_BORDER);
-						plotConfigurationTree.setBackground(ProcessRenderer.INNER_DRAG_COLOR);
+						switch(RapidMinerGUI.getDragHighlighteMode()){
+							case FULL:
+								plotConfigurationTree.setBackground(ProcessRenderer.INNER_DRAG_COLOR);
+							case BORDER:
+								plotConfigurationTreeScrollPane.setBorder(ONGOING_DROP_BORDER);
+								break;
+							default:
+								break;
+							
+						}
 					}
 				});
 			}

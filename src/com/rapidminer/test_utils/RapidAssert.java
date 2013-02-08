@@ -369,7 +369,7 @@ public class RapidAssert extends Assert {
 				String actualValue = actualAnnotations.getAnnotation(key);
 
 				if (expectedValue != null) {
-					Assert.assertNotNull(message + "objects are equal, but annotation " + key + " is missing", actualValue);
+					Assert.assertNotNull(message + "objects are equal, but annotation '" + key + "' is missing", actualValue);
 				}
 				
 				

@@ -252,7 +252,7 @@ public class ExcelImportWizard extends DataImportWizard {
 		});
 
 		if (showStoreInRepositoryStep) {
-			addStep(new RepositoryLocationSelectionWizardStep(this, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null, true) {
+			addStep(new RepositoryLocationSelectionWizardStep(this, preselectedLocation != null ? preselectedLocation.getAbsoluteLocation() : null, true,true) {
 				@Override
 				protected boolean performLeavingAction(WizardStepDirection direction) {
 					synchronized (reader) {

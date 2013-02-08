@@ -265,7 +265,7 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 					return null;
 				}
 			}
-
+			
 			@Override
 			public String getTip(Object o) {
 				if (o instanceof TreePath) {
