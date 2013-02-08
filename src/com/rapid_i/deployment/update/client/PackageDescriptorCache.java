@@ -24,12 +24,14 @@ package com.rapid_i.deployment.update.client;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.deployment.client.wsimport.UpdateService;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.Tools;
+import com.rapidminer.tools.plugin.Dependency;
 
 /**
  * Cache for PackageDescriptor which is used by the Rapidminer Update Dialog.
@@ -97,7 +99,18 @@ public class PackageDescriptorCache {
 					targetPlatform = "ANY";
 				}
 				PackageDescriptor descriptor = updateService.getPackageInfo(packageId, updateService.getLatestVersion(packageId, targetPlatform), targetPlatform);
+				// First add to cache, so we do never load it again
 				descriptors.put(packageId, descriptor);
+				if (descriptor != null) {
+					// Now fetch all dependencies
+					if (descriptor.getDependencies() != null) {
+						List<Dependency> dependencies = Dependency.parse(descriptor.getDependencies());
+						for (Dependency dependency : dependencies) {
+							// Get the info, so load it and its dependencies as side effect
+							getPackageInfo(dependency.getPluginExtensionId());
+						}
+					}
+				}
 			} catch (Exception e) {
 				SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
 			}

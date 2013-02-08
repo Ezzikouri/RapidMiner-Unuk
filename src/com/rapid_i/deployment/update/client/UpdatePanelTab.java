@@ -62,12 +62,15 @@ import javax.swing.text.html.StyleSheet;
 import com.rapid_i.deployment.update.client.listmodels.AbstractPackageListModel;
 import com.rapid_i.deployment.update.client.listmodels.BookmarksPackageListModel;
 import com.rapid_i.deployment.update.client.listmodels.LicencedPackageListModel;
+import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
+import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.gui.tools.components.LinkButton;
+import com.rapidminer.parameter.conditions.EqualStringCondition;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
@@ -443,7 +446,7 @@ public class UpdatePanelTab extends JPanel {
 			for (Component component : extensionButtonPane.getComponents()) {
 				component.setVisible(true);
 			}
-			installButton.setEnabled(true);
+			installButton.setVisible(false);
 			extensionButtonPane.setVisible(true);
 			StyleSheet css = new StyleSheet();//.makeDefaultStylesheet();
 			css.addRule("a  {text-decoration:underline; color:blue;}");
@@ -464,6 +467,14 @@ public class UpdatePanelTab extends JPanel {
 			installButton.setSelected(updateModel.isSelectedForInstallation(desc));
 
 			boolean isInstalled = false;
+			boolean isUpToDate = false;
+			
+			boolean isRapidMiner = "STAND_ALONE".equals(desc.getPackageTypeName());
+			if (isRapidMiner) {
+				isUpToDate = RapidMiner.getVersion().isAtLeast(new VersionNumber(desc.getVersion()));
+				isInstalled = true;
+			} else {
+			//updatesExist = !RapidMiner.getVersion().isAtLeast(new VersionNumber(getService().getLatestVersion("rapidminer", TARGET_PLATFORM)));
 			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
 			if (ext != null) {
 				isInstalled = true;
@@ -471,11 +482,14 @@ public class UpdatePanelTab extends JPanel {
 				if (installed != null) {
 					boolean upToDate = installed.compareTo(desc.getVersion()) >= 0;
 					if (upToDate) {
-						installButton.setEnabled(false);
+						isUpToDate = true;
+					} else {
+						isUpToDate = false;
 					}
 				}
+			} 
 			}
-
+			
 			if (desc.isRestricted() && !isInstalled) {
 				if (!usAccount.isLoggedIn()) {
 					// restricted, uninstalled, not logged in
@@ -483,8 +497,9 @@ public class UpdatePanelTab extends JPanel {
 					loginForInstallHint.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.need_to_log_in.label"));
 				} else if (updateModel.isPurchased(desc)) {
 					// restricted, purchased but not installed yet
-					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
-					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.label"));
+					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.mne").toUpperCase().charAt(0));
+					extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
 					installButton.setPurchaseFirst(false);
 					installButton.setVisible(true);
 					loginForInstallHint.setText("");
@@ -496,32 +511,61 @@ public class UpdatePanelTab extends JPanel {
 					}
 				} else {
 					// restricted, not purchased
-
 					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.label"));
 					installButton.setIcon(SwingTools.createIcon("16/shopping_cart_empty.png"));
 					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.purchase.mne").toUpperCase().charAt(0));
+					extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
 					installButton.setVisible(true);
 					loginForInstallHint.setText("");
 
 					installButton.setPurchaseFirst(true);
 				}
-			} else {
-				// not restricted / restricted but already installed
-				installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
-				installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
-				installButton.setPurchaseFirst(false);
-				installButton.setVisible(true);
-				loginForInstallHint.setText("");
+			}
+			else {
+				if (isInstalled) {
+					extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
+					if (!isUpToDate) {
+						// not restricted / restricted and installed but not updated
+						installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
+						installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
+						installButton.setPurchaseFirst(false);
+						installButton.setVisible(true);
+						installButton.setEnabled(true);
+						loginForInstallHint.setText("");
 
-				if (updateModel.isSelectedForInstallation(desc)) {
-					installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+						if (updateModel.isSelectedForInstallation(desc)) {
+							installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+						} else {
+							installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+						}
+					} else {
+						// Installed and updated. So showing nothing.
+						installButton.setVisible(false);
+						loginForInstallHint.setText("");
+					}
+
 				} else {
-					installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+					// not restricted / restricted not installed
+					installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.label"));
+					installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.install.select.mne").toUpperCase().charAt(0));
+					extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
+					installButton.setPurchaseFirst(false);
+					installButton.setVisible(true);
+					installButton.setEnabled(true);
+					loginForInstallHint.setText("");	
+
+					if (updateModel.isSelectedForInstallation(desc)) {
+						installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
+					} else {
+						installButton.setIcon(SwingTools.createIcon("16/checkbox_unchecked.png"));
+					}
 				}
+			}
+			if (isRapidMiner) {
+				extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.product_homepage.label"));				
 			}
 		}
 	}
-
 	@Override
 	public void removeNotify() {
 		super.removeNotify();

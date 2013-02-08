@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.new_plotter.gui;
 
 import java.awt.Color;
@@ -31,12 +32,13 @@ import javax.swing.JTree;
 import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.border.Border;
 
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource.SeriesUsageType;
 import com.rapidminer.gui.new_plotter.gui.dnd.DataTableColumnDropTextFieldTransferHandler;
 import com.rapidminer.gui.new_plotter.gui.dnd.DataTableColumnListTransferHandler;
-
+import com.rapidminer.tools.ParameterService;
 
 /**
  * @author Nils Woehler
@@ -57,7 +59,7 @@ public class AttributeDropTextField extends JTextField implements DragListener {
 		this.setBackground(Color.white);
 		this.setTransferHandler(new DataTableColumnDropTextFieldTransferHandler(plotConfigurationTree, type, this));
 
-		ongoingDropBorder = BorderFactory.createLineBorder(ProcessRenderer.INNER_DRAG_FRAME_COLOR, 1);
+		ongoingDropBorder = BorderFactory.createLineBorder(ProcessRenderer.LINE_DRAG_COLOR, 1);
 		dropEndedBorder = BorderFactory.createEmptyBorder(1, 1, 1, 1);
 	}
 
@@ -65,15 +67,24 @@ public class AttributeDropTextField extends JTextField implements DragListener {
 	public void dragStarted(Transferable t) {
 		TransferSupport support = new TransferSupport(this, t);
 		boolean doesSupportFlavor = ((DataTableColumnDropTextFieldTransferHandler) getTransferHandler()).doesSupportFlavor(support);
+
 		if (doesSupportFlavor) {
-			setBorder(ongoingDropBorder);
-			setBackground(ProcessRenderer.INNER_DRAG_COLOR);
+			switch(RapidMinerGUI.getDragHighlighteMode()){
+				case FULL:
+					setBackground(ProcessRenderer.INNER_DRAG_COLOR);
+				case BORDER:
+					setBorder(ongoingDropBorder);
+					break;
+				default:
+					break;
+				
+			}
 		}
 	}
-	
+
 	@Override
 	public void dragEnded() {
-		setBorder(dropEndedBorder);	
+		setBorder(dropEndedBorder);
 		setBackground(Color.WHITE);
 	}
 

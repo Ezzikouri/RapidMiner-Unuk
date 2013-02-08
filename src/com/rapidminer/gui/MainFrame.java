@@ -74,7 +74,7 @@ import com.vlsolutions.swing.docking.DockingDesktop;
  * notified whenever the process changes and propagates this event to its
  * children. Most of the code is enclosed within the Actions.
  * 
- * @author Ingo Mierswa, Simon Fischer, Sebastian Land
+ * @author Ingo Mierswa, Simon Fischer, Sebastian Land, Marius Helf
  */
 public class MainFrame extends ApplicationFrame implements WindowListener, MainUIState, ProcessEndHandler {
 

@@ -144,7 +144,7 @@ public class UpdateManager {
 	public static final String UPDATESERVICE_URL = "http://marketplace.rapid-i.com:80/UpdateServer";
 	public static final String PACKAGEID_RAPIDMINER = "rapidminer";
 	public static final String COMMERCIAL_LICENSE_NAME = "RIC";
-	public static final String NEVER_REMIND_INSTALL_EXTENSIONS_FILE_NAME = "never_remind_extensions.xml";
+	public static final String NEVER_REMIND_INSTALL_EXTENSIONS_FILE_NAME = "ignored_extensions.xml";
 
 	private static final UpdateServerAccount usAccount = new UpdateServerAccount();
 

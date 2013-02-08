@@ -41,6 +41,8 @@ import javax.swing.border.Border;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.RapidMinerGUI.DragHighlightMode;
 import com.rapidminer.gui.dnd.DragListener;
 import com.rapidminer.gui.flow.ProcessRenderer;
 import com.rapidminer.gui.new_plotter.configuration.DataTableColumn;
@@ -58,6 +60,7 @@ import com.rapidminer.gui.new_plotter.gui.treenodes.RangeAxisConfigTreeNode;
 import com.rapidminer.gui.new_plotter.gui.treenodes.ValueSourceTreeNode;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.ParameterService;
 
 /**
  * A renderer for plot configuration tree cells that displays the configuration's icon and name.
@@ -134,6 +137,9 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 
 			Color fg = null;
 			Color bg = null;
+			
+			boolean highlightingEnabled = RapidMinerGUI.getDragHighlighteMode().
+					equals(DragHighlightMode.FULL);
 
 			JTree.DropLocation dropLocation = tree.getDropLocation();
 			if (dropLocation != null && dropLocation.getChildIndex() == -1 && tree.getRowForPath(dropLocation.getPath()) == row) {
@@ -144,7 +150,7 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 				bg = SELECTED_COLOR;
 			} else {
 				fg = TEXT_NON_SELECTED_COLOR;
-				if(dragging) {
+				if(highlightingEnabled && dragging) {
 					bg = ProcessRenderer.INNER_DRAG_COLOR;
 				} else {
 					bg = NOT_SELECTED_COLOR;
@@ -160,7 +166,7 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 			if (hasFocus) {
 				this.setBorder(focusBorder);
 			} else {
-				if(dragging) {
+				if(highlightingEnabled && dragging) {
 					this.setBorder(draggingNotFocusedBorder);
 				} else {
 					this.setBorder(nonFocusBorder);
@@ -428,6 +434,9 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 
 			Color fg = null;
 			Color bg = null;
+			
+			boolean highlightingEnabled = RapidMinerGUI.getDragHighlighteMode().
+					equals(DragHighlightMode.FULL);
 
 			JTree.DropLocation dropLocation = tree.getDropLocation();
 			if (dropLocation != null && dropLocation.getChildIndex() == -1 && tree.getRowForPath(dropLocation.getPath()) == row) {
@@ -438,7 +447,7 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 				bg = SELECTED_COLOR;
 			} else {
 				fg = TEXT_NON_SELECTED_COLOR;
-				if(dragging) {
+				if(highlightingEnabled	&& dragging) {
 					bg = ProcessRenderer.INNER_DRAG_COLOR;
 				} else {
 					bg = NOT_SELECTED_COLOR;
@@ -453,7 +462,7 @@ public class PlotConfigurationTreeCellRenderer extends DefaultTreeCellRenderer i
 			if (hasFocus) {
 				this.setBorder(focusBorder);
 			} else {
-				if(dragging) {
+				if(highlightingEnabled && dragging) {
 					this.setBorder(draggingNotFocusedBorder);
 				} else {
 					this.setBorder(nonFocusBorder);

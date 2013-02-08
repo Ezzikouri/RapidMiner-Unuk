@@ -57,7 +57,7 @@ public class RemoteProcessTreeCellRenderer extends DefaultTreeCellRenderer {
 	private Icon SERVER_ICON = SwingTools.createIcon("16/application_server_run.png");	
 	private Icon OPERATOR_ICON = SwingTools.createIcon("16/element_selection.png");
 	private Icon RESULT_ICON = SwingTools.createIcon("16/plug_new_next.png");
-	
+
 	@Override
 	public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
 		JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);

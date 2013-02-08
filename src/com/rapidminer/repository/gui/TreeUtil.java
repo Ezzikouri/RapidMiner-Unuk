@@ -23,29 +23,25 @@
 
 package com.rapidminer.repository.gui;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
+import java.util.HashSet;
 
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
-import com.rapidminer.repository.Folder;
-import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.tools.LogService;
+import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
+import com.rapidminer.repository.RepositoryLocation;
 
 /**
  *  A utility class to save and restore expansion states and selection paths of the repository tree.
  * 
- * @author Nils Woehler
+ * @author Nils Woehler, Venkatesh Umaashankar
  *
  */
 public class TreeUtil {
 
-	private static Map<String, Boolean> pathToExpansionMap = new HashMap<String, Boolean>();
 	private static TreePath selectedPath;
-	private static TreePath expansionRoot;
+	private static HashSet<String> expandedNodes;
 
 	public static void saveSelectionPath(TreePath path) {
 		selectedPath = path;
@@ -54,122 +50,35 @@ public class TreeUtil {
 	public static void restoreSelectionPath(JTree parentTree) {
 		if (selectedPath != null) {
 			parentTree.setSelectionPath(selectedPath);
+			parentTree.scrollPathToVisible(parentTree.getSelectionPath());
 		}
 	}
 
-	public static void saveExpansionState(JTree parentTree) {
+	public static void saveExpansionState(JTree tree) {
 
-		pathToExpansionMap.clear();
+		expandedNodes = new HashSet<String>();
 
-		selectedPath = parentTree.getSelectionPath();
-		expansionRoot = parentTree.getSelectionPath();
+		TreeUtil.saveSelectionPath(tree.getSelectionPath());
 
-		if (selectedPath != null) {
-			Object lastPathComponent = selectedPath.getLastPathComponent();
-
-//			if (lastPathComponent instanceof Repository) {
-//				// special handling for repository because they are top level elements in the tree
-//				// and a tree structure change TreeModelEvent on a top level element will collapse the whole JTree
-//				// and therefore only storing the current selection is not sufficient
-//				Object root = parentTree.getModel().getRoot();
-//				int rootChildCount = parentTree.getModel().getChildCount(root);
-//				// iterate over all elements in RepositoryTree
-//				for (int i = 0; i < rootChildCount; i++) {
-//					Object childRepo = parentTree.getModel().getChild(root, i);
-//					// only interested in Repository
-//					if (childRepo instanceof Repository) {
-//						
-//						if(childRepo instanceof RemoteRepository) {
-//							RemoteRepository remote = (RemoteRepository) childRepo;
-//							if(!remote.isConnected()) {
-//								continue; // skip not connected remote repositories
-//							}
-//						}
-//						
-//						int repoChildCount = parentTree.getModel().getChildCount(childRepo);
-//						// iterate over all elements in the repository
-//						for (int j = 0; j < repoChildCount; j++) {
-//							Object childFolder = parentTree.getModel().getChild(childRepo, j);
-//							// only interested in Folder
-//							if (childFolder instanceof Folder) {
-//								try {
-//									saveExpansionState(parentTree, expansionRoot, (Folder) childFolder);
-//								} catch (RepositoryException e) {
-//									// could not save expansion state. Do nothing here. It just can't be restored afterwards
-//								}
-//							}
-//						}
-//					}
-//				}
-//			} else
-			if (lastPathComponent instanceof Folder) {
-				Folder folder = (Folder) lastPathComponent; // Get the selected folder
-
-				//check if parent of folder is still a folder
-				Folder containingFolder = folder.getContainingFolder();
-				if (containingFolder != null) { // start saving from parent folder
-					expansionRoot = expansionRoot.getParentPath();
-					folder = containingFolder;
-				}
-
-				try {
-					saveExpansionState(parentTree, expansionRoot, folder);
-				} catch (RepositoryException e) {
-					// could not save expansion state. Do nothing here. It just can't be restored afterwards
-				}
-			}
-		}
-
-	}
-
-	private static void saveExpansionState(JTree parentTree, TreePath path, Folder folder) throws RepositoryException {
-
-		// save expansion state
-		boolean expanded = parentTree.isExpanded(parentTree.getRowForPath(path));
-		pathToExpansionMap.put(path.toString(), expanded);
-
-		if (folder == null || !expanded) {
-			return;
-		}
-
-		List<Folder> subfolders = folder.getSubfolders();
-		if (subfolders.size() != 0) {
-			for (Folder subfolder : subfolders) {
-				TreePath nextPath = path.pathByAddingChild(subfolder);
-				saveExpansionState(parentTree, nextPath, (Folder) nextPath.getLastPathComponent());
+		for (int i = 0; i < tree.getRowCount(); i++) {
+			TreePath path = tree.getPathForRow(i);
+			if (tree.isExpanded(path)) {
+				expandedNodes.add(((Entry) path.getLastPathComponent()).getLocation().getAbsoluteLocation());
 			}
 		}
 	}
 
-	public static void restoreExpansionState(JTree parentTree) {
-		if (selectedPath != null && expansionRoot != null) {
+	public static void restoreExpansionState(JTree tree) {
+		
+		for (String absoluteLocation : expandedNodes) {
 			try {
-				Object lastPathComponent = expansionRoot.getLastPathComponent();
-				if (lastPathComponent instanceof Folder) {
-					restoreExpansionState(parentTree, expansionRoot, (Folder) lastPathComponent);
-				}
-			} catch (RepositoryException e) {
-				LogService.getRoot().log(Level.INFO, "com.rapidminer.repository.gui.TreeUtil.could_not_restore_state");
-			}
-			parentTree.setSelectionPath(selectedPath);
-		}
-	}
-
-	private static void restoreExpansionState(JTree parentTree, TreePath path, Folder folder) throws RepositoryException {
-		Boolean wasExpanded = pathToExpansionMap.get(path.toString());
-		if (wasExpanded != null && wasExpanded) {
-			parentTree.expandPath(path);
-		} else {
-			return;
-		}
-		if (folder != null) {
-			List<Folder> subfolders = folder.getSubfolders();
-			if (subfolders.size() != 0) {
-				for (Folder subfolder : subfolders) {
-					TreePath nextPath = path.pathByAddingChild(subfolder);
-					restoreExpansionState(parentTree, nextPath, (Folder) nextPath.getLastPathComponent());
-				}
+				((RepositoryTree) tree).expandAndSelectIfExists(new RepositoryLocation(absoluteLocation));
+			} catch (MalformedRepositoryLocationException e) {
+				/*
+				 * ignore incase of exception, this location will not be expanded. 
+				 */
 			}
 		}
+		restoreSelectionPath(tree);
 	}
 }

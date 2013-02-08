@@ -30,7 +30,6 @@ import javax.swing.Timer;
 import javax.swing.event.EventListenerList;
 
 import com.rapid_i.deployment.update.client.ExtensionDialog;
-import com.rapid_i.deployment.update.client.UpdateDialog;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessLocation;
@@ -377,7 +376,6 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 
 	private final LinkedList<ProcessStorageListener> storageListeners = new LinkedList<ProcessStorageListener>();
 
-	private final LinkedList<String> undoList = new LinkedList<String>();
 	/** XML representation of the process at last validation. */
 	private String lastProcessXML;
 
@@ -753,7 +751,7 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 
 		// help menu
 		helpMenu = new ResourceMenu("help");
-		helpMenu.add(TOUR_ACTION); //TODO reenable when tour is complete
+		//helpMenu.add(TOUR_ACTION); //TODO reenable when tour is complete
 		helpMenu.add(TUTORIAL_ACTION);
 		// TODO: Re-add updated manual
 		// helpMenu.add(new ResourceAction("gui_manual") {
@@ -805,8 +803,6 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 			}
 			helpMenu.add(extensionsMenu);
 		}
-		helpMenu.addSeparator();
-		helpMenu.add(UpdateDialog.UPDATE_ACTION);
 		helpMenu.add(new AboutAction(this.getWindow()));
 
 		menuBar.add(helpMenu);
@@ -1163,10 +1159,14 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 				undoIndex = undoManager.getNumberOfUndos() - 1;
 				enableUndoAction();
 
-				boolean oldValue = AbstractUIState.this.changed;
+				boolean oldChangedValue = AbstractUIState.this.changed;
+				// mark as changed only if the XML has changed
+				if ((currentStateXML == null ? lastStateXML == null : currentStateXML.equals(lastStateXML))) {
+					return false;
+				}
 				AbstractUIState.this.changed = lastStateXML != null;
 
-				if (!oldValue) {
+				if (!oldChangedValue) {
 					setTitle();
 				}
 				if (AbstractUIState.this.process.getProcessLocation() != null && !tutorialMode) {

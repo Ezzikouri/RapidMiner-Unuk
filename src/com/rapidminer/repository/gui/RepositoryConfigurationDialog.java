@@ -55,8 +55,8 @@ public class RepositoryConfigurationDialog extends ButtonDialog {
 		
 		List<AbstractButton> buttons = new LinkedList<AbstractButton>();
 		buttons.addAll(configurationPanel.getAdditionalButtons());
-		buttons.add(makeCancelButton());
 		buttons.add(okButton);
+		buttons.add(makeCancelButton());
 
 		layoutDefault(configurationPanel.getComponent(), DEFAULT_SIZE, buttons);
 	}

@@ -94,7 +94,7 @@ public class OverviewPanel extends JPanel implements Dockable {
 		Graphics2D g = (Graphics2D) graphics.create();
 		g.translate((getWidth() - scaledW)/2d, (getHeight() - scaledH)/2d);
 		g.scale(scale, scale);		
-		processRenderer.paintComponent(g);
+		processRenderer.paintComponent(g, false, false);
 
 		g.setStroke(new BasicStroke((int)(1d/scale)));
 		

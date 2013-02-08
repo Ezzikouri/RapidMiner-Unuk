@@ -82,6 +82,7 @@ public class ResourceTabbedPane extends JTabbedPane {
 		}
 		String mne = getMessageOrNull(key, "mne");
 		if (mne != null) {
+			mne = mne.toUpperCase(); 
 			if (name.indexOf(mne.charAt(0)) == -1) {
 				if (name.indexOf(mne.toUpperCase().charAt(0)) != -1) {
 					mne = mne.toUpperCase();

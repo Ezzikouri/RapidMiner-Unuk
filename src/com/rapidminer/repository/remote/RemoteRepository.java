@@ -25,6 +25,7 @@ package com.rapidminer.repository.remote;
 
 import java.awt.Desktop;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.net.Authenticator;
@@ -37,11 +38,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 
 import javax.swing.Action;
@@ -87,6 +90,9 @@ import com.rapidminer.tools.jdbc.connection.FieldConnectionEntry;
  * @author Simon Fischer, Nils Woehler
  */
 public class RemoteRepository extends RemoteFolder implements Repository {
+
+	private static final int CHECK_CONFIG_TIMEOUT = 5000;
+	private static CountDownLatch checkConfigCountDownLatch;
 
 	/** Type of object requested from a server.*/
 	public static enum EntryStreamType {
@@ -177,32 +183,95 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		}
 	}
 
-	public static boolean checkConfiguration(String url, String username, char[] password) {
+	/**
+	 * Checks if the provided configuration works. If it is working, <code>null</code> will be returned.
+	 * If it is not working, an error message will be returned.
+	 */
+	public static synchronized String checkConfiguration(String url, String username, char[] password) {
 		URL repositoryServiceURL;
 		HttpURLConnection conn = null;
 		try {
-			repositoryServiceURL = getRepositoryServiceWSDLUrl(new URL(url));
-			WebServiceTools.clearAuthCache();
-			Authenticator.setDefault(null);
-			conn = (HttpURLConnection) repositoryServiceURL.openConnection();
-			WebServiceTools.setURLConnectionDefaults(conn);
-			conn.setRequestProperty("Accept-Charset", "UTF-8");
 			if ((username != null) && (username.length() != 0) &&
-					(password != null) && (password.length != 0)) {				
+					(password != null) && (password.length != 0)) {
+				
+				repositoryServiceURL = getRepositoryServiceWSDLUrl(new URL(url));
+
+				// create new count down latch with counter of 1
+				// because this method is synchronized, it is possible to have only
+				// one count down latch with a count of 1 at the same time.
+				// This will block all instances of RemoteRepository from creating webservice calls/HttpConnections
+				// with RapidAnalytics until this method has finished.
+				// This has to be done because we will exchange the default authenticator soon.
+				checkConfigCountDownLatch = new CountDownLatch(1);
+
+				// clear auth cache
+				WebServiceTools.clearAuthCache();
+
+				// Set default authenticator to null. 
+				// This is actually pretty evil but we have to do it in order to get no PasswordDialogs when authentication fails.
+				Authenticator.setDefault(null);
+
+				// create connection
+				conn = (HttpURLConnection) repositoryServiceURL.openConnection();
+
+				// set timeout to check config timeout
+				conn.setReadTimeout(CHECK_CONFIG_TIMEOUT);
+				conn.setConnectTimeout(CHECK_CONFIG_TIMEOUT);
+				conn.setRequestProperty("Accept-Charset", "UTF-8");
+
+				// set basic auth
 				String userpass = username + ":" + new String(password);
 				String basicAuth = "Basic " + new String(Base64.encodeBytes(userpass.getBytes()));
 				conn.setRequestProperty("Authorization", basicAuth);
-				return 200 == conn.getResponseCode();
+				
+				// get response code
+				int responseCode = conn.getResponseCode();
+				if (200 == responseCode) {
+					return null; // works fine, return null
+				}
+				
+				// something is wrong, return according error message
+				if (responseCode >= 400) {
+					if (responseCode == 401) {
+						return I18N.getMessage(I18N.getErrorBundle(), "repository.error.check_connection.authentication_error");
+					} else {
+						return I18N.getMessage(I18N.getErrorBundle(), "repository.error.check_connection.other_authentication_error");
+					}
+				} else if (responseCode >= 500 && responseCode < 600) {
+					return I18N.getMessage(I18N.getErrorBundle(), "repository.error.check_connection.internal_server_error");
+				} else {
+					return I18N.getMessage(I18N.getErrorBundle(), "repository.error.check_connection.unkown_error");
+				}
 			} else {
-				return false;
+				
+				// username or password not set
+				if (username == null || username.length() == 0) {
+					return I18N.getMessage(I18N.getErrorBundle(), "repository.error.check_connection.no_user");
+				} else {
+					return I18N.getMessage(I18N.getErrorBundle(), "repository.error.check_connection.no_password");
+				}
 			}
 		} catch (Throwable t) {
-			return false;
+			if (t instanceof UnknownHostException) {
+				return I18N.getMessage(I18N.getErrorBundle(), "repository.error.check_connection.unknown_host", t.getLocalizedMessage());
+			}
+			if (t instanceof ConnectException) {
+				return I18N.getMessage(I18N.getErrorBundle(), "repository.error.check_connection.connect_error", url);
+			}
+			return t.getMessage();
 		} finally {
+			
+			// don't forget to set the instance of GlobalAuthenticator as default authenticator again
 			Authenticator.setDefault(GlobalAuthenticator.getInstance());
-			if(conn != null) {
+			
+			// disconnect connection
+			if (conn != null) {
 				conn.disconnect();
 			}
+			
+			// count down the current count down latch so it reaches zero. All instances that have waited for
+			// checkConfiguration are now able to proceed. 
+			checkConfigCountDownLatch.countDown();
 		}
 	}
 
@@ -346,15 +415,28 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 	 */
 	protected synchronized boolean checkConnectionWithIOExpcetion() throws IOException {
 
+		// even if the method is synchronized already, 
+		// we still have to check if checkConfiguration is currently running
+		if (checkConfigCountDownLatch != null) {
+			try {
+				checkConfigCountDownLatch.await(); // will wait if checkConfiguration is running
+			} catch (InterruptedException e) {
+				// do nothing
+			}
+		}
+
 		boolean checkingConnection = true;
 		boolean passwortInputNotCanceled = !isPasswordInputCanceled();
 
+		InputStream inputStream = null;
 		// Check if WSDL is reachable
 		while (checkingConnection && passwortInputNotCanceled) {
 			try {
 
 				// this line will throw exceptions if the WSDL cannot be received
-				getRepositoryServiceWSDLUrl().openConnection().getInputStream();
+				byte[] temp = new byte[1];
+				inputStream = WebServiceTools.openStreamFromURL(getRepositoryServiceWSDLUrl(), 3000);
+				inputStream.read(temp);
 
 				// this line can only be reached if the WSDL can be reached. This is only the case if the user is logged in.
 				checkingConnection = false;
@@ -372,6 +454,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				// only throw a repository exception if the user has not canceled the password input
 				if (!isPasswordInputCanceled()) {
 					throw e;
+				}
+			} finally {
+				if (inputStream != null) {
+					inputStream.close();
+					inputStream = null;
 				}
 			}
 			passwortInputNotCanceled = !isPasswordInputCanceled();

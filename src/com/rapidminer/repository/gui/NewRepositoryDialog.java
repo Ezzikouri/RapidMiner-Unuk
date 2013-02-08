@@ -33,7 +33,9 @@ import javax.swing.JRadioButton;
 
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceActionAdapter;
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.MultiPageDialog;
+import com.rapidminer.repository.RepositoryException;
 
 /** A dialog to create new remote or local repositories.
  * 
@@ -50,7 +52,7 @@ public class NewRepositoryDialog extends MultiPageDialog {
 	private final JRadioButton localButton;
 
 	private final JRadioButton remoteButton;
-	
+
 	private NewRepositoryDialog() {
 		super(RapidMinerGUI.getMainFrame().getWindow(), "repositorydialog", true, new Object[]{});
 
@@ -64,40 +66,44 @@ public class NewRepositoryDialog extends MultiPageDialog {
 		firstPage.add(remoteButton);
 		firstPage.add(Box.createVerticalGlue());
 		localButton.setSelected(true);
-		
+
 		Map<String,Component> cards = new HashMap<String,Component>();
 		cards.put("first", firstPage);		
 		cards.put("remote", remoteRepositoryPanel);
 		cards.put("local", localRepositoryPanel);
 		layoutDefault(cards);
 	}
-	
+
 	public static void createNew() {
 		NewRepositoryDialog d = new NewRepositoryDialog();
 		d.setVisible(true);
 	}
-	
+
 	@Override
 	protected void finish() {
-		if (localButton.isSelected()) {
-			localRepositoryPanel.makeRepository();
-		} else {
-			remoteRepositoryPanel.makeRepository();
+		try {
+			if (localButton.isSelected()) {
+				localRepositoryPanel.makeRepository();
+			} else {
+				remoteRepositoryPanel.makeRepository();
+			}
+			super.finish();
+		} catch (RepositoryException e) {
+			SwingTools.showSimpleErrorMessage("cannot_create_repository", e);
 		}
-		super.finish();
 	}
 
 	@Override
 	protected String getNameForStep(int step) {
 		switch (step) {
-		case 0: return "first";
-		case 1:
-			if (localButton.isSelected()) {
-				return "local";
-			} else {
-				return "remote";
-			}
-		default: throw new IllegalArgumentException("Illegal index: "+step);				
+			case 0: return "first";
+			case 1:
+				if (localButton.isSelected()) {
+					return "local";
+				} else {
+					return "remote";
+				}
+			default: throw new IllegalArgumentException("Illegal index: "+step);				
 		}		
 	}
 
