@@ -43,6 +43,7 @@ import javax.imageio.ImageIO;
 import com.rapid_i.Launcher;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.renderer.RendererService;
+import com.rapidminer.gui.safemode.SafeMode;
 import com.rapidminer.gui.tools.SplashScreen;
 import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.io.process.XMLImporter;
@@ -816,16 +817,23 @@ public class RapidMiner {
 		isInitiated = false;
 		switch (exitMode) {
 			case NORMAL:
-				RapidMinerGUI.getSafeMode().launchComplete();
+				launchComplete();
 				System.exit(0);
 				break;
 			case ERROR:
 				System.exit(1);
 				break;
 			case RELAUNCH:
-				RapidMinerGUI.getSafeMode().launchComplete();
+				launchComplete();
 				Launcher.relaunch();
 				break;
+		}
+	}
+	
+	private static void launchComplete(){
+		SafeMode safeMode = RapidMinerGUI.getSafeMode();
+		if(safeMode != null){
+			safeMode.launchComplete();
 		}
 	}
 
