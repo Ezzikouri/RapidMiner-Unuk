@@ -42,12 +42,21 @@ import sun.net.www.protocol.http.AuthCacheValue;
  */
 public class WebServiceTools {
 	
-	public static final String WEB_SERVICE_TIMEOUT = "connection.timeout";
-
-	private static final int TIMEOUT_URL_CONNECTION = Integer.parseInt(ParameterService.getParameterValue(WEB_SERVICE_TIMEOUT));
-	
 	// three minutes
 	private static final int READ_TIMEOUT = 180000;
+
+	public static final String WEB_SERVICE_TIMEOUT = "connection.timeout";
+
+	private static final int TIMEOUT_URL_CONNECTION; 
+	static {
+		String timeoutStr = ParameterService.getParameterValue(WEB_SERVICE_TIMEOUT);
+		if (timeoutStr != null) {
+			TIMEOUT_URL_CONNECTION = Integer.parseInt(timeoutStr);
+		} else {
+			TIMEOUT_URL_CONNECTION = READ_TIMEOUT;
+		}
+	}
+	
 
 	public static void setTimeout(BindingProvider port) {
 		setTimeout(port, TIMEOUT_URL_CONNECTION);
