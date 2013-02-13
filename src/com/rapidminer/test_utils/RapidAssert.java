@@ -146,7 +146,7 @@ public class RapidAssert extends Assert {
 				+ "' but was '" + Ontology.ATTRIBUTE_VALUE_TYPE.mapIndex(actual.getValueType()) + "')", expected.getValueType(), actual.getValueType());
 		Assert.assertEquals(
 				message + " (attribute block type of attribute '" + expected.getName() + ": expected '" + Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(expected.getBlockType())
-						+ "' but was '" + Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(actual.getBlockType()) + "')", expected.getBlockType(), actual.getBlockType());
+				+ "' but was '" + Ontology.ATTRIBUTE_BLOCK_TYPE.mapIndex(actual.getBlockType()) + "')", expected.getBlockType(), actual.getBlockType());
 
 		if (compareDefaultValues) {
 			Assert.assertEquals(message + " (default value of attribute '" + expected.getName() + ")", expected.getDefault(), actual.getDefault());
@@ -342,6 +342,16 @@ public class RapidAssert extends Assert {
 	 * @param actualIOO
 	 */
 	public static void assertEquals(String message, IOObject expectedIOO, IOObject actualIOO) {
+		assertEquals(message, expectedIOO, actualIOO, false);
+	}
+
+	/**
+	 * Tests if the two IOObjects are equal and appends the given message.
+	 * @param assertEqualAnnotations if true, annotations will be compared. If false, they will be ignored.
+	 * @param expectedIOO
+	 * @param actualIOO
+	 */
+	public static void assertEquals(String message, IOObject expectedIOO, IOObject actualIOO, boolean assertEqualAnnotations) {
 
 		/*
 		 * Do not forget to add a newly supported class to the 
@@ -356,35 +366,36 @@ public class RapidAssert extends Assert {
 			throw new ComparisonFailure("Comparison of the two given IOObject classes " + expectedIOO.getClass() + " and " + actualIOO.getClass() + " is not supported. ",
 					expectedIOO.toString(), actualIOO.toString());
 		}
-		
-		// last, compare annotations:
-		Annotations expectedAnnotations = expectedIOO.getAnnotations();
-		Annotations actualAnnotations = actualIOO.getAnnotations();
-		
-		if (ignoreRepositoryNameForSourceAnnotation  ) {
-			// compare annotations one by one. For the Source annotation, ignore the repository name
-			// (that's what all the regular expressions here are for)
-			for (String key : expectedAnnotations.getKeys()) {
-				String expectedValue = expectedAnnotations.getAnnotation(key);
-				String actualValue = actualAnnotations.getAnnotation(key);
 
-				if (expectedValue != null) {
-					Assert.assertNotNull(message + "objects are equal, but annotation '" + key + "' is missing", actualValue);
-				}
-				
-				
-				if (Annotations.KEY_SOURCE.equals(key)) {
-					if (expectedValue != null && expectedValue.startsWith("//") && expectedValue.matches("//[^/]+/.*")) {
-						expectedValue = expectedValue.replaceAll("^//[^/]+/", "//repository/");
-						if (actualValue != null) {
-							actualValue = actualValue.replaceAll("^//[^/]+/", "//repository/");
+		// last, compare annotations:
+		if (assertEqualAnnotations) {
+			Annotations expectedAnnotations = expectedIOO.getAnnotations();
+			Annotations actualAnnotations = actualIOO.getAnnotations();
+
+			if (ignoreRepositoryNameForSourceAnnotation  ) {
+				// compare annotations one by one. For the Source annotation, ignore the repository name
+				// (that's what all the regular expressions here are for)
+				for (String key : expectedAnnotations.getKeys()) {
+					String expectedValue = expectedAnnotations.getAnnotation(key);
+					String actualValue = actualAnnotations.getAnnotation(key);
+
+					if (expectedValue != null) {
+						Assert.assertNotNull(message + "objects are equal, but annotation '" + key + "' is missing", actualValue);
+					}
+
+					if (Annotations.KEY_SOURCE.equals(key)) {
+						if (expectedValue != null && expectedValue.startsWith("//") && expectedValue.matches("//[^/]+/.*")) {
+							expectedValue = expectedValue.replaceAll("^//[^/]+/", "//repository/");
+							if (actualValue != null) {
+								actualValue = actualValue.replaceAll("^//[^/]+/", "//repository/");
+							}
 						}
 					}
+					Assert.assertEquals(message + "objects are equal, but annotation '" + key + "' differs: ", expectedValue, actualValue);
 				}
-				Assert.assertEquals(message + "objects are equal, but annotation '" + key + "' differs: ", expectedValue, actualValue);
+			} else {
+				Assert.assertEquals(message + "objects are equal, but annotations differ: ", expectedAnnotations, actualAnnotations);
 			}
-		} else {
-			Assert.assertEquals(message + "objects are equal, but annotations differ: ", expectedAnnotations, actualAnnotations);
 		}
 	}
 

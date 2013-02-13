@@ -43,7 +43,8 @@ import com.rapidminer.example.table.ExampleTable;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.generator.GenerationException;
 import com.rapidminer.tools.RandomGenerator;
-import com.rapidminer.tools.math.function.ExpressionParser;
+import com.rapidminer.tools.jep.function.AbstractExpressionParser;
+import com.rapidminer.tools.jep.function.ExpressionParser;
 
 
 /**
@@ -120,7 +121,7 @@ public class EquivalentAttributeRemoval extends ExampleSetBasedIndividualOperato
 					ExampleSet randomSet = new SimpleExampleSet(exampleTable, simpleAttributesList);
 					try {
 						// create parser
-						ExpressionParser parser = new ExpressionParser(true);
+						AbstractExpressionParser parser = new ExpressionParser(true);
 						Attribute test1 = parser.addAttribute(randomSet, "test1", att1.getConstruction());
 						Attribute test2 = parser.addAttribute(randomSet, "test2", att2.getConstruction());
 //						AttributeParser parser = new AttributeParser();

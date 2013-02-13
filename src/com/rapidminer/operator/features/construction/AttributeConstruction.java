@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.features.construction;
 
 import java.util.Iterator;
@@ -41,7 +42,8 @@ import com.rapidminer.parameter.ParameterTypeExpression;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
-import com.rapidminer.tools.math.function.ExpressionParser;
+import com.rapidminer.tools.jep.function.AbstractExpressionParser;
+import com.rapidminer.tools.jep.function.ExpressionParser;
 
 /**
  * <p>
@@ -206,7 +208,7 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 
 	@Override
 	protected MetaData modifyMetaData(ExampleSetMetaData metaData) {
-		ExpressionParser parser = new ExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
+		AbstractExpressionParser parser = new ExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
 
 		try {
 			Iterator<String[]> j = getParameterList(PARAMETER_FUNCTIONS).iterator();
@@ -216,7 +218,7 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 				String function = nameFunctionPair[1];
 				parser.addAttributeMetaData(metaData, name, function);
 			}
-		} catch (UndefinedParameterError e) {}
+		} catch (UndefinedParameterError e) {} catch (GenerationException e) {}
 		return metaData;
 	}
 
@@ -227,7 +229,7 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 			originalAttributes.add(attribute);
 		}
 
-		ExpressionParser parser = new ExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
+		AbstractExpressionParser parser = new ExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
 
 		Iterator<String[]> j = getParameterList(PARAMETER_FUNCTIONS).iterator();
 		while (j.hasNext()) {

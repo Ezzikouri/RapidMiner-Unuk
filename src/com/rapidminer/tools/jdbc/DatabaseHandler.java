@@ -910,10 +910,6 @@ public class DatabaseHandler {
 		ResultSet tableNames = metaData.getTables(null, null, null, types);
 		List<TableName> tableNameList = new LinkedList<TableName>();
 
-//        for (int i = 0; i < tableNames.getMetaData().getColumnCount(); i++) {
-//        	System.out.println("Col: "+tableNames.getMetaData().getColumnName(i+1));
-//        }
-
 		while (tableNames.next()) {
 			String tableName = tableNames.getString("TABLE_NAME");
 			String tableSchem = tableNames.getString("TABLE_SCHEM");

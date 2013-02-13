@@ -454,7 +454,6 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 						try {
 							resultSet.close();
 						} catch (OperatorException e) {
-							//LogService.getRoot().log(Level.WARNING, "Failed to close result set: " + e, e);
 							LogService.getRoot().log(Level.WARNING,
 									I18N.getMessage(LogService.getRoot().getResourceBundle(),
 											"com.rapidminer.operator.nio.MetaDataDeclarationWizardStep.closing_result_set_error",

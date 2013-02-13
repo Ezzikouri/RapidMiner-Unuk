@@ -60,7 +60,6 @@ public class BookmarksPackageListModel extends AbstractPackageListModel {
 		if (accountService != null)
 			return accountService.getBookmarkedProducts("rapidminer");
 		
-		System.out.println();
 		return Collections.emptyList();
 	}
 

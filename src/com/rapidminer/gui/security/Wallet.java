@@ -115,7 +115,6 @@ public class Wallet {
 			}
 			usercredential = new UserCredential(url, user, password);
 			wallet.put(usercredential.getURL(), usercredential); 
-//			System.out.println(wallet.get(usercredential.getURL()));
 		}
 
 	}

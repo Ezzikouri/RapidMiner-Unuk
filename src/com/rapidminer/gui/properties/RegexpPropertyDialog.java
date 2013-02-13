@@ -778,7 +778,6 @@ public class RegexpPropertyDialog extends PropertyDialog {
 			}
 			if (isConstruct) {
 				if (regexpConstructInsertionEncloseSelected[row] && regexpTextField.getSelectedText() != null) {
-					System.out.println(1);
 					int selectionStart = regexpTextField.getSelectionStart();
 					int selectionEnd = regexpTextField.getSelectionEnd();
 					String newText = text.substring(0, selectionStart) +
@@ -791,7 +790,6 @@ public class RegexpPropertyDialog extends PropertyDialog {
 					regexpTextField.setSelectionStart(selectionStart + regexpConstructInsertionSelectionIndices[row][0]);
 					regexpTextField.setSelectionEnd(selectionEnd + regexpConstructInsertionSelectionIndices[row][1]);
 				} else {
-					System.out.println(2);
 					int cursorPosition = regexpTextField.getCaretPosition();
 					String newText = text.substring(0, cursorPosition) + insertionString +
 									 (cursorPosition < text.length() ? text.substring(cursorPosition) : "");
@@ -801,7 +799,6 @@ public class RegexpPropertyDialog extends PropertyDialog {
 					regexpTextField.setSelectionEnd(cursorPosition + regexpConstructInsertionSelectionIndices[row][1]);
 				}
 			} else {
-				System.out.println(3);
 				int cursorPosition = regexpTextField.getCaretPosition();
 				String newText = text.substring(0, cursorPosition) + insertionString +
 								 (cursorPosition < text.length() ? text.substring(cursorPosition) : "");

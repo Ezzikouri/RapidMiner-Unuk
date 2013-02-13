@@ -194,8 +194,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			if ((username != null) && (username.length() != 0) &&
 					(password != null) && (password.length != 0)) {
 				
-				repositoryServiceURL = getRepositoryServiceWSDLUrl(new URL(url));
-
 				// create new count down latch with counter of 1
 				// because this method is synchronized, it is possible to have only
 				// one count down latch with a count of 1 at the same time.
@@ -203,6 +201,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				// with RapidAnalytics until this method has finished.
 				// This has to be done because we will exchange the default authenticator soon.
 				checkConfigCountDownLatch = new CountDownLatch(1);
+				
+				repositoryServiceURL = getRepositoryServiceWSDLUrl(new URL(url));
 
 				// clear auth cache
 				WebServiceTools.clearAuthCache();
