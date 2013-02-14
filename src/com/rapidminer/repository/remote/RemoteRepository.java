@@ -271,7 +271,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			
 			// count down the current count down latch so it reaches zero. All instances that have waited for
 			// checkConfiguration are now able to proceed. 
-			checkConfigCountDownLatch.countDown();
+			if(checkConfigCountDownLatch != null) {
+				checkConfigCountDownLatch.countDown();
+			}
 		}
 	}
 

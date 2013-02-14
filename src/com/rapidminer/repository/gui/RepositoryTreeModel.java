@@ -65,6 +65,8 @@ public class RepositoryTreeModel implements TreeModel {
 
 	private final RepositoryListener repositoryListener = new RepositoryListener() {
 
+		final TreeUtil treeUtil = new TreeUtil();
+
 		private TreeModelEvent makeChangeEvent(Entry entry) {
 			TreePath path = getPathTo(entry.getContainingFolder());
 			int index;
@@ -96,7 +98,7 @@ public class RepositoryTreeModel implements TreeModel {
 				l.treeNodesRemoved(e);
 			}
 			if (parentTree != null && pathSaved) {
-				TreeUtil.restoreSelectionPath(parentTree);
+				treeUtil.restoreSelectionPath(parentTree);
 			}
 		}
 
@@ -124,7 +126,7 @@ public class RepositoryTreeModel implements TreeModel {
 					}
 				}
 			}
-			TreeUtil.saveSelectionPath(savedPath);
+			treeUtil.saveSelectionPath(savedPath);
 			return true;
 		}
 
@@ -140,16 +142,17 @@ public class RepositoryTreeModel implements TreeModel {
 		public void folderRefreshed(Folder folder) {
 			TreeModelEvent e = makeChangeEvent(folder);
 			if (parentTree != null) {
-				TreeUtil.saveExpansionState(parentTree);				
+				treeUtil.saveExpansionState(parentTree);
 			}
 			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 				l.treeStructureChanged(e);
 			}
+			treeUtil.locateExpandedEntries();
 			if (parentTree != null) {
 				SwingUtilities.invokeLater(new Runnable() {					
 					@Override
 					public void run() {
-						TreeUtil.restoreExpansionState(parentTree);						
+						treeUtil.restoreExpansionState(parentTree);
 					}
 				});				
 			}

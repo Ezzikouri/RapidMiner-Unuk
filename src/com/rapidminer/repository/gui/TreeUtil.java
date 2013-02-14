@@ -30,55 +30,89 @@ import javax.swing.tree.TreePath;
 
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
+import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.tools.LogService;
 
 /**
  *  A utility class to save and restore expansion states and selection paths of the repository tree.
- * 
+ *   
  * @author Nils Woehler, Venkatesh Umaashankar
  *
  */
 public class TreeUtil {
 
-	private static TreePath selectedPath;
-	private static HashSet<String> expandedNodes;
+	private TreePath selectedPath;
+	private HashSet<String> expandedNodes;
+	private HashSet<String> expandedRepositories;
 
-	public static void saveSelectionPath(TreePath path) {
+	public void saveSelectionPath(TreePath path) {
 		selectedPath = path;
 	}
 
-	public static void restoreSelectionPath(JTree parentTree) {
+	public void restoreSelectionPath(JTree parentTree) {
 		if (selectedPath != null) {
 			parentTree.setSelectionPath(selectedPath);
 			parentTree.scrollPathToVisible(parentTree.getSelectionPath());
 		}
 	}
 
-	public static void saveExpansionState(JTree tree) {
+	public void saveExpansionState(JTree tree) {
 
 		expandedNodes = new HashSet<String>();
+		expandedRepositories = new HashSet<String>();
 
-		TreeUtil.saveSelectionPath(tree.getSelectionPath());
+		saveSelectionPath(tree.getSelectionPath());
 
 		for (int i = 0; i < tree.getRowCount(); i++) {
 			TreePath path = tree.getPathForRow(i);
 			if (tree.isExpanded(path)) {
-				expandedNodes.add(((Entry) path.getLastPathComponent()).getLocation().getAbsoluteLocation());
+				Entry entry = (Entry) path.getLastPathComponent();
+				String absoluteLocation = entry.getLocation().getAbsoluteLocation();
+				if (entry instanceof Repository) {
+					expandedRepositories.add(absoluteLocation);
+				} else {
+					expandedNodes.add(absoluteLocation);
+				}
+
 			}
 		}
 	}
 
-	public static void restoreExpansionState(JTree tree) {
-		
+	public void locateExpandedEntries() {
+
 		for (String absoluteLocation : expandedNodes) {
 			try {
-				((RepositoryTree) tree).expandAndSelectIfExists(new RepositoryLocation(absoluteLocation));
+				RepositoryLocation repositoryLocation = new RepositoryLocation(absoluteLocation);
+				repositoryLocation.locateEntry();
 			} catch (MalformedRepositoryLocationException e) {
-				/*
-				 * ignore incase of exception, this location will not be expanded. 
-				 */
+				LogService.getRoot().warning("Unable to expand the location:" + absoluteLocation);
+				e.printStackTrace();
+			} catch (RepositoryException e) {
+				LogService.getRoot().warning("Unable to expand the location:" + absoluteLocation);
+				e.printStackTrace();
 			}
+
+		}
+
+	}
+
+	public void restoreExpansionState(JTree tree) {
+
+		for (int i = 0; i < tree.getRowCount(); i++) {
+			TreePath path = tree.getPathForRow(i);
+			Object entryObject = path.getLastPathComponent();
+			if (entryObject instanceof Entry) {
+				Entry entry = (Entry) entryObject;
+				String absoluteLocation = entry.getLocation().getAbsoluteLocation();
+				if (expandedRepositories.contains(absoluteLocation) || expandedNodes.contains(absoluteLocation)) {
+					tree.expandPath(path);
+				}
+			}
+
 		}
 		restoreSelectionPath(tree);
 	}
+
 }
