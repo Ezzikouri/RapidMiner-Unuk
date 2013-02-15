@@ -65,8 +65,6 @@ public class RepositoryTreeModel implements TreeModel {
 
 	private final RepositoryListener repositoryListener = new RepositoryListener() {
 
-		final TreeUtil treeUtil = new TreeUtil();
-
 		private TreeModelEvent makeChangeEvent(Entry entry) {
 			TreePath path = getPathTo(entry.getContainingFolder());
 			int index;
@@ -84,25 +82,33 @@ public class RepositoryTreeModel implements TreeModel {
 			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 				l.treeNodesInserted(e);
 			}
+			
 		}
-
+		
 		@Override
 		public void entryRemoved(Entry removedEntry, Folder parent, int index) {
 			TreePath path = getPathTo(parent);
 			TreeModelEvent e = new TreeModelEvent(RepositoryTreeModel.this, path, new int[] { index }, new Object[] { removedEntry });
 			boolean pathSaved = false;
+			final RepositoryTreeUtil treeUtil = new RepositoryTreeUtil();
 			if (parentTree != null) {
-				pathSaved = createPostRemoveEventSelectionPath(removedEntry, parent, index, path);
+				pathSaved = createPostRemoveEventSelectionPath(removedEntry, parent, index, path, treeUtil);
 			}
 			for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 				l.treeNodesRemoved(e);
 			}
 			if (parentTree != null && pathSaved) {
-				treeUtil.restoreSelectionPath(parentTree);
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						treeUtil.restoreSelectionPath(parentTree);
+					}
+				});
 			}
 		}
 
-		private boolean createPostRemoveEventSelectionPath(Entry removedEntry, Folder parent, int index, TreePath path) {
+		private boolean createPostRemoveEventSelectionPath(Entry removedEntry, Folder parent, int index, TreePath path, RepositoryTreeUtil treeUtil) {
 			TreePath savedPath = path;
 			List<DataEntry> dataEntries;
 			List<Folder> subfolders;
@@ -141,6 +147,7 @@ public class RepositoryTreeModel implements TreeModel {
 		@Override
 		public void folderRefreshed(Folder folder) {
 			TreeModelEvent e = makeChangeEvent(folder);
+			final RepositoryTreeUtil treeUtil = new RepositoryTreeUtil();
 			if (parentTree != null) {
 				treeUtil.saveExpansionState(parentTree);
 			}

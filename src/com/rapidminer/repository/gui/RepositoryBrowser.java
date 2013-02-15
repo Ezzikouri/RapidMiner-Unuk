@@ -108,6 +108,7 @@ public class RepositoryBrowser extends JPanel implements Dockable {
 				JPopupMenu menu = new JPopupMenu();
 				menu.add(RapidMinerGUI.getMainFrame().IMPORT_CSV_FILE_ACTION);
 				menu.add(RapidMinerGUI.getMainFrame().IMPORT_EXCEL_FILE_ACTION);
+				menu.add(RapidMinerGUI.getMainFrame().IMPORT_XML_FILE_ACTION);
 				menu.add(RapidMinerGUI.getMainFrame().IMPORT_ACCESS_FILE_ACTION);
 				menu.add(RapidMinerGUI.getMainFrame().IMPORT_DATABASE_TABLE_ACTION);
 				menu.add(BlobImportWizard.IMPORT_BLOB_ACTION);

@@ -41,7 +41,7 @@ import com.rapidminer.tools.LogService;
  * @author Nils Woehler, Venkatesh Umaashankar
  *
  */
-public class TreeUtil {
+public class RepositoryTreeUtil {
 
 	private TreePath selectedPath;
 	private HashSet<String> expandedNodes;
