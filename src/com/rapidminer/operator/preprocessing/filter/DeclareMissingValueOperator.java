@@ -52,9 +52,9 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser.ExpressionParserException;
-import com.rapidminer.tools.jep.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser.ExpressionParserException;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 /**
  * Allows the declaration of a missing value (nominal or numeric) on a selected subset. The given value 
@@ -99,7 +99,7 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	
 	public DeclareMissingValueOperator(OperatorDescription description) {
 		super(description);
-		expParser = new ExpressionParser(true);
+		expParser = ExpressionParserFactory.getExpressionParser(true);
 		expParser.setAllowUndeclared(true);
 	}
 

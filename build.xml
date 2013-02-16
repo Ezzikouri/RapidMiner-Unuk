@@ -4,6 +4,7 @@
 	<description>Build file for RapidMiner</description>
 	<property file="build.properties" />
 	<property name="src" location="src" />
+	<property name="src_agpl" location="src_agpl" />
 	<property name="src_generated" location="src_generated" />
 	<property name="src_launcher" location="src_launcher" />
 	<property name="src_test" location="src_test" />
@@ -26,13 +27,13 @@
 	<property name="jre64" location="jre/jre64" />
 	<property name="manual" location="../RapidMinerReferenceManual_en" />
 	<property name="manualJar" value="rm_doc.jar" />
-	
+
 	<property name="jreosx" location="jre/osx" />
 	<tstamp>
-	    <format property="current.year" pattern="yyyy" locale="en,UK"/>
+		<format property="current.year" pattern="yyyy" locale="en,UK"/>
 	</tstamp>
 	<property name="bundle.osx.icon" value="rapidminer_frame_icon_64.icns" />
-	
+
 	<property name="junit.tests.dir" value="" />
 	<property name="rapidminer.tests.dir" value="../RapidMiner_Tests" />
 
@@ -172,10 +173,10 @@
 			deprecation="${compiler.deprecation}" compiler="${compiler.version}"
 			nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false"
 			target="${compiler.target}" source="${compiler.source}">
-			<compilerarg value="${compiler.arguments}" />
+			<compilerarg value="${compiler.arguments}"/>
 
 			<classpath refid="classpath" />
-			<src path="${src}" />
+			<src path="${src}"/>
 			<src path="${src_generated}" />
 			<src path="${src_launcher}" />
 			<!-- includes all ... -->
@@ -184,7 +185,23 @@
 			<!-- <exclude name="**/test/*" /> -->
 		</javac>
 
+		<antcall target="build_agpl" />
+
 		<property name="lock.isBuilt" value="true" />
+	</target>
+
+	<target name="build_agpl" unless="build.agpl">
+		<echo message="building agpl"/>
+		<javac debug="${compiler.debug}" destdir="${build}"
+					deprecation="${compiler.deprecation}" compiler="${compiler.version}"
+					nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false"
+					target="${compiler.target}" source="${compiler.source}">
+			<compilerarg value="${compiler.arguments}"/>
+
+			<classpath refid="classpath" />
+			<src path="${src_agpl}"/>
+			<include name="**/*.java" />
+		</javac>
 	</target>
 
 	<target name="createJar" depends="build"
@@ -334,14 +351,14 @@
 		<!-- Now tidy up release/files if not needed anymore -->
 		<ant target="release.finish" />
 	</target>
-	
+
 	<!-- OS X App bundle (http://intransitione.com/blog/take-java-to-app-store/#stepone)-->
-    <taskdef name="bundleapp"
+	<taskdef name="bundleapp"
              classname="com.oracle.appbundler.AppBundlerTask"   
              classpath="ant/appbundler-1.0.jar" />
 
-    <target name="release.makeOSXAppBundle" depends="version.get, createJar">
-        <bundleapp outputdirectory="${release}"
+	<target name="release.makeOSXAppBundle" depends="version.get, createJar">
+		<bundleapp outputdirectory="${release}"
             name="RapidMiner"
             displayname="RapidMiner"
             identifier="com.rapid_i.RapidMiner"
@@ -349,30 +366,30 @@
         	shortversion="${rapidminer.shortversion}"
         	copyright="${current.year} Rapid-I GmbH"
         	icon="${resources}/com/rapidminer/resources/${bundle.osx.icon}">
-        	
-        	<!--The bundleapp task doesn't support classpathref so all 
+
+			<!--The bundleapp task doesn't support classpathref so all 
 	             the run classpath entries must be stated here too. -->
-        	<classpath file="${lib}/rapidminer.jar" />
-        	<classpath file="${lib}/launcher.jar" />
-        	
-        	<!--Workaround since the icon parameter for bundleapp 
+			<classpath file="${lib}/rapidminer.jar" />
+			<classpath file="${lib}/launcher.jar" />
+
+			<!--Workaround since the icon parameter for bundleapp 
 	             doesn't work. (It's not a bug in AppBundler but 
 	             in the JavaAppLauncher, see Known Problems).
 	        -->
-	        <option value="-Xdock:icon=$APP_ROOT/Contents/Resources/${bundle.osx.icon}"/>
-	        
-        	<!-- OSX specific options, optional -->
-        	<option value="-Xdock:name=RapidMiner"/>
-	        <option value="-Dcom.apple.mrj.application.apple.menu.about.name=RapidMiner"/>
+			<option value="-Xdock:icon=$APP_ROOT/Contents/Resources/${bundle.osx.icon}"/>
 
-	        <option value="-Xmx1024M"/>
-        	
-        	<runtime dir="/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home"/>
-        </bundleapp>
-    	<copy todir="${release}/RapidMiner.app/Contents/Java" verbose="true">
-	    	<path refid="rm.classpath"/>
-    	</copy>
-    </target>
+			<!-- OSX specific options, optional -->
+			<option value="-Xdock:name=RapidMiner"/>
+			<option value="-Dcom.apple.mrj.application.apple.menu.about.name=RapidMiner"/>
+
+			<option value="-Xmx1024M"/>
+
+			<runtime dir="/Library/Java/JavaVirtualMachines/jdk1.7.0_12.jdk/Contents/Home"/>
+		</bundleapp>
+		<copy todir="${release}/RapidMiner.app/Contents/Java" verbose="true">
+			<path refid="rm.classpath"/>
+		</copy>
+	</target>
 
 	<target name="release.makeWin32Launcher">
 		<exec executable="${makensis}">
@@ -523,7 +540,7 @@
 
 		<!-- Same as platfrom independent zip file: Call it and rename result -->
 		<ant target="release.makePlatformIndependent" />
-				<copy file="${release}/rapidminer-${rapidminer.longversion}.zip"
+		<copy file="${release}/rapidminer-${rapidminer.longversion}.zip"
 			tofile="${release}/update_rapidminer-${rapidminer.longversion}.zip" />
 	</target>
 
@@ -880,167 +897,167 @@
 			<classpath refid="javadoc.classpath" />
 			<doctitle>
 				<![CDATA[<h1>RapidMiner ${rapidminer.shortversion} Class Documentation</h1>]]></doctitle>
-			<footer>
+		<footer>
 			<![CDATA[<a href="http://sourceforge.net/projects/yale" target="_blank">
 			<img src="http://sflogo.sourceforge.net/sflogo.php?group_id=114160&type=16" width="150" height="40" />
 		</a>]]></footer>
-			<bottom>
+	<bottom>
 		<![CDATA[<i>Copyright &#169; 2001-2012 by <a href="http://rapid-i.com" target="_blank">Rapid-I</a>
 	</i>]]></bottom>
-			<!-- Links are not supported here -->
-			<tag name="rapidminer.todo" description="To do:" />
-			<tag name="rapidminer.index" description="Keywords:" scope="types" />
-			<tag name="rapidminer.xmlclass" description="XML classname:"
+<!-- Links are not supported here -->
+<tag name="rapidminer.todo" description="To do:" />
+<tag name="rapidminer.index" description="Keywords:" scope="types" />
+<tag name="rapidminer.xmlclass" description="XML classname:"
 				scope="types" />
-			<taglet name="com.rapidminer.doc.CiteTaglet" path="${build}" />
-			<taglet name="com.rapidminer.doc.RefTaglet" path="${build}" />
-			<taglet name="com.rapidminer.doc.ReferenceTaglet" path="${build}" />
-			<taglet name="com.rapidminer.doc.MathTaglet" path="${build}" />
-			<taglet name="com.rapidminer.doc.XMLExampleTaglet" path="${build}" />
-		</javadoc>
-	</target>
+<taglet name="com.rapidminer.doc.CiteTaglet" path="${build}" />
+<taglet name="com.rapidminer.doc.RefTaglet" path="${build}" />
+<taglet name="com.rapidminer.doc.ReferenceTaglet" path="${build}" />
+<taglet name="com.rapidminer.doc.MathTaglet" path="${build}" />
+<taglet name="com.rapidminer.doc.XMLExampleTaglet" path="${build}" />
+</javadoc>
+</target>
 
-	<!-- *********** RPM build *********** -->
+<!-- *********** RPM build *********** -->
 
 
-	<property file="build.rpm.properties" />
+<property file="build.rpm.properties" />
 
-	<target name="rpm-prepare">
+<target name="rpm-prepare">
 
-		<delete dir="${rpm.dir}" />
+<delete dir="${rpm.dir}" />
 
-		<mkdir dir="${rpm.dir}" />
-		<mkdir dir="${rpm.build.dir}" />
-		<mkdir dir="${rpm.buildroot.dir}" />
-		<mkdir dir="${rpm.sources.dir}" />
-		<mkdir dir="${rpm.specs.dir}" />
-		<mkdir dir="${rpm.rpms.dir}" />
-		<mkdir dir="${rpm.srpms.dir}" />
+<mkdir dir="${rpm.dir}" />
+<mkdir dir="${rpm.build.dir}" />
+<mkdir dir="${rpm.buildroot.dir}" />
+<mkdir dir="${rpm.sources.dir}" />
+<mkdir dir="${rpm.specs.dir}" />
+<mkdir dir="${rpm.rpms.dir}" />
+<mkdir dir="${rpm.srpms.dir}" />
 
-		<mkdir dir="${rpm.sources.rapidminer.dir}" />
+<mkdir dir="${rpm.sources.rapidminer.dir}" />
 
-		<copy todir="${rpm.sources.rapidminer.dir}/lib">
-			<fileset dir="${lib}" />
-		</copy>
-		<copy todir="${rpm.sources.rapidminer.dir}/scripts">
-			<fileset dir="${scripts}">
-				<exclude name="*.bat" />
-			</fileset>
+<copy todir="${rpm.sources.rapidminer.dir}/lib">
+<fileset dir="${lib}" />
+</copy>
+<copy todir="${rpm.sources.rapidminer.dir}/scripts">
+<fileset dir="${scripts}">
+	<exclude name="*.bat" />
+</fileset>
 
-		</copy>
-		<copy todir="${rpm.sources.rapidminer.dir}">
-			<fileset dir="${rpm.installation.dir}">
-				<exclude name="${rpm.spec.file}" />
-			</fileset>
-		</copy>
+</copy>
+<copy todir="${rpm.sources.rapidminer.dir}">
+<fileset dir="${rpm.installation.dir}">
+	<exclude name="${rpm.spec.file}" />
+</fileset>
+</copy>
 
-		<copy file="${rpm.installation.dir}/${rpm.spec.file}" todir="${rpm.specs.dir}" />
-		<replace file="${rpm.specs.dir}/${rpm.spec.file}" token="%{_version-from-ant}"
+<copy file="${rpm.installation.dir}/${rpm.spec.file}" todir="${rpm.specs.dir}" />
+<replace file="${rpm.specs.dir}/${rpm.spec.file}" token="%{_version-from-ant}"
 			value="${rapidminer.version}.${rapidminer.revision}" />
 
 
-		<tar destfile="${rpm.sources.dir}/${rpm.rapidminer.tar}" basedir="${rpm.sources.dir}" />
-		<gzip destfile="${rpm.sources.dir}/${rpm.rapidminer.tar.gz}" src="${rpm.sources.dir}/${rpm.rapidminer.tar}" />
+<tar destfile="${rpm.sources.dir}/${rpm.rapidminer.tar}" basedir="${rpm.sources.dir}" />
+<gzip destfile="${rpm.sources.dir}/${rpm.rapidminer.tar.gz}" src="${rpm.sources.dir}/${rpm.rapidminer.tar}" />
 
-		<delete file="${rpm.sources.dir}/${rpm.rapidminer.tar}" />
+<delete file="${rpm.sources.dir}/${rpm.rapidminer.tar}" />
 
 
-	</target>
+</target>
 
-	<target name="rpm-build" depends="createJar,rpm-prepare"
+<target name="rpm-build" depends="createJar,rpm-prepare"
 		description="Builds a RPM package. Works only on linux computer with rpm installed">
-		<rpm specFile="rapidminer.spec" topDir="${rpm.dir}" command="-ba"
+<rpm specFile="rapidminer.spec" topDir="${rpm.dir}" command="-ba"
 			cleanBuildDir="false" failOnError="true" />
 
-		<copy todir="${rpm.dir}/">
-			<fileset dir="${rpm.dir}/RPMS/noarch/" />
-		</copy>
-	</target>
+<copy todir="${rpm.dir}/">
+<fileset dir="${rpm.dir}/RPMS/noarch/" />
+</copy>
+</target>
 
 
-	<target name="wsimport.repository"
+<target name="wsimport.repository"
 		description="Import the WSDL description of the Repository Web Service.">
-		<mkdir dir="${src_generated}" />
-		<exec executable="wsimport" dir="${basedir}">
-			<arg value="-Xdebug" />
-			<arg value="-keep" />
-			<arg value="-p" />
-			<arg value="com.rapid_i.repository.wsimport" />
-			<arg value="-s" />
-			<arg file="${src_generated}" />
-			<arg value="-Xnocompile" />
-			<arg value="-extension" />
-			<arg value="http://localhost:8080/RAWS/RepositoryService?wsdl" />
-		</exec>
-		<exec executable="wsimport" dir="${basedir}">
-			<arg value="-Xdebug" />
-			<arg value="-keep" />
-			<arg value="-p" />
-			<arg value="com.rapid_i.repository.wsimport" />
-			<arg value="-s" />
-			<arg file="${src_generated}" />
-			<arg value="-Xnocompile" />
-			<arg value="-extension" />
-			<arg value="http://localhost:8080/RAWS/ProcessService?wsdl" />
-		</exec>
+<mkdir dir="${src_generated}" />
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapid_i.repository.wsimport" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/RAWS/RepositoryService?wsdl" />
+</exec>
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapid_i.repository.wsimport" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/RAWS/ProcessService?wsdl" />
+</exec>
 
-		<exec executable="wsimport" dir="${basedir}">
-			<arg value="-Xdebug" />
-			<arg value="-keep" />
-			<arg value="-p" />
-			<arg value="com.rapid_i.repository.wsimport.mgt" />
-			<arg value="-s" />
-			<arg file="${src_generated}" />
-			<arg value="-Xnocompile" />
-			<arg value="-extension" />
-			<arg value="http://localhost:8080/RAWS/ManagementService?wsdl" />
-		</exec>
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapid_i.repository.wsimport.mgt" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/RAWS/ManagementService?wsdl" />
+</exec>
 
-		<exec executable="wsimport" dir="${basedir}">
-			<arg value="-Xdebug" />
-			<arg value="-keep" />
-			<arg value="-p" />
-			<arg value="com.rapid_i.repository.wsimport" />
-			<arg value="-s" />
-			<arg file="${src_generated}" />
-			<arg value="-Xnocompile" />
-			<arg value="-extension" />
-			<arg value="http://localhost:8080/RAWS/ProcessService_1_3?wsdl" />
-		</exec>
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapid_i.repository.wsimport" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/RAWS/ProcessService_1_3?wsdl" />
+</exec>
 
-		<exec executable="wsimport" dir="${basedir}">
-			<arg value="-Xdebug" />
-			<arg value="-keep" />
-			<arg value="-p" />
-			<arg value="com.rapid_i.repository.wsimport" />
-			<arg value="-s" />
-			<arg file="${src_generated}" />
-			<arg value="-Xnocompile" />
-			<arg value="-extension" />
-			<arg value="http://localhost:8080/RAWS/RAInfoService?wsdl" />
-		</exec>
-	</target>
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapid_i.repository.wsimport" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/RAWS/RAInfoService?wsdl" />
+</exec>
+</target>
 
-	<target name="wsimport.marketplace">
-		<exec executable="wsimport" dir="${basedir}">
-			<arg value="-Xdebug" />
-			<arg value="-keep" />
-			<arg value="-p" />
-			<arg value="com.rapidminer.deployment.client.wsimport" />
-			<arg value="-s" />
-			<arg file="${src_generated}" />
-			<arg value="-Xnocompile" />
-			<arg value="-extension" />
-			<arg value="http://localhost:8080/UpdateServer/UpdateServiceService?wsdl" />
-		</exec>
+<target name="wsimport.marketplace">
+<exec executable="wsimport" dir="${basedir}">
+<arg value="-Xdebug" />
+<arg value="-keep" />
+<arg value="-p" />
+<arg value="com.rapidminer.deployment.client.wsimport" />
+<arg value="-s" />
+<arg file="${src_generated}" />
+<arg value="-Xnocompile" />
+<arg value="-extension" />
+<arg value="http://localhost:8080/UpdateServer/UpdateServiceService?wsdl" />
+</exec>
 
-	</target>
-	<target name="signJars" depends="createJar"
+</target>
+<target name="signJars" depends="createJar"
 		description="Don't forget to add jarsign.alias and jarsign.storepass to the file server.properties">
-		<signjar lazy="true" alias="${jarsign.alias}" storepass="${jarsign.storepass}">
-			<path>
-				<fileset dir="${lib}" includes="**/*.jar" />
-			</path>
-		</signjar>
-	</target>
+<signjar lazy="true" alias="${jarsign.alias}" storepass="${jarsign.storepass}">
+<path>
+	<fileset dir="${lib}" includes="**/*.jar" />
+</path>
+</signjar>
+</target>
 </project>

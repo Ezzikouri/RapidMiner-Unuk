@@ -24,9 +24,9 @@ package com.rapidminer.operator.meta.branch;
 
 import com.rapidminer.generator.GenerationException;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser.ExpressionParserException;
-import com.rapidminer.tools.jep.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser.ExpressionParserException;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 /**
  * This condition will parse the condition value as an expression and return
@@ -36,7 +36,7 @@ import com.rapidminer.tools.jep.function.ExpressionParser;
  */
 public class ExpressionCondition implements ProcessBranchCondition {
 
-	private AbstractExpressionParser expressionParser = new ExpressionParser(true);
+	private AbstractExpressionParser expressionParser = ExpressionParserFactory.getExpressionParser(true);
 	
 	@Override
 	public boolean check(ProcessBranch operator, String value) throws OperatorException {

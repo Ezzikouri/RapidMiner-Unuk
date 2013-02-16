@@ -46,8 +46,8 @@ import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.ParameterTypeStringCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser;
-import com.rapidminer.tools.jep.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 /**
  * This operator produces an {@link ExampleSet} containing only
@@ -85,7 +85,7 @@ public class UserSpecificationDataGenerator extends AbstractExampleSource {
         emd.setNumberOfExamples(1);
         emd.attributesAreKnown();
 
-        AbstractExpressionParser parser = new ExpressionParser(true);
+		AbstractExpressionParser parser = ExpressionParserFactory.getExpressionParser(true);
 
         try {
             Iterator<String[]> j = getParameterList(PARAMETER_VALUES).iterator();
@@ -128,7 +128,7 @@ public class UserSpecificationDataGenerator extends AbstractExampleSource {
 
     @Override
     public ExampleSet createExampleSet() throws OperatorException {
-        AbstractExpressionParser parser = new ExpressionParser(true);
+		AbstractExpressionParser parser = ExpressionParserFactory.getExpressionParser(true);
 
         MemoryExampleTable table = new MemoryExampleTable();
         table.addDataRow(new DoubleArrayDataRow(new double[0]));

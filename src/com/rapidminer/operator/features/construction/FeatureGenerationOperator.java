@@ -40,8 +40,8 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser;
-import com.rapidminer.tools.jep.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 
 /**
@@ -100,7 +100,7 @@ public class FeatureGenerationOperator extends AbstractFeatureConstruction {
 			InputStream in = null;
 			try {
 				in = new FileInputStream(file);
-				new ExpressionParser(true).generateAll(this, exampleSet, in);
+				ExpressionParserFactory.getExpressionParser(true).generateAll(this, exampleSet, in);
 			} catch (IOException e) {
 				throw new UserError(this, e, 302, new Object[] { file, e.getMessage() });
 			} finally {
@@ -114,7 +114,7 @@ public class FeatureGenerationOperator extends AbstractFeatureConstruction {
 			}
 		}
 
-		AbstractExpressionParser parser = new ExpressionParser(true);
+		AbstractExpressionParser parser = ExpressionParserFactory.getExpressionParser(true);
 		Iterator<String[]> j = getParameterList(PARAMETER_FUNCTIONS).iterator();
 		while (j.hasNext()) {
 			String[] nameFunctionPair = j.next();

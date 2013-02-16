@@ -42,8 +42,8 @@ import com.rapidminer.parameter.ParameterTypeExpression;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.UndefinedParameterError;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser;
-import com.rapidminer.tools.jep.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 /**
  * <p>
@@ -208,8 +208,7 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 
 	@Override
 	protected MetaData modifyMetaData(ExampleSetMetaData metaData) {
-		AbstractExpressionParser parser = new ExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
-
+		AbstractExpressionParser parser = ExpressionParserFactory.getExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
 		try {
 			Iterator<String[]> j = getParameterList(PARAMETER_FUNCTIONS).iterator();
 			while (j.hasNext()) {
@@ -229,7 +228,7 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 			originalAttributes.add(attribute);
 		}
 
-		AbstractExpressionParser parser = new ExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
+		AbstractExpressionParser parser = ExpressionParserFactory.getExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
 
 		Iterator<String[]> j = getParameterList(PARAMETER_FUNCTIONS).iterator();
 		while (j.hasNext()) {

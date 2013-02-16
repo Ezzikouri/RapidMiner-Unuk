@@ -29,6 +29,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.poi.xslf.model.geom.ExpressionParser;
+
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
@@ -43,8 +45,8 @@ import com.rapidminer.example.table.ExampleTable;
 import com.rapidminer.example.table.MemoryExampleTable;
 import com.rapidminer.generator.GenerationException;
 import com.rapidminer.tools.RandomGenerator;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser;
-import com.rapidminer.tools.jep.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 
 /**
@@ -121,7 +123,7 @@ public class EquivalentAttributeRemoval extends ExampleSetBasedIndividualOperato
 					ExampleSet randomSet = new SimpleExampleSet(exampleTable, simpleAttributesList);
 					try {
 						// create parser
-						AbstractExpressionParser parser = new ExpressionParser(true);
+						AbstractExpressionParser parser = ExpressionParserFactory.getExpressionParser(true);
 						Attribute test1 = parser.addAttribute(randomSet, "test1", att1.getConstruction());
 						Attribute test2 = parser.addAttribute(randomSet, "test2", att2.getConstruction());
 //						AttributeParser parser = new AttributeParser();

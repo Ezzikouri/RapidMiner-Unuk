@@ -61,10 +61,10 @@ import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ModelMetaData;
 import com.rapidminer.parameter.ParameterTypeExpression;
 import com.rapidminer.tools.LogService;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser;
-import com.rapidminer.tools.jep.function.AbstractExpressionParser.ExpressionParserException;
-import com.rapidminer.tools.jep.function.ExpressionParser;
-import com.rapidminer.tools.jep.function.FunctionDescription;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser.ExpressionParserException;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
+import com.rapidminer.tools.expression.parser.FunctionDescription;
 
 /**
  * 
@@ -115,7 +115,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		} else {
 			controlingProcess=null;			
 		}
-		parser = new ExpressionParser(true, controlingProcess);
+		parser = ExpressionParserFactory.getExpressionParser(true, controlingProcess);
 		
 		final Vector<String> knownAttributes = new Vector<String>();
 		
