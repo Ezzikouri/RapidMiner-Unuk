@@ -30,6 +30,7 @@ import javax.swing.Timer;
 import javax.swing.event.EventListenerList;
 
 import com.rapid_i.deployment.update.client.ExtensionDialog;
+import com.rapid_i.deployment.update.client.UpdateDialog;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessLocation;
@@ -778,6 +779,7 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 
 		helpMenu.addSeparator();
 		// helpMenu.add(CHECK_FOR_UPDATES_ACTION);
+		helpMenu.add(UpdateDialog.UPDATE_ACTION);
 		helpMenu.add(ExtensionDialog.MANAGE_EXTENSIONS);
 
 		final List allPlugins = Plugin.getAllPlugins();
