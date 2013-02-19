@@ -132,10 +132,23 @@
 
 		<property name="lock.isCopied" value="true" />
 	</target>
+	
+	<target name="prepare_agpl" if="build.no_agpl">
+		<antcall target="prepare-jep" />
+	</target>
 
-	<target name="build" depends="init, copy-resources, merge.changes" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
+	<target name="build" depends="init, copy-resources, merge.changes,prepare_agpl" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<!-- testing if rapid miner must be built beforehand -->
-		<available file="${rm.lib}/rapidminer.jar" property="build.rmAvailable" />
+		<echo message="build.no_agpl=${build.no_agpl}"/>
+		<condition property="build.rmAvailable">
+			<and>
+				<available file="${rm.lib}/rapidminer.jar"/>
+				<not>
+					<isset property="build.no_agpl"/>
+				</not>
+			</and>
+		</condition>
+		<!--available file="${rm.lib}/rapidminer.jar" property="build.rmAvailable" /-->
 		<antcall target="build.rm" />
 
 		<!-- building all dependend plugins-->
@@ -200,9 +213,18 @@
 		<echo message="...Finished" />
 	</target>
 
-	<target name="build.rm" unless="build.rmAvailable" description="This target will build the rapidminer, if not already done.">
-		<ant antfile="${rm.dir}/build.xml" target="createJar" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
+	<target name="build.rm" unless="build.rmAvailable" depends="clean_agpl" description="This target will build the rapidminer, if not already done.">
+		<ant antfile="${rm.dir}/build.xml" target="createJar" dir="${rm.dir}" inheritall="false" inheritrefs="false" >
+			<property name="build.no_agpl" value="${build.no_agpl}"/>
+			<property name="agpl_lib" value="${agpl_lib}"/>
+		</ant>
 		<ant antfile="${rm.dir}/build.xml" target="test.build" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
+	</target>
+
+	<target name="clean_agpl" depends="clean" if="build.no_agpl">
+		<ant antfile="${rm.dir}/build.xml" target="clean" dir="${rm.dir}" inheritall="false" inheritrefs="false" >
+			<property name="build.no_agpl" value="${build.no_agpl}"/>
+		</ant>
 	</target>
 
 	<target name="unzipLibs" unless="build.noRebundleJars">

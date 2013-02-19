@@ -29,6 +29,7 @@ import java.util.logging.Level;
 
 import com.rapidminer.Process;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.plugin.Plugin;
 
 /**
  * @author Venkatesh Umaashankar
@@ -36,65 +37,80 @@ import com.rapidminer.tools.LogService;
  */
 public class ExpressionParserFactory {
 
-	private static String parserClassName;
-	private static Class<? extends AbstractExpressionParser> parserClass;
+	private static Class<AbstractExpressionParser> parserProviderClass = null;
+	public static boolean isParserRegistered = false;
 
 	static {
-		ExpressionParserFactory.registerParserClass("com.rapidminer.tools.jep.function.ExpressionParser");
+		registerParser("com.rapidminer.tools.jep.function.ExpressionParser");
 	}
 
-	public static void registerParserClass(String parserClass) {
-		ExpressionParserFactory.parserClassName = parserClass;
+	public static void registerParser(String parserClass) {
+		try {
+			parserProviderClass = (Class<AbstractExpressionParser>) Class.forName(parserClass, true, Plugin.getMajorClassLoader());
+			ExpressionParserFactory.isParserRegistered = true;
+			LogService.getRoot().info("Default version of Expression parser registered successfully");
+		} catch (ClassNotFoundException e) {
+			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
+			parserProviderClass = null;
+		}
+
+	}
+
+	public static boolean isParserRegistered() {
+		return isParserRegistered;
 	}
 
 	public static AbstractExpressionParser getExpressionParser(boolean useStandardConstants) {
 
-		Object[] initargs = { new Boolean(useStandardConstants) };
-		Class[] paramTypes = {boolean.class};
+		if (ExpressionParserFactory.parserProviderClass == null) {
+			LogService.getRoot().log(Level.WARNING, "A valid expression Parser is not registered with the factory");
+			return null;
+		}
+
+		AbstractExpressionParser parser = null;
 		try {
-			Class<? extends AbstractExpressionParser> parserClass = (Class<? extends AbstractExpressionParser>) Class.forName(parserClassName);
-			Method getParserMethod = parserClass.getDeclaredMethod("getExpressionParser", paramTypes);
-			return (AbstractExpressionParser) getParserMethod.invoke(parserClass, initargs);
-		} catch (ClassNotFoundException e) {
-			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
-		} catch (IllegalAccessException e) {
-			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
+			Method parserProviderMethod = parserProviderClass.getDeclaredMethod("getExpressionParser", boolean.class);
+			parser = (AbstractExpressionParser) parserProviderMethod.invoke(parserProviderClass, useStandardConstants);
 		} catch (NoSuchMethodException e) {
 			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
 		} catch (SecurityException e) {
+			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
+		} catch (IllegalAccessException e) {
 			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
 		} catch (IllegalArgumentException e) {
 			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
 		} catch (InvocationTargetException e) {
 			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
 		}
-		return null;
+
+		return parser;
 
 	}
 
 	public static AbstractExpressionParser getExpressionParser(boolean useStandardConstants, Process process) {
 
-		Object[] initargs = { new Boolean(useStandardConstants), process };
-		Class[] paramTypes = { boolean.class, Process.class };
+		if (ExpressionParserFactory.parserProviderClass == null) {
+			LogService.getRoot().log(Level.WARNING, "A valid expression Parser is not registered with the factory");
+			return null;
+		}
+
+		AbstractExpressionParser parser = null;
 		try {
-			Class<? extends AbstractExpressionParser> parserClass = (Class<? extends AbstractExpressionParser>) Class.forName(parserClassName);
-			Method getParserMethod = parserClass.getDeclaredMethod("getExpressionParser", paramTypes);
-			return (AbstractExpressionParser) getParserMethod.invoke(parserClass, initargs);
-		} catch (ClassNotFoundException e) {
-			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
-		} catch (IllegalAccessException e) {
-			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
+			Method parserProviderMethod = parserProviderClass.getDeclaredMethod("getExpressionParser", boolean.class, Process.class);
+			parser = (AbstractExpressionParser) parserProviderMethod.invoke(parserProviderClass, useStandardConstants, process);
 		} catch (NoSuchMethodException e) {
 			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
 		} catch (SecurityException e) {
+			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
+		} catch (IllegalAccessException e) {
 			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
 		} catch (IllegalArgumentException e) {
 			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
 		} catch (InvocationTargetException e) {
 			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
 		}
-		return null;
 
+		return parser;
 	}
 
 	private ExpressionParserFactory() {}

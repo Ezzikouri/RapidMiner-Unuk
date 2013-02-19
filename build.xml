@@ -66,6 +66,7 @@
 		<fileset dir="${lib}/">
 			<include name="*.jar" />
 			<exclude name="plugins/**/*" />
+			<exclude name="${agpl_lib}" />
 		</fileset>
 		<fileset dir="${lib}/freehep">
 			<include name="*.jar" />
@@ -163,10 +164,24 @@
 		<property name="lock.isCopied" value="true" />
 	</target>
 
+	<target name="remove_agpl" unless="build.no_agpl">
+		<delete>
+			<fileset dir="${pluginslib}">
+				<include name="rapidminer-Enterprise-*.jar"/>
+			</fileset>
+		</delete>
+
+	</target>
+
 	<target name="build"
-		depends="init, copy-resources,version.updateFiles, create-documentation, merge.changes"
+		depends="init, copy-resources,version.updateFiles, create-documentation, merge.changes, build.common, build.agpl"
 		unless="lock.isBuilt"
 		description="Compiles classes after copying resources to the build directory">
+
+		<property name="lock.isBuilt" value="true" />
+	</target>
+
+	<target name="build.common">
 		<echo message="RapidMiner: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner: using Java version: ${java.version}" />
 		<javac debug="${compiler.debug}" destdir="${build}"
@@ -184,14 +199,10 @@
 			<!-- ...but Tests -->
 			<!-- <exclude name="**/test/*" /> -->
 		</javac>
-
-		<antcall target="build_agpl" />
-
-		<property name="lock.isBuilt" value="true" />
 	</target>
 
-	<target name="build_agpl" unless="build.agpl">
-		<echo message="building agpl"/>
+	<target name="build.agpl" depends="remove_agpl" unless="build.no_agpl">
+		<echo message="Compliling AGPL only sources"/>
 		<javac debug="${compiler.debug}" destdir="${build}"
 					deprecation="${compiler.deprecation}" compiler="${compiler.version}"
 					nowarn="true" fork="true" memorymaximumsize="400m" includeantruntime="false"

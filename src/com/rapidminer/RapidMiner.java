@@ -544,6 +544,7 @@ public class RapidMiner {
 		RapidMiner.splashMessage("init_repository");
 		RepositoryManager.init();
 		
+
 		// registering operators
 		RapidMiner.splashMessage("register_plugins");
 		Plugin.initAll();

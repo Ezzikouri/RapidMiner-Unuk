@@ -299,6 +299,13 @@ public class ExpressionParser extends AbstractExpressionParser {
 	}
 
 	@Override
+	protected void addCustomConstants() {
+		addConstant("true", Boolean.valueOf(true));
+		addConstant("false", Boolean.valueOf(false));
+		super.addCustomConstants();
+	}
+
+	@Override
 	protected void addCustomFunctions() {
 
 		addFunction("const", new Constant());

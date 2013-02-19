@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.csv.LineReader;
 import com.rapidminer.operator.Operator;
@@ -122,7 +121,7 @@ public class CSVResultSet implements DataResultSet {
         }
     }
 
-    private InputStream openStream() throws UserError {
+    protected InputStream openStream() throws UserError {
         try {
             URL url = new URL(configuration.getCsvFile());
             try {

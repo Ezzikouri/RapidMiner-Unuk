@@ -37,7 +37,6 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.nfunk.jep.JEP;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -65,15 +64,6 @@ import com.rapidminer.tools.Tools;
  *
  */
 abstract public class AbstractExpressionParser {
-
-	/**
-	 * Subclasses must implement this method to return the the instance of the subclass and the constructor of a subclass should be made private
-	 * @param useStandardConstants
-	 * @return
-	 */
-	public static AbstractExpressionParser getExpressionParser(boolean useStandardConstants) {
-		return null;
-	}
 
 	private static final String[] FUNCTION_GROUPS = { "Basic Operators", "Log and Exponential", "Trigonometric", "Statistical", "Text", "Date", "Process", "Miscellaneous" };
 
@@ -300,9 +290,7 @@ abstract public class AbstractExpressionParser {
 	public abstract void addStandardConstants();
 
 	protected void addCustomConstants() {
-		addConstant("true", Boolean.valueOf(true));
 		addConstant("TRUE", Boolean.valueOf(true));
-		addConstant("false", Boolean.valueOf(false));
 		addConstant("FALSE", Boolean.valueOf(false));
 		addConstant("NaN", Double.NaN);
 		addConstant("NAN", Double.NaN);
@@ -366,7 +354,7 @@ abstract public class AbstractExpressionParser {
 
 	public abstract boolean hasError();
 
-	/** Subclasses must implement this method to provide JEP's respective implementation of SymbolTable values
+	/** Subclasses must implement this method to provide Jep's respective implementation of SymbolTable values
 	 *  to {@link #addAttributeMetaData(ExampleSetMetaData, String, String)}. */
 	protected abstract Collection getSymbolTableValues();
 
@@ -553,7 +541,6 @@ abstract public class AbstractExpressionParser {
 
 	/**
 	 * Make the exampleSet's attributes available to the parser as variables.
-	 * Returns a map which is used by {@link #assignVariableValuesFromExample(JEP, Example, Map)}.
 	 * @param parser
 	 * @param exampleSet
 	 * @return
