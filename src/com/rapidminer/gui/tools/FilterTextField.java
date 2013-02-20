@@ -33,6 +33,8 @@ import java.util.LinkedList;
 import javax.swing.JTextField;
 import javax.swing.text.Document;
 
+import com.rapidminer.tools.I18N;
+
 /**
  * A text field for JList, JTable, or JTree filters. Updates all
  * registered {@link FilterListener} objects each time a key is pressed.
@@ -43,7 +45,7 @@ public class FilterTextField extends JTextField {
 
 	private static final long serialVersionUID = -7613936832117084427L;
 
-	private String defaultFilterText = "[Filter]";
+	private String defaultFilterText = I18N.getMessage(I18N.getGUIBundle(), "gui.filter_text_field.label");
 
 	private final Collection<FilterListener> filterListeners;
 

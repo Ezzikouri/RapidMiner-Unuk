@@ -42,15 +42,16 @@ public class ExpressionParserFactory {
 
 	static {
 		registerParser("com.rapidminer.tools.jep.function.ExpressionParser");
+		if (isParserRegistered) {
+			LogService.getRoot().info("Default version of Expression parser registered successfully");
+		}
 	}
 
 	public static void registerParser(String parserClass) {
 		try {
 			parserProviderClass = (Class<AbstractExpressionParser>) Class.forName(parserClass, true, Plugin.getMajorClassLoader());
 			ExpressionParserFactory.isParserRegistered = true;
-			LogService.getRoot().info("Default version of Expression parser registered successfully");
 		} catch (ClassNotFoundException e) {
-			LogService.getRoot().log(Level.WARNING, "Could not instantiate expression parser", e);
 			parserProviderClass = null;
 		}
 

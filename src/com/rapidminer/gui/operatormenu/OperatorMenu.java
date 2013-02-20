@@ -92,10 +92,10 @@ public abstract class OperatorMenu extends ResourceMenu implements OperatorServi
                     item = new JMenuItem(description.getName());
                 else
                     item = new JMenuItem(description.getName(), icon);
-                String descriptionText = description.getLongDescriptionHTML();
-                if (descriptionText == null) {
-                    descriptionText = description.getShortDescription();
-                }
+                String descriptionText = description.getShortDescription();
+//                if (descriptionText == null) {
+//                    descriptionText = description.getShortDescription();
+//                }
 
                 StringBuffer toolTipText = new StringBuffer("<b>Description: </b>" + descriptionText);
                 Operator operator = null;
