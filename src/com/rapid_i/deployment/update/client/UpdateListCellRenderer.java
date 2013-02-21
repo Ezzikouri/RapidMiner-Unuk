@@ -27,7 +27,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.beans.Transient;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -80,7 +79,6 @@ final class UpdateListCellRenderer extends AbstractPackageDescriptorListCellRend
 			private static final long serialVersionUID = 6409307403021306689L;
 
 			@Override
-			@Transient
 			/*
 			 * Overriding this method causes the correct computation
 			 * of the width with no overlapping if the scrollbar

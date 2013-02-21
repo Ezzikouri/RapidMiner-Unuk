@@ -60,7 +60,6 @@ import com.rapidminer.gui.actions.SaveAction;
 import com.rapidminer.gui.processeditor.ProcessEditor;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
-import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceDockKey;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.UpdateQueue;

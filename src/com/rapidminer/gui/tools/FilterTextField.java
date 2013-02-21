@@ -33,13 +33,17 @@ import java.util.LinkedList;
 import javax.swing.JTextField;
 import javax.swing.text.Document;
 
+import org.jdesktop.swingx.prompt.PromptSupport;
+import org.jdesktop.swingx.prompt.PromptSupport.FocusBehavior;
+
+import com.itextpdf.text.Font;
 import com.rapidminer.tools.I18N;
 
 /**
  * A text field for JList, JTable, or JTree filters. Updates all
  * registered {@link FilterListener} objects each time a key is pressed.
  * 
- * @author Tobias Malbrecht
+ * @author Tobias Malbrecht, Nils Woehler
  */
 public class FilterTextField extends JTextField {
 
@@ -71,11 +75,13 @@ public class FilterTextField extends JTextField {
 		super(doc, text, columns);
 		filterListeners = new LinkedList<FilterListener>();
 		selectionNavigationListeners = new LinkedList<SelectionNavigationListener>();
-		setForeground(Color.LIGHT_GRAY);
 		if (text != null && text.length() != 0) {
 			setDefaultFilterText(text);
 		}
-		setText(defaultFilterText);
+		PromptSupport.setForeground(Color.LIGHT_GRAY, this);
+		PromptSupport.setPrompt(defaultFilterText, this);
+		PromptSupport.setFontStyle(Font.ITALIC, this);
+		PromptSupport.setFocusBehavior(FocusBehavior.HIDE_PROMPT, this);
 		addKeyListener(new KeyListener() {
 
 			@Override
@@ -84,10 +90,10 @@ public class FilterTextField extends JTextField {
 						|| ((e.getKeyCode() != KeyEvent.VK_BACK_SPACE) && (e.getKeyCode() != KeyEvent.VK_ESCAPE) && (e.getKeyCode() != KeyEvent.VK_DELETE)
 								&& (e.getKeyCode() != KeyEvent.VK_SHIFT) && (e.getKeyCode() != KeyEvent.VK_ALT) && (e.getKeyCode() != KeyEvent.VK_ALT_GRAPH)
 								&& (e.getKeyCode() != KeyEvent.VK_CONTROL) && (e.getKeyCode() != KeyEvent.VK_META) && (!e.isActionKey()))) {
-					setForeground(Color.BLACK);
 				}
-				if (e == null)
+				if (e == null) {
 					return;
+				}
 				switch (e.getKeyCode()) {
 					case KeyEvent.VK_UP:
 						for (SelectionNavigationListener l : selectionNavigationListeners) {
@@ -101,18 +107,6 @@ public class FilterTextField extends JTextField {
 						}
 						e.consume();
 						return;
-						//				case KeyEvent.VK_LEFT:
-						//					for (SelectionNavigationListener l : selectionNavigationListeners) {
-						//						l.left();
-						//					}
-						//					e.consume();
-						//					return;
-						//				case KeyEvent.VK_RIGHT:
-						//					for (SelectionNavigationListener l : selectionNavigationListeners) {
-						//						l.right();
-						//					}
-						//					e.consume();
-						//					return;
 					case KeyEvent.VK_ENTER:
 						for (SelectionNavigationListener l : selectionNavigationListeners) {
 							l.selected();
@@ -162,8 +156,6 @@ public class FilterTextField extends JTextField {
 	}
 
 	public void clearFilter() {
-		setForeground(Color.LIGHT_GRAY);
-		setText(defaultFilterText);
 		updateFilter(null);
 	}
 
@@ -174,12 +166,8 @@ public class FilterTextField extends JTextField {
 					|| ((e.getKeyCode() != KeyEvent.VK_BACK_SPACE) && (e.getKeyCode() != KeyEvent.VK_DELETE) && (e.getKeyCode() != KeyEvent.VK_SHIFT)
 							&& (e.getKeyCode() != KeyEvent.VK_ALT) && (e.getKeyCode() != KeyEvent.VK_ALT_GRAPH) && (e.getKeyCode() != KeyEvent.VK_CONTROL)
 							&& (e.getKeyCode() != KeyEvent.VK_META) && (!e.isActionKey()))) {
-				setForeground(Color.LIGHT_GRAY);
-				setText(defaultFilterText);
+				setText(null);
 			}
-		}
-		if (defaultFilterText.equals(filterText)) {
-			filterText = null;
 		}
 		for (FilterListener l : filterListeners) {
 			l.valueChanged(filterText);
@@ -188,6 +176,7 @@ public class FilterTextField extends JTextField {
 
 	public void setDefaultFilterText(String text) {
 		this.defaultFilterText = text;
+		PromptSupport.setPrompt(text, this);
 	}
 
 }
