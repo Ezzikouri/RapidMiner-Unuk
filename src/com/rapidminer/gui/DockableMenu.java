@@ -122,6 +122,14 @@ public class DockableMenu extends ResourceMenu {
 				}
 				
 			});
+			
+			// special handling for results overview dockable in Results perspective
+			// this dockable is not allowed to be closed so we disable this item while in said perspective
+			if (RapidMinerGUI.getMainFrame().getPerspectives().getCurrentPerspective().getName().equals("result") &&
+					RapidMinerGUI.getMainFrame().getResultDisplay().getDockKey().equals(state.getDockable().getDockKey())) {
+				item.setEnabled(false);
+			}
+			
 			add(item);
 		}
 

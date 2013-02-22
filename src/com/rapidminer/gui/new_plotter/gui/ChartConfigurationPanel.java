@@ -110,7 +110,6 @@ import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.I18N;
-import com.rapidminer.tools.ParameterService;
 
 /**
  * @author Nils Woehler
@@ -199,6 +198,8 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 	private JButton resetButton;
 
 	private JMenuItem removeRangeAxisMenuItem;
+	
+	private JMenuItem removeAttributeFromDimensionMenuItem;
 
 	private transient DataTable cachedDePivotedDataTable;
 
@@ -324,8 +325,8 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 			valueSourcePopupMenu.add(menuItem);
 
 			dimensionConfigPopupMenu = new JPopupMenu();
-			menuItem = new JMenuItem(I18N.getGUILabel("plotter.configuration_dialog.remove_attribute_menu_item.label"));
-			menuItem.addActionListener(new ActionListener() {
+			removeAttributeFromDimensionMenuItem = new JMenuItem(I18N.getGUILabel("plotter.configuration_dialog.remove_attribute_menu_item.label"));
+			removeAttributeFromDimensionMenuItem.addActionListener(new ActionListener() {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -333,7 +334,7 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 				}
 
 			});
-			dimensionConfigPopupMenu.add(menuItem);
+			dimensionConfigPopupMenu.add(removeAttributeFromDimensionMenuItem);
 
 		}
 	}
@@ -816,6 +817,17 @@ public class ChartConfigurationPanel extends AbstractConfigurationPanel implemen
 					} else if (node instanceof ValueSourceTreeNode) {
 						valueSourcePopupMenu.show(tree, x, y);
 					} else if (node instanceof DimensionConfigTreeNode) {
+						// only enable remove attribute from dimension action when there is actually one there
+						DimensionConfig config = (DimensionConfig) ((DimensionConfigTreeNode)node).getUserObject();
+						if (config != null) {
+							if (config.getDimension() == PlotDimension.DOMAIN && getPlotConfiguration().getDomainConfigManager().getDataTableColumn().getValueType() == ValueType.INVALID) {
+									removeAttributeFromDimensionMenuItem.setEnabled(false);
+							} else {
+								removeAttributeFromDimensionMenuItem.setEnabled(true);
+							}
+						} else {
+							removeAttributeFromDimensionMenuItem.setEnabled(false);
+						}
 						dimensionConfigPopupMenu.show(tree, x, y);
 					}
 				}
