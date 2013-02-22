@@ -303,4 +303,9 @@ public class RepositoryEntryTextField extends JPanel implements Observable<Boole
 		this.entryTextField.removeKeyListener(l);
 	}
 	
+	@Override
+	public boolean requestFocusInWindow() {
+		return entryTextField.requestFocusInWindow();
+	}
+	
 }

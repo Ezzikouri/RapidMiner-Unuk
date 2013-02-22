@@ -124,11 +124,24 @@ public abstract class ApplicationPerspectives {
         current = perspective;
         RESTORE_DEFAULT_ACTION.setEnabled(!current.isUserDefined());
         
-        // try to request focus for the process renderer so actions are enabled after perspective switch
-        if ("design".equals(perspective.getName())) {
-        	MainFrame mainFrame = RapidMinerGUI.getMainFrame();
-        	if(mainFrame != null) {
+        
+        //TODO: change to listener mechanism
+        MainFrame mainFrame = RapidMinerGUI.getMainFrame();
+        if(mainFrame != null) {
+        	// check all ConditionalActions on perspective switch
+        	mainFrame.getActions().enableActions();
+        	
+        	// try to request focus for the process renderer so actions are enabled after perspective switch and
+        	// ProcessRenderer is visible
+        	if (mainFrame.getProcessPanel().getProcessRenderer().isShowing()) {
         		mainFrame.getProcessPanel().getProcessRenderer().requestFocusInWindow();
+        	}
+        	
+        	// disable close action on the result dockable when in pre-defined results perspective
+        	if (perspective.getName().contains("result")) {
+        		mainFrame.getResultDisplay().getDockKey().setCloseEnabled(false);
+        	} else {
+        		mainFrame.getResultDisplay().getDockKey().setCloseEnabled(true);
         	}
         }
     }

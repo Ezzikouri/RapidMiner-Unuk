@@ -81,7 +81,7 @@ public class FilterTextField extends JTextField {
 		PromptSupport.setForeground(Color.LIGHT_GRAY, this);
 		PromptSupport.setPrompt(defaultFilterText, this);
 		PromptSupport.setFontStyle(Font.ITALIC, this);
-		PromptSupport.setFocusBehavior(FocusBehavior.HIDE_PROMPT, this);
+		PromptSupport.setFocusBehavior(FocusBehavior.SHOW_PROMPT, this);
 		addKeyListener(new KeyListener() {
 
 			@Override
@@ -156,6 +156,7 @@ public class FilterTextField extends JTextField {
 	}
 
 	public void clearFilter() {
+		setText(null);
 		updateFilter(null);
 	}
 

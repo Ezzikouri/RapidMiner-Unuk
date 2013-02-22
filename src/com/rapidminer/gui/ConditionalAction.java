@@ -81,8 +81,14 @@ public abstract class ConditionalAction extends AbstractAction {
 	public static final int PROCESS_IS_ON_REMOTE_REPOSITORY = 10;
 	
 	public static final int PROCESS_SAVED = 11;
+	
+	public static final int PROCESS_RENDERER_IS_VISIBLE = 12;
+	
+	public static final int PROCESS_RENDERER_HAS_UNDO_STEPS = 13;
+	
+	public static final int PROCESS_RENDERER_HAS_REDO_STEPS = 14;
 
-	public static final int NUMBER_OF_CONDITIONS = 12;
+	public static final int NUMBER_OF_CONDITIONS = 15;
 	
 	private final int[] conditions = new int[NUMBER_OF_CONDITIONS];
 	

@@ -164,15 +164,6 @@
 		<property name="lock.isCopied" value="true" />
 	</target>
 
-	<target name="remove_agpl" unless="build.no_agpl">
-		<delete>
-			<fileset dir="${pluginslib}">
-				<include name="rapidminer-Enterprise-*.jar"/>
-			</fileset>
-		</delete>
-
-	</target>
-
 	<target name="build"
 		depends="init, copy-resources,version.updateFiles, create-documentation, merge.changes, build.common, build.agpl"
 		unless="lock.isBuilt"
@@ -201,7 +192,7 @@
 		</javac>
 	</target>
 
-	<target name="build.agpl" depends="remove_agpl" unless="build.no_agpl">
+	<target name="build.agpl" unless="build.no_agpl">
 		<echo message="Compliling AGPL only sources"/>
 		<javac debug="${compiler.debug}" destdir="${build}"
 					deprecation="${compiler.deprecation}" compiler="${compiler.version}"

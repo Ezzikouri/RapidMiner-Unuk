@@ -1275,6 +1275,22 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 			REDO_ACTION.setEnabled(false);
 		}
 	}
+	
+	/**
+	 * Returns <code>true</code> if the current process has undo steps available.
+	 * @return
+	 */
+	public boolean hasUndoSteps() {
+		return undoIndex > 0;
+	}
+	
+	/**
+	 * Returns <code>true</code> if the current process has redo steps available.
+	 * @return
+	 */
+	public boolean hasRedoSteps() {
+		return undoIndex < undoManager.getNumberOfUndos() - 1;
+	}
 
 	private void setProcessIntoStateAt(int undoIndex, boolean undo) {
 		String stateXML = undoManager.getXml(undoIndex);
