@@ -128,6 +128,7 @@ public abstract class ApplicationPerspectives {
         //TODO: change to listener mechanism
         MainFrame mainFrame = RapidMinerGUI.getMainFrame();
         if(mainFrame != null) {
+        	
         	// check all ConditionalActions on perspective switch
         	mainFrame.getActions().enableActions();
         	
@@ -138,11 +139,13 @@ public abstract class ApplicationPerspectives {
         	}
         	
         	// disable close action on the result dockable when in pre-defined results perspective
+        	//TODO: commented out because a fast switch between perspectives during this call breaks the Dockable (turns blue)
+        	/*
         	if (perspective.getName().contains("result")) {
         		mainFrame.getResultDisplay().getDockKey().setCloseEnabled(false);
         	} else {
         		mainFrame.getResultDisplay().getDockKey().setCloseEnabled(true);
-        	}
+        	}*/
         }
     }
 
