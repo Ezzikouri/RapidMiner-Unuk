@@ -28,10 +28,14 @@ import java.awt.Component;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
 import com.rapidminer.gui.MainFrame;
+import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.actions.CloseAllResultsAction;
 import com.rapidminer.gui.renderer.RendererService;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceLabel;
@@ -41,6 +45,7 @@ import com.rapidminer.operator.ResultObject;
 import com.rapidminer.tools.Tools;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
+import com.vlsolutions.swing.docking.DockableActionCustomizer;
 
 /** Dockable containing a single result.
  * 
@@ -73,6 +78,15 @@ public class ResultTab extends JPanel implements Dockable {
 		this.dockKey.setDockGroup(MainFrame.DOCK_GROUP_RESULTS);
 		this.dockKey.setName(id);
 		this.dockKey.setFloatEnabled(true);
+		DockableActionCustomizer customizer = new DockableActionCustomizer(){
+
+			@Override
+			public void visitTabSelectorPopUp(JPopupMenu popUpMenu, Dockable dockable){
+				popUpMenu.add(new JMenuItem(new CloseAllResultsAction(RapidMinerGUI.getMainFrame())));
+			}
+		};
+		customizer.setTabSelectorPopUpCustomizer(true); // enable tabbed dock custom popup menu entries
+		this.dockKey.setActionCustomizer(customizer);
 		label = makeStandbyLabel();
 		add(label, BorderLayout.NORTH);
 	}

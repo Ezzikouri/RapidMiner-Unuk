@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
@@ -44,6 +46,7 @@ import com.rapidminer.ProcessListener;
 import com.rapidminer.datatable.DataTable;
 import com.rapidminer.gui.MainFrame;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.actions.CloseAllResultsAction;
 import com.rapidminer.gui.processeditor.ProcessLogTab;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ProgressThread;
@@ -61,6 +64,7 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.vlsolutions.swing.docking.DockKey;
 import com.vlsolutions.swing.docking.Dockable;
+import com.vlsolutions.swing.docking.DockableActionCustomizer;
 import com.vlsolutions.swing.docking.DockableState;
 import com.vlsolutions.swing.docking.DockingDesktop;
 import com.vlsolutions.swing.docking.event.DockableStateChangeEvent;
@@ -95,6 +99,15 @@ public class DockableResultDisplay extends JPanel implements ResultDisplay {
 	
 	public DockableResultDisplay() {
 		this.dockKey.setDockGroup(MainFrame.DOCK_GROUP_RESULTS);
+		DockableActionCustomizer customizer = new DockableActionCustomizer(){
+
+			@Override
+			public void visitTabSelectorPopUp(JPopupMenu popUpMenu, Dockable dockable){
+				popUpMenu.add(new JMenuItem(new CloseAllResultsAction(RapidMinerGUI.getMainFrame())));
+			}
+		};
+		customizer.setTabSelectorPopUpCustomizer(true); // enable tabbed dock custom popup menu entries
+		this.dockKey.setActionCustomizer(customizer);
 		setLayout(new BorderLayout());
 		ExtendedJScrollPane overviewScrollpane = new ExtendedJScrollPane(overview);
 		overviewScrollpane.setBorder(null);

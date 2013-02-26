@@ -216,7 +216,7 @@
 	<target name="build.rm" unless="build.rmAvailable" depends="clean_agpl" description="This target will build the rapidminer, if not already done.">
 		<ant antfile="${rm.dir}/build.xml" target="createJar" dir="${rm.dir}" inheritall="false" inheritrefs="false" >
 			<property name="build.no_agpl" value="${build.no_agpl}"/>
-			<property name="agpl_lib" value="${agpl_lib}"/>
+			<property name="lib.exclude" value="${lib.exclude}"/>
 		</ant>
 		<ant antfile="${rm.dir}/build.xml" target="test.build" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
 	</target>

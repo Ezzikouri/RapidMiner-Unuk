@@ -22,12 +22,15 @@
  */
 package com.rapidminer.io.process.rules;
 
+import java.util.logging.Level;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -61,10 +64,9 @@ public class ReplaceParameterRule extends AbstractConditionedParseRule {
 	protected String conditionedApply(Operator operator, String operatorTypeName, XMLImporter importer) {
 		if (operator.getParameters().isSpecified(oldAttributeName)) {
 			operator.getParameters().renameParameter(oldAttributeName, newAttributeName);
-			return "Parameter <code>" + oldAttributeName + "</code> in <var>" + operator.getName() + "</var> (<code>" + operatorTypeName + "</code>) was renamed to <code>" + newAttributeName + "</code>.";
-		} else {
-			return null;
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.io.process.rules.ReplaceParameterRule.renamed_parameter", new Object[] {oldAttributeName, operator.getName(), operatorTypeName, newAttributeName});
 		}
+		return null;
 	}
 
 	@Override
