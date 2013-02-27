@@ -52,8 +52,11 @@ public class MetaDataViewerTable extends ExtendedJTable {
     
     public MetaDataViewerTable() {
     	setCellColorProvider(new CellColorProvider() {
-    	    public Color getCellColor(int row, int col) {
-    	        int actualRowIndex = ((ExtendedJTableSorterModel)getModel()).modelIndex(row);
+    	    public Color getCellColor(int row, int col) {    	    	
+    	        int actualRowIndex = row;
+    	        if (getModel() instanceof ExtendedJTableSorterModel) {
+    	        	actualRowIndex = ((ExtendedJTableSorterModel)getModel()).modelIndex(row);
+    	        }
     	        if (actualRowIndex < numberOfSpecialAttributeRows) {
     	        	return SwingTools.LIGHTEST_YELLOW;
     	        } else {
