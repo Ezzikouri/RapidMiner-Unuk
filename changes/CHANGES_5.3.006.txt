@@ -1,0 +1,4 @@
+Changes from RapidMiner 5.3.5 to 5.3.6
+--------------------------------------
+* Moved "Close all Results" button in the results view to the popup menu on result tabs (right-click on the tab header)
+* BUGFIX: Process should no longer be flagged as changed when entering/leaving a subprocess via undo/redo

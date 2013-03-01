@@ -48,7 +48,7 @@ public class JaccardNumericalSimilarity extends SimilarityMeasure {
 				wxy = wxy + value1[i] * value2[i];
 			}
 		}
-		return wxy / (wx + wy - wxy);
+		return ((wx + wy - wxy)==0 ) ? Double.NaN : wxy / (wx + wy - wxy);
 	}
 
 	@Override

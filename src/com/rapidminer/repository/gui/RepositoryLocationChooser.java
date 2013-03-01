@@ -159,11 +159,6 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		}
 	}
 
-
-//	public RepositoryLocationChooser(RepositoryLocation resolveRelativeTo, String initialValue) {
-//		this(null, resolveRelativeTo, initialValue);
-//	}
-
 	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue) {
 		this(owner, resolveRelativeTo, initialValue, true, false);
 	}
@@ -172,11 +167,13 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		this(owner, resolveRelativeTo, initialValue, allowEntries, allowFolders, false);
 	}
 	
-	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, boolean allowEntries, boolean allowFolders, boolean enforceValidRepositoryEntryName) {
+	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, boolean allowEntries, 
+	                                 boolean allowFolders, boolean enforceValidRepositoryEntryName) {
 		this(owner, resolveRelativeTo, initialValue, allowEntries, allowFolders, enforceValidRepositoryEntryName,false);
 	}
 
-	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders, boolean enforceValidRepositoryEntryName, final boolean onlyWriteableRepositories) {
+	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries,
+	                                 final boolean allowFolders, boolean enforceValidRepositoryEntryName, final boolean onlyWriteableRepositories) {
 		if (initialValue != null) {
 			try {
 				RepositoryLocation repositoryLocation;
@@ -193,7 +190,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		}
 		this.resolveRelativeTo = resolveRelativeTo;
 		this.enforceValidRepositoryEntryName = enforceValidRepositoryEntryName;
-		tree = new RepositoryTree(owner, !allowEntries, onlyWriteableRepositories);
+		tree = new RepositoryTree(owner, !allowEntries, onlyWriteableRepositories, false);
 
 		if (initialValue != null) {
 			if (tree.expandIfExists(resolveRelativeTo, initialValue)) {

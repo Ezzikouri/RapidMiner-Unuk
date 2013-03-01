@@ -399,10 +399,17 @@ public class RepositoryTree extends JTree {
 	}
 
 	public RepositoryTree(Dialog owner, boolean onlyFolders) {
-		this(owner, onlyFolders, false);
+		this(owner, onlyFolders, false, true);
 	}
 
 	public RepositoryTree(Dialog owner, boolean onlyFolders, boolean onlyWritableRepositories) {
+		this(owner, onlyFolders, onlyWritableRepositories, true);
+	}
+	
+	/**
+	 * @param installDraghandler when true, the {@link RepositoryTreeTransferhandler} is installed and the user is able to drag/drop data.
+	 */
+	public RepositoryTree(Dialog owner, boolean onlyFolders, boolean onlyWritableRepositories, boolean installDraghandler) {
 		super(new RepositoryTreeModel(RepositoryManager.getInstance(null), onlyFolders, onlyWritableRepositories));
 
 		((RepositoryTreeModel) getModel()).setParentTree(this);
@@ -521,8 +528,10 @@ public class RepositoryTree extends JTree {
 			}
 		});
 
-		setDragEnabled(true);
-		setTransferHandler(new RepositoryTreeTransferhandler());
+		if(installDraghandler) {
+			setDragEnabled(true);
+			setTransferHandler(new RepositoryTreeTransferhandler());
+		}
 
 		getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
 

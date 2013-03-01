@@ -1303,15 +1303,18 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		Operator selectedOperator = undoManager.getSelectedOperator(undoIndex);
 		try {
 			synchronized (process) {
+				String oldXml = process.getRootOperator().getXML(true);
 				Process process = new Process(stateXML, this.process);
 				// this.process.setupFromXML(stateXML);
 				setProcess(process, false);
 				// cannot use method processChanged() because this would add the
 				// old state to the undo stack!
-				this.changed = true;
-				setTitle();
-				if (this.process.getProcessLocation() != null && !tutorialMode) {
-					this.SAVE_ACTION.setEnabled(true);
+				if (!stateXML.equals(oldXml)) {
+					this.changed = true;
+					setTitle();
+					if (this.process.getProcessLocation() != null && !tutorialMode) {
+						this.SAVE_ACTION.setEnabled(true);
+					}
 				}
 
 				// restore selected operator

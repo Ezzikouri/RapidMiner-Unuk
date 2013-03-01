@@ -160,6 +160,10 @@ public class ExtendedErrorDialog extends ButtonDialog {
 
 	@Override
 	protected Icon getInfoIcon() {
+		String configuredIcon = I18N.getMessageOrNull(I18N.getGUIBundle(), getKey() + ".icon");
+		if (configuredIcon != null) {
+			return super.getInfoIcon();
+		}
 		return SwingTools.createIcon("48/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.error.icon"));
 	}
 

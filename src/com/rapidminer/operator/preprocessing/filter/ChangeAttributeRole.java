@@ -155,9 +155,14 @@ public class ChangeAttributeRole extends AbstractDataProcessing {
 
 	private void setRole(ExampleSet exampleSet, String name, String newRole) throws UserError {
 		Attribute attribute = exampleSet.getAttributes().get(name);
-
+		
 		if (attribute == null) {
-			throw new UserError(this, 111, name);
+
+			if (!name.isEmpty()) {
+				throw new UserError(this, 160, name);
+			} else {
+				throw new UserError(this, 111, name);
+			}
 		}
 
 		exampleSet.getAttributes().remove(attribute);
