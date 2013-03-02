@@ -619,14 +619,21 @@ public class RepositoryTree extends JTree {
 	boolean expandIfExists(RepositoryLocation relativeTo, String location) {
 		RepositoryLocation loc;
 		boolean full = true;
-		try {
-			if (relativeTo != null) {
-				loc = new RepositoryLocation(relativeTo, location);
-			} else {
-				loc = new RepositoryLocation(location + "/");
+		if (location != null) {
+			try {
+				if (relativeTo != null) {
+					loc = new RepositoryLocation(relativeTo, location);
+				} else {
+					loc = new RepositoryLocation(location + "/");
+				}
+			} catch (Exception e) {
+				// do nothing
+				return false;
 			}
-		} catch (Exception e) {
-			// do nothing
+		} else {
+			loc = relativeTo;
+		}
+		if (loc == null) {
 			return false;
 		}
 		Entry entry = null;
@@ -662,9 +669,11 @@ public class RepositoryTree extends JTree {
      * Expands the tree to select the given entry if it exists.
      */
     public void expandAndSelectIfExists(RepositoryLocation location) {
-		expandIfExists(location.parent(), location.getName());
-		scrollPathToVisible(getSelectionPath());
-		expandIfExists(location.parent(), location.getName());
+    	if (location.parent() != null) {
+    		expandIfExists(location.parent(), location.getName());
+    	} else {
+    		expandIfExists(location, null);
+    	}
 		scrollPathToVisible(getSelectionPath());
     }
 

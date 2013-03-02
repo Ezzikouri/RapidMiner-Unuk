@@ -45,8 +45,16 @@ public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 
 	private static final String BLOB_SUFFIX = ".blob";
 
-	SimpleBlobEntry(String name, SimpleFolder containingFolder,	LocalRepository localRepository) {
+	SimpleBlobEntry(String name, SimpleFolder containingFolder,	LocalRepository localRepository) throws RepositoryException {
 		super(name, containingFolder, localRepository);
+		// create physical file here, otherwise it will not really exist and for example cause errors in the Binary Import Wizard
+		if (!getFile().exists()) {
+			try {
+				getFile().createNewFile();
+			} catch (IOException e) {
+				throw new RepositoryException(e.getMessage());
+			}
+		}
 	}
 
 	private File getFile() {
