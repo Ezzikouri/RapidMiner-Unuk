@@ -72,9 +72,11 @@ public class ProcessExecutionResultOverview extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			try {
-				Process process = new Process(ProcessExecutionResultOverview.this.process);
-				process.setProcessLocation(processLocation);
-				RapidMinerGUI.getMainFrame().setProcess(process, true);
+				if (RapidMinerGUI.getMainFrame().close()) {
+					Process process = new Process(ProcessExecutionResultOverview.this.process);
+					process.setProcessLocation(processLocation);
+					RapidMinerGUI.getMainFrame().setProcess(process, true);
+				}
 			} catch (Exception e1) {
 				SwingTools.showSimpleErrorMessage("cannot_restore_history_process", e1);
 			}

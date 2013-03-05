@@ -1,6 +1,6 @@
 Changes from RapidMiner 5.3.5 to 5.3.6
 --------------------------------------
-* The last edited process can now be restored after RapidMiner has terminated abnormally
+* The current process is auto-saved, and the last edited process can now be restored after RapidMiner has terminated abnormally
 * Moved "Close all Results" button in the Results view to the popup menu on result tabs (right-click on a result tab header)
 * BUGFIX: Certain dialogs should be no longer too big when using HD-ready resolution or 1024x768 (e.g. for presentations)
 * BUGFIX: Process should no longer be flagged as changed when entering/leaving a subprocess via undo/redo

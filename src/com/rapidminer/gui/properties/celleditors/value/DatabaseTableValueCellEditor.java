@@ -175,10 +175,6 @@ public class DatabaseTableValueCellEditor extends AbstractCellEditor implements 
 									} else {
 										if (selected != null) {
 											setSelectedItem(selected);
-										} else {
-											if (model.getSize() > 0) {
-												setSelectedItem(model.getElementAt(0));
-											}
 										}
 									}
 								}
