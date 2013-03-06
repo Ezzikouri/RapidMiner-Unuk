@@ -633,7 +633,7 @@ public class RegexpPropertyDialog extends PropertyDialog {
 			panel.add(itemPanel, 0, 1);
 		}
 
-		okButton = makeOkButton();
+		okButton = makeOkButton("regexp_property_dialog_apply");
 		fireRegularExpressionUpdated();
 		
 		layoutDefault(panel, supportsItems ? NORMAL : NARROW, okButton, makeCancelButton());

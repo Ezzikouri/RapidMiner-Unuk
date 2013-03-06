@@ -142,7 +142,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		Collections.sort(knownAttributes);
 		
 		Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
-		buttons.add(makeOkButton());
+		buttons.add(makeOkButton("expression_property_dialog_apply"));
 		buttons.add(makeCancelButton());
 		
 		JPanel mainPanel = new JPanel();

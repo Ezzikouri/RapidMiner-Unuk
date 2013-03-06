@@ -513,6 +513,12 @@
 		<exec executable="${makensis}">
 			<arg line="installation/launcher.nsi" />
 		</exec>
+		
+		<!-- Now build Updater: Will generate release/files/scripts/RapidMinerUpdate.exe -->
+		<echo message="Building Updatefunction..." />
+		<exec executable="${makensis}">
+			<arg line="installation/update.nsi" />
+		</exec>
 
 		<!-- Copy JRE -->
 		<copy todir="${release.files}/jre">
@@ -547,6 +553,12 @@
 		<exec executable="${makensis}">
 			<arg line="installation/launcher_x64.nsi" />
 		</exec>
+		
+	<!-- Now build Updater: Will generate release/files/scripts/RapidMinerUpdate.exe -->
+	<echo message="Building Updatefunction..." />
+	<exec executable="${makensis}">
+		<arg line="installation/update.nsi" />
+	</exec>
 
 		<!-- Copy JRE -->
 		<copy todir="${release.files}/jre">

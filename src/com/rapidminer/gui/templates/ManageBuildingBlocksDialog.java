@@ -70,7 +70,7 @@ public class ManageBuildingBlocksDialog extends BuildingBlockDialog {
 				delete();
 			}
 		});
-		JButton okButton = makeOkButton();
+		JButton okButton = makeOkButton("management_building_blocks_dialog_apply");
 		layoutDefault(panel, NORMAL, deleteButton, okButton);
 		getRootPane().setDefaultButton(okButton);
 	}

@@ -40,6 +40,6 @@ public class ManageTemplatesDialog extends TemplatesDialog {
 	public ManageTemplatesDialog() {
 		super(Template.USER_DEFINED);
 		JButton deleteButton = new JButton(DELETE_ACTION);
-		layoutDefault(listPane, NORMAL, deleteButton, makeOkButton());
+		layoutDefault(listPane, NORMAL, deleteButton, makeOkButton("manage_templates_dialog_apply"));
 	}
 }

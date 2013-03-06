@@ -74,7 +74,7 @@ public class ListPropertyDialog extends PropertyDialog {
 			public void actionPerformed(ActionEvent e) {
 				listPropertyTable.removeSelected();
 			}
-		}), makeOkButton(), makeCancelButton());
+		}), makeOkButton("list_property_dialog_apply"), makeCancelButton());
 		
 		listPropertyTable.requestFocusForLastEditableCell();
 	}

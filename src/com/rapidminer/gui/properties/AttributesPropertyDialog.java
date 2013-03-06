@@ -314,7 +314,7 @@ public class AttributesPropertyDialog extends PropertyDialog {
 		itemListPanel.setPreferredSize(d);
 		selectedItemListPanel.setPreferredSize(d);
 
-		layoutDefault(panel, NORMAL, makeOkButton(), makeCancelButton());
+		layoutDefault(panel, NORMAL, makeOkButton("attributes_property_dialog_apply"), makeCancelButton());
 	}
 	
 	public Collection<String> getSelectedAttributeNames() {

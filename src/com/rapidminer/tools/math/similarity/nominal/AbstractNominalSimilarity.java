@@ -70,7 +70,10 @@ public abstract class AbstractNominalSimilarity extends SimilarityMeasure {
 		int equalFalseValues = 0;
 		for (int i = 0; i < value1.length; i++) {
 			
-			if (binominal[i]) {
+			// if one value is a Double.NaN, we will treat this as unequal values
+			if (Double.isNaN(value1[i]) || Double.isNaN(value2[i])) {
+				unequalValues++;
+			} else if (binominal[i]) {
 				if (value1[i] == falseIndexSet1[i] && value2[i] == falseIndexSet2[i]) {
 					equalFalseValues++;
 				} else {
@@ -80,7 +83,7 @@ public abstract class AbstractNominalSimilarity extends SimilarityMeasure {
 						unequalValues++;
 					}
 				}
-			} else {
+			} else { // Polynominal mapping
 				Map<Double, Double> indexMapping1 = indexMappingSet1.get(i);
 				Map<Double, Double> indexMapping2 = indexMappingSet2.get(i);
 				
@@ -176,18 +179,21 @@ public abstract class AbstractNominalSimilarity extends SimilarityMeasure {
 				String positiveStringAttr1 = attribute1.getMapping().getPositiveString();
 				String positiveStringAttr2 = attribute2.getMapping().getPositiveString();
 				
-				// Do we have unequal strings for the binominal mapping? ... 
-				if ( !(negativeStringAttr1.equals(negativeStringAttr2) && positiveStringAttr1.equals(positiveStringAttr2)) ) {
-					// ... if not, are the strings switched?
-					if(negativeStringAttr1.equals(positiveStringAttr2) && negativeStringAttr2.equals(positiveStringAttr1)) {
-						// ... if yes we will remap the false value of the second attribute to the false value of the first attribute
-						falseIndexSet2[i] = attribute2.getMapping().getPositiveIndex();
-					} else {
-						// ... otherwise we will threat them as polynominal
-						binominal[i] = false;
-						createCommonMapping(attribute1, attribute2, i);
-						falseIndexSet1[i] = Double.NaN;
-						falseIndexSet2[i] = Double.NaN;
+				// Testing if mappings are switched only if positive&negative mapping is complete
+				if (negativeStringAttr1!=null && negativeStringAttr2!=null && positiveStringAttr1!=null && positiveStringAttr2!=null) {
+					// Do we have unequal strings for the binominal mapping? ... 
+					if ( !(negativeStringAttr1.equals(negativeStringAttr2) && positiveStringAttr1.equals(positiveStringAttr2)) ) {
+						// ... if not, are the strings switched?
+						if(negativeStringAttr1.equals(positiveStringAttr2) && negativeStringAttr2.equals(positiveStringAttr1)) {
+							// ... if yes we will remap the false value of the second attribute to the false value of the first attribute
+							falseIndexSet2[i] = attribute2.getMapping().getPositiveIndex();
+						} else {
+							// ... otherwise we will threat them as polynominal
+							binominal[i] = false;
+							createCommonMapping(attribute1, attribute2, i);
+							falseIndexSet1[i] = Double.NaN;
+							falseIndexSet2[i] = Double.NaN;
+						}
 					}
 				}
 			} else {

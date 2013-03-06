@@ -25,6 +25,7 @@ package com.rapidminer.operator.preprocessing.filter;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -126,8 +127,8 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 		if (attribute == null) {
 			throw new UserError(this, 111, oldName);
 		} 
-		Attribute newAttribute = exampleSet.getAttributes().get(newName);
-		if (newAttribute != null) {
+		AttributeRole existingAttributeRole = exampleSet.getAttributes().findRoleByName(newName);
+		if (existingAttributeRole != null) {
 			throw new UserError(this, 152, newName);
 		}
 
