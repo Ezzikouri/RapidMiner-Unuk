@@ -57,7 +57,6 @@ import com.rapidminer.RapidMiner;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.actions.OpenAction;
 import com.rapidminer.gui.autosave.AutoSave;
-import com.rapidminer.gui.dialog.ResultHistory;
 import com.rapidminer.gui.docking.RapidDockableContainerFactory;
 import com.rapidminer.gui.look.RapidLookAndFeel;
 import com.rapidminer.gui.look.fc.BookmarkIO;
@@ -200,8 +199,6 @@ public class RapidMinerGUI extends RapidMiner {
 	private static MainFrame mainFrame;
 
 	private static LinkedList<ProcessLocation> recentFiles = new LinkedList<ProcessLocation>();
-
-	private static ResultHistory resultHistory = new ResultHistory();
 
 	private static SafeMode safeMode;
 
@@ -359,10 +356,6 @@ public class RapidMinerGUI extends RapidMiner {
 			}
 			saveRecentFileList();
 		}
-	}
-
-	public static ResultHistory getResultHistory() {
-		return resultHistory;
 	}
 
 	public static List<ProcessLocation> getRecentFiles() {

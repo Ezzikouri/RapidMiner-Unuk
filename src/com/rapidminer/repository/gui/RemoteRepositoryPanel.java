@@ -54,7 +54,9 @@ import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.I18N;
 
@@ -227,7 +229,7 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 	}
 
 	@Override
-	public void makeRepository() {
+	public void makeRepository() throws RepositoryException {
 		final URL url;
 		try {
 			url = new URL(urlField.getText());
@@ -240,6 +242,13 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 			alias = url.toString();
 		}
 		final String finalAlias = alias;
+		
+		// make sure that it's not possible to create multiple repositories in the same location or with the same alias
+		for (Repository repo : RepositoryManager.getInstance(null).getRepositories()) {
+			if (repo.getName().equals(alias)) {
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_alias"));
+			}
+		}
 
 		ProgressThread pt = new ProgressThread("add_repository") {
 

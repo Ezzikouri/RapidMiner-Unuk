@@ -31,6 +31,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
+import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
@@ -73,11 +74,24 @@ public class StoreProcessAction extends AbstractRepositoryAction<Entry> {
 				return;
 			}
 			try {
+				// check if folder already contains entry with said name
+				RepositoryLocation entryLocation = new RepositoryLocation(folder.getLocation(), name);
 				if (folder.containsEntry(name)) {
-					SwingTools.showVerySimpleErrorMessage("repository_entry_already_exists", name);
-					return;
+					Entry existingEntry = entryLocation.locateEntry();
+					if (!(existingEntry instanceof ProcessEntry)) {
+						// existing entry is not a ProcessEntry, cannot overwrite
+						SwingTools.showVerySimpleErrorMessage("repository_entry_already_exists", name);
+						return;
+					} else {
+						// existing entry is ProcessEntry,let #overwriteProcess() handle it
+						overwriteProcess((ProcessEntry) existingEntry);
+						return;
+					}
 				}
 			} catch (RepositoryException e1) {
+				SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e1, name);
+				return;
+			} catch (MalformedRepositoryLocationException e1) {
 				SwingTools.showSimpleErrorMessage("cannot_store_process_in_repository", e1, name);
 				return;
 			}

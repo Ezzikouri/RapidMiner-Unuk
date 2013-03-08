@@ -22,10 +22,13 @@
  */
 package com.rapidminer.repository.gui.actions;
 
+import javax.swing.SwingUtilities;
+
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.RepositoryException;
+import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryTree;
 
 /**
@@ -50,6 +53,15 @@ public class CreateFolderAction extends AbstractRepositoryAction<Folder> {
 				if (name != null) {
 					try {
 						folder.createFolder(name);
+						final RepositoryLocation location = new RepositoryLocation(folder.getLocation(), name);
+						SwingUtilities.invokeLater(new Runnable() {
+
+							@Override
+							public void run() {
+								tree.expandAndSelectIfExists(location);
+							}
+							
+						});
 					} catch (RepositoryException e) {
 						SwingTools.showSimpleErrorMessage("cannot_create_folder_with_reason", e, name, e.getMessage());
 					} catch (Exception e) {

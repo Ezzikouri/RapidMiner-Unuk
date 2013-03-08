@@ -186,21 +186,23 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 
 	@Override
 	public void makeRepository() throws RepositoryException {
-		File file = new File(fileField.getText());
+		File file = new File(fileField.getText().trim());
 		file.mkdir();
+		String alias = aliasField.getText().trim();
+		if (alias.length() == 0) {
+			alias = file.getName();
+		}
 		
-		// make sure that it's not possible to create multiple repositories in the same location
+		// make sure that it's not possible to create multiple repositories in the same location or with the same alias
 		for (Repository repo : RepositoryManager.getInstance(null).getRepositories()) {
 			if (repo instanceof LocalRepository) {
 				if (((LocalRepository)repo).getRoot().equals(file)) {
 					throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_location"));
 				}
 			}
-		}
-		
-		String alias = aliasField.getText().trim();
-		if (alias.length() == 0) {
-			alias = file.getName();
+			if (repo.getName().equals(alias)) {
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_alias"));
+			}
 		}
 		
 		RepositoryManager.getInstance(null).addRepository(new LocalRepository(alias, file));		

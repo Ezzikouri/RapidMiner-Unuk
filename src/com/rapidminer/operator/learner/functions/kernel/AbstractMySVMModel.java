@@ -31,6 +31,7 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.learner.FormulaProvider;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExample;
+import com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExamples;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.examples.SVMExamples.MeanVariance;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.Kernel;
 import com.rapidminer.operator.learner.functions.kernel.jmysvm.kernel.KernelDot;
@@ -269,5 +270,13 @@ public abstract class AbstractMySVMModel extends KernelModel implements FormulaP
 		}
 		
 		return result.toString();
+	}
+	
+	/** Need to synchronized since {@link SVMExamples#get_example(int)} is not thread safe. (That method always returns
+	 *  the same instance.)
+	 */
+	@Override
+	public synchronized String toString() {
+		return super.toString();
 	}
 }

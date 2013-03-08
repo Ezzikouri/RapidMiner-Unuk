@@ -187,7 +187,7 @@ public class TableHeaderUI extends BasicTableHeaderUI {
 
 			this.rollOver = (column == TableHeaderUI.this.highlightedColumn);
 
-			if (TableHeaderUI.this.header.getDraggedColumn() != null) {
+			if (TableHeaderUI.this.header != null && TableHeaderUI.this.header.getDraggedColumn() != null) {
 				this.isPressed = (viewIndexForColumn(TableHeaderUI.this.header.getDraggedColumn()) == column) || (column == TableHeaderUI.this.pressedColumn);
 			} else {
 				this.isPressed = false;

@@ -165,6 +165,8 @@ public class FileList extends JPanel implements PropertyChangeListener {
 	protected Item lastSelected;
 
 	protected JPopupMenu panePopup;
+	
+	private JCheckBoxMenuItem showHiddenMenuItem;
 
 	private FileList.MenuListener mal;
 
@@ -195,6 +197,17 @@ public class FileList extends JPanel implements PropertyChangeListener {
 	protected String ORDER_BY = ORDER_BY_FILE_NAME;
 
 	private JCheckBoxMenuItem autoArrangeCheckBox;
+	
+	private transient final Action SHOW_HIDDEN_ACTION = new ResourceAction("file_chooser.show_hidden") {
+		private static final long serialVersionUID = 2591227051998175245L;
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			boolean showHidden = FileList.this.fc.isFileHidingEnabled();
+			FileList.this.showHiddenMenuItem.setSelected(showHidden);
+			FileList.this.fc.setFileHidingEnabled(!showHidden);
+		}
+	};
 	
 	private transient final Action REFRESH_ACTION = new ResourceAction("file_chooser.refresh") {
 		private static final long serialVersionUID = 2591227051998175245L;
@@ -793,6 +806,10 @@ public class FileList extends JPanel implements PropertyChangeListener {
 		this.panePopup.add(this.menuItem);
 
 		this.panePopup.addSeparator();
+		
+		this.showHiddenMenuItem = new JCheckBoxMenuItem(SHOW_HIDDEN_ACTION);
+		this.showHiddenMenuItem.setSelected(!this.fc.isFileHidingEnabled());
+		this.panePopup.add(this.showHiddenMenuItem);
 
 		this.menuItem = new JMenuItem(REFRESH_ACTION);
 		this.panePopup.add(this.menuItem);

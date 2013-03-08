@@ -334,6 +334,8 @@ public class SVMExamples implements Serializable {
 	/**
 	 * Gets an example.
 	 * 
+	 * This method is not thread safe. It always returns the same instance.
+	 * 
 	 * @param pos
 	 *            Number of example
 	 * @return Array of example attributes in their default order

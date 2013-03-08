@@ -1085,9 +1085,6 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		if (process.equals(MainFrame.this.process)) {
 			if (results != null) {
 				resultDisplay.showData(results, "Process results");
-				ProcessLocation location = MainFrame.this.process.getProcessLocation();
-				String resultName = location != null ? location.getShortName() : "unnamed";
-				RapidMinerGUI.getResultHistory().addResults(resultName, MainFrame.this.process.getRootOperator(), results);
 			}
 		}
 	}

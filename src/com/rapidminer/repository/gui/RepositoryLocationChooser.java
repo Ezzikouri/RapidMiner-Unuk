@@ -169,7 +169,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	
 	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, boolean allowEntries, 
 	                                 boolean allowFolders, boolean enforceValidRepositoryEntryName) {
-		this(owner, resolveRelativeTo, initialValue, allowEntries, allowFolders, enforceValidRepositoryEntryName,false);
+		this(owner, resolveRelativeTo, initialValue, allowEntries, allowFolders, enforceValidRepositoryEntryName, false);
 	}
 
 	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries,
@@ -450,11 +450,11 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	}
 	
 	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder, final boolean forceDisableRelativeResolve, final boolean enforceValidRepositoryEntryName) {
-		return selectLocation(resolveRelativeTo, initialValue, c, selectEntries, selectFolder, forceDisableRelativeResolve, enforceValidRepositoryEntryName,false);
+		return selectLocation(resolveRelativeTo, initialValue, c, selectEntries, selectFolder, forceDisableRelativeResolve, enforceValidRepositoryEntryName, false);
 	}
 
 	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder, final boolean forceDisableRelativeResolve, final boolean enforceValidRepositoryEntryName, final boolean onlyWriteableRepositories) {
-		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue, selectEntries, selectFolder,onlyWriteableRepositories);
+		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue, selectEntries, selectFolder, onlyWriteableRepositories);
 		if (forceDisableRelativeResolve) {
 			dialog.chooser.setResolveRelative(false);
 			if (dialog.chooser.resolveBox != null) {
@@ -556,6 +556,12 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	
 	@Override
 	public boolean requestFocusInWindow() {
-		return locationFieldRepositoryEntry.requestFocusInWindow();
+		// this bit allows for easy name entering when the dialog is used for saving
+		// instantly allows typing text and pressing Enter afterwards
+		if (locationFieldRepositoryEntry.isVisible()) {
+			return locationFieldRepositoryEntry.requestFocusInWindow();
+		} else {
+			return super.requestFocusInWindow();
+		}
 	}
 }
