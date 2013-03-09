@@ -88,7 +88,7 @@ public abstract class AbstractNominalSimilarity extends SimilarityMeasure {
 				Map<Double, Double> indexMapping2 = indexMappingSet2.get(i);
 				
 				// Check if common mapping was created. If not the values have unequal values.
-				if (!indexMapping1.containsKey(value1[i])) {
+				if (!indexMapping1.containsKey(value1[i]) || !indexMapping2.containsKey(value2[i])) {
 					unequalValues++;
 				} else {
 					double commonValue1 = indexMapping1.get(value1[i]);

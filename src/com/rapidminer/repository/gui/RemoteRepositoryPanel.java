@@ -31,6 +31,7 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -243,12 +244,7 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		}
 		final String finalAlias = alias;
 		
-		// make sure that it's not possible to create multiple repositories in the same location or with the same alias
-		for (Repository repo : RepositoryManager.getInstance(null).getRepositories()) {
-			if (repo.getName().equals(alias)) {
-				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_alias"));
-			}
-		}
+		checkConfiguration(alias);
 
 		ProgressThread pt = new ProgressThread("add_repository") {
 
@@ -305,8 +301,22 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 
 		String userName = userField.getText();
 		char[] password = passwordField.getPassword();
+		
+		String alias = aliasField.getText();
+		try {
+			// only check if Alias is different
+			if (((RemoteRepository) repository).getAlias().equals(alias)) {
+				alias = null;
+			}
+			checkConfiguration(alias);
+		} catch (RepositoryException e) {
+			SwingTools.showSimpleErrorMessage("cannot_configure_repository", e);
+			return false;
+		}
 
-		((RemoteRepository) repository).rename(aliasField.getText());
+		if (alias != null) {
+			((RemoteRepository) repository).rename(alias);
+		}
 		((RemoteRepository) repository).setBaseUrl(url);
 		((RemoteRepository) repository).setUsername(userName);
 		((RemoteRepository) repository).setPassword(password);
@@ -346,6 +356,20 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		checkLabel.setBackground(color);
 		checkLabel.setForeground(color);
 
+	}
+	
+	/**
+	 * Throws a {@link RepositoryException} if the given alias is invalid.
+	 * @param alias
+	 * @throws RepositoryException
+	 */
+	private void checkConfiguration(String alias) throws RepositoryException {
+		// make sure that it's not possible to create multiple repositories in the same location or with the same alias
+		for (Repository repo : RepositoryManager.getInstance(null).getRepositories()) {
+			if (repo.getName().equals(alias)) {
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_alias"));
+			}
+		}
 	}
 
 }

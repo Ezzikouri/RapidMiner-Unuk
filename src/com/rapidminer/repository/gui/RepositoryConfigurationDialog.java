@@ -62,7 +62,9 @@ public class RepositoryConfigurationDialog extends ButtonDialog {
 
 	@Override
 	protected void ok() {
-		configurationPanel.configure(repository);
+		if (!configurationPanel.configure(repository)) {
+			return;
+		}
 		try {
 			repository.refresh();
 			super.ok();

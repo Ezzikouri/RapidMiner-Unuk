@@ -193,17 +193,7 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 			alias = file.getName();
 		}
 		
-		// make sure that it's not possible to create multiple repositories in the same location or with the same alias
-		for (Repository repo : RepositoryManager.getInstance(null).getRepositories()) {
-			if (repo instanceof LocalRepository) {
-				if (((LocalRepository)repo).getRoot().equals(file)) {
-					throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_location"));
-				}
-			}
-			if (repo.getName().equals(alias)) {
-				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_alias"));
-			}
-		}
+		checkConfiguration(file, alias);
 		
 		RepositoryManager.getInstance(null).addRepository(new LocalRepository(alias, file));		
 	}
@@ -216,8 +206,27 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 
 	@Override
 	public boolean configure(Repository repository) {
-		((LocalRepository) repository).setRoot(new File(fileField.getText()));
-		((LocalRepository) repository).rename(aliasField.getText());
+		File file = new File(fileField.getText());
+		String alias = aliasField.getText();
+		try {
+			// in case only the alias has changed the file stays the same
+			if (((LocalRepository) repository).getFile().equals(file)) {
+				file = null;
+			}
+			if (((LocalRepository) repository).getName().equals(alias)) {
+				alias = null;
+			}
+			checkConfiguration(file, alias);
+		} catch (RepositoryException e) {
+			SwingTools.showSimpleErrorMessage("cannot_create_repository", e);
+			return false;
+		}
+		if (file != null) {
+			((LocalRepository) repository).setRoot(file);
+		}
+		if (alias != null) {
+			((LocalRepository) repository).rename(alias);
+		}
 		return true;
 	}
 
@@ -299,5 +308,25 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 	@Override
 	public List<AbstractButton> getAdditionalButtons() {
 		return new LinkedList<AbstractButton>();
+	}
+	
+	/**
+	 * Throws a {@link RepositoryException} if the given configuration is invalid.
+	 * @param file
+	 * @param alias
+	 * @throws RepositoryException
+	 */
+	private void checkConfiguration(File file, String alias) throws RepositoryException {
+		// make sure that it's not possible to create multiple repositories in the same location or with the same alias
+		for (Repository repo : RepositoryManager.getInstance(null).getRepositories()) {
+			if (repo instanceof LocalRepository) {
+				if (((LocalRepository)repo).getRoot().equals(file)) {
+					throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_location"));
+				}
+			}
+			if (repo.getName().equals(alias)) {
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_alias"));
+			}
+		}
 	}
 }

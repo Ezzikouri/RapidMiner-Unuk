@@ -77,6 +77,7 @@ import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryActionCondition;
 import com.rapidminer.repository.RepositoryActionConditionImplConfigRepository;
 import com.rapidminer.repository.RepositoryActionConditionImplStandard;
+import com.rapidminer.repository.RepositoryActionConditionImplStandardNoRepository;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
@@ -380,7 +381,7 @@ public class RepositoryTree extends JTree {
 		addRepositoryAction(RunRemoteNowProcessAction.class, new RepositoryActionConditionImplStandard(new Class<?>[] { RemoteProcessEntry.class }, new Class<?>[] {}), false, true);
 		addRepositoryAction(OpenEntryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[] { DataEntry.class }, new Class<?>[] {}), false, false);
 		addRepositoryAction(StoreProcessAction.class, new RepositoryActionConditionImplStandard(new Class<?>[] { ProcessEntry.class, Folder.class }, new Class<?>[] {}), false, false);
-		addRepositoryAction(RenameRepositoryEntryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[] { Entry.class }, new Class<?>[] {}), false, false);
+		addRepositoryAction(RenameRepositoryEntryAction.class, new RepositoryActionConditionImplStandardNoRepository(new Class<?>[] { Entry.class }, new Class<?>[] {}), false, false);
 		addRepositoryAction(CreateFolderAction.class, new RepositoryActionConditionImplStandard(new Class<?>[] { Folder.class }, new Class<?>[] {}), false, false);
 		addRepositoryAction(CopyEntryRepositoryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[] {}, new Class<?>[] {}), true, false);
 		addRepositoryAction(PasteEntryRepositoryAction.class, new RepositoryActionConditionImplStandard(new Class<?>[] {}, new Class<?>[] {}), false, false);

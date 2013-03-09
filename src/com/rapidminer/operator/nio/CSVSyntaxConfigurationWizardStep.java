@@ -28,6 +28,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
@@ -237,6 +239,21 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 		regexEvalButton.setAction(evalRegexAction);
 		regexEvalButton.setEnabled(false);
 		regexTextField.setEnabled(false);
+		regexTextField.addFocusListener(new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (!e.isTemporary()) {
+					configuration.setColumnSeparators(getSplitExpression());
+					settingsChanged();
+				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				// nothing to do
+			}
+		});
 		regexPanel.add(regexEvalButton, gbc);
 		
 		JPanel separationPanel = new JPanel(ButtonDialog.createGridLayout(5, 2));

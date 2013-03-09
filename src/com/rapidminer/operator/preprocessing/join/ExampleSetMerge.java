@@ -191,6 +191,7 @@ public class ExampleSetMerge extends Operator {
             	values.addAll(oldAttribute.getMapping().getValues());
             	boolean hasNominal = false;
             	boolean hasPolynominal = false;
+            	boolean hasSameValueType = true;
             	for (ExampleSet otherExampleSet : allExampleSets) {
                     Attribute otherAttribute = otherExampleSet.getAttributes().get(oldAttribute.getName());
                     // At least one non-nominal -> throw
@@ -198,10 +199,14 @@ public class ExampleSetMerge extends Operator {
                     	throwIncompatible(oldAttribute, otherAttribute);
                     }
                     values.addAll(otherAttribute.getMapping().getValues());
+                    hasSameValueType &= (otherAttribute.getValueType() == oldAttribute.getValueType());
                     hasNominal |= (otherAttribute.getValueType() == Ontology.NOMINAL);
                     hasPolynominal |= Ontology.ATTRIBUTE_VALUE_TYPE.isA(otherAttribute.getValueType(), Ontology.POLYNOMINAL);
                 }
-                if (hasNominal) {
+            	// binominals with more than 2 values cannot keep their value type, else try to preserve value type is all have the same
+            	if (hasSameValueType && (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.BINOMINAL) || values.size() <= 2)) {
+            		newType = oldAttribute.getValueType();
+            	} else if (hasNominal) {
                 	newType = Ontology.NOMINAL;
                 } else if (hasPolynominal || values.size() > 2) {
                 	newType = Ontology.POLYNOMINAL;
@@ -211,28 +216,44 @@ public class ExampleSetMerge extends Operator {
             } else if (oldAttribute.isNumerical()) {
             	boolean hasReal = false;
             	boolean hasNumerical = false;
+            	boolean hasSameValueType = true;
             	for (ExampleSet otherExampleSet : allExampleSets) {
                     Attribute otherAttribute = otherExampleSet.getAttributes().get(oldAttribute.getName());
                     // At least one non-numerical -> throw
                     if (!otherAttribute.isNumerical()) {
                     	throwIncompatible(oldAttribute, otherAttribute);
                     }
+                    hasSameValueType &= (otherAttribute.getValueType() == oldAttribute.getValueType());
                     hasNumerical |= (otherAttribute.getValueType() == Ontology.NUMERICAL);
                     hasReal |= Ontology.ATTRIBUTE_VALUE_TYPE.isA(otherAttribute.getValueType(), Ontology.REAL);
                 }
-                if (hasNumerical) {
+            	if (hasSameValueType) {
+            		newType = oldAttribute.getValueType();
+            	} else if (hasNumerical) {
                 	newType = Ontology.NUMERICAL;
                 } else if (hasReal) {
                 	newType = Ontology.REAL;
                 } else {
                 	newType = oldAttribute.getValueType();
                 }
-            } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.DATE)) {
+            } else if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.DATE) ||
+            		(Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.TIME) ||
+            		(Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.DATE_TIME)))) {
+            	// this case covers the date, time, date_time valueType
+            	// if all attribute valueTypes are the same keep it, otherwise switch to date_time as the parent valueType
             	newType = oldAttribute.getValueType();
             	for (ExampleSet otherExampleSet : allExampleSets) {
                     Attribute otherAttribute = otherExampleSet.getAttributes().get(oldAttribute.getName());
+                    // not the same type but all 
                     if (otherAttribute.getValueType() != newType) {
-                    	newType = Ontology.DATE;
+                    	if (((Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.DATE) ||
+                    		(Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.TIME) ||
+                    		(Ontology.ATTRIBUTE_VALUE_TYPE.isA(oldAttribute.getValueType(), Ontology.DATE_TIME)))))) {
+                    		newType = Ontology.DATE_TIME;
+                    	} else {
+                    		// totally different valueType, cannot merge -> throw
+                    		throwIncompatible(oldAttribute, otherAttribute);
+                    	}
                     }
             	}
             } else {
