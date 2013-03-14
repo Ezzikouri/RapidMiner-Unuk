@@ -23,14 +23,16 @@
 package com.rapidminer.gui.look;
 
 import java.awt.Color;
+import java.util.Hashtable;
 
 import javax.swing.JTextField;
 import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 import javax.swing.plaf.BorderUIResource.LineBorderUIResource;
 import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.InsetsUIResource;
-import javax.swing.plaf.metal.MetalLookAndFeel;
+import javax.swing.plaf.basic.BasicLookAndFeel;
 import javax.swing.text.DefaultEditorKit;
 
 import com.rapidminer.gui.look.borders.Borders;
@@ -42,7 +44,7 @@ import com.rapidminer.gui.tools.SwingTools;
  *
  * @author Ingo Mierswa
  */
-public class RapidLookAndFeel extends MetalLookAndFeel {
+public class RapidLookAndFeel extends BasicLookAndFeel {
 
 	private static final long serialVersionUID = 1616331528047010458L;
 	
@@ -71,11 +73,24 @@ public class RapidLookAndFeel extends MetalLookAndFeel {
 	@Override
 	public UIDefaults getDefaults() {
 		getColors();
+		
 		UIDefaults table = new UIDefaults();
+		// copy existing default values over
+		// enables AntiAliasing if AntiAliasing is enabled in the OS
+		// EXCEPT for key "Menu.opaque" which will glitch out JMenues
+		UIDefaults lookAndFeelDefaults = UIManager.getLookAndFeelDefaults();
+		Hashtable copy = new Hashtable(lookAndFeelDefaults);
+		for (Object key : copy.keySet()) {
+			if (!String.valueOf(key).equals("Menu.opaque")) {
+				table.put(key, lookAndFeelDefaults.get(key));
+			}
+		}
+		
 		initClassDefaults(table);
 		initSystemColorDefaults(table);
 		initComponentDefaults(table);
 		COLORS.addCustomEntriesToTable(table);
+		
 		return table;
 	}
 
@@ -847,7 +862,7 @@ public class RapidLookAndFeel extends MetalLookAndFeel {
 		return new FontUIResource("Dialog", 0, 12);
 	}
 
-//	public ColorUIResource getTextHighlightColor() {
-//		return getColors().getTextHighlightBackColor();
-//	}
+	public ColorUIResource getTextHighlightColor() {
+		return getColors().getTextHighlightBackColor();
+	}
 }

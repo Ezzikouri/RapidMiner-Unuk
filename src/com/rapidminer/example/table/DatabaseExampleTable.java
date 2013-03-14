@@ -80,7 +80,7 @@ public class DatabaseExampleTable extends AbstractExampleTable {
     		statement.close();
     		statement = null;
     	}
-    	this.statement = this.databaseHandler.createStatement(true);
+		this.statement = this.databaseHandler.createStatement(true, true);
         this.resultSet = this.statement.executeQuery(databaseHandler.getStatementCreator().makeSelectAllStatement(tableName));
 //        		"SELECT * FROM " + 
 //        		databaseHandler.getProperties().getIdentifierQuoteOpen() + 

@@ -212,7 +212,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 				" INT NOT NULL AUTO_INCREMENT PRIMARY KEY";
 			
 			try {
-				Statement statement = databaseHandler.createStatement(true);
+			Statement statement = databaseHandler.createStatement(true, true);
 				try {
 					statement.execute(addKeyQuery);					
 				}
@@ -226,7 +226,7 @@ public class IndexCachedDatabaseExampleTable extends AbstractExampleTable {
 						" ADD " + databaseHandler.getStatementCreator().makeIdentifier(INDEX_COLUMN_NAME)+ 
 						" INT NOT NULL IDENTITY(1,1) PRIMARY KEY";
 				
-				Statement statement = databaseHandler.createStatement(true);
+			Statement statement = databaseHandler.createStatement(true, true);
 				try {
 					statement.execute(addKeyQuery);					
 				}
