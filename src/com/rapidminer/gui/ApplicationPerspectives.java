@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
@@ -91,6 +92,8 @@ public abstract class ApplicationPerspectives {
     private final Map<String,Perspective> perspectives = new LinkedHashMap<String,Perspective>();
 
     private RapidDockingToolbar workspaceToolBar;
+    
+    private LinkedList<PerspectiveChangeListener> perspectiveChangeListenerList;
 
     public ApplicationPerspectives(DockingContext context) {
         this.context = context;
@@ -147,6 +150,7 @@ public abstract class ApplicationPerspectives {
         		mainFrame.getResultDisplay().getDockKey().setCloseEnabled(true);
         	}*/
         }
+        this.notifyChangeListener();
     }
 
     public JMenu getWorkspaceMenu() {
@@ -407,4 +411,28 @@ public abstract class ApplicationPerspectives {
             throw new NoSuchElementException("No such perspective: "+name);
         }
     }
+    
+    public void addPerspectiveChangeListener(PerspectiveChangeListener listener) {
+    	if(perspectiveChangeListenerList == null) {
+    		perspectiveChangeListenerList = new LinkedList<PerspectiveChangeListener>();
+    	}
+    	perspectiveChangeListenerList.add(listener);
+    }
+    
+    public boolean removePerspectiveChangeListener(PerspectiveChangeListener listener) {
+    	if(perspectiveChangeListenerList == null) {
+    		return false;
+    	}
+    	return perspectiveChangeListenerList.remove(listener);
+    }
+    
+    public void notifyChangeListener() {
+    	if(perspectiveChangeListenerList != null) {
+    		LinkedList<PerspectiveChangeListener> list = (LinkedList<PerspectiveChangeListener>) perspectiveChangeListenerList.clone();
+    		for(PerspectiveChangeListener listener : list) {
+    			listener.perspectiveChangedTo(current);
+    		}
+    	}
+    }
+    
 }

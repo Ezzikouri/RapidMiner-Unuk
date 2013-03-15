@@ -20,28 +20,21 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.gui.actions;
+package com.rapidminer.gui.tour;
 
-import java.awt.event.ActionEvent;
-
-import com.rapidminer.gui.tools.ResourceAction;
-import com.rapidminer.gui.tour.TourChooser;
 
 /**
- * Start the corresponding action.
  * 
- * @author Marco Boeck
+ * 
+ * @author Thilo Kamradt
+ *
  */
-public class TourAction extends ResourceAction {
+public interface TourPropertiesChangedListener {
 
-	private static final long serialVersionUID = 1L;
+	/** will be called if the TourState changes */
+	public void tourStateChanged(String tourKey, TourState newState);	
 	
+	/** will be called if the progress of a Tour changes */
+	public void tourProgressChanged(String tourKey, int nowProgress);
 	
-	public TourAction() {
-		super("tour");
-	}
-
-	public void actionPerformed(ActionEvent e) {
-		new TourChooser().setVisible(true);
-	}
 }

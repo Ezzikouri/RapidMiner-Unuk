@@ -117,7 +117,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
 import com.rapidminer.gui.tour.IntroductoryTour;
-import com.rapidminer.gui.tour.OpenSubprocessStep.ProcessRendererListener;
+import com.rapidminer.gui.tour.ProcessRendererListener;
 import com.rapidminer.io.process.ProcessXMLFilter;
 import com.rapidminer.io.process.ProcessXMLFilterRegistry;
 import com.rapidminer.operator.ExecutionUnit;
@@ -3248,7 +3248,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		return null;
 	}
 
-	Point toProcessSpace(Point p, int processIndex) {
+	public Point toProcessSpace(Point p, int processIndex) {
 		switch (ORIENTATION) {
 			case X_AXIS:
 				int xOffset = 0;
@@ -3457,6 +3457,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		if (overviewPanel != null) {
 			overviewPanel.repaint();
 		}
+		fireRepainted();
 	}
 
 	private void rename(final Operator op) {
@@ -3739,6 +3740,14 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		if (listenersTour != null && !listenersTour.isEmpty()) {
 			for (ProcessRendererListener listener : ((LinkedList<ProcessRendererListener>) listenersTour.clone())) {
 				listener.newChainShowed(displayedChain);
+			}
+		}
+	}
+	
+	private void fireRepainted() {
+		if (listenersTour != null && !listenersTour.isEmpty()) {
+			for (ProcessRendererListener listener : ((LinkedList<ProcessRendererListener>) listenersTour.clone())) {
+				listener.repainted();
 			}
 		}
 	}

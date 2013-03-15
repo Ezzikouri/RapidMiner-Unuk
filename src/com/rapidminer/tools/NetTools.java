@@ -41,9 +41,10 @@ import com.rapidminer.gui.tools.SwingTools;
 public class NetTools {
 	protected static final String ICON_PROTOCOLL = "icon";
 	protected static final String RESOURCE_PROTOCOLL = "resource";
-	
+	protected static final String DYNAMIC_ICON_PROTOCOL = "dynicon";
+
 	private static boolean initialized = false;
-	
+
 	public static void init() {
 		if (!initialized) {
 			URL.setURLStreamHandlerFactory(new URLStreamHandlerFactory() {
@@ -75,6 +76,8 @@ public class NetTools {
 								throw new IOException("Resource not found.");
 							}
 						};
+					} else if (DYNAMIC_ICON_PROTOCOL.equals(protocol)) {
+						return new DynamicIconUrlStreamHandler();
 					}
 					return null;
 				}

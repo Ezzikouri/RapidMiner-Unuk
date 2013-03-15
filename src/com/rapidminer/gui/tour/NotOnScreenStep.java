@@ -22,10 +22,10 @@
  */
 package com.rapidminer.gui.tour;
 
-import java.awt.Component;
 import java.awt.Window;
 
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.vlsolutions.swing.docking.DockableState;
@@ -60,8 +60,7 @@ public class NotOnScreenStep extends Step {
 	boolean createBubble() {
 		this.showMe = BubbleWindow.isDockableOnScreen(dockableKey) == -1;
 		if(showMe) {
-			bubble = new BubbleWindow(owner, null, Alignment.MIDDLE, i18nKey, (Component) null, this.getDockableNameByKey(dockableKey));
-			//TODO: test it
+			bubble = new BubbleToDockable(owner, Alignment.MIDDLE, i18nKey, null, this.getDockableNameByKey(dockableKey));
 			dockListener = new DockableStateChangeListener() {
 				
 				@Override

@@ -20,14 +20,15 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
-import java.awt.Component;
 import java.awt.Window;
 
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.flow.ProcessPanel;
-import com.rapidminer.gui.flow.ProcessRenderer;
+import com.rapidminer.gui.tools.components.BubbleToDockable;
+import com.rapidminer.gui.tools.components.BubbleToOperator;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.operator.OperatorChain;
@@ -40,52 +41,31 @@ import com.rapidminer.operator.OperatorChain;
  */
 
 public class OpenSubprocessStep extends Step {
-	
-	public interface ProcessRendererListener {
-
-		/** will be called when showOperatorChain(OperatorChain op) is called in {@link ProcessRenderer}.*/
-		public void newChainShowed(OperatorChain displayedChain);
-
-	}
 
 	private Alignment alignment;
-	private Window owner;
+	private Window owner = RapidMinerGUI.getMainFrame();
 	private String i18nKey;
-	private Component attachTo;
 	private String attachToKey = null;
 	private Class<? extends OperatorChain> operatorClass;
 	private ProcessRendererListener listener = null;
+	private BubbleTo element;
 	private String dockableKey = ProcessPanel.PROCESS_PANEL_DOCK_KEY;
 
 	/**
+	 * should be used to align to the operator which can be entered or the dockable
 	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
-	 * @param attachToKey i18nKey of the component to which the {@link BubbleWindow} should be placed relative to.
+	 * @param docKey i18nKey of the component to which the {@link BubbleWindow} should be placed relative to.
 	 * @param operator the class of the Operator which the user should enter.
 	 */
-	public OpenSubprocessStep(Alignment preferedAlignment, Window owner, String i18nKey, String attachToKey, Class<? extends OperatorChain> operator) {
+	public OpenSubprocessStep(BubbleTo element, Alignment preferedAlignment, String i18nKey, Class<? extends OperatorChain> operator) {
 		this.alignment = preferedAlignment;
-		this.owner = owner;
 		this.i18nKey = i18nKey;
-		this.attachToKey = attachToKey;
-		this.attachTo = null;
 		this.operatorClass = operator;
-	}
-
-	/**
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
-	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
-	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
-	 * @param attachTo component to which the {@link BubbleWindow} should be placed relative to.
-	 * @param operator the class of the Operator which the user should enter.
-	 */
-	public OpenSubprocessStep(Alignment preferedAlignment, Window owner, String i18nKey, Component attachTo, Class<? extends OperatorChain> operator) {
-		this.alignment = preferedAlignment;
-		this.owner = owner;
-		this.i18nKey = i18nKey;
-		this.attachTo = attachTo;
-		this.operatorClass = operator;
+		this.element = element;
+		if(element == BubbleTo.BUTTON)
+			throw new IllegalArgumentException("can not align to a button for entering a subprocess");
 	}
 
 	/**
@@ -94,33 +74,39 @@ public class OpenSubprocessStep extends Step {
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param attachTo component to which the {@link BubbleWindow} should be placed relative to.
 	 */
-	public OpenSubprocessStep(Alignment preferedAlignment, Window owner, String i18nKey, Component attachTo) {
-		this.alignment = preferedAlignment;
+	public OpenSubprocessStep(BubbleTo element, Alignment preferedAlignment, String i18nKey, Class<? extends OperatorChain> operator, Window owner) {
 		this.owner = owner;
+		this.alignment = preferedAlignment;
 		this.i18nKey = i18nKey;
-		this.attachTo = attachTo;
-		this.operatorClass = OperatorChain.class;
+		this.operatorClass = operator;
+		this.element = element;
+		if(element == BubbleTo.BUTTON)
+			throw new IllegalArgumentException("can not align to a button for entering a subprocess");
 	}
 
 	@Override
 	boolean createBubble() {
-		if (attachTo == null) {
-			if(attachToKey == null)
-				throw new IllegalArgumentException("Component attachTo and Buttenkey attachToKey are null. Please add any Component to attach to ");
-			bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, attachToKey, false, new Object[] {});
-		} else {
-			bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, attachTo);
+		switch(element) {
+			case DOCKABLE:
+				bubble = new BubbleToDockable(owner, alignment, i18nKey, attachToKey, new Object[] {});
+				break;
+			case OPERATOR:
+				bubble = new BubbleToOperator(owner, alignment, i18nKey, operatorClass, new Object[] {});
+				break;
 		}
-		
 		listener = new ProcessRendererListener() {
-			
+
 			@Override
 			public void newChainShowed(OperatorChain displayedChain) {
-				if (displayedChain != null && (displayedChain.getClass().equals(OpenSubprocessStep.this.operatorClass)
-						|| OpenSubprocessStep.this.operatorClass == null)) {
+				if (displayedChain != null && (OpenSubprocessStep.this.operatorClass == null || displayedChain.getClass().equals(OpenSubprocessStep.this.operatorClass))) {
 					bubble.triggerFire();
 					RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().removeProcessRendererListener(this);
 				}
+			}
+
+			@Override
+			public void repainted() {
+				//don't care about
 			}
 		};
 		RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().addProcessRendererListener(listener);
@@ -128,13 +114,13 @@ public class OpenSubprocessStep extends Step {
 	}
 
 	@Override
-	protected void stepCanceled () {
-		if(listener != null)
+	protected void stepCanceled() {
+		if (listener != null)
 			RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().removeProcessRendererListener(listener);
 	}
 
 	@Override
 	public Step[] getPreconditions() {
-		return new Step[] {new PerspectivesStep(1), new NotOnScreenStep(dockableKey)};
+		return new Step[] { new PerspectivesStep(1), new NotOnScreenStep(dockableKey) };
 	}
 }

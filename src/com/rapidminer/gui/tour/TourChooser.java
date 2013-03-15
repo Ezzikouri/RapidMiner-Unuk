@@ -20,22 +20,31 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tour;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 
+import com.rapidminer.gui.tools.ResourceActionAdapter;
+import com.rapidminer.gui.tools.components.DropDownButton;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
@@ -71,7 +80,7 @@ public class TourChooser extends ButtonDialog {
 		if (choosenTour != null) {
 			choosenTour.startTour();
 			super.ok();
-			
+
 		}
 
 	}
@@ -93,30 +102,30 @@ public class TourChooser extends ButtonDialog {
 			}
 		});
 		list.addMouseListener(new MouseListener() {
-			
+
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				
+
 			}
-			
+
 			@Override
 			public void mousePressed(MouseEvent e) {
-				
+
 			}
-			
+
 			@Override
 			public void mouseExited(MouseEvent e) {
-				
+
 			}
-			
+
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				
+
 			}
-			
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				if(e.getClickCount() == 2) {
+				if (e.getClickCount() == 2) {
 					IntroductoryTour choosenTour = (IntroductoryTour) list.getSelectedValue();
 					if (choosenTour != null) {
 						choosenTour.startTour();
@@ -136,7 +145,7 @@ public class TourChooser extends ButtonDialog {
 				renderer.setIcon(new ImageIcon(Tools.getResource("rapidminer_frame_icon_48.png"), ""));
 				String tourKey = ((IntroductoryTour) value).getKey();
 				String description = I18N.getMessage(I18N.getGUIBundle(), "gui.tour." + tourKey + ".description");
-				String relation = "<br> This Tour relates to: "+I18N.getMessage(I18N.getGUIBundle(), "gui.tour." + tourKey + ".relation");
+				String relation = "<br> This Tour relates to: " + I18N.getMessage(I18N.getGUIBundle(), "gui.tour." + tourKey + ".relation");
 				String statusValue = "<br>";
 				//make numbers
 				int current = tourManager.getProgress(tourKey);
@@ -154,13 +163,105 @@ public class TourChooser extends ButtonDialog {
 		});
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setSelectedIndex(0);
-		if(list.getModel().getSize()>3) {
-			//add JSrcollPane if necessary
-			JScrollPane scroll = new JScrollPane(list);
-			scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-			return scroll;
-		}
-		return list;
+		//add JSrcollPane if necessary
+		JScrollPane scroll = new JScrollPane(list);
+		scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		return scroll;
 	}
 
+	public static DropDownButton makeAchievmentDropDown() {
+//				final JPopupMenu menu = new JPopupMenu();
+		final DropDownButton dropDownToReturn = new DropDownButton(new ResourceActionAdapter(false, "achievements")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected JPopupMenu getPopupMenu() {
+				JPopupMenu menu = new JPopupMenu();
+				for (JMenuItem item : makeTourList()) {
+					menu.add(item);
+				}
+				
+				return menu;
+			}
+
+			private JMenuItem[] makeTourList() {
+				TourManager theManager = TourManager.getInstance();
+				String[] keys = theManager.getTourkeys();
+				JMenuItem[] toReturn = new JMenuItem[keys.length];
+				for (int i = 0; i < keys.length; i++) {
+					String relation = I18N.getMessage(I18N.getGUIBundle(), "gui.tour." + keys[i] + ".relation");
+					String description = I18N.getMessage(I18N.getGUIBundle(), "gui.tour." + keys[i] + ".dropDownText", keys[i]);
+					String iconName = I18N.getMessage(I18N.getGUIBundle(), "gui.tour." + keys[i] + ".icon");
+					String progressBar = this.makeProgressPart(keys[i], theManager);
+					String text = "<html><body><div style=\"width:200px\"><h3 style=\"padding-left:5px;color:black;\">" + relation + "</h3><p style=\"padding-left:5px;\">" + description + "</p>" + progressBar + "</div></body></html>";
+					Icon icon = new ImageIcon(Tools.getResource(iconName), "");
+					toReturn[i] = new JMenuItem(text, icon);
+					toReturn[i].setToolTipText("Click to start tour.");
+					//necessary to start the Tour effectively 
+					toReturn[i].setActionCommand(keys[i]);
+					toReturn[i].addActionListener(new ActionListener() {
+
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							// the action Command was set to the Tour-key by creating the the JMenuItems
+							TourManager.getInstance().startTour(e.getActionCommand());
+						}
+					});
+				}
+				return toReturn;
+			}
+
+			private String makeProgressPart(String Tourkey, TourManager theManager) {
+				int percent = theManager.getProgressInPercent(Tourkey);
+				String progressIcon = "<img  src=\"dynicon://progress/200/8/" + percent + "\"/>";
+				switch (percent) {
+					case 0:
+						return "<p style=\"padding-left:5px;\">" + I18N.getMessage(I18N.getGUIBundle(), "gui.tour.dropDown.not_started") + "</p>";
+					case 100:
+						return "<p style=\"padding-left:5px;\">" + progressIcon + "&#160;" + " <img src=\"" + Tools.getResource(I18N.getMessage(I18N.getGUIBundle(), "gui.tour.dropDown.icon")) + "\"/>" + "</p>";
+					default:
+						return "<p style=\"padding-left:5px;\">" + progressIcon + "&#160;" + percent + "%" + "</p>";
+				}
+			}
+		};
+		dropDownToReturn.setHorizontalTextPosition(SwingConstants.CENTER);
+		dropDownToReturn.addMouseListener(new MouseListener() {
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				dropDownToReturn.setText("");
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				TourManager theManager = TourManager.getInstance();
+				String[] keys = theManager.getTourkeys();
+				int complete = 0;
+				for (int i = 0; i < keys.length; i++) {
+					if (theManager.getTourState(keys[i]) == TourState.COMPLETED)
+						complete++;
+				}
+				complete = (complete * 100) / keys.length;
+				dropDownToReturn.setText("<html><h3 style=\"color=red;\"><b>" + complete + "%</b></h3></html>");
+			}
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				new TourChooser().setVisible(true);
+			}
+		});
+		return dropDownToReturn;
+	}
 }

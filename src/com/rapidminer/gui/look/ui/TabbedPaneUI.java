@@ -689,6 +689,8 @@ public class TabbedPaneUI extends BasicTabbedPaneUI {
 	
 	@Override
 	protected void paintText(Graphics g, int tabPlacement, Font font, FontMetrics metrics, int tabIndex, String title, Rectangle textRect, boolean isSelected) {
+		// otherwise the tabs text would not have AA for some reason even though the rest of the components has AA without this
+		((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		super.paintText(g, tabPlacement, font, metrics, tabIndex, title, textRect, isSelected);
 	}
 }

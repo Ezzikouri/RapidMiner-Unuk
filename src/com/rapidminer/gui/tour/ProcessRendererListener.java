@@ -20,28 +20,20 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.gui.actions;
+package com.rapidminer.gui.tour;
 
-import java.awt.event.ActionEvent;
-
-import com.rapidminer.gui.tools.ResourceAction;
-import com.rapidminer.gui.tour.TourChooser;
+import com.rapidminer.gui.flow.ProcessRenderer;
+import com.rapidminer.operator.OperatorChain;
 
 /**
- * Start the corresponding action.
- * 
- * @author Marco Boeck
+ * @author Thilo Kamradt
  */
-public class TourAction extends ResourceAction {
+public interface ProcessRendererListener {
 
-	private static final long serialVersionUID = 1L;
-	
-	
-	public TourAction() {
-		super("tour");
-	}
+		/** will be called when showOperatorChain(OperatorChain op) is called in {@link ProcessRenderer}.*/
+		public void newChainShowed(OperatorChain displayedChain);
 
-	public void actionPerformed(ActionEvent e) {
-		new TourChooser().setVisible(true);
-	}
+		/** will be called if the Renderer repaints */
+		public void repainted();
+			
 }

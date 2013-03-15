@@ -31,6 +31,7 @@ import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
+import javax.swing.JViewport;
 
 import com.rapidminer.Process;
 import com.rapidminer.gui.MainFrame;
@@ -64,6 +65,8 @@ public class ProcessPanel extends JPanel implements Dockable, ProcessEditor {
 
 	private OperatorChain operatorChain;
 	
+	private JScrollPane scrollPane;
+	
 	public ProcessPanel(final MainFrame mainFrame) {
 		processButtonBar = new ProcessButtonBar(mainFrame);
 		renderer = new ProcessRenderer(this, mainFrame);
@@ -96,7 +99,7 @@ public class ProcessPanel extends JPanel implements Dockable, ProcessEditor {
 		setLayout(new BorderLayout());
 		add(toolBar, BorderLayout.NORTH);
 		
-		JScrollPane scrollPane = new JScrollPane(renderer);
+		scrollPane = new JScrollPane(renderer);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(10);
 		scrollPane.setBorder(null);
 		add(scrollPane, BorderLayout.CENTER);
@@ -189,4 +192,7 @@ public class ProcessPanel extends JPanel implements Dockable, ProcessEditor {
 		return DOCK_KEY;
 	}
 
+	public JViewport getViewPort() {
+		return scrollPane.getViewport();
+	}
 }

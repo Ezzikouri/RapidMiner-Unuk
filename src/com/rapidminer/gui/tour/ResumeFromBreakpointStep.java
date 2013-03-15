@@ -28,6 +28,7 @@ import java.awt.Window;
 import com.rapidminer.BreakpointListener;
 import com.rapidminer.Process;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.operator.IOContainer;
@@ -48,14 +49,14 @@ public class ResumeFromBreakpointStep extends Step {
 
 	private String i18nKey;
 	private Alignment alignment;
-	private Window owner;
-	private Position position;
+	private Window owner = RapidMinerGUI.getMainFrame();
+	private AddBreakpointStep.Position position;
 	Class<? extends Operator> operatorClass;
-	private Component component;
-	private String attachToKey = null;
+	private String attachToKey = "run";
 	private BreakpointListener listener = null;
 
 	/**
+	 * will attach to the run button in the head menu
 	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
@@ -63,72 +64,45 @@ public class ResumeFromBreakpointStep extends Step {
 	 * @param position indicates to which position of a breakpoint the {@link Step} listens.
 	 * @param attachToKey i18nKey of the {@link Component} to which the {@link BubbleWindow} should point to.
 	 */
-	public ResumeFromBreakpointStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Position position, String attachToKey) {
-		this(preferredAlignment, owner, i18nKey, operatorClass, position, (Component) null);
-		this.attachToKey = attachToKey;
-	}
-	
-	/**
-	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
-	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
-	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
-	 * @param operatorClass Class or Superclass of the {@link Operator} which owns the breakpoint.
-	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
-	 */
-	public ResumeFromBreakpointStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Component attachTo) {
-		this(preferredAlignment, owner, i18nKey, operatorClass, Position.DONT_CARE, attachTo);
-	}
-	
-	/**
-	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
-	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
-	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
-	 * @param operatorClass Class or Superclass of the {@link Operator} which owns the breakpoint.
-	 * @param attachToKey i18nKey of the {@link Component} to which the {@link BubbleWindow} should point to.
-	 */
-	public ResumeFromBreakpointStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey) {
-		this(preferredAlignment, owner, i18nKey, operatorClass, Position.DONT_CARE, (Component) null);
-		this.attachToKey = attachToKey;
-	}
-	
-	/**
-	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
-	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
-	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
-	 * @param operatorClass Class or Superclass of the {@link Operator} which owns the breakpoint.
-	 * @param position indicates to which position of a breakpoint the {@link Step} listens.
-	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
-	 */
-	public ResumeFromBreakpointStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Position position, Component attachTo) {
+	public ResumeFromBreakpointStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, AddBreakpointStep.Position position) {
 		this.alignment = preferredAlignment;
-		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.operatorClass = operatorClass;
 		this.position = position;
-		this.component = attachTo;
+	}
+	
+	
+	/**
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or Superclass of the {@link Operator} which owns the breakpoint.
+	 * @param attachToKey i18nKey of the {@link Component} to which the {@link BubbleWindow} should point to.
+	 */
+	public ResumeFromBreakpointStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, AddBreakpointStep.Position position, Window owner) {
+		this.alignment = preferredAlignment;
+		this.i18nKey = i18nKey;
+		this.operatorClass = operatorClass;
+		this.position = position;
+		this.owner = owner;
+		
 	}
 
 	@Override
 	boolean createBubble() {
-		if (component == null) {
-			if (attachToKey == null)
-				throw new IllegalArgumentException("Buttonkey and Component is null. Please add any Component to attach");
-			bubble = new BubbleWindow(owner, null, alignment, i18nKey, attachToKey, false, new Object[] {});
-		} else {
-			bubble = new BubbleWindow(owner, null, alignment, i18nKey, component);
-		}
+		bubble = new BubbleToButton(owner, null, alignment, i18nKey, attachToKey, false, false, new Object[] {});
 		listener = new BreakpointListener() {
 
 			@Override
 			public void resume() {
 				if (operatorClass.isInstance(RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator())) {
-					if (position == Position.BEFORE && RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator().hasBreakpoint(BreakpointListener.BREAKPOINT_BEFORE)) {
+					if (position == AddBreakpointStep.Position.BEFORE && RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator().hasBreakpoint(BreakpointListener.BREAKPOINT_BEFORE)) {
 						bubble.triggerFire();
 						RapidMinerGUI.getMainFrame().getProcess().removeBreakpointListener(this);
-					} else if (position == Position.AFTER && RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator().hasBreakpoint(BreakpointListener.BREAKPOINT_AFTER)) {
+					} else if (position == AddBreakpointStep.Position.AFTER && RapidMinerGUI.getMainFrame().getProcess().getCurrentOperator().hasBreakpoint(BreakpointListener.BREAKPOINT_AFTER)) {
 						bubble.triggerFire();
 						RapidMinerGUI.getMainFrame().getProcess().removeBreakpointListener(this);
-					} else if (position == Position.DONT_CARE) {
+					} else if (position == AddBreakpointStep.Position.DONT_CARE) {
 						bubble.triggerFire();
 						RapidMinerGUI.getMainFrame().getProcess().removeBreakpointListener(this);
 					}
@@ -138,7 +112,7 @@ public class ResumeFromBreakpointStep extends Step {
 
 			@Override
 			public void breakpointReached(Process process, Operator op, IOContainer iocontainer, int location) {
-				if (operatorClass.isInstance(op) && ((location == 1 && position == Position.AFTER) || (location == 0 && position == Position.BEFORE) || (position == Position.DONT_CARE))) {
+				if (operatorClass.isInstance(op) && ((location == 1 && position == AddBreakpointStep.Position.AFTER) || (location == 0 && position == AddBreakpointStep.Position.BEFORE) || (position == AddBreakpointStep.Position.DONT_CARE))) {
 					bubble.setVisible(true);
 				}
 

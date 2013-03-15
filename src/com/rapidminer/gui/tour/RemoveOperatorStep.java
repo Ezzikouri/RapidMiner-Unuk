@@ -27,6 +27,10 @@ import java.awt.Window;
 
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.properties.OperatorPropertyPanel;
+import com.rapidminer.gui.tools.components.BubbleToButton;
+import com.rapidminer.gui.tools.components.BubbleToDockable;
+import com.rapidminer.gui.tools.components.BubbleToOperator;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.operator.ExecutionUnit;
@@ -41,11 +45,12 @@ import com.rapidminer.operator.Operator;
 public class RemoveOperatorStep extends Step {
 
 	private String i18nKey;
-	private Window owner;
+	private Window owner = RapidMinerGUI.getMainFrame();
 	private Class<? extends Operator> operatorClass;
 	private Alignment alignment;
-	private Component component;
-	private String buttonKey = null;
+	private BubbleTo element;
+	private String buttonKey = "delete";
+	private String dockableKey = OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY;
 	private ProcessSetupListener listener = null;
 
 	
@@ -56,34 +61,25 @@ public class RemoveOperatorStep extends Step {
 	 * @param operatorClass Class or SuperClass of the {@link Operator} which should be deleted.
 	 * @param componentKey key of the {@link Component} to which the {@link BubbleWindow} should point to. 
 	 */
-	public RemoveOperatorStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String componentKey) {
-		this(preferredAlignment, owner, i18nKey, operatorClass, (Component) null);
-		this.buttonKey = componentKey;
-	}
-	
-	/**
-	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
-	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
-	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
-	 * @param operatorClass Class or SuperClass of the {@link Operator} which should be deleted.
-	 * @param component {@link Component} to which the {@link BubbleWindow} should point to.
-	 */
-	public RemoveOperatorStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, Component component) {
+	public RemoveOperatorStep(BubbleTo element, Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass) {
 		this.i18nKey = i18nKey;
-		this.owner = owner;
 		this.alignment = preferredAlignment;
 		this.operatorClass = operatorClass;
-		this.component = component;
+		this.element = element;
 	}
-
+	
 	@Override
 	boolean createBubble() {
-		if (component == null) {
-			if (buttonKey == null)
-				throw new IllegalArgumentException("Component is null. Please add any Component to attach to ");
-			bubble = new BubbleWindow(owner, null, alignment, i18nKey, buttonKey);
-		} else {
-			bubble = new BubbleWindow(owner, null, alignment, i18nKey, component);
+		switch(element) {
+			case BUTTON:
+				bubble = new BubbleToButton(owner, dockableKey, alignment, i18nKey, buttonKey, false, new Object[] {});
+				break;
+			case DOCKABLE:
+				bubble = new BubbleToDockable(owner, alignment, i18nKey, dockableKey, new Object[] {});
+				break;
+			case OPERATOR:
+				bubble = new BubbleToOperator(owner, alignment, i18nKey, operatorClass, new Object[] {});
+				break;
 		}
 		listener = new ProcessSetupListener() {
 
@@ -98,19 +94,19 @@ public class RemoveOperatorStep extends Step {
 
 			@Override
 			public void operatorChanged(Operator operator) {
-				// TODO Auto-generated method stub
+				// do not care
 
 			}
 
 			@Override
 			public void operatorAdded(Operator operator) {
-				// TODO Auto-generated method stub
+				// do not care
 
 			}
 
 			@Override
 			public void executionOrderChanged(ExecutionUnit unit) {
-				// TODO Auto-generated method stub
+				// do not care
 
 			}
 		};

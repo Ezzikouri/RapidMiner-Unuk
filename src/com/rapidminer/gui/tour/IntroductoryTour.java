@@ -145,7 +145,7 @@ public abstract class IntroductoryTour {
 				if(i > 0)
 					step[i-1].setNext(conditionsCurrent[0]);
 				for (int j = 0; j < conditionsCurrent.length; j++) {
-					conditionsCurrent[j].makeSettings(tourKey, i + 1, false, listeners);
+					conditionsCurrent[j].makeSettings(tourKey, i + 1, this.getSize(), false, listeners);
 					if(j == (conditionsCurrent.length -1)) {
 						conditionsCurrent[j].setNext(step[i]);
 					} else {
@@ -155,16 +155,16 @@ public abstract class IntroductoryTour {
 			}
 			// add the current Step to the queue and set the next step
 			if(i <= (step.length - 2)) {
-				step[i].makeSettings(tourKey, i + 1, false, listeners);
+				step[i].makeSettings(tourKey, i + 1, this.getSize(), false, listeners);
 				conditionsNext = step[i +1].getPreconditions();
 				step[i].setNext(conditionsNext.length == 0 ? step[i +1] : conditionsNext[0]);
 			} else {
 				if(completeWindow){
-					step[i].makeSettings(tourKey, i + 1, false, listeners);
+					step[i].makeSettings(tourKey, i + 1, this.getSize(), false, listeners);
 					step[i].setNext(new FinalStep(tourKey));
-					step[i].getNext().makeSettings(tourKey, maxSteps, true, listeners);
+					step[i].getNext().makeSettings(tourKey, maxSteps, this.getSize(), true, listeners);
 				} else {
-					step[i].makeSettings(tourKey, maxSteps, true, listeners);
+					step[i].makeSettings(tourKey, maxSteps, this.getSize(), true, listeners);
 				}
 			}
 		}

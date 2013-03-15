@@ -30,8 +30,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.logging.Level;
 
 import com.rapidminer.tools.FileSystemService;
+import com.rapidminer.tools.LogService;
 
 /**
  * This Class manages whether a Tour is new, started or finishid. Also it remembers the 
@@ -51,6 +53,7 @@ public class TourManager {
 	private HashMap<String, Class<? extends IntroductoryTour>> tours;
 
 	private ArrayList<String> indexList;
+	
 
 	private TourManager() {
 		load();
@@ -58,8 +61,6 @@ public class TourManager {
 		indexList = new ArrayList<String>();
 		tours.put("RapidMiner", RapidMinerTour.class);
 		indexList.add("RapidMiner");
-		this.registerTour("RM1", RapidMinerTour.class);
-		this.registerTour("RM2", RapidMinerTour.class);
 	}
 
 	/**
@@ -80,24 +81,23 @@ public class TourManager {
 			file.createNewFile();
 			properties.load(new FileInputStream(file));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "tour_not_loaded");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "tour_not_loaded");
 		}
 	}
 
-	private void save() {
+	private boolean save() {
 		File file = FileSystemService.getUserConfigFile(TOUR_PROPERTIES);
 		try {
 			properties.store(new FileOutputStream(file), "RapidMiner Datafiles");
+			return true;
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "tour_not_saved");
+			return false;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "tour_not_saved");
+			return false;
 		}
 	}
 
@@ -109,10 +109,17 @@ public class TourManager {
 	public void setTourState(String tourKey, TourState state) {
 		if (state == TourState.NEVER_ASK) {
 			properties.setProperty(tourKey + ".ask", state.toString());
+			save();
 		} else {
-			properties.setProperty(tourKey, state.toString());
+			String currentState = properties.getProperty(tourKey);
+			if(currentState == null) {
+				properties.setProperty(tourKey, state.toString());
+				save();
+			} else if(!(TourState.valueOf(currentState) == TourState.COMPLETED)) {
+				properties.setProperty(tourKey, state.toString());
+				save();
+			}
 		}
-		save();
 	}
 
 	/**
@@ -120,11 +127,14 @@ public class TourManager {
 	 * @param tourKey key/name of the Tour
 	 * @param step index of the current {@link Step} of the Tour (counting started with 1).
 	 */
-	public void setTourProgress(String tourKey, int step) {
-		String stateBefore = properties.getProperty(tourKey + ".progress");
-		if (stateBefore == null || Integer.parseInt(stateBefore) < step)
+	public void setTourProgress(String tourKey, int step, int totalLength) {
+		int stateBefore = Integer.parseInt(properties.getProperty(tourKey + ".progress", "" + 0));
+		if (stateBefore < step) {
 			properties.setProperty(tourKey + ".progress", "" + step);
-		save();
+			properties.setProperty(tourKey + ".length", "" + totalLength);
+			save();
+		}
+		
 	}
 
 	/**
@@ -159,15 +169,25 @@ public class TourManager {
 	 * (e.g. if the user once made 5 Steps and another time he made 15 Steps this Method returns 15)
 	 */
 	public int getProgress(String tourKey) {
-		String state = properties.getProperty(tourKey + ".progress");
-		if (state == null) {
-			setTourProgress(tourKey, 0);
-			return 0;
-		} else {
-			return Integer.parseInt(state);
-		}
+			return Integer.parseInt(properties.getProperty(tourKey + ".progress", "" + 0));
 	}
 
+	/**
+	 * @return returns the progress in percent rounded to an Integer.
+	 */
+	public int getProgressInPercent(String tourKey) {
+		int length = this.getTourLength(tourKey);
+		if(length == 0)
+			return 0;
+		return (this.getProgress(tourKey)*100) / length;
+	}
+	
+	/**
+	 * @return returns the length of the Tour or 0 if the Tour wasn't even started until now.
+	 */
+	public int getTourLength(String tourKey) {
+		return Integer.parseInt(properties.getProperty(tourKey+".length", ""+0));
+	}
 	/**
 	 * It's necessary to call this method in by the start of RapidMiner, to show your Tour in the Selection-Dialog for Tours.
 	 * @param tourKey name/key of your Tour
@@ -202,11 +222,11 @@ public class TourManager {
 		try {
 			tour = tours.get(indexList.get(index)).newInstance();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "tour_not_found_index", new Object[] {index});
+			throw new IllegalArgumentException();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "tour_not_found_index", new Object[] {index});
+			throw new IllegalArgumentException();
 		}
 		return tour;
 	}
@@ -221,11 +241,12 @@ public class TourManager {
 		try {
 			tour = tourClass.newInstance();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// TODO: Proper exception handling
+			LogService.getRoot().log(Level.WARNING, "tour_not_found", new Object[] {tourKey});
+			throw new IllegalArgumentException();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "tour_not_found", new Object[] {tourKey});
+			throw new IllegalArgumentException();
 		}
 		return tour;
 	}
@@ -233,7 +254,7 @@ public class TourManager {
 	/**
 	 * Starts the Tour with the given key and returns the running object
 	 * @param tourKey key/name of the Tour
-	 * @return returns the running object
+	 * @return returns the running object or throws a RuntimeException if the key doesn't match any tour.
 	 */
 	public IntroductoryTour startTour(String tourKey) {
 		IntroductoryTour tour = null;
@@ -242,13 +263,13 @@ public class TourManager {
 			tour = tourClass.newInstance();
 			tour.startTour();
 		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "tour_not_start", new Object[] {tourKey});
+			throw new IllegalArgumentException();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogService.getRoot().log(Level.WARNING, "tour_not_start", new Object[] {tourKey});
+			throw new IllegalArgumentException();
 		}
 		return tour;
 	}
-
+	
 }

@@ -25,7 +25,7 @@ package com.rapidminer.gui.tour;
 import java.awt.Window;
 
 import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.tools.components.BubbleWindow;
+import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 
 
@@ -82,7 +82,7 @@ public class PerspectivesStep extends Step {
 				showMe = !(RapidMinerGUI.getMainFrame().getPerspectives().getCurrentPerspective().getName().equals("design"));
 		}
 		if(showMe)
-			bubble = new BubbleWindow(owner, null, alignment, i18nKey, buttonKey);
+			bubble = new BubbleToButton(owner, null, alignment, i18nKey, buttonKey);
 		return showMe;
 	}
 

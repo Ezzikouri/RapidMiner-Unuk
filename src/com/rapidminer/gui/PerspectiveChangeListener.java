@@ -20,28 +20,19 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-package com.rapidminer.gui.actions;
+package com.rapidminer.gui;
 
-import java.awt.event.ActionEvent;
 
-import com.rapidminer.gui.tools.ResourceAction;
-import com.rapidminer.gui.tour.TourChooser;
 
 /**
- * Start the corresponding action.
+ * Listener to observe changes of the current Perspective.
  * 
- * @author Marco Boeck
+ * @author Thilo Kamradt
+ *
  */
-public class TourAction extends ResourceAction {
+public interface PerspectiveChangeListener {
 
-	private static final long serialVersionUID = 1L;
+	/** will be called if the current perspective changes */
+	public void perspectiveChangedTo(Perspective perspective);
 	
-	
-	public TourAction() {
-		super("tour");
-	}
-
-	public void actionPerformed(ActionEvent e) {
-		new TourChooser().setVisible(true);
-	}
 }

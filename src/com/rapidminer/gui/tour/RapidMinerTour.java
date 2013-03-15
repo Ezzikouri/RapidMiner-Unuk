@@ -22,12 +22,12 @@
  */
 package com.rapidminer.gui.tour;
 
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.flow.ProcessPanel;
 import com.rapidminer.gui.processeditor.NewOperatorEditor;
 import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 import com.rapidminer.gui.tour.AddBreakpointStep.Position;
+import com.rapidminer.gui.tour.Step.BubbleTo;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.SimpleOperatorChain;
 import com.rapidminer.operator.io.RepositorySource;
@@ -51,24 +51,24 @@ public class RapidMinerTour extends IntroductoryTour {
 
 	protected void buildTour() {
 		//create Steps which will be performed
-		step[0] = new SimpleStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "start", "new");
-		step[1] = new SimpleStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "tryrun", "run");
-		step[2] = new AddOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "adddatabase", RepositorySource.class, RepositoryBrowser.REPOSITORY_BROWSER_DOCK_KEY);
-		step[3] = new AddOperatorStep(Alignment.LEFTBOTTOM, RapidMinerGUI.getMainFrame(), "dragdrop", AbstractTreeLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
-		step[4] = new ChangeParameterStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "changeparam", AbstractTreeLearner.class, AbstractTreeLearner.PARAMETER_CRITERION, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY, "information_gain");
-		step[5] = new AddBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "addbreakpoint", AbstractTreeLearner.class, Position.AFTER);
-		step[6] = new SimpleStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "run", "run");
-		step[7] = new ResumeFromBreakpointStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "goon", AbstractTreeLearner.class, "run");
-		step[8] = new SaveProcessStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "saveas", "save_as");
-		step[9] = new OpenProcessStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "open", "open");
-		step[10] = new RemoveOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "remove", AbstractTreeLearner.class, RapidMinerGUI.getMainFrame().getProcessPanel().getComponent());
-		step[11] = new AddOperatorStep(Alignment.BOTTOMLEFT, RapidMinerGUI.getMainFrame(), "restore", AbstractLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
-		step[12] = new AddBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "restorebreakpoint", AbstractLearner.class, Position.BEFORE);
-		step[13] = new RemoveBreakpointStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "removebreakpoint", AbstractLearner.class, Position.DONT_CARE);
-		step[14] = new RenameOperatorStep(Alignment.RIGHTBOTTOM, RapidMinerGUI.getMainFrame(), "rename", AbstractLearner.class, "Tree", "rename_in_processrenderer");
-		step[15] = new SaveProcessStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "save");
-		step[16] = new AddOperatorStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "subprocess", SimpleOperatorChain.class, ProcessPanel.PROCESS_PANEL_DOCK_KEY);
-		step[17] = new OpenSubprocessStep(Alignment.LEFTBOTTOM, RapidMinerGUI.getMainFrame(), "opensubprocess", RapidMinerGUI.getMainFrame().getProcessPanel(), SimpleOperatorChain.class);
-		step[18] = new AddOperatorStep(Alignment.TOPLEFT, RapidMinerGUI.getMainFrame(), "subprocesses", Operator.class, ProcessPanel.PROCESS_PANEL_DOCK_KEY, false);
+		step[0] = new SimpleStep(Alignment.TOPLEFT, "start", "new", true);
+		step[1] = new SimpleStep(Alignment.TOPLEFT, "tryrun", "run", true);
+		step[2] = new AddOperatorStep(Alignment.BOTTOMLEFT, "adddatabase", RepositorySource.class, RepositoryBrowser.REPOSITORY_BROWSER_DOCK_KEY);
+		step[3] = new AddOperatorStep(Alignment.LEFTBOTTOM, "dragdrop", AbstractTreeLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
+		step[4] = new ChangeParameterStep(Alignment.RIGHTBOTTOM, "changeparam", AbstractTreeLearner.class, AbstractTreeLearner.PARAMETER_CRITERION, OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY, "information_gain");
+		step[5] = new AddBreakpointStep(BubbleTo.OPERATOR, Alignment.RIGHTBOTTOM, "addbreakpoint", AbstractTreeLearner.class, Position.AFTER);
+		step[6] = new SimpleStep(Alignment.TOPLEFT, "run", "run", true);
+		step[7] = new ResumeFromBreakpointStep(Alignment.TOPLEFT, "goon",((Class<? extends Operator>) AbstractTreeLearner.class), Position.DONT_CARE);
+		step[8] = new SaveProcessStep(Alignment.TOPLEFT, "saveas", "save_as");
+		step[9] = new OpenProcessStep(Alignment.TOPLEFT, "open", "open");
+		step[10] = new RemoveOperatorStep(BubbleTo.OPERATOR, Alignment.BOTTOMLEFT, "remove", AbstractTreeLearner.class);
+		step[11] = new AddOperatorStep(Alignment.BOTTOMLEFT, "restore", AbstractLearner.class, NewOperatorEditor.NEW_OPERATOR_DOCK_KEY);
+		step[12] = new AddBreakpointStep(BubbleTo.OPERATOR, Alignment.RIGHTBOTTOM, "restorebreakpoint", AbstractLearner.class, Position.BEFORE);
+		step[13] = new RemoveBreakpointStep(BubbleTo.OPERATOR, Alignment.RIGHTBOTTOM, "removebreakpoint", AbstractLearner.class, Position.DONT_CARE);
+		step[14] = new RenameOperatorStep(BubbleTo.OPERATOR, Alignment.RIGHTBOTTOM, "rename", AbstractLearner.class, "Tree");
+		step[15] = new SaveProcessStep(Alignment.TOPLEFT, "save", "save");
+		step[16] = new AddOperatorStep(Alignment.TOPLEFT, "subprocess", SimpleOperatorChain.class, ProcessPanel.PROCESS_PANEL_DOCK_KEY);
+		step[17] = new OpenSubprocessStep(BubbleTo.OPERATOR, Alignment.LEFTBOTTOM, "opensubprocess", SimpleOperatorChain.class);
+		step[18] = new AddOperatorStep(Alignment.TOPLEFT, "subprocesses", Operator.class, ProcessPanel.PROCESS_PANEL_DOCK_KEY, false);
 	}
 }

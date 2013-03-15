@@ -92,6 +92,9 @@ public class ManageParallelLinesDialog extends JDialog {
 	/** this button modifies the selected line */
 	private JButton modifySelectedLineButton;
 	
+	/** this button adds a new line */
+	private JButton addNewLineButton;
+	
 	/** the current {@link JFreeChartPlotEngine} */
 	private JFreeChartPlotEngine engine;
 	
@@ -99,7 +102,10 @@ public class ManageParallelLinesDialog extends JDialog {
 	private PlotConfiguration plotConfig;
 	
 	/** the {@link EditParallelLineDialog} instance */
-	private EditParallelLineDialog dialog;
+	private EditParallelLineDialog modifyLineDialog;
+	
+	/** the {@link AddParallelLineDialog} instance */
+	private AddParallelLineDialog addLineDialog;
 	
 	
 	private static final long serialVersionUID = 1932257219370926682L;
@@ -214,6 +220,18 @@ public class ManageParallelLinesDialog extends JDialog {
 		this.add(listScrollPane, gbc);
 		
 		JPanel listActionPanel = new JPanel();
+		
+		addNewLineButton = new JButton();
+		addNewLineButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.add_line.tip"));
+		addNewLineButton.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.add_line.icon")));
+		addNewLineButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				addNewLine();
+			}
+		});
+		listActionPanel.add(addNewLineButton);
 		
 		deleteSelectedLinesButton = new JButton();
 		deleteSelectedLinesButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.delete_lines.tip"));
@@ -376,6 +394,7 @@ public class ManageParallelLinesDialog extends JDialog {
 				model.addElement(line);
 			}
 		}
+		
 		linesList.setModel(model);
 	}
 
@@ -394,6 +413,7 @@ public class ManageParallelLinesDialog extends JDialog {
 			AxisParallelLineConfiguration line = domainLines.get(i);
 			model.addElement(line);
 		}
+		
 		linesList.setModel(model);
 	}
 	
@@ -431,12 +451,31 @@ public class ManageParallelLinesDialog extends JDialog {
 		}
 		AxisParallelLineConfiguration line = (AxisParallelLineConfiguration) linesList.getSelectedValue();
 		if (line != null) {
-			if (dialog == null) {
-				dialog = new EditParallelLineDialog();
+			if (modifyLineDialog == null) {
+				modifyLineDialog = new EditParallelLineDialog();
 			}
 			
-			dialog.setLine(line, true);
-			dialog.showDialog();
+			modifyLineDialog.setLine(line, true);
+			modifyLineDialog.showDialog();
+		}
+	}
+	
+	/**
+	 * Adds a new line.
+	 */
+	private void addNewLine() {
+		if (addLineDialog == null) {
+			addLineDialog = new AddParallelLineDialog();
+		}
+		
+		addLineDialog.setChartEngine(engine);
+		addLineDialog.showDialog();
+		
+		// after added new line, update list
+		if (horizontalLineRadiobutton.isSelected()) {
+			setHorizontalLineSelected();
+		} else if (verticalLineRadiobutton.isSelected()) {
+			setVerticalLineSelected();
 		}
 	}
 	

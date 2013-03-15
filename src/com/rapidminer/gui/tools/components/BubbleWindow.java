@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.tools.components;
 
 import java.awt.BasicStroke;
@@ -37,7 +38,6 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -59,6 +59,8 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import com.rapidminer.gui.Perspective;
+import com.rapidminer.gui.PerspectiveChangeListener;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -83,7 +85,7 @@ import com.vlsolutions.swing.docking.event.DockingActionListener;
  *
  */
 
-public class BubbleWindow extends JDialog {
+public abstract class BubbleWindow extends JDialog {
 
 	private static final long serialVersionUID = -6369389148455099450L;
 
@@ -115,80 +117,28 @@ public class BubbleWindow extends JDialog {
 
 	/** Shape used for setting the shape of the window and for rendering the outline. */
 	private Shape shape;
-	private Alignment alignment;
+	protected Alignment alignment;
 	private JPanel bubble;
 	private JButton close;
-	private ImageIcon passiveIcon, activeIcon;
+	private ImageIcon passiveCloseIcon, activCloseIcon;
 	private ActionListener listener;
-	
-	private String title;
-	private String text;
-	private String dockKey = null;
 
+	protected String title;
+	protected String text;
+
+	private PerspectiveChangeListener perspectiveListener = null;
 	private ComponentAdapter movementListener;
-	private AbstractButton button = null;
-	private Component component;
-	private Component componentToBeWatched = null;
 	private WindowAdapter windowListener;
-	private Window owner;
+	protected Window owner;
+	private String myPerspective;
+	private boolean listenersAdded = false;
+	private boolean addPerspective = true;
+	protected String docKey = null;
+	protected Component dockable;
 	private ComponentListener compListener;
 	private DockingActionListener dockListener = null;
 	private final DockingDesktop desktop = RapidMinerGUI.getMainFrame().getDockingDesktop();
-	private int dockingCounter;
-
-	/**
-	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable
-	 * @param i18nKey of the message which should be shown
-	 * @param buttonKeyToAttach i18nKey of the Button to which this {@link BubbleWindow} should be placed relative to. 
-	 */
-	public BubbleWindow(Window owner, String nextDockableKey, final Alignment preferedAlignment, String i18nKey, String buttonKeyToAttach, Object ... arguments) {
-		this(owner, nextDockableKey, preferedAlignment, i18nKey, buttonKeyToAttach, true, arguments);
-	}
-
-	/**
-	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable
-	 * @param i18nKey of the message which should be shown
-	 * @param buttonKeyToAttach i18nKey of the Button to which this {@link BubbleWindow} should be placed relative to. 
-	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
-	 */
-	public BubbleWindow(Window owner, String nextDockableKey, final Alignment preferedAlignment, String i18nKey, String buttonKeyToAttach, boolean addListener, Object ... arguments) {
-		this(owner, nextDockableKey, preferedAlignment, i18nKey, (Component) findButton(buttonKeyToAttach, RapidMinerGUI.getMainFrame()), arguments);
-		this.button = findButton(buttonKeyToAttach, RapidMinerGUI.getMainFrame());
-		this.unregisterMovementListener();
-		this.registerMovementListener();
-		if (addListener) {
-			this.attachToButton(button);
-		}
-	}
-
-	/**
-	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable
-	 * @param i18nKey of the message which should be shown
-	 * @param buttonToAttach {@link AbstractButton} to which this {@link BubbleWindow} should be placed relative to. 
-	 */
-	public BubbleWindow(Window owner, String nextDockableKey, final Alignment preferedAlignment, String i18nKey, AbstractButton buttonToAttach, Object ...arguments ) {
-		this(owner, nextDockableKey, preferedAlignment, i18nKey, buttonToAttach, true, arguments);
-	}
-
-	/**
-	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
-	 * @param preferedAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
-	 * @param i18nKey of the message which should be shown
-	 * @param buttonToAttach {@link AbstractButton} to which this {@link BubbleWindow} should be placed relative to. 
-	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
-	 */
-	public BubbleWindow(Window owner, String nextDockableKey, final Alignment preferedAlignment, String i18nKey, AbstractButton buttonToAttach, boolean addListener, Object ...arguments) {
-		this(owner, nextDockableKey, preferedAlignment, i18nKey, (Component) buttonToAttach, arguments);
-		this.button = buttonToAttach;
-		this.unregisterMovementListener();
-		this.registerMovementListener();
-		if (addListener) {
-			this.attachToButton(buttonToAttach);
-		}
-	}
+	private int dockingCounter = 0;
 
 	/**
 	 * @param owner the {@link Window} on which this {@link BubbleWindow} should be shown.
@@ -197,27 +147,36 @@ public class BubbleWindow extends JDialog {
 	 * @param ToAttach {@link Component} to which this {@link BubbleWindow} should be placed relative to. 
 	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
 	 */
-	public BubbleWindow(Window owner, String nextDockableKey, final Alignment preferredAlignment, String i18nKey, Component toAttach, Object ...arguments ) {
+	public BubbleWindow(Window owner, final Alignment preferredAlignment, String i18nKey, String docKey, Object... arguments) {
 		super(owner);
-		this.dockingCounter = 0;
 		this.owner = owner;
-		this.dockKey = nextDockableKey;	
-		this.component = toAttach;
-		if (toAttach == null &&  !(Alignment.MIDDLE == preferredAlignment))
-			throw new IllegalArgumentException("the given Component is null !!!");
-		this.alignment = this.calculateAlignment(preferredAlignment, toAttach);
-		setLayout(new BorderLayout());
-		setUndecorated(true);
-
+		this.myPerspective = RapidMinerGUI.getMainFrame().getPerspectives().getCurrentPerspective().getName();
+		this.alignment = preferredAlignment;
+		if(docKey != null) {
+			this.docKey = docKey;
+			dockable = BubbleWindow.getDockableByKey(docKey);
+		}
+		
 		title = I18N.getGUIBundle().getString("gui.bubble." + i18nKey + ".title");
 		text = I18N.getMessage(I18N.getGUIBundle(), "gui.bubble." + i18nKey + ".body", arguments);
+		//TODO: set comic-Font http://docs.oracle.com/javase/tutorial/2d/text/fonts.html
+		
+	}
+
+	/**
+	 * builds the Bubble. !!! only call in Constuctor
+	 */
+	protected void buildBubble() {
+		this.alignment = this.calculateAlignment(this.alignment);
+		setLayout(new BorderLayout());
+		setUndecorated(true);
 
 		addComponentListener(new ComponentAdapter() {
 
 			@Override
 			public void componentResized(ComponentEvent e) {
 				shape = createShape(alignment);
-				
+
 				String version = System.getProperty("java.version").substring(0, 3).replace(".", "");
 				try {
 					Integer versionNumber = Integer.valueOf(version);
@@ -227,7 +186,7 @@ public class BubbleWindow extends JDialog {
 					} else if (versionNumber >= 17) {
 						// Java 7+
 						setShape(shape);
-					}					
+					}
 				} catch (Throwable t) {
 					LogService.getRoot().log(Level.WARNING, "Could not create shaped Bubble Windows. Error: " + t.getLocalizedMessage(), t);
 				}
@@ -306,36 +265,36 @@ public class BubbleWindow extends JDialog {
 		c.weightx = 0;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.insets = insetsLabel;
-		passiveIcon = new ImageIcon(DockingDesktop.class.getResource("/com/vlsolutions/swing/docking/close16v2.png"));
-		activeIcon = new ImageIcon(DockingDesktop.class.getResource("/com/vlsolutions/swing/docking/close16v2rollover.png"));
-		close = new JButton(passiveIcon);
+		passiveCloseIcon = new ImageIcon(DockingDesktop.class.getResource("/com/vlsolutions/swing/docking/close16v2.png"));
+		activCloseIcon = new ImageIcon(DockingDesktop.class.getResource("/com/vlsolutions/swing/docking/close16v2rollover.png"));
+		close = new JButton(passiveCloseIcon);
 		close.setBorderPainted(false);
 		close.setOpaque(false);
 		// change Icons and set close operation
 		close.addMouseListener(new MouseListener() {
-			
+
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				// don't care
 			}
-			
+
 			@Override
 			public void mousePressed(MouseEvent e) {
 				//don't care
 			}
-			
+
 			@Override
 			public void mouseExited(MouseEvent e) {
-				BubbleWindow.this.close.setIcon(BubbleWindow.this.passiveIcon);
-				
+				BubbleWindow.this.close.setIcon(BubbleWindow.this.passiveCloseIcon);
+
 			}
-			
+
 			@Override
 			public void mouseEntered(MouseEvent e) {
-				BubbleWindow.this.close.setIcon(BubbleWindow.this.activeIcon);
-				
+				BubbleWindow.this.close.setIcon(BubbleWindow.this.activCloseIcon);
+
 			}
-			
+
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				BubbleWindow.this.dispose();
@@ -359,15 +318,26 @@ public class BubbleWindow extends JDialog {
 		c.weightx = 1;
 		c.weighty = 1;
 		bubble.add(mainText, c);
-		
-		pack();
 
-		positionRelative();
+		if (this.calculateAlignment(this.alignment) != this.alignment) {
+			this.paintAgain(false);
+		} else {
+			pack();
+
+			positionRelative();
+		}
 	}
-	
-	private void paintAgain() {
-		alignment = this.calculateAlignment(alignment, component);
+
+	/**
+	 * updates the Alignment and Position and repaints the Bubble
+	 * @param reregisterListeners if this value is true the Movement-Listeners will be removed and added again.
+	 */
+	protected void paintAgain(boolean reregisterListeners) {
+		alignment = this.calculateAlignment(alignment);
 		shape = createShape(alignment);
+		if(listenersAdded && reregisterListeners) {
+			this.unregisterMovementListener();
+		}
 		//choose the right call for the right version
 		String version = System.getProperty("java.version").substring(0, 3).replace(".", "");
 		try {
@@ -455,8 +425,7 @@ public class BubbleWindow extends JDialog {
 		c.weightx = 1;
 		c.weighty = 1;
 		bubble.add(mainText, c);
-		
-		
+
 		pack();
 		
 		pointAtComponent();
@@ -589,10 +558,10 @@ public class BubbleWindow extends JDialog {
 				gp.quadTo(0, 0, 0, o);
 				gp.lineTo(0, (h + o));
 				gp.quadTo(0, h + (2 * o), o, h + (2 * o));
-				gp.lineTo(w + o, h + (2*o));
-				gp.quadTo(w + (2*o), h + (2*o), w + (2*o), h + o);
-				gp.lineTo(w + (2*o), o);
-				gp.quadTo(w + (2*o), 0, w + o, 0);
+				gp.lineTo(w + o, h + (2 * o));
+				gp.quadTo(w + (2 * o), h + (2 * o), w + (2 * o), h + o);
+				gp.lineTo(w + (2 * o), o);
+				gp.quadTo(w + (2 * o), 0, w + o, 0);
 				gp.lineTo(o, 0);
 				break;
 			default:
@@ -615,18 +584,19 @@ public class BubbleWindow extends JDialog {
 	 * places the Bubble-speech so that it points to the Component 
 	 * @param component component to point to
 	 */
-	private void pointAtComponent() {
+	protected void pointAtComponent() {
 		double targetx = 0;
 		double targety = 0;
 		Point target = new Point(0, 0);
-		if(alignment == Alignment.MIDDLE) {
-				targetx = owner.getWidth()*0.5 - getWidth()*0.5;
-				targety = owner.getHeight()*0.5 - getHeight()*0.5;
+		if (alignment == Alignment.MIDDLE) {
+			targetx = owner.getWidth() * 0.5 - getWidth() * 0.5;
+			targety = owner.getHeight() * 0.5 - getHeight() * 0.5;
 		} else {
-			int x = (int) this.component.getLocationOnScreen().getX();
-			int y = (int) this.component.getLocationOnScreen().getY();
-			int h = this.component.getHeight();
-			int w = this.component.getWidth();
+			Point location = this.getObjectLocation();
+			int x = (int) location.getX();
+			int y = (int) location.getY();
+			int h = this.getObjectHeight();
+			int w = this.getObjectWidth();
 			switch (alignment) {
 				case TOPLEFT:
 					targetx = x + 0.5 * w;
@@ -661,32 +631,32 @@ public class BubbleWindow extends JDialog {
 					targety = y - getHeight();
 					break;
 				case INNERLEFT:
-					targetx = x + w - 0.5*getWidth();
+					targetx = x + w - 0.5 * getWidth();
 					double xShift = (targetx + getWidth()) - (owner.getX() + owner.getWidth());
-					if( xShift > 0) {
+					if (xShift > 0) {
 						targetx -= xShift;
-					} 
-					targety = y + h - 0.5*getHeight();
-					double yShift = (targety + getHeight()) -(owner.getY() + owner.getHeight());
-					if( yShift > 0) {
+					}
+					targety = y + h - 0.5 * getHeight();
+					double yShift = (targety + getHeight()) - (owner.getY() + owner.getHeight());
+					if (yShift > 0) {
 						targetx -= yShift;
-					} 
+					}
 					break;
 				case INNERRIGHT:
-					targetx = x - 0.5*getWidth();
+					targetx = x - 0.5 * getWidth();
 					xShift = owner.getX() - targetx;
-					if( xShift > 0) {
+					if (xShift > 0) {
 						targetx += xShift;
-					} 
-					targety = y + h - 0.5*getHeight();
-					yShift = (targety + getHeight()) -(owner.getY() + owner.getHeight());
-					if( yShift > 0) {
+					}
+					targety = y + h - 0.5 * getHeight();
+					yShift = (targety + getHeight()) - (owner.getY() + owner.getHeight());
+					if (yShift > 0) {
 						targetx -= yShift;
-					} 
+					}
 				default:
 			}
 		}
-		
+
 		target = new Point((int) Math.round(targetx), (int) Math.round(targety));
 		setLocation(target);
 	}
@@ -705,7 +675,7 @@ public class BubbleWindow extends JDialog {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * method to get to know whether the dockable with the given key is on Screen
 	 * @param dockableKey i18nKey of the wanted Dockable
@@ -713,12 +683,12 @@ public class BubbleWindow extends JDialog {
 	 */
 	public static int isDockableOnScreen(String dockableKey) {
 		Component onScreen = BubbleWindow.getDockableByKey(dockableKey);
-		if(onScreen == null)
+		if (onScreen == null)
 			return -1;
 		return 1;
-		
+
 	}
-	
+
 	/**
 	 * method to get to know whether the AbstractButton with the given key is on Screen
 	 * @param dockableKey i18nKey of the wanted AbstractButton
@@ -726,12 +696,13 @@ public class BubbleWindow extends JDialog {
 	 */
 	public static int isButtonOnScreen(String buttonKey) {
 		// find the Button and return -1 if we can not find it
-		Component onScreen; 
-		try { onScreen = BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame()); }
-		catch (NullPointerException e) {
+		Component onScreen;
+		try {
+			onScreen = BubbleWindow.findButton(buttonKey, RapidMinerGUI.getMainFrame());
+		} catch (NullPointerException e) {
 			return -1;
 		}
-		if(onScreen == null)
+		if (onScreen == null)
 			return -1;
 		// detect whether the Button is viewable
 		int xposition = onScreen.getLocationOnScreen().x;
@@ -739,31 +710,11 @@ public class BubbleWindow extends JDialog {
 		int otherXposition = xposition + onScreen.getWidth();
 		int otherYposition = yposition + onScreen.getHeight();
 		Window frame = RapidMinerGUI.getMainFrame();
-		if(otherXposition <= frame.getWidth() && otherYposition <= frame.getHeight() && xposition > 0 && yposition > 0) {
+		if (otherXposition <= frame.getWidth() && otherYposition <= frame.getHeight() && xposition > 0 && yposition > 0) {
 			return 1;
 		} else {
 			return 0;
 		}
-	}
-
-	/** Positions the window such that the pointer points to the given button. 
-	 *  In addition to that, adds an {@link ActionListener} to the button which
-	 *  closes the BubbleWindow as soon as the button is pressed and one that 
-	 *  makes sure that the pointer always points at the right position. */
-	private void attachToButton(AbstractButton button) {
-		this.button = button;
-		this.component = button;
-		listener = new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				BubbleWindow.this.dispose();
-				fireEventActionPerformed();
-				unregister();
-			}
-		};
-		button.addActionListener(listener);
-
 	}
 
 	/**
@@ -805,163 +756,96 @@ public class BubbleWindow extends JDialog {
 		return shape;
 	}
 
-	private void registerMovementListener() {
-		movementListener = new ComponentAdapter() {
+	protected void registerMovementListener() {
+		if (!listenersAdded) {
+			if(addPerspective) {
+				perspectiveListener = new PerspectiveChangeListener() {
 
-			@Override
-			public void componentMoved(ComponentEvent e) {
-				if(BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment, component))) {
-					BubbleWindow.this.pointAtComponent();
-				} else {
-					BubbleWindow.this.paintAgain();
+					@Override
+					public void perspectiveChangedTo(Perspective perspective) {
+						if ((BubbleWindow.this.myPerspective).equals(perspective.getName())) {
+							BubbleWindow.this.reloadComponent();
+							BubbleWindow.this.registerSpecificListener();
+							BubbleWindow.this.setVisible(true);
+						} else {
+							BubbleWindow.this.setVisible(false);
+						}
+					}
+				};
+			}
+			movementListener = new ComponentAdapter() {
+
+				@Override
+				public void componentMoved(ComponentEvent e) {
+					if (BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment))) {
+						BubbleWindow.this.pointAtComponent();
+					} else {
+						BubbleWindow.this.paintAgain(true);
+					}
+					BubbleWindow.this.setVisible(true);
 				}
-				BubbleWindow.this.setVisible(true);
-			}
 
-			@Override
-			public void componentResized(ComponentEvent e) {
-				if(BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment, component))) {
-					BubbleWindow.this.pointAtComponent();
-				} else {
-					BubbleWindow.this.paintAgain();
+				@Override
+				public void componentResized(ComponentEvent e) {
+					if (BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment))) {
+						BubbleWindow.this.pointAtComponent();
+					} else {
+						BubbleWindow.this.paintAgain(false);
+					}
+					BubbleWindow.this.setVisible(true);
 				}
-				BubbleWindow.this.setVisible(true);
-			}
 
-			@Override
-			public void componentShown(ComponentEvent e) {
-				BubbleWindow.this.pointAtComponent();
-				BubbleWindow.this.setVisible(true);
-			}
-
-			@Override
-			public void componentHidden(ComponentEvent e) {
-				BubbleWindow.this.setVisible(false);
-			}
-
-		};
-		windowListener = new WindowAdapter() {
-
-			@Override
-			public void windowIconified(WindowEvent e) {
-				super.windowIconified(e);
-				BubbleWindow.this.setVisible(false);
-			}
-
-			@Override
-			public void windowDeiconified(WindowEvent e) {
-				super.windowDeiconified(e);
-				BubbleWindow.this.pointAtComponent();
-				BubbleWindow.this.setVisible(true);
-			}
-
-		};
-		if(BubbleWindow.this.component != null) {
-			compListener = new ComponentListener() {
-			
 				@Override
 				public void componentShown(ComponentEvent e) {
 					BubbleWindow.this.pointAtComponent();
 					BubbleWindow.this.setVisible(true);
 				}
-			
-				@Override
-				public void componentResized(ComponentEvent e) {
-					if(BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment, component))) {
-						BubbleWindow.this.pointAtComponent();
-					} else {
-						BubbleWindow.this.paintAgain();
-					}
-					BubbleWindow.this.setVisible(true);
-				}
-			
-				@Override
-				public void componentMoved(ComponentEvent e) {
-					if(BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment, component))) {
-						BubbleWindow.this.pointAtComponent();
-					} else {
-						BubbleWindow.this.paintAgain();
-					}
-					BubbleWindow.this.setVisible(true);
-				}
-			
+
 				@Override
 				public void componentHidden(ComponentEvent e) {
 					BubbleWindow.this.setVisible(false);
 				}
+
 			};
-		
-			if(BubbleWindow.this.button != null && dockKey != null) {
-				BubbleWindow.this.componentToBeWatched = BubbleWindow.getDockableByKey(BubbleWindow.this.dockKey);
-			} else {
-				BubbleWindow.this.componentToBeWatched = BubbleWindow.this.component;
+			windowListener = new WindowAdapter() {
+
+				@Override
+				public void windowIconified(WindowEvent e) {
+					super.windowIconified(e);
+					BubbleWindow.this.setVisible(false);
+				}
+
+				@Override
+				public void windowDeiconified(WindowEvent e) {
+					super.windowDeiconified(e);
+					BubbleWindow.this.pointAtComponent();
+					BubbleWindow.this.setVisible(true);
+				}
+
+			};
+			if(addPerspective) {
+				RapidMinerGUI.getMainFrame().getPerspectives().addPerspectiveChangeListener(perspectiveListener);
 			}
-			BubbleWindow.this.componentToBeWatched.addComponentListener(compListener);
-			if(dockKey != null && !dockKey.equals("")) {
-				dockListener = new DockingActionListener() {
-					
-					@Override
-					public void dockingActionPerformed(DockingActionEvent event) {
-						// actionType 5 indicates that the Dockable was docked to another position
-						// actionType 3 indicates that the Dockable has created his own position
-						// actionType 6 indicates that the Dockable was separated
-						if(event.getActionType() == 5 || event.getActionType() == 3) {
-							if((++dockingCounter)%2 == 0) {
-								//get the new component of the Dockable because the current component is disabled
-								BubbleWindow.this.componentToBeWatched.removeComponentListener(compListener);
-								componentToBeWatched = BubbleWindow.getDockableByKey(dockKey);
-								BubbleWindow.this.componentToBeWatched.addComponentListener(compListener);
-								// the reference of the button does not changes
-								if(button == null)
-									component = componentToBeWatched;
-								//repaint
-								BubbleWindow.this.paintAgain();
-								BubbleWindow.this.setVisible(true);
-							}
-						}
-						if(event.getActionType() == 6) {
-							//get the new component of the Dockable because the current component is disabled
-							BubbleWindow.this.componentToBeWatched.removeComponentListener(compListener);
-							componentToBeWatched = BubbleWindow.getDockableByKey(dockKey);
-							BubbleWindow.this.componentToBeWatched.addComponentListener(compListener);
-							// the reference of the button does not changes
-							if(button == null)
-								component = componentToBeWatched;
-							//repaint
-							BubbleWindow.this.paintAgain();
-							BubbleWindow.this.setVisible(true);
-						}
-					}
-					
-					@Override
-					public boolean acceptDockingAction(DockingActionEvent arg0) {
-						// no need to deny anything
-						return true;
-					}
-				};
-				desktop.addDockingActionListener(dockListener);
-				
-			}
+			RapidMinerGUI.getMainFrame().addComponentListener(movementListener);
+			RapidMinerGUI.getMainFrame().addWindowStateListener(windowListener);
+			listenersAdded = true;
 		}
-		RapidMinerGUI.getMainFrame().addComponentListener(movementListener);
-		RapidMinerGUI.getMainFrame().addWindowStateListener(windowListener);
+
 	}
 
 	private void unregister() {
-		if ((listener != null) && (button != null)) {
-			button.removeActionListener(listener);
+		if (close != null) {
+			close.removeActionListener(listener);
 		}
 	}
-	
-	private void unregisterMovementListener() {
+
+	protected void unregisterMovementListener() {
 		RapidMinerGUI.getMainFrame().removeComponentListener(movementListener);
 		RapidMinerGUI.getMainFrame().removeWindowStateListener(windowListener);
-		if(component != null) {
-			componentToBeWatched.removeComponentListener(compListener);
-			if(dockKey != null && !dockKey.equals("")) {
-				desktop.removeDockingActionListener(dockListener);
-			}
+		if(addPerspective) {
+			RapidMinerGUI.getMainFrame().getPerspectives().removePerspectiveChangeListener(perspectiveListener);
 		}
+		listenersAdded = false;
 	}
 
 	/**
@@ -979,7 +863,6 @@ public class BubbleWindow extends JDialog {
 			l.bubbleClosed(this);
 		}
 		unregisterMovementListener();
-		
 	}
 
 	protected void fireEventActionPerformed() {
@@ -988,36 +871,42 @@ public class BubbleWindow extends JDialog {
 			l.actionPerformed(this);
 		}
 		unregisterMovementListener();
-		
+		unregister();
 	}
 
-	private Alignment calculateAlignment(Alignment preferredAlignment, Component component) {
-		if(Alignment.MIDDLE == preferredAlignment) {
+	/**
+	 * calculates the Alignment in the way, that the Bubble do not leave the Window
+	 * @param preferredAlignment preferred Alignment of the User
+	 * @param location Point which indicates the left upper corner of the Object to which the Bubble should point to
+	 * @param xSize size in x-direction of the Object the Bubble should point to
+	 * @param ySize size in y-direction of the Object the Bubble should point to 
+	 * @return returns the calculated {@link Alignment}
+	 */
+	protected Alignment calculateAlignment(Alignment preferredAlignment) {
+		if (Alignment.MIDDLE == preferredAlignment) {
 			return preferredAlignment;
 		}
 		//get Mainframe location
 		Point frameLocation = owner.getLocationOnScreen();
 		double xlocFrame = Math.max(frameLocation.getX(), 0);
 		double ylocFrame = Math.max(frameLocation.getY(), 0);
-		
+
 		//get Mainframe size
 		int xframe = owner.getWidth();
 		int yframe = owner.getHeight();
-		
-		//location of Component
-		Point location = component.getLocationOnScreen();
+
+		//location and size of Component the want to attach to
+		Point location = this.getObjectLocation();
 		double xloc = location.getX();
 		double yloc = location.getY();
-		
-		//size of Component
-		int xSize = component.getWidth();
-		int ySize = component.getHeight();
-		
+		int xSize = this.getObjectWidth();
+		int ySize = this.getObjectHeight();
+
 		//load height and with or the approximate Value of worstcase
 		double xSizeBubble = this.getWidth();
 		double ySizeBubble = this.getHeight();
-		if(xSizeBubble == 0 || ySizeBubble == 0) {
-			double approximateValue = (WINDOW_WIDTH + 2*CORNER_RADIUS);
+		if (xSizeBubble == 0 || ySizeBubble == 0) {
+			double approximateValue = (WINDOW_WIDTH + 2 * CORNER_RADIUS);
 			xSizeBubble = approximateValue;
 			ySizeBubble = approximateValue;
 		}
@@ -1026,59 +915,59 @@ public class BubbleWindow extends JDialog {
 		// 2 = space below the component
 		// 3 = space left of the Component
 		double space[] = new double[4];
-		space[0] = (yloc - ylocFrame)/ySizeBubble;
-		space[1] = ((xframe + xlocFrame)-(xloc+xSize))/xSizeBubble;
-		space[2] = ((yframe + ylocFrame)-(yloc+ySize))/ySizeBubble;
-		space[3] = (xloc - xlocFrame)/xSizeBubble;
+		space[0] = (yloc - ylocFrame) / ySizeBubble;
+		space[1] = ((xframe + xlocFrame) - (xloc + xSize)) / xSizeBubble;
+		space[2] = ((yframe + ylocFrame) - (yloc + ySize)) / ySizeBubble;
+		space[3] = (xloc - xlocFrame) / xSizeBubble;
 		// check if the preferred Alignment is valid and take it if it is valid
-		switch(preferredAlignment) {
+		switch (preferredAlignment) {
 			case TOPLEFT:
-				if(space[2] > 1)
+				if (space[2] > 1)
 					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
 				break;
 			case TOPRIGHT:
-				if(space[2] > 1)
+				if (space[2] > 1)
 					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
 				break;
 			case LEFTBOTTOM:
-				if(space[1] > 1)
+				if (space[1] > 1)
 					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
 				break;
 			case LEFTTOP:
-				if(space[1] > 1)
+				if (space[1] > 1)
 					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
 				break;
 			case RIGHTBOTTOM:
-				if(space[3] > 1)
+				if (space[3] > 1)
 					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
 				break;
 			case RIGHTTOP:
-				if(space[3] > 1)
+				if (space[3] > 1)
 					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
 				break;
 			case BOTTOMLEFT:
-				if(space[0] > 1)
+				if (space[0] > 1)
 					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
 				break;
 			case BOTTOMRIGHT:
-				if(space[0] > 1)
+				if (space[0] > 1)
 					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
 				break;
 			default:
 		}
 		//preferred Alignment was not valid. try to show bubble at the right side of the component
-		if(space[1] > 1)
+		if (space[1] > 1)
 			return this.fineTuneAlignement(Alignment.LEFTTOP, xframe, yframe, frameLocation, location, xSize, ySize);
 		// take the best fitting place
-		int pointer=0;
+		int pointer = 0;
 		for (int i = 0; i < space.length; i++) {
-			if(i==1)
+			if (i == 1)
 				i++;
-			if(space[i] > space[pointer])
+			if (space[i] > space[pointer])
 				pointer = i;
 		}
-		if(space[pointer] > 1) {
-			switch(pointer) {
+		if (space[pointer] > 1) {
+			switch (pointer) {
 				case 0:
 					return this.fineTuneAlignement(Alignment.BOTTOMLEFT, xframe, yframe, frameLocation, location, xSize, ySize);
 				case 2:
@@ -1094,9 +983,9 @@ public class BubbleWindow extends JDialog {
 		}
 
 	}
-	
+
 	/**
-	 * Whether we want the north-, south, west- or eastside of the {@link Component} was 
+	 * Whether we want the north-, south, west- or east-side of the {@link Component} was 
 	 * chosen before this method the decide in which direction the Bubble will expand 
 	 * @param firstCompute first computed Alignment
 	 * @param xframe width of the owner
@@ -1107,44 +996,161 @@ public class BubbleWindow extends JDialog {
 	 * @param compHeight height of the component to attach to
 	 * @return
 	 */
-	private Alignment fineTuneAlignement(Alignment firstCompute,int xframe, int yframe, Point frameLocation, Point componentLocation, int compWidth, int compHeight) {
-		switch(firstCompute) {
+	private Alignment fineTuneAlignement(Alignment firstCompute, int xframe, int yframe, Point frameLocation, Point componentLocation, int compWidth, int compHeight) {
+		switch (firstCompute) {
 			case TOPLEFT:
 			case TOPRIGHT:
-				if (((componentLocation.x - frameLocation.x) + (compWidth/2))> (xframe/2)) {
+				if (((componentLocation.x - frameLocation.x) + (compWidth / 2)) > (xframe / 2)) {
 					return Alignment.TOPRIGHT;
 				} else {
 					return Alignment.TOPLEFT;
 				}
 			case LEFTBOTTOM:
 			case LEFTTOP:
-				if(((componentLocation.y - frameLocation.y) + (compHeight/2))> (yframe/2)) {
+				if (((componentLocation.y - frameLocation.y) + (compHeight / 2)) > (yframe / 2)) {
 					return Alignment.LEFTBOTTOM;
 				} else {
 					return Alignment.LEFTTOP;
 				}
 			case RIGHTBOTTOM:
 			case RIGHTTOP:
-				if(((componentLocation.y - frameLocation.y) + (compHeight/2))> (yframe/2)) {
+				if (((componentLocation.y - frameLocation.y) + (compHeight / 2)) > (yframe / 2)) {
 					return Alignment.RIGHTBOTTOM;
 				} else {
 					return Alignment.RIGHTTOP;
 				}
 			case BOTTOMLEFT:
 			case BOTTOMRIGHT:
-				if (((componentLocation.x - frameLocation.x) + (compWidth/2))> (xframe/2)) {
+				if (((componentLocation.x - frameLocation.x) + (compWidth / 2)) > (xframe / 2)) {
 					return Alignment.BOTTOMRIGHT;
 				} else {
 					return Alignment.BOTTOMLEFT;
 				}
 			default:
-				if((componentLocation.x - frameLocation.x) > ((xframe + frameLocation.x)-(compWidth + componentLocation.x))) {
+				if ((componentLocation.x - frameLocation.x) > ((xframe + frameLocation.x) - (compWidth + componentLocation.x))) {
 					return Alignment.INNERRIGHT;
 				} else {
 					return Alignment.INNERLEFT;
 				}
 		}
-		
+
 	}
 	
+	protected void setAddPerspectiveListener(boolean addListener) {
+		this.addPerspective = addListener;
+	}
+
+	/**
+	 * returns the location of the Object the Bubble should attach to
+	 * @return the Point indicates the left upper corner of the Object the Bubble should point to
+	 */
+	protected abstract Point getObjectLocation();
+
+	/**
+	 * method to get the width of the Object the Bubble should attach to
+	 * @return returns the width of the Object
+	 */
+	protected abstract int getObjectWidth();
+
+	/**
+	 * method to get the height of the Object the Bubble should attach to
+	 * @return returns the height of the Object
+	 */
+	protected abstract int getObjectHeight();
+
+	/**
+	 * deletes old listeners, updates the Components which are listened and adds the listeners
+	 */
+	protected void reloadComponent() {
+		if(docKey != null) {
+			dockable = BubbleWindow.getDockableByKey(docKey);
+		}
+	}
+	
+	/**
+	 * unregister the components specific listeners defined in the subclasses
+	 */
+	protected void unregisterSpecificListeners() {
+		if(docKey != null) {
+			BubbleWindow.this.dockable.removeComponentListener(compListener);
+			desktop.removeDockingActionListener(dockListener);
+		}
+	}
+	
+	/** register the components specific listeners defined in the subclasses*/
+	protected void registerSpecificListener() {
+		if(docKey != null) {
+			compListener = new ComponentListener() {
+
+				@Override
+				public void componentShown(ComponentEvent e) {
+					BubbleWindow.this.pointAtComponent();
+					BubbleWindow.this.setVisible(true);
+				}
+
+				@Override
+				public void componentResized(ComponentEvent e) {
+					if (BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment))) {
+						BubbleWindow.this.pointAtComponent();
+					} else {
+						BubbleWindow.this.paintAgain(false);
+					}
+					BubbleWindow.this.setVisible(true);
+				}
+
+				@Override
+				public void componentMoved(ComponentEvent e) {
+					if (BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment))) {
+						BubbleWindow.this.pointAtComponent();
+					} else {
+						BubbleWindow.this.paintAgain(true);
+					}
+					BubbleWindow.this.setVisible(true);
+				}
+
+				@Override
+				public void componentHidden(ComponentEvent e) {
+					BubbleWindow.this.setVisible(false);
+				}
+			};
+			dockListener = new DockingActionListener() {
+
+				@Override
+				public void dockingActionPerformed(DockingActionEvent event) {
+					// actionType 5 indicates that the Dockable was docked to another position
+					// actionType 3 indicates that the Dockable has created his own position
+					// actionType 6 indicates that the Dockable was separated
+					if (event.getActionType() == 5 || event.getActionType() == 3) {
+						if ((++dockingCounter) % 2 == 0) {
+							//get the new component of the Dockable because the current component is disabled
+							BubbleWindow.this.dockable.removeComponentListener(compListener);
+							BubbleWindow.this.reloadComponent();
+							BubbleWindow.this.dockable.addComponentListener(compListener);
+							//repaint
+							BubbleWindow.this.paintAgain(false);
+							BubbleWindow.this.setVisible(true);
+						}
+					}
+					if (event.getActionType() == 6) {
+						//get the new component of the Dockable because the current component is disabled
+						BubbleWindow.this.dockable.removeComponentListener(compListener);
+						BubbleWindow.this.reloadComponent();
+						BubbleWindow.this.dockable.addComponentListener(compListener);
+						//repaint
+						BubbleWindow.this.paintAgain(false);
+						BubbleWindow.this.setVisible(true);
+					}
+				}
+
+				@Override
+				public boolean acceptDockingAction(DockingActionEvent arg0) {
+					// no need to deny anything
+					return true;
+				}
+			};
+			BubbleWindow.this.dockable.addComponentListener(compListener);
+			desktop.addDockingActionListener(dockListener);
+		}
+	}
+
 }
