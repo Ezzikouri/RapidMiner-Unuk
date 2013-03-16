@@ -23,81 +23,152 @@
 package com.rapidminer.operator.nio;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Set;
 
 import com.rapidminer.operator.nio.model.ColumnMetaData;
-import com.rapidminer.operator.nio.model.DataResultSetTranslationConfiguration;
 import com.rapidminer.operator.nio.model.ParsingError;
 
 /**
  * Validates the MetaData set by the user in the MetaDataDeclarationWizardStep which is a part of importing e.g. an Excel file.
  * @author Dominik Halfkann
  */
-public class MetaDataValidator {
-
-	private Object lock = new Object();
-	private DataResultSetTranslationConfiguration configuration;
-	private MetaDataDeclarationWizardStep wizardStep;
-	private List<ParsingError> errorList = new ArrayList<ParsingError>();
-	private List<MetaDataTableHeaderCellEditor> headerRenderer = new ArrayList<MetaDataTableHeaderCellEditor>();
+public class MetaDataValidator extends Observable {
 	
-	public MetaDataValidator(MetaDataDeclarationWizardStep wizardStep,DataResultSetTranslationConfiguration configuration) {
-		this.configuration = configuration;
-		this.wizardStep = wizardStep;
-	}
+	private List<ParsingError> errorList = new ArrayList<ParsingError>();
 
-	public void validate() {
+	Map<ColumnMetaData, Integer> metaDataToColNumMap = new HashMap<ColumnMetaData, Integer>();
+
+	Map<String, List<Integer>> columnRoles = new HashMap<String, List<Integer>>();
+	Map<String, List<Integer>> columnNames = new HashMap<String, List<Integer>>();
+	
+	List<Integer> oldDuplicateNameColumn = new ArrayList<Integer>();
+	List<Integer> duplicateNameColumn = new ArrayList<Integer>();
+	
+	List<Integer> oldDuplicateRoleColumn = new ArrayList<Integer>();
+	List<Integer> duplicateRoleColumn = new ArrayList<Integer>();
+	
+	
+	private void updateColumnMaps(ColumnMetaData cmd) {
+		int updatedColumnNum = metaDataToColNumMap.get(cmd);
+		deleteColumnNumFromMaps(updatedColumnNum);
 		
-		new Thread("validating_column_meta_data") {
-
-			@Override
-			public void run() {
-				synchronized(lock) {
-					errorList = new ArrayList<ParsingError>();
-					ColumnMetaData[] metaData = configuration.getColumnMetaData();
-					Map<String, List<Integer>> columnRoles = new HashMap<String, List<Integer>>();
-					Map<String, List<Integer>> columnNames = new HashMap<String, List<Integer>>();
-					
-					int counter = 1;
-					for (ColumnMetaData columnMetaData : metaData) {
-						if (columnRoles.containsKey(columnMetaData.getRole())) {
-							columnRoles.get(columnMetaData.getRole()).add(counter);
-						} else {
-							columnRoles.put(columnMetaData.getRole(), new ArrayList<Integer>(Arrays.asList((counter))));
-						}
-						if (columnNames.containsKey(columnMetaData.getUserDefinedAttributeName())) {
-							columnNames.get(columnMetaData.getUserDefinedAttributeName()).add(counter);
-						} else {
-							columnNames.put(columnMetaData.getUserDefinedAttributeName(), new ArrayList<Integer>(Arrays.asList((counter))));
-						}
-						counter++;
-					}
-					for (Entry<String, List<Integer>> roleEntry : columnRoles.entrySet()) {
-						if (roleEntry.getValue().size() > 1 && !roleEntry.getKey().equals("attribute")) {
-							errorList.add(new ParsingError(roleEntry.getValue(), ParsingError.ErrorCode.SAME_ROLE_FOR_MULTIPLE_COLUMNS, roleEntry.getKey()));
-						}
-					}
-					for (Entry<String, List<Integer>> nameEntry : columnNames.entrySet()) {
-						if (nameEntry.getValue().size() > 1) {
-							errorList.add(new ParsingError(nameEntry.getValue(), ParsingError.ErrorCode.SAME_NAME_FOR_MULTIPLE_COLUMNS, nameEntry.getKey()));
-						}
-					}
-					wizardStep.updateErrors();
-				}
-			}
-		}.start();
+		//name
+		List<Integer> columnsForName = columnNames.get(cmd.getUserDefinedAttributeName());
+		if (columnsForName == null) {
+			//if there isn't a list for that name, create one
+			List<Integer> columns = new ArrayList<Integer>();
+			columns.add(updatedColumnNum);
+			columnNames.put(cmd.getUserDefinedAttributeName(), columns);
+		} else {
+			//if there is already a list for that name, add column
+			columnsForName.add(updatedColumnNum);
+		}
+		
+		//role
+		List<Integer> columnsForRole = columnRoles.get(cmd.getRole());
+		if (columnsForRole == null) {
+			//if there isn't a list for that role, create one
+			List<Integer> columns = new ArrayList<Integer>();
+			columns.add(updatedColumnNum);
+			columnRoles.put(cmd.getRole(), columns);
+		} else {
+			//if there is already a list for that role, add column
+			columnsForRole.add(updatedColumnNum);
+		}
 	}
+	
+	
+	private void validate(ColumnMetaData cmd) {
+		updateColumnMaps(cmd);
+		checkForDuplicates();		
+	}
+	
+	
+	public void checkForDuplicates() {
+		oldDuplicateNameColumn.clear();
+		oldDuplicateNameColumn.addAll(duplicateNameColumn);
+		duplicateNameColumn.clear();
+		
+		oldDuplicateRoleColumn.clear();
+		oldDuplicateRoleColumn.addAll(duplicateRoleColumn);
+		duplicateRoleColumn.clear();
+		
+		errorList = new ArrayList<ParsingError>();
+		
+		for (Entry<String, List<Integer>> roleEntry : columnRoles.entrySet()) {
+			if (roleEntry.getValue().size() > 1 && !roleEntry.getKey().equals("attribute")) {
+				errorList.add(new ParsingError(roleEntry.getValue(), ParsingError.ErrorCode.SAME_ROLE_FOR_MULTIPLE_COLUMNS, roleEntry.getKey()));
+				duplicateRoleColumn.addAll(roleEntry.getValue());
+			}
+		}
+
+		for (Entry<String, List<Integer>> nameEntry : columnNames.entrySet()) {
+			if (nameEntry.getValue().size() > 1) {
+				errorList.add(new ParsingError(nameEntry.getValue(), ParsingError.ErrorCode.SAME_NAME_FOR_MULTIPLE_COLUMNS, nameEntry.getKey()));
+				duplicateNameColumn.addAll(nameEntry.getValue());
+			}
+		}
+		checkIfUpdate();
+	}
+
+	private void checkIfUpdate() {
+		if (!oldDuplicateNameColumn.equals(duplicateNameColumn) || !oldDuplicateRoleColumn.equals(duplicateRoleColumn)) {
+			// if one of the duplicates lists aren't equal, fire update
+			Set<Integer> columnsUpdate = new HashSet<Integer>();
+			columnsUpdate.addAll(oldDuplicateNameColumn);
+			columnsUpdate.addAll(duplicateNameColumn);
+			columnsUpdate.addAll(oldDuplicateRoleColumn);
+			columnsUpdate.addAll(duplicateRoleColumn);
+			
+			this.setChanged();
+			this.notifyObservers(columnsUpdate);
+		}
+	}
+	
 	
 	public List<ParsingError> getErrors() {
 		return errorList;
 	}
-
-	public void addHeaderRenderer(MetaDataTableHeaderCellEditor headerRenderer) {
-		// TODO Auto-generated method stub
-		this.headerRenderer.add(headerRenderer);
+	
+	public void addColumnMetaData(ColumnMetaData cmd, int column) {
+		metaDataToColNumMap.put(cmd, column);
+		cmd.addObserver(new Observer(){
+			@Override
+			public void update(Observable o, Object arg) {
+				if (o instanceof ColumnMetaData) {
+					ColumnMetaData cmd = (ColumnMetaData)o;
+					validate(cmd);
+				}
+			}
+			
+		});
+		updateColumnMaps(cmd);
 	}
+	
+	private void deleteColumnNumFromMaps(int columnNumber) {
+		for (Entry<String, List<Integer>> nameEntry : columnNames.entrySet()) {
+			if (nameEntry.getValue() != null)
+				nameEntry.getValue().remove((Integer)columnNumber);
+		}
+		for (Entry<String, List<Integer>> roleEntry : columnRoles.entrySet()) {
+			if (roleEntry.getValue() != null)
+				roleEntry.getValue().remove((Integer)columnNumber);
+		}
+	}
+
+	public boolean isDuplicateNameColumn(int column) {
+		return duplicateNameColumn.contains(column);
+	}
+
+	public boolean isDuplicateRoleColumn(int column) {
+		return duplicateRoleColumn.contains(column);
+	}
+
 }
