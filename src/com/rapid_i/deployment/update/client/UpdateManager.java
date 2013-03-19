@@ -105,12 +105,23 @@ import com.rapidminer.tools.WebServiceTools;
  */
 public class UpdateManager {
 
+	public static final String PACKAGE_TYPE_RAPIDMINER_PLUGIN = "RAPIDMINER_PLUGIN";
+	public static final String PACKAGE_TYPE_STAND_ALONE = "STAND_ALONE";
+
 	/** The platform architecture as specified in the manifest. */
 	public static final String TARGET_PLATFORM;
 
 	/** If true, the {@link #TARGET_PLATFORM} was not correctly identified in the manifest, so we
 	 *  are probably using a development version which means we cannot update RapidMiner itself. */
 	public static final boolean DEVELOPMENT_BUILD;
+
+	public static final String PARAMETER_UPDATE_INCREMENTALLY = "rapidminer.update.incremental";
+	public static final String PARAMETER_UPDATE_URL = "rapidminer.update.url";
+	public static final String PARAMETER_INSTALL_TO_HOME = "rapidminer.update.to_home";
+	public static final String UPDATESERVICE_URL = "http://marketplace.rapid-i.com:80/UpdateServer";
+	public static final String PACKAGEID_RAPIDMINER = "rapidminer";
+	public static final String COMMERCIAL_LICENSE_NAME = "RIC";
+	public static final String NEVER_REMIND_INSTALL_EXTENSIONS_FILE_NAME = "ignored_extensions.xml";
 
 	static {
 		String implementationVersion = UpdateManager.class.getPackage().getImplementationVersion();
@@ -137,14 +148,6 @@ public class UpdateManager {
 			}
 		}
 	}
-
-	public static final String PARAMETER_UPDATE_INCREMENTALLY = "rapidminer.update.incremental";
-	public static final String PARAMETER_UPDATE_URL = "rapidminer.update.url";
-	public static final String PARAMETER_INSTALL_TO_HOME = "rapidminer.update.to_home";
-	public static final String UPDATESERVICE_URL = "http://marketplace.rapid-i.com:80/UpdateServer";
-	public static final String PACKAGEID_RAPIDMINER = "rapidminer";
-	public static final String COMMERCIAL_LICENSE_NAME = "RIC";
-	public static final String NEVER_REMIND_INSTALL_EXTENSIONS_FILE_NAME = "ignored_extensions.xml";
 
 	private static final UpdateServerAccount usAccount = new UpdateServerAccount();
 
@@ -200,7 +203,7 @@ public class UpdateManager {
 	public List<PackageDescriptor> performUpdates(List<PackageDescriptor> downloadList, ProgressListener progressListener) throws IOException, UpdateServiceException_Exception {
 		for (Iterator<PackageDescriptor> iterator = downloadList.iterator(); iterator.hasNext();) {
 			PackageDescriptor desc = iterator.next();
-			if ("rapidminer".equals(desc.getPackageId()) && DEVELOPMENT_BUILD) {
+			if (PACKAGE_TYPE_STAND_ALONE.equals(desc.getPackageTypeName()) && DEVELOPMENT_BUILD) {
 				SwingTools.showVerySimpleErrorMessageAndWait("update_error_development_build");
 				iterator.remove();
 				continue;
@@ -222,7 +225,7 @@ public class UpdateManager {
 				int minProgress = 20 + 80 * i / downloadList.size();
 				int maxProgress = 20 + 80 * (i + 1) / downloadList.size();
 				boolean incremental = UpdateManager.isIncrementalUpdate();
-				if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
+				if (PACKAGE_TYPE_RAPIDMINER_PLUGIN.equals(desc.getPackageTypeName())) {
 					ManagedExtension extension = ManagedExtension.getOrCreate(desc.getPackageId(), desc.getName(), desc.getLicenseName());
 					String baseVersion = extension.getLatestInstalledVersionBefore(desc.getVersion());
 					incremental &= baseVersion != null;
@@ -275,7 +278,7 @@ public class UpdateManager {
 							ManagedExtension.remove(desc.getPackageId());
 						}
 					}
-				} else if ("STAND_ALONE".equals(desc.getPackageTypeName()) && ("rapidminer".equals(desc.getPackageId()))) {
+				} else if (PACKAGE_TYPE_STAND_ALONE.equals(desc.getPackageTypeName())) {
 					if (DEVELOPMENT_BUILD) {
 						SwingTools.showVerySimpleErrorMessageAndWait("update_error_development_build");
 						continue;
@@ -556,6 +559,7 @@ public class UpdateManager {
 	private static UpdateService theService = null;
 	private static URI lastUsedUri = null;
 	private static AccountService accountService;
+	private static String packageIdRapidMiner = PACKAGEID_RAPIDMINER;
 
 	public synchronized static UpdateService getService() throws MalformedURLException, URISyntaxException {
 		URI uri = getUpdateServerURI("/UpdateServiceService?wsdl");
@@ -837,13 +841,7 @@ public class UpdateManager {
 	public static void checkForUpdates() {
 		String updateProperty = ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_RAPIDMINER_GUI_UPDATE_CHECK);
 		if (Tools.booleanValue(updateProperty, true)) {
-//			if (Launcher.isDevelopmentBuild()) {
-//				//LogService.getRoot().config("This is a development build. Ignoring update check.");
-//				LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.UpdateManager.ignoring_update_check_development_build");
-//				return;
-//			}
 			if (RapidMiner.getExecutionMode() == ExecutionMode.WEBSTART) {
-				//LogService.getRoot().config("Ignoring update check in Webstart mode.");
 				LogService.getRoot().config("com.rapid_i.deployment.update.client.UpdateManager.ignoring_update_check_webstart_mode");
 				return;
 			}
@@ -857,7 +855,6 @@ public class UpdateManager {
 				currentDate.add(Calendar.DAY_OF_YEAR, -2);
 				if (!lastCheck.before(currentDate)) {
 					check = false;
-					//LogService.getRoot().config("Ignoring update check. Last update check was on "+lastCheckDate);
 					LogService.getRoot().log(Level.CONFIG, "com.rapid_i.deployment.update.client.UpdateManager.ignoring_update_check_last_checkdate", lastCheckDate);
 				}
 			}
@@ -870,7 +867,7 @@ public class UpdateManager {
 
 						boolean updatesExist = false;
 						try {
-							updatesExist = !RapidMiner.getVersion().isAtLeast(new VersionNumber(getService().getLatestVersion("rapidminer", TARGET_PLATFORM)));
+							updatesExist = !RapidMiner.getVersion().isAtLeast(new VersionNumber(getService().getLatestVersion(getRMPackageId(), TARGET_PLATFORM)));
 						} catch (Exception e) {
 							//LogService.getRoot().log(Level.WARNING, "Error checking for updates: "+e, e);
 							LogService.getRoot().log(Level.WARNING,
@@ -1019,4 +1016,12 @@ public class UpdateManager {
 		return usAccount;
 	}
 
+	public static String getRMPackageId() {
+		return packageIdRapidMiner;
+	}
+	
+	
+	public static void setRMPackageId(String packageIdRapidMiner) {
+		UpdateManager.packageIdRapidMiner = packageIdRapidMiner;
+	}
 }

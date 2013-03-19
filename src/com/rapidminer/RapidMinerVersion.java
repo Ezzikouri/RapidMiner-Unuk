@@ -31,7 +31,7 @@ import com.rapidminer.gui.tools.VersionNumber;
  * @author Simon Fischer
  */
 public class RapidMinerVersion extends VersionNumber {
-	private static final String VERSION_STRING = "5.3.006";
+	private static final String VERSION_STRING = "5.3.007";
 	public RapidMinerVersion() {
 		super(VERSION_STRING);
 	}

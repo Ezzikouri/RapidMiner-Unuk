@@ -1997,6 +1997,11 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		}
 	}
 
+	/** Renders without highlighting and comic tutorial */
+	public void render(Graphics2D graphics) {
+		render(graphics, false, false);
+	}
+	
 	public void render(Graphics2D graphics, boolean drawHighlighting, boolean drawComicTutorial) {
 		if (processes == null || processes.length == 0) {
 			return;

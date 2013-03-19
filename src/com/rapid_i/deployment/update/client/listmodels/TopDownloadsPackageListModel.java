@@ -43,7 +43,7 @@ public class TopDownloadsPackageListModel extends AbstractPackageListModel {
 	}
 	
 	@Override
-	public List<String> fetchPackageNames() {
+	public List<String> handleFetchPackageNames() {
 		UpdateService updateService = cache.getUpdateService();
 		if(updateService != null) {
 			return updateService.getTopDownloads();

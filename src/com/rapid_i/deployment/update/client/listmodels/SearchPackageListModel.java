@@ -57,11 +57,12 @@ public class SearchPackageListModel extends AbstractPackageListModel {
 	}
 
 	@Override
-	public List<String> fetchPackageNames() {
+	public List<String> handleFetchPackageNames() {
 		UpdateService updateService = cache.getUpdateService();
 		
 		if (searchString != null && !searchString.equals("") && searchString.length() > 0) {
-			return updateService.searchFor(searchString);
+			List<String> searchResults = updateService.searchFor(searchString);
+			return searchResults;
 		} else {
 			return Collections.emptyList();
 		}

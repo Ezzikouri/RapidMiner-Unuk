@@ -101,11 +101,8 @@ public class UpdatePackagesModel extends Observable {
 			if (isUpToDate(desc)) {
 				select = false;
 			}
-			if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
-//				if (select) {
-//					resolveDependencies(desc);
-//				}
-			} else if (desc.getPackageTypeName().equals("STAND_ALONE")) {
+			if (UpdateManager.PACKAGE_TYPE_RAPIDMINER_PLUGIN.equals(desc.getPackageTypeName())) {
+			} else if (UpdateManager.PACKAGE_TYPE_STAND_ALONE.equals(desc.getPackageTypeName())) {
 				String longVersion = RapidMiner.getLongVersion();
 				String myVersion = ManagedExtension.normalizeVersion(longVersion);
 				String remoteVersion = ManagedExtension.normalizeVersion(desc.getVersion());
