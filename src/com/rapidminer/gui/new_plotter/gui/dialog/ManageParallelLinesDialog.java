@@ -84,7 +84,7 @@ public class ManageParallelLinesDialog extends JDialog {
 	private JComboBox rangeAxisSelectionCombobox;
 	
 	/** the {@link JList} which displays the appropriate crosshair lines according to the user selections */
-	private JList linesList;
+	private JList<AxisParallelLineConfiguration> linesList;
 	
 	/** this button deletes the selected line(s) */
 	private JButton deleteSelectedLinesButton;
@@ -189,7 +189,7 @@ public class ManageParallelLinesDialog extends JDialog {
 		gbc.weighty = 1;
 		gbc.gridwidth = 2;
 		gbc.anchor = GridBagConstraints.CENTER;
-		linesList = new JList();
+		linesList = new JList<AxisParallelLineConfiguration>();
 		linesList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		linesList.addListSelectionListener(new ListSelectionListener() {
 			
@@ -233,18 +233,6 @@ public class ManageParallelLinesDialog extends JDialog {
 		});
 		listActionPanel.add(addNewLineButton);
 		
-		deleteSelectedLinesButton = new JButton();
-		deleteSelectedLinesButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.delete_lines.tip"));
-		deleteSelectedLinesButton.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.delete_lines.icon")));
-		deleteSelectedLinesButton.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				deleteSelectedLines();
-			}
-		});
-		listActionPanel.add(deleteSelectedLinesButton);
-		
 		modifySelectedLineButton = new JButton();
 		modifySelectedLineButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.modify_line.tip"));
 		modifySelectedLineButton.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.modify_line.icon")));
@@ -256,6 +244,18 @@ public class ManageParallelLinesDialog extends JDialog {
 			}
 		});
 		listActionPanel.add(modifySelectedLineButton);
+		
+		deleteSelectedLinesButton = new JButton();
+		deleteSelectedLinesButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.delete_lines.tip"));
+		deleteSelectedLinesButton.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.delete_lines.icon")));
+		deleteSelectedLinesButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				deleteSelectedLines();
+			}
+		});
+		listActionPanel.add(deleteSelectedLinesButton);
 		
 		gbc.gridx = 0;
 		gbc.gridy = 3;
@@ -386,7 +386,7 @@ public class ManageParallelLinesDialog extends JDialog {
 		
 		// get all vertical lines of the selected RangeAxisConfig and display them
 		RangeAxisConfig selectedConfig = (RangeAxisConfig) rangeAxisSelectionCombobox.getSelectedItem();
-		DefaultListModel model = new DefaultListModel();
+		DefaultListModel<AxisParallelLineConfiguration> model = new DefaultListModel<AxisParallelLineConfiguration>();
 		if (selectedConfig != null) {
 			List<AxisParallelLineConfiguration> rangeAxisLines = selectedConfig.getCrossHairLines().getLines();
 			for (int i=0; i<rangeAxisLines.size(); i++) {
@@ -407,7 +407,7 @@ public class ManageParallelLinesDialog extends JDialog {
 		linesList.clearSelection();
 		
 		// get all horizontal lines and display them
-		DefaultListModel model = new DefaultListModel();
+		DefaultListModel<AxisParallelLineConfiguration> model = new DefaultListModel<AxisParallelLineConfiguration>();
 		List<AxisParallelLineConfiguration> domainLines = engine.getPlotInstance().getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().getLines();
 		for (int i=0; i<domainLines.size(); i++) {
 			AxisParallelLineConfiguration line = domainLines.get(i);
