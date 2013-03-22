@@ -172,15 +172,6 @@ public class UpdatePackagesModel extends Observable {
 		return UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + descriptor.getPackageId();
 	}
 
-	public void markAllPackages(List<String> packageNames, PackageDescriptorCache cache) {
-		for (String packageName : packageNames) {
-			PackageDescriptor pd = cache.getPackageInfo(packageName);
-			if (!isSelectedForInstallation(pd) && (!usAccount.isLoggedIn() || !pd.isRestricted() || isPurchased(pd))) {
-				toggleSelectionForInstallation(pd);
-			}
-		}
-	}
-
 	public String toString(PackageDescriptor descriptor, String changes) {
 		StringBuilder b = new StringBuilder("<html><body>");
 		b.append("<h1>");

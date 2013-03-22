@@ -51,6 +51,17 @@ public class AccessRightsAction extends ResourceAction {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		// this is for example the case when the credentials are invalid
+		try {
+			if (entry.getRepository().getRepositoryService() == null) {
+				SwingTools.showVerySimpleErrorMessage("error_access_rights");
+				return;
+			}
+		} catch (RepositoryException e1) {
+			SwingTools.showSimpleErrorMessage("error_contacting_repository", e1, e1.getMessage());
+			return;
+		}
+		
 		new ProgressThread("download_from_repository") {
 			@Override
 			public void run() {

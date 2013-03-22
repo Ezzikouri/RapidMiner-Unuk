@@ -529,25 +529,25 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			// this is probably because the password was wrong, so rather force dialog than
 			// using cache again.
 			if (getProtocollExceptionCount() > 3) {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra.wrong.credentials.protocol.error", getName(), protocolException.getLocalizedMessage());
 			} else if (getProtocollExceptionCount() > 0) {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra.wrong.credentials", getName());
 			} else {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra", getName());
 			}
 			this.cachedPasswordUsed = false;
 		} else {
 			if (getProtocollExceptionCount() > 3) {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra.wrong.credentials.protocol.error", getName(), protocolException.getLocalizedMessage());
 			} else if (getProtocollExceptionCount() > 0) {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra.wrong.credentials", getName());
 			} else {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, true, "authentication.ra", getName());
 			}
 			this.cachedPasswordUsed = true;
@@ -579,6 +579,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			}
 		}
 		return repositoryService;
+	}
+	
+	public void resetRepositoryService() throws RepositoryException {
+		repositoryService = null;
+		getRepositoryService();
 	}
 
 	private void setupBindingProvider(BindingProvider bp) {

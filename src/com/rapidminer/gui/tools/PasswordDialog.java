@@ -103,16 +103,17 @@ public class PasswordDialog extends ButtonDialog {
 	}
 
 	/** 
+	 * @param id the ID to accompany the given url. Used to differentiate multiple entries for the same url.
 	 * @param i18nKey The i18nKey has to look like every dialog i18n: gui.dialog.KEY.title etc.
 	 * @param args Will be used when i18nKey is set. If i18nKey is <code>null</code> it will be not be used
 	 **/
-	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown, String i18nKey, Object... args) throws PasswortInputCanceledException {
+	public static PasswordAuthentication getPasswordAuthentication(String id, String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown, String i18nKey, Object... args) throws PasswortInputCanceledException {
 		
 		if (RapidMiner.getExecutionMode().isHeadless()) {
 			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.PassworDialog.no_query_password_in_batch_mode", forUrl);
 			return null;
 		}
-		UserCredential authentication = Wallet.getInstance().getEntry(forUrl);
+		UserCredential authentication = Wallet.getInstance().getEntry(id, forUrl);
 
 		// return immediately if known and desired
 		if (hideDialogIfPasswordKnown && !forceRefresh && (authentication != null) && (authentication.getPassword() != null)) {
@@ -128,7 +129,7 @@ public class PasswordDialog extends ButtonDialog {
 		// clear cache if refresh forced
 		if (forceRefresh && authentication != null) {
 			authentication.setPassword(null);
-			Wallet.getInstance().registerCredentials(authentication);
+			Wallet.getInstance().registerCredentials(id, authentication);
 		}
 		if (authentication == null) {
 			authentication = new UserCredential(forUrl, null, null);
@@ -159,10 +160,20 @@ public class PasswordDialog extends ButtonDialog {
 			PasswordAuthentication result = pd.makeAuthentication();
 			if (pd.rememberBox.isSelected()) {
 				UserCredential userCredential = new UserCredential(forUrl, result.getUserName(), result.getPassword());
-				Wallet.getInstance().registerCredentials(userCredential);
+				if (id != null) {
+					Wallet.getInstance().registerCredentials(id, userCredential);
+				} else {
+					// compatibility with old API
+					Wallet.getInstance().registerCredentials(userCredential);
+				}
 				Wallet.getInstance().saveCache();
 			} else {
-				Wallet.getInstance().remove(forUrl);
+				if (id != null) {
+					Wallet.getInstance().removeEntry(id, forUrl);
+				} else {
+					// compatibility with old API
+					Wallet.getInstance().removeEntry(forUrl);
+				}
 				Wallet.getInstance().saveCache();
 			}
 
@@ -174,5 +185,15 @@ public class PasswordDialog extends ButtonDialog {
 
 	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown) throws PasswortInputCanceledException {
 		return getPasswordAuthentication(forUrl, forceRefresh, hideDialogIfPasswordKnown, null);
+	}
+	
+	/** 
+	 * @param i18nKey The i18nKey has to look like every dialog i18n: gui.dialog.KEY.title etc.
+	 * @param args Will be used when i18nKey is set. If i18nKey is <code>null</code> it will be not be used
+	 * @deprecated use {@link #getPasswordAuthentication(String, String, boolean, boolean, String, Object...)} instead.
+	 **/
+	@Deprecated
+	public static PasswordAuthentication getPasswordAuthentication(String forUrl, boolean forceRefresh, boolean hideDialogIfPasswordKnown, String i18nKey, Object... args) throws PasswortInputCanceledException {
+		return getPasswordAuthentication(null, forUrl, forceRefresh, hideDialogIfPasswordKnown, null);
 	}
 }

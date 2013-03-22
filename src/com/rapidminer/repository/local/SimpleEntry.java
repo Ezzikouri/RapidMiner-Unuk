@@ -135,7 +135,7 @@ public abstract class SimpleEntry implements Entry {
 		}
 		String name = file2.getName();
 		int dot = name.lastIndexOf('.');
-		if (dot == -1) {
+		if (file2.isDirectory() || dot == -1) {
 			file2.renameTo(new File(file2.getParentFile(), newBaseName));
 		} else {
 			String extension = name.substring(dot + 1);

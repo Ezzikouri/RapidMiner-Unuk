@@ -29,6 +29,7 @@ import java.net.URL;
 import java.util.Observable;
 import java.util.logging.Level;
 
+import com.rapidminer.gui.security.Wallet;
 import com.rapidminer.gui.tools.PasswordDialog;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.tools.GlobalAuthenticator;
@@ -88,12 +89,18 @@ public class UpdateServerAccount extends Observable {
 		login(updateModel, false);
 	}
 
+	public void login(final UpdatePackagesModel updateModel, boolean showInForeground) {
+		login(updateModel, showInForeground, null, null);
+	}
+	
 	/** 
 	 * Shows the login dialog and notifies observers when the status changed.
 	 * 
 	 * @param startAndWait if <code>true</code> this code will block until the login has finished.
+	 * @param successCallback will be called after logging in successfully 
+	 * @param failCallback will be called if login attempt has been canceled 
 	 **/
-	public void login(final UpdatePackagesModel updateModel, boolean showInForeground) {
+	public void login(final UpdatePackagesModel updateModel, boolean showInForeground, final Runnable successCallback, final Runnable failCallback) {
 		ProgressThread loginProgressThread = new ProgressThread("log_in_to_updateserver", showInForeground) {
 
 			public void run() {
@@ -109,7 +116,7 @@ public class UpdateServerAccount extends Observable {
 						boolean clickedOk = true;
 						PasswordAuthentication pa = null;
 						try {
-							pa = PasswordDialog.getPasswordAuthentication(UpdateManager.getUpdateServerURI("").toString(), false, false, "authentication.marketplace");
+							pa = PasswordDialog.getPasswordAuthentication(Wallet.ID_MARKETPLACE, UpdateManager.getUpdateServerURI("").toString(), false, false, "authentication.marketplace");
 						} catch (PasswortInputCanceledException e1) {
 							clickedOk = false;
 						}
@@ -135,17 +142,26 @@ public class UpdateServerAccount extends Observable {
 							setChanged();
 							notifyObservers(null);
 							getProgressListener().setCompleted(100);
+							if(successCallback != null) {
+								successCallback.run();
+							}
 							return;
 						} else {
 							//user hit "cancel"
 							upateServerPA = null;
 							setChanged();
 							notifyObservers(null);
+							if(failCallback != null) {
+								failCallback.run();
+							}
 							return;
 						}
 
 					}
 				} catch (URISyntaxException e) {
+					if(failCallback != null) {
+						failCallback.run();
+					}
 					return;
 				}
 			}

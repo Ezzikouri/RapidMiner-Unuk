@@ -186,7 +186,7 @@ public class RemoteProcessesTreeModel implements TreeModel {
 				while (iterator.hasNext()) {
 					final RemoteRepository repos = iterator.next();
 					if (observedRepositories.contains(repos)) {
-						final ProcessList processList = processes.get(repos);
+						final ProcessList processList = getProcessList(repos);
 						try {
 							if (repos.isPasswordInputCanceled()) {
 								LogService.getRoot().log(Level.FINE,
@@ -270,9 +270,8 @@ public class RemoteProcessesTreeModel implements TreeModel {
 								LogService.getRoot().log(Level.WARNING,
 										I18N.getMessage(LogService.getRoot().getResourceBundle(),
 												"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.fetching_remote_process_list_error",
-												ex)
-										);
-
+												ex),
+										ex);
 								try {
 									SwingUtilities.invokeAndWait(new Runnable() {
 										@Override
@@ -284,14 +283,14 @@ public class RemoteProcessesTreeModel implements TreeModel {
 									LogService.getRoot().log(Level.WARNING,
 											I18N.getMessage(LogService.getRoot().getResourceBundle(),
 													"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.fetching_remote_process_list_error",
-													e)
-											);
+													e),
+											e);
 								} catch (InterruptedException e) {
 									LogService.getRoot().log(Level.WARNING,
 											I18N.getMessage(LogService.getRoot().getResourceBundle(),
 													"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.fetching_remote_process_list_error",
-													e)
-											);
+													e),
+											e);
 								}
 							}
 						}
@@ -499,7 +498,7 @@ public class RemoteProcessesTreeModel implements TreeModel {
 	}
 
 	private void setIntoState(final RemoteRepository repos, ProcessListState state) {
-		ProcessList processList = processes.get(repos);
+		ProcessList processList = getProcessList(repos);
 		if (processList.getState() == state) {
 			return; // nothing to do
 		}
@@ -516,6 +515,7 @@ public class RemoteProcessesTreeModel implements TreeModel {
 	}
 
 	ProcessList getProcessList(RemoteRepository repository) {
-		return processes.get(repository);
+		ProcessList result = processes.get(repository);
+		return result;
 	}
 }

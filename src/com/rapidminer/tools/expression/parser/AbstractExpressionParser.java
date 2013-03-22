@@ -516,6 +516,8 @@ abstract public class AbstractExpressionParser {
 				example.setValue(newAttribute, ((Calendar) result).getTimeInMillis());
 			} else if (result instanceof UnknownValue) {
 				example.setValue(newAttribute, Double.NaN);
+			} else if (result == null) {
+				throw new GenerationException("Offending attribute: '" + name + "', Expression: '" + expression + "', Error: '" + getErrorInfo() + "'");
 			} else {
 				example.setValue(newAttribute, newAttribute.getMapping().mapString(result.toString()));
 			}

@@ -24,9 +24,10 @@ package com.rapidminer.gui.security;
 
 import java.net.PasswordAuthentication;
 
-/** The user credentials stored in a {@link Wallet}. Each username belongs to one URL. 
+/** 
+ * The user credentials stored in a {@link Wallet}. Each username belongs to one URL. 
  * 
- * @author Miguel B�scher
+ * @author Miguel Buescher
  *
  */
 public class UserCredential {
@@ -35,6 +36,7 @@ public class UserCredential {
 	private String user;
 	private char[] password;
 
+	
 	public UserCredential(String url, String user, char[] password) {
 		super();
 		this.url = url;

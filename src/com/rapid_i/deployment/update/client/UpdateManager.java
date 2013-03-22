@@ -915,14 +915,14 @@ public class UpdateManager {
 				return;
 			}
 
-			UserCredential authentication = Wallet.getInstance().getEntry(updateServerURI);
+			UserCredential authentication = Wallet.getInstance().getEntry(Wallet.ID_MARKETPLACE, updateServerURI);
 
 			if ((authentication == null) || (authentication.getPassword() == null))
 				return;
 
 			PasswordAuthentication passwordAuthentication = null;
 			try {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(updateServerURI, false, true, "authentication.marketplace");
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(Wallet.ID_MARKETPLACE, updateServerURI, false, true, "authentication.marketplace");
 			} catch (PasswortInputCanceledException e1) {}
 			UpdateServerAccount.setPasswordAuthentication(passwordAuthentication);
 

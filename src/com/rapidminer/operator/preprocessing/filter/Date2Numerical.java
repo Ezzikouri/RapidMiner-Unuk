@@ -26,6 +26,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -120,8 +121,10 @@ public class Date2Numerical extends AbstractDateDataProcessing {
 		}
 
 		if (!getParameterAsBoolean(PARAMETER_KEEP_OLD_ATTRIBUTE)) {
+			AttributeRole oldRole = exampleSet.getAttributes().getRole(dateAttribute);
 			exampleSet.getAttributes().remove(dateAttribute);
 			newAttribute.setName(attributeName);
+			exampleSet.getAttributes().setSpecialAttribute(newAttribute, oldRole.getSpecialName());
 		} else {
 			newAttribute.setName(attributeName + "_" + TIME_UNITS[timeUnit]);
 		}

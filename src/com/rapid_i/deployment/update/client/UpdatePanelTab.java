@@ -70,7 +70,6 @@ import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.gui.tools.components.LinkButton;
-import com.rapidminer.parameter.conditions.EqualStringCondition;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 
@@ -89,7 +88,7 @@ public class UpdatePanelTab extends JPanel {
 
 	protected UpdatePackagesModel updateModel;
 	protected AbstractPackageListModel listModel;
-	UpdateServerAccount usAccount;
+	protected UpdateServerAccount usAccount;
 
 	private ExtendedHTMLJEditorPane displayPane;
 	private final SelectForInstallationButton installButton;
@@ -171,14 +170,7 @@ public class UpdatePanelTab extends JPanel {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				PackageDescriptor selectedDescriptor = (PackageDescriptor) getPackageList().getSelectedValue();
-				if (installButton.getPurchaseFirst()) {
-					installButton.setSelected(false);
-					showProductPage(selectedDescriptor);
-				} else {
-					UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
-					getModel().updateView(selectedDescriptor);
-				}
+				markForInstallation((PackageDescriptor) getPackageList().getSelectedValue(), true, true);
 			}
 		});
 		installButton.addActionListener(new ActionListener() {
@@ -358,43 +350,61 @@ public class UpdatePanelTab extends JPanel {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					PackageDescriptor selectedDescriptor = (PackageDescriptor) getPackageList().getSelectedValue();
-
-					// check if extension is installed and up to date
-					if (updateModel.isUpToDate(selectedDescriptor)) {
-						return;
-					}
-
-					// check if selected descriptor is restricted
-					if (selectedDescriptor.isRestricted()) {
-						if (usAccount.isLoggedIn()) {
-							if (updateModel.isPurchased(selectedDescriptor)) {
-								UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
-								getModel().updateView(selectedDescriptor);
-							} else {
-								showProductPage(selectedDescriptor);
-							}
-						} else {
-							usAccount.login(updateModel);
-							if (usAccount.isLoggedIn()) {
-								if (updateModel.isPurchased(selectedDescriptor)) {
-									UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
-									getModel().updateView(selectedDescriptor);
-								} else {
-									showProductPage(selectedDescriptor);
-								}
-							}
-						}
-					} else {
-						UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
-						getModel().updateView(selectedDescriptor);
-					}
-
+					markForInstallation((PackageDescriptor) getPackageList().getSelectedValue(), true, true);
 				}
 			}
 		});
 		updateList.setCellRenderer(new UpdateListCellRenderer(updateModel));
 		return updateList;
+	}
+
+	/**
+	 * 
+	 * @param selectedDescriptor
+	 * @param loginForRestricted shows login dialog if restricted package found but not logged in 
+	 * @param showProductPage shows product page if not yet purchased package selected
+	 */
+	protected void markForInstallation(final PackageDescriptor selectedDescriptor, final boolean loginForRestricted, final boolean showProductPage) {
+		// check if extension is installed and up to date
+		if (updateModel.isUpToDate(selectedDescriptor)) {
+			return;
+		}
+
+		// check if selected descriptor is restricted
+		if (selectedDescriptor.isRestricted()) {
+			if (usAccount.isLoggedIn()) {
+				if (updateModel.isPurchased(selectedDescriptor)) {
+					UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
+					getModel().updateView(selectedDescriptor);
+				} else {
+					if (showProductPage) {
+						showProductPage(selectedDescriptor);
+					}
+				}
+			} else {
+				if (loginForRestricted) {
+					usAccount.login(updateModel, false, new Runnable() {
+
+						@Override
+						public void run() {
+							if (usAccount.isLoggedIn()) {
+								if (updateModel.isPurchased(selectedDescriptor)) {
+									UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
+									getModel().updateView(selectedDescriptor);
+								} else {
+									if (showProductPage) {
+										showProductPage(selectedDescriptor);
+									}
+								}
+							}
+						}
+					}, null);
+				}
+			}
+		} else {
+			UpdatePanelTab.this.updateModel.toggleSelectionForInstallation(selectedDescriptor);
+			getModel().updateView(selectedDescriptor);
+		}
 	}
 
 	protected JList getPackageList() {
@@ -417,8 +427,7 @@ public class UpdatePanelTab extends JPanel {
 
 			@Override
 			public void run() {
-				
-				
+
 				try {
 					displayPane.setPage("http://rapid-i.com/marketplace_news");
 				} catch (Exception e) {
@@ -468,28 +477,28 @@ public class UpdatePanelTab extends JPanel {
 
 			boolean isInstalled = false;
 			boolean isUpToDate = false;
-			
+
 			boolean isRapidMiner = "STAND_ALONE".equals(desc.getPackageTypeName());
 			if (isRapidMiner) {
 				isUpToDate = RapidMiner.getVersion().isAtLeast(new VersionNumber(desc.getVersion()));
 				isInstalled = true;
 			} else {
-			//updatesExist = !RapidMiner.getVersion().isAtLeast(new VersionNumber(getService().getLatestVersion("rapidminer", TARGET_PLATFORM)));
-			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
-			if (ext != null) {
-				isInstalled = true;
-				String installed = ext.getLatestInstalledVersion();
-				if (installed != null) {
-					boolean upToDate = installed.compareTo(desc.getVersion()) >= 0;
-					if (upToDate) {
-						isUpToDate = true;
-					} else {
-						isUpToDate = false;
+				//updatesExist = !RapidMiner.getVersion().isAtLeast(new VersionNumber(getService().getLatestVersion("rapidminer", TARGET_PLATFORM)));
+				ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
+				if (ext != null) {
+					isInstalled = true;
+					String installed = ext.getLatestInstalledVersion();
+					if (installed != null) {
+						boolean upToDate = installed.compareTo(desc.getVersion()) >= 0;
+						if (upToDate) {
+							isUpToDate = true;
+						} else {
+							isUpToDate = false;
+						}
 					}
 				}
-			} 
 			}
-			
+
 			if (desc.isRestricted() && !isInstalled) {
 				if (!usAccount.isLoggedIn()) {
 					// restricted, uninstalled, not logged in
@@ -552,7 +561,7 @@ public class UpdatePanelTab extends JPanel {
 					installButton.setPurchaseFirst(false);
 					installButton.setVisible(true);
 					installButton.setEnabled(true);
-					loginForInstallHint.setText("");	
+					loginForInstallHint.setText("");
 
 					if (updateModel.isSelectedForInstallation(desc)) {
 						installButton.setIcon(SwingTools.createIcon("16/checkbox.png"));
@@ -562,10 +571,11 @@ public class UpdatePanelTab extends JPanel {
 				}
 			}
 			if (isRapidMiner) {
-				extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.product_homepage.label"));				
+				extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.product_homepage.label"));
 			}
 		}
 	}
+
 	@Override
 	public void removeNotify() {
 		super.removeNotify();

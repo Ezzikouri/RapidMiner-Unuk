@@ -39,6 +39,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -58,6 +59,7 @@ import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.NetTools;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.plugin.Dependency;
@@ -274,9 +276,11 @@ public class UpdateDialog extends ButtonDialog {
 				} catch (WebServiceException e) {
 					// thrown when no internet connection is available. Simple error message to not confuse users
 					SwingTools.showVerySimpleErrorMessage("failed_update_server_simple");
+					LogService.getRoot().log(Level.WARNING, "com.rapid_i.deployment.update.client.UpdateDialog.could_not_connect", e);
 					return;
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("failed_update_server", e, UpdateManager.getBaseUrl());
+					LogService.getRoot().log(Level.WARNING, "com.rapid_i.deployment.update.client.UpdateDialog.could_not_connect", e);
 					return;
 				}
 				getProgressListener().setCompleted(100);

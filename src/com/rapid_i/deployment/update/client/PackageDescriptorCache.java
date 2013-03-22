@@ -101,7 +101,6 @@ public class PackageDescriptorCache {
 				if (!UpdateManager.PACKAGEID_RAPIDMINER.equals(packageId)) {
 					targetPlatform = "ANY";
 				}
-				// TODO: Map to EE here
 				PackageDescriptor descriptor = updateService.getPackageInfo(packageId, updateService.getLatestVersion(packageId, targetPlatform), targetPlatform);
 				// First add to cache, so we do never load it again
 				descriptors.put(packageId, descriptor);

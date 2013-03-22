@@ -31,7 +31,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -57,7 +56,6 @@ import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
-import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.I18N;
 
@@ -255,6 +253,10 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 				Repository repository = new RemoteRepository(url, finalAlias, userField.getText(), passwordField.getPassword(), false);
 				getProgressListener().setCompleted(90);
 				RepositoryManager.getInstance(null).addRepository(repository);
+				UserCredential authenticationCredentials = new UserCredential(urlField.getText(), userField.getText(), passwordField.getPassword());
+				// use alias as ID to store credentials
+				Wallet.getInstance().registerCredentials(finalAlias, authenticationCredentials);
+				Wallet.getInstance().saveCache();
 				getProgressListener().setCompleted(100);
 				getProgressListener().complete();
 			}
@@ -283,7 +285,7 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		aliasField.setText(((RemoteRepository) remote).getAlias());
 		urlField.setText(((RemoteRepository) remote).getBaseUrl().toString());
 		userField.setText(((RemoteRepository) remote).getUsername());
-		UserCredential credentials = Wallet.getInstance().getEntry(urlField.getText());
+		UserCredential credentials = Wallet.getInstance().getEntry(aliasField.getText(), urlField.getText());
 		if (credentials != null) {
 			passwordField.setText(new String(credentials.getPassword()));
 		}
@@ -322,9 +324,19 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		((RemoteRepository) repository).setPassword(password);
 
 		UserCredential authenticationCredentials = new UserCredential(urlField.getText(), userName, password);
-		Wallet.getInstance().registerCredentials(authenticationCredentials);
+		// use alias as ID to store credentials
+		String id = ((RemoteRepository) repository).getAlias();
+		Wallet.getInstance().registerCredentials(id, authenticationCredentials);
 		Wallet.getInstance().saveCache();
-
+		
+		try {
+			// this needs to be called after changing the credentials,
+			// otherwise the old webservice will keep using the previous credentials
+			((RemoteRepository) repository).resetRepositoryService();
+		} catch (RepositoryException e) {
+			SwingTools.showSimpleErrorMessage("error_connecting_to_server", e);
+		}
+		
 		return true;
 	}
 
