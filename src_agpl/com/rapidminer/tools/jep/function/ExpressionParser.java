@@ -269,10 +269,6 @@ public class ExpressionParser extends AbstractExpressionParser {
 
 	private JEP parser;
 
-	private String latestErrorMsg;
-
-	private boolean lastestActionErrored;
-
 	private ExpressionParser(boolean useStandardConstants) {
 		this(useStandardConstants, null);
 	}
@@ -362,16 +358,13 @@ public class ExpressionParser extends AbstractExpressionParser {
 	}
 
 	public boolean hasError() {
-		this.lastestActionErrored = getParser().hasError();
-		return this.lastestActionErrored;
+		return getParser().hasError();
 	}
 
 	@Override
 	public void parseExpression(String expression) throws ExpressionParserException {
 		getParser().parseExpression(expression);
-		this.lastestActionErrored = hasError();
-		this.latestErrorMsg = getParser().getErrorInfo();
-		if(hasError()){
+		if (hasError()) {
 			throw new ExpressionParserException(getErrorInfo());
 		}
 		
@@ -379,8 +372,8 @@ public class ExpressionParser extends AbstractExpressionParser {
 
 	@Override
 	public String getErrorInfo() {
-		if (hasError()){
-			return this.latestErrorMsg;
+		if (getParser().hasError()){
+			return getParser().getErrorInfo();
 		}
 		return "";
 	}

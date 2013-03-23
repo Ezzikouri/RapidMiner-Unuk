@@ -511,6 +511,7 @@ public class UpdatePanelTab extends JPanel {
 					extensionHomepageLink.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.label.update.extension_homepage.label"));
 					installButton.setPurchaseFirst(false);
 					installButton.setVisible(true);
+					installButton.setEnabled(true);
 					loginForInstallHint.setText("");
 
 					if (updateModel.isSelectedForInstallation(desc)) {
@@ -538,8 +539,8 @@ public class UpdatePanelTab extends JPanel {
 						installButton.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.label"));
 						installButton.getAction().putValue(Action.MNEMONIC_KEY, (int) I18N.getMessage(I18N.getGUIBundle(), "gui.action.update.select.mne").toUpperCase().charAt(0));
 						installButton.setPurchaseFirst(false);
-						installButton.setVisible(true);
 						installButton.setEnabled(true);
+						installButton.setVisible(true);
 						loginForInstallHint.setText("");
 
 						if (updateModel.isSelectedForInstallation(desc)) {

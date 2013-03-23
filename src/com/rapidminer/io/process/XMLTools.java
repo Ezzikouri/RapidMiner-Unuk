@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 
+import javax.xml.XMLConstants;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -85,23 +86,37 @@ public class XMLTools {
 
     private static final Map<URI, Validator> VALIDATORS = new HashMap<URI, Validator>();
 
-    private final static DocumentBuilder BUILDER;
+    private final static DocumentBuilderFactory BUILDER_FACTORY;
 
     public static final String SCHEMA_URL_PROCESS = "http://www.rapidminer.com/xml/schema/RapidMinerProcess";
 
     static {
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
         domFactory.setNamespaceAware(true);
-        DocumentBuilder builder;
+        BUILDER_FACTORY = domFactory;
+    }
+    
+    
+    /**
+     * Creates a new {@link DocumentBuilder} instance.
+     * 
+     * Needed because DocumentBuilder is not thread-safe
+     * and crashes when different threads try to parse at the same time.
+     * @return
+     * @throws IOException if it fails to create a {@link DocumentBuilder}
+     */
+    private static DocumentBuilder createDocumentBuilder() throws IOException {
         try {
-            builder = domFactory.newDocumentBuilder();
+        	synchronized (BUILDER_FACTORY) {
+        		return BUILDER_FACTORY.newDocumentBuilder();
+        	}
         } catch (ParserConfigurationException e) {
-            builder = null;
+        	LogService.getRoot().log(Level.WARNING, "Unable to create document builder", e);
+        	throw new IOException(e);
         }
-        BUILDER = builder;
     }
 
-    private static Validator getValidator(URI schemaURI) {
+    private static Validator getValidator(URI schemaURI) throws XMLException {
         if (schemaURI == null) {
             throw new NullPointerException("SchemaURL is null!");
         }
@@ -109,19 +124,14 @@ public class XMLTools {
             if (VALIDATORS.containsKey(schemaURI)) {
                 return VALIDATORS.get(schemaURI);
             } else {
-                SchemaFactory factory = null;
-                if (factory == null) {
-                    throw new RuntimeException("XMLConstants.W3C_XML_SCHEMA_NS_URI cannot be resolved at compile time for JBoss.");
-                    // SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-                }
+                SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
                 Validator validator;
                 try {
                     validator = factory.newSchema(schemaURI.toURL()).newValidator();
-                } catch (SAXException e1) {
-                    validator = null;
-                    // throw new XMLException("Cannot parse XML schema: "+e1, e1);
+                } catch (SAXException e) {
+                    throw new XMLException("Cannot parse XML schema: "+e.getMessage(), e);
                 } catch (MalformedURLException e) {
-                    validator = null;
+                	throw new XMLException("Cannot parse XML schema: "+e.getMessage(), e);
                 }
                 VALIDATORS.put(schemaURI, validator);
                 return validator;
@@ -148,7 +158,7 @@ public class XMLTools {
 
         Document doc;
         try {
-            doc = BUILDER.parse(in);
+            doc = createDocumentBuilder().parse(in);
         } catch (SAXException e) {
             throw new XMLException(errorHandler.toString(), e);
         }
@@ -169,16 +179,16 @@ public class XMLTools {
     }
 
     public static Document parse(String string) throws SAXException, IOException {
-        return BUILDER.parse(new ByteArrayInputStream(string.getBytes(Charset.forName("UTF-8"))));
+        return createDocumentBuilder().parse(new ByteArrayInputStream(string.getBytes(Charset.forName("UTF-8"))));
         // new ReaderInputStream(new StringReader(string)));
     }
 
     public static Document parse(InputStream in) throws SAXException, IOException {
-        return BUILDER.parse(in);
+        return createDocumentBuilder().parse(in);
     }
 
     public static Document parse(File file) throws SAXException, IOException {
-        return BUILDER.parse(file);
+        return createDocumentBuilder().parse(file);
     }
     
     public static String toString(Document document) throws XMLException {
@@ -595,7 +605,12 @@ public class XMLTools {
      * Creates a new, empty document.
      */
     public static Document createDocument() {
-        return BUILDER.newDocument();
+    	try {
+			DocumentBuilder builder = createDocumentBuilder();
+			return builder.newDocument();
+		} catch (IOException e) {
+			return null;
+		}
     }
 
     /**

@@ -812,12 +812,19 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		RepositoryManager.getInstance(null).removeRepository(this);
 	}
 
+	/**
+	 *  @deprecated do not use, as it returns wrong results in case repositories are removed. 
+	 *  Use {@link RepositoryManager#getRemoteRepositories()} instead.
+	 */
+	@Deprecated
 	public static List<RemoteRepository> getAll() {
 		List<RemoteRepository> result = new LinkedList<RemoteRepository>();
 		for (WeakReference<RemoteRepository> ref : ALL_REPOSITORIES.values()) {
 			if (ref != null) {
 				RemoteRepository rep = ref.get();
-				result.add(rep);
+				if(rep != null) {
+					result.add(rep);
+				}
 			}
 		}
 		return result;
