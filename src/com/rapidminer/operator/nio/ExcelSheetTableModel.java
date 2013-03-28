@@ -61,7 +61,14 @@ public class ExcelSheetTableModel extends AbstractTableModel {
 		if (config != null) {
 			return config.getRowLast() - config.getRowOffset() + 1;
 		} else {
-			return sheet.getRows();
+			try {
+				// library contains a bug where it throws an NPE in jxl.read.biff.Record.<init>(Record.java:79)
+				// catch it and return 0 if that happenes, otherwise there is an NPE in the EDT which is really bad
+				return sheet.getRows();
+			} catch (NullPointerException e) {
+				return 0;
+			}
+			
 		}
 	}
 
