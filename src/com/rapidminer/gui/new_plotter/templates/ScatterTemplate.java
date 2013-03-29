@@ -43,7 +43,7 @@ import com.rapidminer.gui.new_plotter.configuration.RangeAxisConfig;
 import com.rapidminer.gui.new_plotter.configuration.SeriesFormat;
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.templates.gui.ScatterTemplatePanel;
-import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
+import com.rapidminer.gui.new_plotter.templates.style.ColorRGB;
 import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;

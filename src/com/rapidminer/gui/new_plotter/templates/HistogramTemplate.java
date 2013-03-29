@@ -54,7 +54,7 @@ import com.rapidminer.gui.new_plotter.configuration.ValueGrouping.ValueGroupingF
 import com.rapidminer.gui.new_plotter.configuration.ValueSource;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.templates.gui.HistogrammTemplatePanel;
-import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
+import com.rapidminer.gui.new_plotter.templates.style.ColorRGB;
 import com.rapidminer.gui.new_plotter.templates.style.PlotterStyleProvider;
 import com.rapidminer.gui.new_plotter.utility.DataTransformation;
 import com.rapidminer.tools.I18N;

@@ -165,7 +165,7 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 			}
 
 			// calculate the GCD
-			stepSize = MathFunctions.getGCD(distances);
+			stepSize = Math.abs(MathFunctions.getGCD(distances));
 			distances.clear();
 		}
 
@@ -193,7 +193,7 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 
 		if (isParameterSet(PARAMETER_START)) {
 			long start = getParameterAsInt(PARAMETER_START);
-			if (start < minValue) {
+			if (start < minValue && minValue < maxValue) {
 				lastValue = start;
 				while (lastValue + stepSize <= minValue) {
 					missingValues.add(lastValue);
@@ -204,7 +204,7 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 
 		if (isParameterSet(PARAMETER_END)) {
 			long end = getParameterAsInt(PARAMETER_END);
-			if (end > maxValue) {
+			if (end > maxValue && minValue < maxValue) {
 				lastValue = maxValue + stepSize;
 				while (lastValue <= end) {
 					missingValues.add(lastValue);

@@ -44,7 +44,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import com.rapidminer.gui.new_plotter.gui.FontDialog;
-import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.tools.I18N;
 

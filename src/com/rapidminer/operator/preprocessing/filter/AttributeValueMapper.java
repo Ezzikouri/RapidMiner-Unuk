@@ -376,10 +376,18 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 					double oldValue = Double.NaN;
 					double newValue = Double.NaN;
 					if (!entry.getKey().equals("?")) {
-						oldValue = Double.valueOf(entry.getKey());
+						try {
+							oldValue = Double.valueOf(entry.getKey());
+						} catch (NumberFormatException e) {
+							continue;
+						}
 					}
 					if (!entry.getValue().equals("?")) {
-						newValue = Double.valueOf(entry.getValue());
+						try {
+							newValue = Double.valueOf(entry.getValue());
+						} catch (NumberFormatException e) {
+							continue;
+						}
 					}
 					numericalValueMapping.put(oldValue, newValue);
 				}
