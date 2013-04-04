@@ -41,7 +41,8 @@ public class EditableTableHeaderColumn extends TableColumn {
 
 	protected boolean isHeaderEditable;
 
-	public EditableTableHeaderColumn() {
+	public EditableTableHeaderColumn(int column) {
+		super(column);
 		setHeaderEditor(createDefaultHeaderEditor());
 		isHeaderEditable = true;
 	}

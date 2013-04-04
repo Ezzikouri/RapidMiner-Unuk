@@ -371,7 +371,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 
 				            // Create new columns from the data model info
 				            for (int i = 0; i < m.getColumnCount(); i++) {
-				            	EditableTableHeaderColumn col = new EditableTableHeaderColumn();
+				            	EditableTableHeaderColumn col = new EditableTableHeaderColumn(i);
 				    			col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
 				    			col.setHeaderRenderer(headerRenderer);
 				    			col.setHeaderEditor(headerEditor);
