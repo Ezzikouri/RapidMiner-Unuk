@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.gui;
 
 import java.awt.Color;
@@ -53,18 +54,19 @@ import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.tools.I18N;
+
 /**
  * @author Simon Fischer
  */
 public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurationPanel {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private final JTextField fileField = new JTextField(30);
 	private final JTextField aliasField = new JTextField("NewLocalRepository", 30);
 	private final JCheckBox standardLocation = new JCheckBox(new ResourceActionAdapter("repositorydialog.use_standard_location"));
 	private final JLabel errorLabel = new JLabel(" ");
-	
+
 	private JButton chooseFileButton;
 
 	private JButton finishButton;
@@ -72,11 +74,11 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 	/** The optional finish button will be disabled when invalid information is entered. */
 	public LocalRepositoryPanel(JButton finishButton, boolean isNew) {
 		this.finishButton = finishButton;
-		
+
 		standardLocation.setSelected(isNew);
 		errorLabel.setForeground(Color.red);
 		errorLabel.setFont(errorLabel.getFont().deriveFont(Font.BOLD));
-		
+
 		GridBagLayout gbl = new GridBagLayout();
 		setLayout(gbl);
 		GridBagConstraints c = new GridBagConstraints();
@@ -88,10 +90,10 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 
 		// ALIAS
 		c.gridwidth = 1;
-		JLabel label = new ResourceLabel("repositorydialog.alias");		
+		JLabel label = new ResourceLabel("repositorydialog.alias");
 		label.setLabelFor(aliasField);
 		gbl.setConstraints(label, c);
-		add(label);		
+		add(label);
 
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		gbl.setConstraints(aliasField, c);
@@ -113,67 +115,71 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 		c.gridwidth = GridBagConstraints.RELATIVE;
 		gbl.setConstraints(fileField, c);
 		add(fileField);
-		
+
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		chooseFileButton = new JButton(new ResourceAction(true, "choose_file") {
+
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				File file = SwingTools.chooseFile(LocalRepositoryPanel.this, null, true, true, (String)null, null);
+				File file = SwingTools.chooseFile(LocalRepositoryPanel.this, null, true, true, (String) null, null);
 				if (file != null) {
 					fileField.setText(file.toString());
 				}
-			}			
+			}
 		});
 		add(chooseFileButton, c);
-		
+
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		add(errorLabel, c);
-		
+
 		JPanel dummy = new JPanel();
 		c.fill = GridBagConstraints.BOTH;
 		c.weighty = 1;
 		gbl.setConstraints(dummy, c);
 		add(dummy);
-		
+
 		aliasField.selectAll();
 		fileField.selectAll();
-		
+
 		aliasField.getDocument().addDocumentListener(new DocumentListener() {
-			
+
 			@Override
 			public void removeUpdate(DocumentEvent e) {
 				aliasUpdated();
 			}
-			
+
 			@Override
 			public void insertUpdate(DocumentEvent e) {
 				aliasUpdated();
 			}
-			
+
 			@Override
 			public void changedUpdate(DocumentEvent e) {
-				aliasUpdated();				
+				aliasUpdated();
 			}
 		});
 		fileField.getDocument().addDocumentListener(new DocumentListener() {
+
 			@Override
 			public void removeUpdate(DocumentEvent e) {
 				dumpSettingsCheck();
 			}
-			
+
 			@Override
 			public void insertUpdate(DocumentEvent e) {
 				dumpSettingsCheck();
 			}
-			
+
 			@Override
 			public void changedUpdate(DocumentEvent e) {
 				dumpSettingsCheck();
 			}
 		});
 		standardLocation.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				enableFileField();
@@ -192,10 +198,10 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 		if (alias.length() == 0) {
 			alias = file.getName();
 		}
-		
+
 		checkConfiguration(file, alias);
-		
-		RepositoryManager.getInstance(null).addRepository(new LocalRepository(alias, file));		
+
+		RepositoryManager.getInstance(null).addRepository(new LocalRepository(alias, file));
 	}
 
 	@Override
@@ -217,15 +223,15 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 				alias = null;
 			}
 			checkConfiguration(file, alias);
+			if (alias != null) {
+				((LocalRepository) repository).rename(alias);
+			}
 		} catch (RepositoryException e) {
 			SwingTools.showSimpleErrorMessage("cannot_create_repository", e);
 			return false;
 		}
 		if (file != null) {
 			((LocalRepository) repository).setRoot(file);
-		}
-		if (alias != null) {
-			((LocalRepository) repository).rename(alias);
 		}
 		return true;
 	}
@@ -262,13 +268,13 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 			}
 		} else {
 			// TODO: disable ok button
-			errorLabel.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.repositorydialog.error."+key));
+			errorLabel.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.repositorydialog.error." + key));
 			if (finishButton != null) {
 				finishButton.setEnabled(false);
 			}
 		}
 	}
-	
+
 	/** Checks the current settings and returns an I18N key if settings are incorrect. */
 	private String checkSettings() {
 		if (aliasField.getText().isEmpty()) {
@@ -287,7 +293,7 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 		if (file.exists() && !file.canWrite()) {
 			return "root_is_not_writable";
 		}
-		
+
 		while (!file.exists()) {
 			file = file.getParentFile();
 			if (file == null) {
@@ -299,17 +305,17 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 		}
 		return null;
 	}
-	
+
 	@Override
 	public void setOkButton(JButton okButton) {
-		this.finishButton = okButton;		
+		this.finishButton = okButton;
 	}
 
 	@Override
 	public List<AbstractButton> getAdditionalButtons() {
 		return new LinkedList<AbstractButton>();
 	}
-	
+
 	/**
 	 * Throws a {@link RepositoryException} if the given configuration is invalid.
 	 * @param file
@@ -320,7 +326,7 @@ public class LocalRepositoryPanel extends JPanel implements RepositoryConfigurat
 		// make sure that it's not possible to create multiple repositories in the same location or with the same alias
 		for (Repository repo : RepositoryManager.getInstance(null).getRepositories()) {
 			if (repo instanceof LocalRepository) {
-				if (((LocalRepository)repo).getRoot().equals(file)) {
+				if (((LocalRepository) repo).getRoot().equals(file)) {
 					throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_location"));
 				}
 			}

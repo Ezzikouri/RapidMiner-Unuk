@@ -20,7 +20,6 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
-
 package com.rapidminer.gui.flow;
 
 import java.awt.BasicStroke;
@@ -671,6 +670,8 @@ public class ProcessRenderer extends JPanel implements DragListener {
 
 	/**List of Listeners from a {@link IntroductoryTour} which waits for the moment that something is opened */
 	private LinkedList<ProcessRendererListener> listenersTour;
+
+	private List<ProcessInteractionListener> processInteractionListeners = new LinkedList<ProcessInteractionListener>();
 
 	private BufferedImage[] tutorialComicPanels;
 
@@ -2766,6 +2767,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 					menu.add(new ConnectPortToRepositoryAction(hoveringPort));
 				}
 			}
+			firePortMenuWillOpen(menu, hoveringPort);
 		} else {
 			// add operator actions
 			mainFrame.getActions().addToOperatorPopupMenu(menu, RENAME_ACTION);
@@ -2812,6 +2814,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 					name = displayedChain.getProcess().getProcessLocation().getShortName();
 				}
 				menu.add(PrintingTools.makeExportPrintMenu(this, name));
+				fireOperatorMenuWillOpen(menu, displayedChain);
 			}
 
 			if (getHoveringOperator() != null) {
@@ -2837,6 +2840,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 						menu.add(showResult);
 					}
 				}
+				fireOperatorMenuWillOpen(menu, getHoveringOperator());
 			}
 		}
 
@@ -3840,5 +3844,31 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		}
 
 		return true;
+	}
+		
+	/** Adds a listener that will be informed when the user right-clicks an operator or a port. */
+	public void addProcessInteractionListener(ProcessInteractionListener l) {
+		processInteractionListeners.add(l);
+	}
+	
+	/**
+	 * @see #addProcessInteractionListener(ProcessInteractionListener)
+	 */
+	public void removeProcessInteractionListener(ProcessInteractionListener l) {
+		processInteractionListeners.remove(l);
+	}
+	
+	private void fireOperatorMenuWillOpen(JPopupMenu m, Operator op) {
+		List<ProcessInteractionListener> copy = new LinkedList<ProcessInteractionListener>(processInteractionListeners);
+		for (ProcessInteractionListener l : copy) {
+			l.operatorContextMenuWillOpen(m, op);
+		}
+	}
+	
+	private void firePortMenuWillOpen(JPopupMenu m, Port port) {
+		List<ProcessInteractionListener> copy = new LinkedList<ProcessInteractionListener>(processInteractionListeners);
+		for (ProcessInteractionListener l : copy) {
+			l.portContextMenuWillOpen(m, port);
+		}
 	}
 }

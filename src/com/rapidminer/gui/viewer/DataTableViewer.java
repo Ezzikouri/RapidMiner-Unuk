@@ -44,7 +44,6 @@ import com.rapidminer.gui.new_plotter.configuration.PlotConfiguration;
 import com.rapidminer.gui.new_plotter.data.PlotInstance;
 import com.rapidminer.gui.new_plotter.gui.ChartConfigurationPanel;
 import com.rapidminer.gui.new_plotter.gui.AbstractConfigurationPanel.DatasetTransformationType;
-import com.rapidminer.gui.new_plotter.integration.ExpertDataTableRenderer;
 import com.rapidminer.gui.new_plotter.integration.PlotConfigurationHistory;
 import com.rapidminer.gui.plotter.Plotter;
 import com.rapidminer.gui.plotter.PlotterPanel;
@@ -52,8 +51,6 @@ import com.rapidminer.gui.plotter.PlotterConfigurationModel;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.operator.IOObject;
 import com.rapidminer.report.Tableable;
-
-import edu.uci.ics.jung.visualization.layout.CachingLayout;
 
 /**
  * Can be used to display (parts of) the data by means of a JTable.
@@ -83,38 +80,6 @@ public class DataTableViewer extends JPanel implements Tableable, DataTableListe
 	
 	private PlotterConfigurationModel plotterSettings;
 
-	public static enum ViewState {
-		TABLE,
-		PLOT,
-		ADVANCED
-	}
-
-	private ViewState viewState;
-
-	public ViewState getViewState() {
-		return viewState;
-	}
-
-	public void setViewState(ViewState viewState) {
-		this.viewState = viewState;
-	}
-
-	// removes all other panels when drawing the one of the currentstate
-	private void removePanels(ViewState currentState) {
-		if (currentState.equals(ViewState.TABLE)) {
-			remove(plotterPanel);
-			remove(advancedPanel);
-		}
-		if (currentState.equals(ViewState.PLOT)) {
-			remove(tablePanel);
-			remove(advancedPanel);
-		}
-		if (currentState.equals(ViewState.ADVANCED)) {
-			remove(tablePanel);
-			remove(plotterPanel);
-		}
-
-	}
 
 	public DataTableViewer(DataTable dataTable) {
     	this(dataTable, PlotterConfigurationModel.DATA_SET_PLOTTER_SELECTION, true, TABLE_MODE, false);
@@ -146,8 +111,8 @@ public class DataTableViewer extends JPanel implements Tableable, DataTableListe
 		tablePanel.add(tableScrollPane, BorderLayout.CENTER);
         
 		// Build cards
-		CardLayout cards = new CardLayout();
-		JPanel mainPanel = new JPanel(cards);
+		final CardLayout cards = new CardLayout();
+		final JPanel mainPanel = new JPanel(cards);
 		add(mainPanel, BorderLayout.CENTER);
 
 		// Add and select table as default
@@ -166,16 +131,16 @@ public class DataTableViewer extends JPanel implements Tableable, DataTableListe
 			PlotInstance plotInstance = new PlotInstance(plotConfigurationMap.get(DatasetTransformationType.ORIGINAL), plotData);
 			this.advancedPanel = new ChartConfigurationPanel(true, plotInstance, plotData, plotConfigurationMap.get(DatasetTransformationType.DE_PIVOTED));
 
+			mainPanel.add(plotterPanel, PLOT_MODE);
+			mainPanel.add(advancedPanel, ADVANCED_MODE);
+
         	// toggle radio button for views
         	final JRadioButton tableButton = new JRadioButton("Table View", true);
         	tableButton.setToolTipText("Toggles to the table view of this model data.");
         	tableButton.addActionListener(new ActionListener() {
         		public void actionPerformed(ActionEvent e) {
         			if (tableButton.isSelected()) {
-						setViewState(ViewState.TABLE);
-						removePanels(getViewState());
-						add(tablePanel, BorderLayout.CENTER);
-						repaint();
+						cards.show(mainPanel, TABLE_MODE);
 					}
         		}
         	});
@@ -185,10 +150,7 @@ public class DataTableViewer extends JPanel implements Tableable, DataTableListe
         		public void actionPerformed(ActionEvent e) {
 
         			if (plotButton.isSelected()) {
-						setViewState(ViewState.PLOT);
-						removePanels(getViewState());
-        				add(plotterPanel, BorderLayout.CENTER);
-						repaint();
+						cards.show(mainPanel, PLOT_MODE);
         			}
         		}
         	});
@@ -198,10 +160,7 @@ public class DataTableViewer extends JPanel implements Tableable, DataTableListe
 			advancedChartsButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					if (advancedChartsButton.isSelected()) {
-						setViewState(ViewState.ADVANCED);
-						removePanels(getViewState());
-						add(advancedPanel, BorderLayout.CENTER);
-						repaint();
+						cards.show(mainPanel, ADVANCED_MODE);
 					}
 				}
 			});
@@ -213,24 +172,20 @@ public class DataTableViewer extends JPanel implements Tableable, DataTableListe
 			group.add(advancedChartsButton);
             JPanel togglePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         	togglePanel.add(tableButton);	
-        	togglePanel.add(plotButton);
+			togglePanel.add(plotButton);
 			togglePanel.add(advancedChartsButton);
 
         	add(togglePanel, BorderLayout.NORTH);
-        	// init correct mode
-        	if(tableMode == TABLE_MODE) {
-					add(tablePanel);
-					tableButton.setSelected(true);
-					setViewState(ViewState.TABLE);
-        	} else if(tableMode == PLOT_MODE){
-					add(plotterPanel);
-					plotButton.setSelected(true);
-					setViewState(ViewState.PLOT);
-			} else if (tableMode == ADVANCED_MODE) {
-					add(advancedPanel);
-					advancedChartsButton.setSelected(true);
-					setViewState(ViewState.ADVANCED);
-
+			// init correct mode:
+			if (tableMode.equals(TABLE_MODE)) {
+				cards.show(mainPanel, TABLE_MODE);
+				tableButton.setSelected(true);
+			} else if (tableMode.equals(PLOT_MODE)) {
+				cards.show(mainPanel, PLOT_MODE);
+				plotButton.setSelected(true);
+			} else if (tableMode.equals(ADVANCED_MODE)) {
+				cards.show(mainPanel, ADVANCED_MODE);
+				advancedChartsButton.setSelected(true);
         	}
         } // end if (showPlotter)
 

@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository;
 
 import java.io.File;
@@ -132,9 +133,9 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			} catch (MalformedURLException e) {
 				//LogService.getRoot().log(Level.WARNING, "Illegal repository URL " + homeUrl + ": " + e, e);
 				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.repository.RepositoryManager.illegal_repository_url", 
-						homeUrl, e),
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.repository.RepositoryManager.illegal_repository_url",
+								homeUrl, e),
 						e);
 
 			}
@@ -265,7 +266,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 //			NewRepositoryDialog.createNew();
 			try {
 				LocalRepository defaultRepo = new LocalRepository("Local Repository");
-				RepositoryManager.getInstance(null).addRepository(defaultRepo);				
+				RepositoryManager.getInstance(null).addRepository(defaultRepo);
 				defaultRepo.createFolder("data");
 				defaultRepo.createFolder("processes");
 			} catch (RepositoryException e) {
@@ -318,7 +319,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 			RepositoryLocation parentLocation = location.parent();
 			if (parentLocation != null) {
 				String childName = location.getName();
-				
+
 				Entry parentEntry = parentLocation.locateEntry();
 				Folder parentFolder;
 				if (parentEntry != null) {
@@ -417,7 +418,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 		}
 
 		String originalName = newName;
-		if (destination.containsEntry(newName)) {			
+		if (destination.containsEntry(newName)) {
 			newName = "Copy of " + newName;
 			int i = 2;
 			while (destination.containsEntry(newName)) {
@@ -531,13 +532,13 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 					}
 					if (toDeleteEntry != null) {
 						toDeleteEntry.delete();
-}
+					}
 				}
 				if (listener != null) {
 					listener.setTotal(100);
 					listener.setCompleted(10);
 				}
-				if(newName == null) {
+				if (newName == null) {
 					entry.move(destination);
 				} else {
 					entry.move(destination, newName);
@@ -592,7 +593,6 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 					retryCount++;
 				}
 
-				
 				return null;
 			} else {
 				int retryCount = 0;
@@ -604,7 +604,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 							found = true;
 							break;
 						}
-					}					
+					}
 					if (found) {
 						// found in 1st round
 						break;
@@ -617,7 +617,7 @@ public class RepositoryManager extends AbstractObservable<Repository> {
 						}
 						retryCount++;
 					}
-					
+
 				}
 				if (!found) {
 					return null;

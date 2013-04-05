@@ -25,6 +25,7 @@ package com.rapidminer.repository.gui.process;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -87,12 +88,24 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 		private ProcessListState state = ProcessListState.PENDING;
 
+		private int maxID = 0;
+
 		public int add(ProcessResponse pr) {
 			int newIndex = -1;
 			if (!processResponses.containsKey(pr.getId())) {
 				newIndex = knownIds.size();
+
+				if (pr.getId() > maxID) {
+					maxID = pr.getId();
+					newIndex = 0;
+				}
+
 				knownIds.add(pr.getId());
+				Collections.sort(knownIds);
+				Collections.reverse(knownIds);
 			}
+			
+
 			processResponses.put(pr.getId(), pr);
 			state = ProcessListState.READY;
 			return newIndex;
@@ -245,9 +258,13 @@ public class RemoteProcessesTreeModel implements TreeModel {
 													new Object[] { EMPTY_PROCESS_LIST }));
 										}
 										int newIndex = processList.add(newResponse);
+
+
+
 										fireAdd(new TreeModelEvent(this, new Object[] { root, repos },
 												new int[] { newIndex },
 												new Object[] { newResponse }));
+
 
 									}
 								});

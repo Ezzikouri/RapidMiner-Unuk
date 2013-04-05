@@ -28,7 +28,6 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -75,12 +74,6 @@ public class DynamicIconUrlStreamHandler extends URLStreamHandler {
 					ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 					ImageIO.write(img, "png", buffer);
 					buffer.close();
-					//TODO: delete following block
-					{
-						File file = new File("C:\\Users\\kamradt\\progress.png");
-						ImageIO.write(img, "png", file);
-						System.out.println("Wrote: "+file);
-					}
 					return new ByteArrayInputStream(buffer.toByteArray());
 				} catch (IOException e) {
 					e.printStackTrace();

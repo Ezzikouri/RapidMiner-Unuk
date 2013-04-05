@@ -57,8 +57,6 @@ public class Random extends PostfixMathCommand {
 		RandomGenerator randomGenerator = RandomGenerator.getRandomGenerator(process, -1);
 		double randomValue = randomGenerator.nextDouble();
 		
-		System.out.println(randomValue);
-		
 		// push the result on the inStack
 		stack.push(randomValue);
 	}

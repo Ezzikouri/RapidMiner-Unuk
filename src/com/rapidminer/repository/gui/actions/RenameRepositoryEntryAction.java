@@ -47,7 +47,6 @@ public class RenameRepositoryEntryAction extends AbstractRepositoryAction<Entry>
 		if (entry instanceof Repository) {
 			return;
 		}
-		
 		String name = SwingTools.showRepositoryEntryInputDialog("file_chooser.rename", entry.getName(), entry.getName());
 		if ((name != null) && !name.equals(entry.getName())) {
 			boolean success = false;

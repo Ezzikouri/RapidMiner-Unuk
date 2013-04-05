@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.local;
 
 import java.io.File;
@@ -29,11 +30,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 
 import javax.swing.Action;
 
+import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
@@ -41,6 +44,7 @@ import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.container.Pair;
 
 /**
  * @author Simon Fischer
@@ -48,6 +52,7 @@ import com.rapidminer.tools.LogService;
 public abstract class SimpleEntry implements Entry {
 
 	protected static final String PROPERTIES_SUFFIX = ".properties";
+	protected static final String DOT = ".";
 
 	private Properties properties;
 
@@ -91,11 +96,15 @@ public abstract class SimpleEntry implements Entry {
 
 	@Override
 	public boolean rename(String newName) throws RepositoryException {
+		checkRename(getContainingFolder(), newName);
+		handleRename(newName);
 		renameFile(getPropertiesFile(), newName);
 		this.name = newName;
 		getRepository().fireEntryRenamed(this);
 		return true;
 	}
+
+	protected abstract void handleRename(String newName) throws RepositoryException;
 
 	@Override
 	public String toString() {
@@ -127,48 +136,136 @@ public abstract class SimpleEntry implements Entry {
 
 	/** Renames the file, keeping the extension and directory unchanged. 
 	 *  If the file does not exist, returns silently. */
-	void renameFile(File file2, String newBaseName) {
-		if (!file2.exists()) {
-			//LogService.getRoot().warning("Cannot rename "+file2+": does not exist.");
-			LogService.getRoot().log(Level.WARNING, "com.rapidminer.repository.local.SimpleEntry.renaming_file2_error", file2);
-			return;
+	void renameFile(File file, String newBaseName) throws RepositoryException {
+		renameFile(file, newBaseName, null, null);
+	}
+
+	/** Renames a file, keeping the extension, and moves it to the selected target directory.
+	 * 	If the file does not exist, returns silently. 
+	 * 
+	 * @param newBaseName The new name without extension (e.g. 'file1' for a file called 'file.dat' before).
+	 * @param extensionSuffix The extension suffix of file without the dot (e.g. 'dat' for 'file.dat'). If null, it is extracted from the current file.
+	 * @param targetDirectory The target directory for the renamed file, if <code>null</code> the current directory of the file will be used. 
+	 * */
+	boolean renameFile(File file, String newBaseName, String extensionSuffix, File targetDirectory) throws RepositoryException {
+
+		if (!file.exists()) {
+			LogService.getRoot().log(Level.WARNING, "com.rapidminer.repository.local.SimpleEntry.renaming_file2_error", file);
+			return false;
 		}
-		String name = file2.getName();
-		int dot = name.lastIndexOf('.');
-		if (file2.isDirectory() || dot == -1) {
-			file2.renameTo(new File(file2.getParentFile(), newBaseName));
+
+		// if no target directory is provided, use the current one
+		if (targetDirectory == null) {
+			targetDirectory = file.getParentFile();
+		}
+
+		File dest;
+
+		// no extension provided, extract it automatically from original file name
+		boolean isDirectory = file.isDirectory();
+		if (extensionSuffix == null) {
+			String fileName = file.getName();
+			int dot = fileName.lastIndexOf(DOT);
+
+			// if file is directory or has no extension
+			if (isDirectory || dot == -1) {
+				// just use new name without extension
+				dest = new File(targetDirectory, newBaseName);
+			} else {
+				// otherwise keep the old extension
+				extensionSuffix = fileName.substring(dot + 1);
+				dest = new File(targetDirectory, newBaseName + DOT + extensionSuffix);
+			}
 		} else {
-			String extension = name.substring(dot + 1);
-			file2.renameTo(new File(file2.getParentFile(), newBaseName + "." + extension));
+			if (isDirectory) {
+				// directories do not have an extension
+				dest = new File(targetDirectory, newBaseName);
+			} else {
+				// file extension is provided, so use it
+				dest = new File(targetDirectory, newBaseName + DOT + extensionSuffix);
+			}
 		}
+
+		// otherwise rename file
+		return file.renameTo(dest);
+	}
+
+	/**
+	 * Checks if renaming or moving the entry is possible. If it is not possible,
+	 * a {@link RepositoryException} will be thrown.
+	 */
+	private void checkRename(Folder newParent, String newName) throws RepositoryException {
+
+		if (!RepositoryLocation.isNameValid(newName)) {
+			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName, getLocation()));
+		}
+
+		if (containingFolder != null) {
+			List<DataEntry> dataEntries = newParent.getDataEntries();
+			for (Entry entry : dataEntries) {
+				if (entry.getName().equals(newName)) {
+					throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_entry_with_same_name_already_exists", newName));
+				}
+			}
+			List<Folder> subfolders = newParent.getSubfolders();
+			for (Folder folder : subfolders) {
+				if (folder.getName().equals(newName)) {
+					throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_entry_with_same_name_already_exists", newName));
+				}
+			}
+		}
+	}
+
+	private Pair<String, String> extractNameAndSuffix(File file) {
+		String name = null;
+		String suffix = null;
+		String fileName = file.getName();
+		int dot = fileName.lastIndexOf(DOT);
+		if (file.isDirectory() || dot == -1) {
+			// in case of directory or no extension, keep filename
+			name = fileName;
+		} else {
+			// otherwise split
+			name = fileName.substring(0, dot);
+			suffix = fileName.substring(dot + 1);
+		}
+		return new Pair<String, String>(name, suffix);
 	}
 
 	/**
 	 * Moves a file to the new target directory without renaming it.
 	 */
-	boolean moveFile(File file, File targetDirectory) {
-		return file.renameTo(new File(targetDirectory, file.getName()));
+	boolean moveFile(File file, File targetDirectory) throws RepositoryException {
+		Pair<String, String> nameAndSuffix = extractNameAndSuffix(file);
+		return renameFile(file, nameAndSuffix.getFirst(),
+				nameAndSuffix.getSecond(), targetDirectory);
 	}
 
 	/**
 	 * Moves the file to a new location.
 	 *  
 	 * @param newEntryName The {@link Entry}'s new name (without file extension). If newEntryName is null the old name will be used.
-	 * @param extensionSuffix The {@link Entry}'s extension suffix. Will be used if newEntryName is not null to keep the correct suffix.
+	 * @param extensionSuffix The {@link Entry}'s extension suffix with the dot (e.g. '.dat'). Will be used if newEntryName is not null to keep the correct suffix.
 	 */
-	boolean moveFile(File file, File targetDirectory, String newEntryName, String extensionSuffix) {
+	boolean moveFile(File file, File targetDirectory, String newEntryName, String extensionSuffix) throws RepositoryException {
 		String name;
+		String suffix;
 		if (newEntryName == null) {
-			name = file.getName();
+			Pair<String, String> nameAndSuffix = extractNameAndSuffix(file);
+			name = nameAndSuffix.getFirst();
+			suffix = nameAndSuffix.getSecond();
 		} else {
-			name = newEntryName + extensionSuffix;
+			name = newEntryName;
+			suffix = extensionSuffix.substring(1); // get rid of the dot
 		}
-		return file.renameTo(new File(targetDirectory, name));
+		return renameFile(file, name, suffix, targetDirectory);
 	}
 
 	@Override
-	public boolean move(Folder newParent) {
-		moveFile(getPropertiesFile(), ((SimpleFolder)newParent).getFile());
+	public final boolean move(Folder newParent) throws RepositoryException {
+		checkRename(newParent, getName());
+		handleMove(newParent, getName());
+		moveFile(getPropertiesFile(), ((SimpleFolder) newParent).getFile());
 		this.containingFolder.removeChild(this);
 		this.containingFolder = (SimpleFolder) newParent;
 		this.containingFolder.addChild(this);
@@ -176,8 +273,10 @@ public abstract class SimpleEntry implements Entry {
 	}
 
 	@Override
-	public boolean move(Folder newParent, String newName) {
-		moveFile(getPropertiesFile(), ((SimpleFolder)newParent).getFile(), newName, PROPERTIES_SUFFIX);
+	public final boolean move(Folder newParent, String newName) throws RepositoryException {
+		checkRename(newParent, newName);
+		handleMove(newParent, newName);
+		moveFile(getPropertiesFile(), ((SimpleFolder) newParent).getFile(), newName, PROPERTIES_SUFFIX);
 
 		this.containingFolder.removeChild(this);
 
@@ -187,9 +286,11 @@ public abstract class SimpleEntry implements Entry {
 
 		this.containingFolder = (SimpleFolder) newParent;
 		this.containingFolder.addChild(this);
-		
+
 		return true;
 	}
+
+	protected abstract void handleMove(Folder newParent, String newName) throws RepositoryException;
 
 	/* Properties
 	 * We store the owner in a properties file because there is no system independent way
@@ -203,22 +304,20 @@ public abstract class SimpleEntry implements Entry {
 			try {
 				in = new FileInputStream(propertiesFile);
 			} catch (FileNotFoundException e) {
-				//LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from "+propertiesFile+": "+e, e);
 				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.repository.local.SimpleEntry.loading_repository_entry_properties_error", 
-						propertiesFile, e),
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.repository.local.SimpleEntry.loading_repository_entry_properties_error",
+								propertiesFile, e),
 						e);
 				return;
 			}
 			try {
 				this.properties.loadFromXML(in);
 			} catch (Exception e) {
-				//LogService.getRoot().log(Level.WARNING, "Error loading repository entry properties from "+propertiesFile+": "+e, e);
 				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.repository.local.SimpleEntry.loading_repository_entry_properties_error", 
-						propertiesFile, e),
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.repository.local.SimpleEntry.loading_repository_entry_properties_error",
+								propertiesFile, e),
 						e);
 			} finally {
 				try {
@@ -235,22 +334,20 @@ public abstract class SimpleEntry implements Entry {
 			try {
 				os = new FileOutputStream(propertiesFile);
 			} catch (FileNotFoundException e1) {
-				//LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to "+propertiesFile+": "+e1, e1);
 				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.repository.local.SimpleEntry.storing_repository_entry_properties_error", 
-						propertiesFile, e1),
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.repository.local.SimpleEntry.storing_repository_entry_properties_error",
+								propertiesFile, e1),
 						e1);
 				return;
 			}
 			try {
 				properties.storeToXML(os, "Properties of repository entry " + getName());
 			} catch (IOException e) {
-				//LogService.getRoot().log(Level.WARNING, "Error storing repository entry properties to "+propertiesFile+": "+e, e);
 				LogService.getRoot().log(Level.WARNING,
-						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-						"com.rapidminer.repository.local.SimpleEntry.storing_repository_entry_properties_error", 
-						propertiesFile, e),
+						I18N.getMessage(LogService.getRoot().getResourceBundle(),
+								"com.rapidminer.repository.local.SimpleEntry.storing_repository_entry_properties_error",
+								propertiesFile, e),
 						e);
 			} finally {
 				try {

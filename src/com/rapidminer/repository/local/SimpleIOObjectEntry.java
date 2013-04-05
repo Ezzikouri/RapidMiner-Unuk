@@ -45,8 +45,6 @@ import com.rapidminer.operator.tools.RMObjectInputStream;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.IOObjectEntry;
 import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.ProgressListener;
 
 /** Stores IOObject in a file. Either as IOO serialized files using
@@ -232,31 +230,17 @@ public class SimpleIOObjectEntry extends SimpleDataEntry implements IOObjectEntr
 	}
 
 	@Override
-	public boolean rename(String newName) throws RepositoryException {
-		// check for possible invalid name
-		if (!RepositoryLocation.isNameValid(newName)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName, getLocation()));
-		}
-
+	protected void handleRename(String newName) throws RepositoryException {
 		renameFile(getDataFile(), newName);
-		renameFile(getMetaDataFile(), newName);
-		return super.rename(newName);
+		renameFile(getMetaDataFile(), newName);		
 	}
 
 	@Override
-	public boolean move(Folder newParent) {
-		moveFile(getDataFile(), ((SimpleFolder) newParent).getFile());
-		moveFile(getMetaDataFile(), ((SimpleFolder) newParent).getFile());
-		return super.move(newParent);
-	}
-
-	@Override
-	public boolean move(Folder newParent, String newName) {
+	protected void handleMove(Folder newParent, String newName) throws RepositoryException {
 		moveFile(getDataFile(), ((SimpleFolder) newParent).getFile(), newName, IOO_SUFFIX);
-		moveFile(getMetaDataFile(), ((SimpleFolder) newParent).getFile(), newName, MD_SUFFIX);
-		return super.move(newParent, newName);
+		moveFile(getMetaDataFile(), ((SimpleFolder) newParent).getFile(), newName, MD_SUFFIX);		
 	}
-
+	
 	@Override
 	public long getDate() {
 		return getDataFile().lastModified();

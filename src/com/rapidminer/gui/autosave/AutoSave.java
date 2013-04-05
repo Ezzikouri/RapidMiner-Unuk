@@ -79,55 +79,51 @@ public class AutoSave {
 	}
 
 	public void onLaunch() {
-		String rapidMinerDir = FileSystemService.getUserRapidMinerDir().getAbsolutePath();
-
 		String processType = null;
 		String processPath = null;
 		boolean autoSavedProcessExists = autoSavedProcessProperties.exists();
 		Properties autoSave = new Properties();
-		FileInputStream autoSaveConfig;
+		FileInputStream autoSaveConfig = null;
 		try {
 			if (autoSavedProcessExists) {
 				autoSaveConfig = new FileInputStream(autoSavedProcessProperties.getAbsolutePath());
 				autoSave.load(autoSaveConfig);
-				autoSaveConfig.close();
 				processType = autoSave.getProperty("autosave.process.type");
 				processPath = autoSave.getProperty("autosave.process.path");
-			}
 
-			if (this.autoSaveEnabled && autoSavedProcessExists) {
-				recoveryRequired = askForRecovery(processPath.equals("none") ? "" : processPath);
-				if (recoveryRequired) {
+				if (this.autoSaveEnabled) {
+					recoveryRequired = askForRecovery(processPath.equals("none") ? "" : processPath);
+					if (recoveryRequired) {
 
-					ProcessLocation autoSaveProcessLocation = new FileProcessLocation(autoSavedProcess);
-					ProcessLocation actualProcessLocation = null;
-					if (processType.equals("repository_object")) {
-						actualProcessLocation = new RepositoryProcessLocation(new RepositoryLocation(processPath));
-					} else if (processType.equals("file")) {
-						actualProcessLocation = new FileProcessLocation(new File(processPath));
-					}
-					Process process = autoSaveProcessLocation.load(null);
-
-					process = new Process(process.getRootOperator().getXML(false));
-
-					if (actualProcessLocation != null) {
-						process.setProcessLocation(actualProcessLocation);
-						RapidMinerGUI.getMainFrame().setOpenedProcess(process, false, actualProcessLocation.toString());
-					} else {
-						RapidMinerGUI.getMainFrame().setProcess(process, true);
-					}
-					SwingUtilities.invokeLater(new Runnable() {
-
-						@Override
-						public void run() {
-							RapidMinerGUI.getMainFrame().SAVE_ACTION.setEnabled(true);
+						ProcessLocation autoSaveProcessLocation = new FileProcessLocation(autoSavedProcess);
+						ProcessLocation actualProcessLocation = null;
+						if (processType.equals("repository_object")) {
+							actualProcessLocation = new RepositoryProcessLocation(new RepositoryLocation(processPath));
+						} else if (processType.equals("file")) {
+							actualProcessLocation = new FileProcessLocation(new File(processPath));
 						}
-					});
+						Process process = autoSaveProcessLocation.load(null);
+
+						process = new Process(process.getRootOperator().getXML(false));
+
+						if (actualProcessLocation != null) {
+							process.setProcessLocation(actualProcessLocation);
+							RapidMinerGUI.getMainFrame().setOpenedProcess(process, false, actualProcessLocation.toString());
+						} else {
+							RapidMinerGUI.getMainFrame().setProcess(process, true);
+						}
+						SwingUtilities.invokeLater(new Runnable() {
+
+							@Override
+							public void run() {
+								RapidMinerGUI.getMainFrame().SAVE_ACTION.setEnabled(true);
+							}
+						});
+
+					}
 
 				}
-
 			}
-
 		} catch (IOException e) {
 			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.autosave.AutoSave.load_process_failed", e);
 			this.autoSaveEnabled = false;
@@ -137,6 +133,12 @@ public class AutoSave {
 		} catch (XMLException e) {
 			LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.autosave.AutoSave.load_process_failed", e);
 			this.autoSaveEnabled = false;
+		} finally {
+			if (autoSaveConfig != null) {
+				try {
+					autoSaveConfig.close();
+				} catch (IOException e) {}
+			}
 		}
 
 		RapidMinerGUI.getMainFrame().addProcessEditor(new ProcessEditor() {

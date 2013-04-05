@@ -79,6 +79,7 @@ import com.rapidminer.gui.tools.dialogs.AboutBox;
 import com.rapidminer.io.Base64;
 import com.rapidminer.io.process.XMLImporter;
 import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.operator.Operator;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
@@ -1122,5 +1123,18 @@ public class Plugin {
 		if (iconURL != null)
 			return new ImageIcon(iconURL);
 		return null;
+	}
+	
+	/** <strong>Experimental method.</strong>
+	 *  Unregisters this plugin, all of its {@link Operator}s, and calls tearDown() and optionally tearDownGUI(MainFrame) on the
+	 *  {@link #pluginInitClassName}. Finally, removes the plugin from {@link #allPlugins}. 
+	 */
+	public void tearDown() {
+		OperatorService.unregisterAll(this);
+		if (!RapidMiner.getExecutionMode().isHeadless()) {
+			callInitMethod("tearDownGUI", new Class[] { MainFrame.class }, new Object[] { RapidMinerGUI.getMainFrame() }, false);
+		}
+		callInitMethod("tearDown", new Class[0], new Object[0], false);
+		allPlugins.remove(this);
 	}
 }

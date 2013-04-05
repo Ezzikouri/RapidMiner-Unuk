@@ -73,26 +73,13 @@ public class SimpleFolder extends SimpleEntry implements Folder {
 	}
 
 	@Override
-	public boolean rename(String newName) throws RepositoryException {
-		// check for possible invalid name
-		if (!RepositoryLocation.isNameValid(newName)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName, getLocation()));
-		}
-		
+	protected void handleRename(String newName) throws RepositoryException {
 		renameFile(getFile(), newName);
-		return super.rename(newName);
-	}
-
-	@Override
-	public boolean move(Folder newParent) {
-		moveFile(getFile(), ((SimpleFolder) newParent).getFile());
-		return super.move(newParent);
 	}
 	
 	@Override
-	public boolean move(Folder newParent, String newName) {
+	protected void handleMove(Folder newParent, String newName) throws RepositoryException {
 		moveFile(getFile(), ((SimpleFolder) newParent).getFile(), newName, "");
-		return super.move(newParent, newName);
 	}
 
 	protected File getFile() {
