@@ -49,13 +49,18 @@ public class CountFractionalAggregationFunction extends CountAggregationFunction
 		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, separatorOpen, separatorClose);
 	}
 
+    @Override
+    public Aggregator createAggregator() {
+        return new CountIncludingMissingsAggregator(this);
+    }
+	
 	@Override
 	public void postProcessing(List<Aggregator> allAggregators) {
 		double totalCount = 0;
 		
 		// calculate total count
 		for (Aggregator aggregator : allAggregators) {
-			double value = ((CountAggregator)aggregator).getCount();
+			double value = ((CountIncludingMissingsAggregator)aggregator).getCount();
 			if (Double.isNaN(value)) {
 				totalCount = Double.NaN;
 				break;
@@ -63,9 +68,9 @@ public class CountFractionalAggregationFunction extends CountAggregationFunction
 			totalCount += value;
 		}
 		
-		// devide by total count
+		// divide by total count
 		for (Aggregator aggregator : allAggregators) {
-			CountAggregator countAggregator = (CountAggregator) aggregator;
+			CountIncludingMissingsAggregator countAggregator = (CountIncludingMissingsAggregator) aggregator;
 			countAggregator.setCount(countAggregator.getCount()/totalCount);
 		}
 	}

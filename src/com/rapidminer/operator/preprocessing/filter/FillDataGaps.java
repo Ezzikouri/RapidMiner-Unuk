@@ -165,16 +165,17 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 			}
 
 			// calculate the GCD
-			stepSize = Math.abs(MathFunctions.getGCD(distances));
+			stepSize = MathFunctions.getGCD(distances);
 			distances.clear();
 		}
+		stepSize = Math.abs(stepSize);
 
 		// find gaps
 		List<Long> missingValues = new LinkedList<Long>();
 		long lastValue = 0;
 		boolean first = true;
 		long minValue = Long.MAX_VALUE;
-		long maxValue = - Long.MAX_VALUE;
+		long maxValue = Long.MIN_VALUE;
 		for (Example example : sortedSet) {
 			long value = (long)example.getValue(idAttribute);
 			minValue = Math.min(minValue, value);
@@ -193,7 +194,7 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 
 		if (isParameterSet(PARAMETER_START)) {
 			long start = getParameterAsInt(PARAMETER_START);
-			if (start < minValue && minValue < maxValue) {
+			if (start < minValue) {
 				lastValue = start;
 				while (lastValue + stepSize <= minValue) {
 					missingValues.add(lastValue);
@@ -204,7 +205,7 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 
 		if (isParameterSet(PARAMETER_END)) {
 			long end = getParameterAsInt(PARAMETER_END);
-			if (end > maxValue && minValue < maxValue) {
+			if (end > maxValue) {
 				lastValue = maxValue + stepSize;
 				while (lastValue <= end) {
 					missingValues.add(lastValue);

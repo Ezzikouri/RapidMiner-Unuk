@@ -364,12 +364,12 @@ abstract public class AbstractExpressionParser {
 	public void addAttributeMetaData(ExampleSetMetaData emd, String name, String expression) throws GenerationException {
 		Collection symbolTableValues = getSymbolTableValues();
 		try {
+			setAllowUndeclared(true); //set to true before parsing, otherwise parseExpression will throw an exception 
 			parseExpression(expression);
-			setAllowUndeclared(true);
 
 			Map<String, AttributeMetaData> name2attributes = new HashMap<String, AttributeMetaData>();
 			for (Object variableObj : symbolTableValues) {
-				if (isConstant(variableObj)) {
+				if (!isConstant(variableObj)) {
 					AttributeMetaData attribute = emd.getAttributeByName(getVariableName(variableObj));
 					if (attribute != null) {
 						name2attributes.put(getVariableName(variableObj), attribute);

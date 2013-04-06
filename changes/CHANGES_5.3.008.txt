@@ -1,0 +1,2 @@
+Changes from RapidMiner 5.3.7 to 5.3.8
+--------------------------------------* BUGFIX: Ignoring missings in the count function will actually ignore the missings in the count and will not display missing for the whole group

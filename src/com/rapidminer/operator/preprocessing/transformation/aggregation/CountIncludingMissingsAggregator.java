@@ -37,7 +37,7 @@ import com.rapidminer.example.table.DataRow;
 public class CountIncludingMissingsAggregator implements Aggregator {
 
     private Attribute sourceAttribute;
-    private int count = 0;
+    private double count = 0;
     private boolean ignoreMissings;
 
     private boolean isCountingOnlyDistinct = false;
@@ -80,4 +80,13 @@ public class CountIncludingMissingsAggregator implements Aggregator {
     public void set(Attribute attribute, DataRow row) {
         row.set(attribute, count);
     }
+
+    
+    public double getCount() {
+    	return count;
+    }
+
+    public void setCount(double count) {
+    	this.count = count;
+    }    
 }

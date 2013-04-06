@@ -53,7 +53,7 @@ public class RenameRepositoryEntryAction extends AbstractRepositoryAction<Entry>
 			try {
 				success = entry.rename(name);
 			} catch (Exception e) {
-				SwingTools.showSimpleErrorMessage("cannot_rename_entry", e, entry.getName(), name);
+				SwingTools.showSimpleErrorMessage("cannot_rename_entry", e, entry.getName(), name, e.getMessage());
 				return;
 			}
 			if (!success) {

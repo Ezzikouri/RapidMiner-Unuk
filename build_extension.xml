@@ -1,5 +1,5 @@
 <project name="buildExtension" xmlns:ac="antlib:net.sf.antcontrib">
-	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar" />
+	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="${rm.dir}/ant/ant-contrib-1.0b3.jar" />
 	<property file="build.properties" />
 
 	<property name="extension.updateServerId" value="rmx_${extension.namespace}" />
@@ -87,7 +87,7 @@
 		<taskdef onerror="fail" resource="org/freecompany/redline/ant/antlib.xml" classpath="ant/redline-1.1.3.jar" />
 
 		<!-- FOR Tasks -->
-		<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar" />
+		<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="${rm.dir}/ant/ant-contrib-1.0b3.jar" />
 
 		<!-- SCP Tasks -->
 		<copy file="ant/jsch-0.1.42.jar" todir="${ant.library.dir}" failonerror="false" />
