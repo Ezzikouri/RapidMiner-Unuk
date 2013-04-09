@@ -256,7 +256,7 @@ public abstract class SimpleEntry implements Entry {
 			suffix = nameAndSuffix.getSecond();
 		} else {
 			name = newEntryName;
-			suffix = extensionSuffix.substring(1); // get rid of the dot
+			suffix = extensionSuffix.contains(".") ? extensionSuffix.substring(1) : null; // get rid of the dot
 		}
 		return renameFile(file, name, suffix, targetDirectory);
 	}

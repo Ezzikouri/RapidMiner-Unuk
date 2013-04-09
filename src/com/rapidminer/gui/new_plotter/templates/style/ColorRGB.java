@@ -148,27 +148,54 @@ public class ColorRGB {
 		return alpha;
 	}
 
+	/**
+	 * @return the color as hex value with preceding '#'.
+	 */
+	public String getHexValue() {
+		return "#" + ColorRGB.convertColorRGBToHex(this);
+	}
+
+	/**
+	 * @param hexValue the new color as hex value with preceding '#'.
+	 */
+	public void setHexValue(String hexValue) {
+		ColorRGB convertHexToColorRGB = ColorRGB.convertHexToColorRGB(hexValue.substring(1));
+		this.r = convertHexToColorRGB.getR();
+		this.g = convertHexToColorRGB.getG();
+		this.b = convertHexToColorRGB.getB();
+		this.alpha = convertHexToColorRGB.getAlpha();
+	}
+
+
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + this.alpha;
+		result = prime * result + this.b;
+		result = prime * result + this.g;
+		result = prime * result + this.r;
+		return result;
+	}
+
 	@Override
 	public boolean equals(Object obj) {
-		if (obj == null || !(obj instanceof ColorRGB)) {
+		if (this == obj)
+			return true;
+		if (obj == null)
 			return false;
-		}
-
-		ColorRGB givenColorRGB = (ColorRGB) obj;
-
-		if (givenColorRGB.getR() != this.getR()) {
+		if (getClass() != obj.getClass())
 			return false;
-		}
-		if (givenColorRGB.getG() != this.getG()) {
+		ColorRGB other = (ColorRGB) obj;
+		if (this.alpha != other.alpha)
 			return false;
-		}
-		if (givenColorRGB.getB() != this.getB()) {
+		if (this.b != other.b)
 			return false;
-		}
-		if (givenColorRGB.getAlpha() != this.getAlpha()) {
+		if (this.g != other.g)
 			return false;
-		}
-
+		if (this.r != other.r)
+			return false;
 		return true;
 	}
 

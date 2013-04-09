@@ -24,6 +24,7 @@
 package com.rapidminer.gui.new_plotter.templates.style;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -56,6 +57,9 @@ public class ColorScheme {
 
 	private ColorRGB gradientStartColor;
 	private ColorRGB gradientEndColor;
+	
+	
+	private transient String repositoryLocation;
 
 	/**
 	 * Creates a new {@link ColorScheme}.
@@ -205,7 +209,18 @@ public class ColorScheme {
 	 * Removes the specified color from the {@link ColorScheme}.
 	 */
 	public void removeColor(ColorRGB color) {
+		for (Iterator<ColorRGB> iterator = this.listOfColors.iterator(); iterator.hasNext();) {
+			ColorRGB other = iterator.next();
+			if (other == color) { 
+				iterator.remove();
+				return;
+			}
+		}
 		this.listOfColors.remove(color);
+	}
+	
+	public void removeColor(int index) {
+		this.listOfColors.remove(index);
 	}
 
 	/**
@@ -325,5 +340,21 @@ public class ColorScheme {
 	public static ColorScheme fromXML(Document doc) throws XMLException {
 		return new ColorScheme(doc.getDocumentElement());
 	}
+
+	/**
+	 * @return the repositoryLocation
+	 */
+	public String getRepositoryLocation() {
+		return this.repositoryLocation;
+	}
+
+	
+	/**
+	 * @param repositoryLocation the repositoryLocation to set
+	 */
+	public void setRepositoryLocation(String repositoryLocation) {
+		this.repositoryLocation = repositoryLocation;
+	}
+	
 
 }

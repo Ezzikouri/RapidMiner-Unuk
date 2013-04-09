@@ -137,105 +137,114 @@ public class RepositoryTree extends JTree {
 		/** Imports data files using a Wizard. */
 		@Override
 		public boolean importData(final TransferSupport ts) {
-			// determine where to insert
-			final Entry droppedOn;
-			if (ts.isDrop()) {
-				Point dropPoint = ts.getDropLocation().getDropPoint();
-				TreePath path = getPathForLocation((int) dropPoint.getX(), (int) dropPoint.getY());
-				if (path == null) {
+			try {
+				// determine where to insert
+				final Entry droppedOn;
+				if (ts.isDrop()) {
+					Point dropPoint = ts.getDropLocation().getDropPoint();
+					TreePath path = getPathForLocation((int) dropPoint.getX(), (int) dropPoint.getY());
+					if (path == null) {
+						return false;
+					}
+					droppedOn = (Entry) path.getLastPathComponent();
+				} else {
+					droppedOn = getSelectedEntry();
+				}
+				if (droppedOn == null) {
 					return false;
 				}
-				droppedOn = (Entry) path.getLastPathComponent();
-			} else {
-				droppedOn = getSelectedEntry();
-			}
-			if (droppedOn == null) {
-				return false;
-			}
-
-			try {
-				List<DataFlavor> flavors = Arrays.asList(ts.getDataFlavors());
-				if (flavors.contains(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR)) {
-					final RepositoryLocation loc = (RepositoryLocation) ts.getTransferable().getTransferData(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR);
-					if (droppedOn instanceof Folder) {
-						// check if user action is allowed
-						String sourceAbsolutePath = loc.getAbsoluteLocation();
-						String destinationAbsolutePath = ((Folder) droppedOn).getLocation().getAbsoluteLocation();
-						// checks for MOVE
-						if ((latestAction == MOVE) || (ts.isDrop() && ts.getDropAction() == MOVE)) {
-							// make sure same folder moves are forbidden
-							if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
-								SwingTools.showVerySimpleErrorMessage("repository_move_same_folder");
-								return false;
-							}
-							// make sure moving parent folder into subfolder is forbidden
-							if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
-								SwingTools.showVerySimpleErrorMessage("repository_move_into_subfolder");
-								return false;
-							}
-							try {
-								String effectiveNewName = loc.locateEntry().getName();
-								// entry should be moved into its own parent folder, invalid
-								String sourceParentLocation = loc.locateEntry().getContainingFolder().getLocation().getAbsoluteLocation();
-								if (sourceParentLocation.equals(destinationAbsolutePath)) {
+	
+				final RepositoryLocation loc = (RepositoryLocation) ts.getTransferable().getTransferData(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR);
+				try {
+					List<DataFlavor> flavors = Arrays.asList(ts.getDataFlavors());
+					if (flavors.contains(TransferableOperator.LOCAL_TRANSFERRED_REPOSITORY_LOCATION_FLAVOR)) {
+						final boolean isRepository = loc.locateEntry() instanceof Repository;
+						if (droppedOn instanceof Folder) {
+							// check if user action is allowed
+							String sourceAbsolutePath = loc.getAbsoluteLocation();
+							String destinationAbsolutePath = ((Folder) droppedOn).getLocation().getAbsoluteLocation();
+							// checks for MOVE
+							if ((latestAction == MOVE) || (ts.isDrop() && ts.getDropAction() == MOVE)) {
+								// make sure same folder moves are forbidden
+								if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
 									SwingTools.showVerySimpleErrorMessage("repository_move_same_folder");
 									return false;
 								}
-								// overwrite folder is forbidden
-								for (Folder folderEntry : ((Folder) droppedOn).getSubfolders()) {
-									if (folderEntry.getName().equals(effectiveNewName)) {
-										SwingTools.showVerySimpleErrorMessage("repository_folder_already_exists", effectiveNewName);
-										return false;
-									}
+								// make sure moving parent folder into subfolder is forbidden
+								if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
+									SwingTools.showVerySimpleErrorMessage("repository_move_into_subfolder");
+									return false;
 								}
-								if (((Folder) droppedOn).containsEntry(effectiveNewName)) {
-									// entry already exists, overwrite?
-									if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, ((Folder) droppedOn).getLocation().getAbsoluteLocation() + RepositoryLocation.SEPARATOR + effectiveNewName) == ConfirmDialog.NO_OPTION) {
-										return false;
-									}
-								}
-							} catch (RepositoryException e) {
-								SwingTools.showSimpleErrorMessage("error_in_copy_repository_entry", e, loc.toString(), e.getMessage());
-								return false;
-							}
-						} else {
-							// checks for COPY
-							// make sure same folder moves are forbidden
-							if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
-								SwingTools.showVerySimpleErrorMessage("repository_copy_same_folder");
-								return false;
-							}
-							// make sure moving parent folder into subfolder is forbidden
-							if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
-								SwingTools.showVerySimpleErrorMessage("repository_copy_into_subfolder");
-								return false;
-							}
-						}
-						new ProgressThread("copy_repository_entry", true) {
-
-							@Override
-							public void run() {
 								try {
-									if ((latestAction == MOVE) || (ts.isDrop() && ts.getDropAction() == MOVE)) {
-										RepositoryManager.getInstance(null).move(loc, (Folder) droppedOn, getProgressListener());
-									} else {
-										RepositoryManager.getInstance(null).copy(loc, (Folder) droppedOn, getProgressListener());
+									String effectiveNewName = loc.locateEntry().getName();
+									
+									if(!isRepository) {
+										// entry should be moved into its own parent folder, invalid
+										String sourceParentLocation = loc.locateEntry().getContainingFolder().getLocation().getAbsoluteLocation();
+										if (sourceParentLocation.equals(destinationAbsolutePath)) {
+											SwingTools.showVerySimpleErrorMessage("repository_move_same_folder");
+											return false;
+										}
+									}
+									// overwrite folder is forbidden
+									for (Folder folderEntry : ((Folder) droppedOn).getSubfolders()) {
+										if (folderEntry.getName().equals(effectiveNewName)) {
+											SwingTools.showVerySimpleErrorMessage("repository_folder_already_exists", effectiveNewName);
+											return false;
+										}
+									}
+									if (((Folder) droppedOn).containsEntry(effectiveNewName)) {
+										// entry already exists, overwrite?
+										if (SwingTools.showConfirmDialog("overwrite", ConfirmDialog.YES_NO_OPTION, ((Folder) droppedOn).getLocation().getAbsoluteLocation() + RepositoryLocation.SEPARATOR + effectiveNewName) == ConfirmDialog.NO_OPTION) {
+											return false;
+										}
 									}
 								} catch (RepositoryException e) {
-									SwingTools.showSimpleErrorMessage("error_in_copy_repository_entry", e, loc.toString(), e.getMessage());
+	
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							} else {
+								// checks for COPY
+								// make sure same folder moves are forbidden
+								if (sourceAbsolutePath.equals(destinationAbsolutePath)) {
+									SwingTools.showVerySimpleErrorMessage("repository_copy_same_folder");
+									return false;
+								}
+								// make sure moving parent folder into subfolder is forbidden
+								if (destinationAbsolutePath.contains(sourceAbsolutePath)) {
+									SwingTools.showVerySimpleErrorMessage("repository_copy_into_subfolder");
+									return false;
 								}
 							}
-						}.start();
+							new ProgressThread("copy_repository_entry", true) {
+								@Override
+								public void run() {
+									try {
+										if (((latestAction == MOVE) || (ts.isDrop() && ts.getDropAction() == MOVE)) && !isRepository) {
+											RepositoryManager.getInstance(null).move(loc, (Folder) droppedOn, getProgressListener());
+										} else {
+											RepositoryManager.getInstance(null).copy(loc, (Folder) droppedOn, getProgressListener());
+										}
+									} catch (RepositoryException e) {
+										SwingTools.showSimpleErrorMessage("error_in_copy_repository_entry", e, loc.toString(), e.getMessage());
+									}
+								}
+							}.start();
+							return true;
+						} else {
+							return false;
+						}
+					} else if (flavors.contains(DataFlavor.javaFileListFlavor)) {
+						List files = (List) ts.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+						File file = (File) files.get(0);
+						DataImportWizard.importData(file, droppedOn.getLocation());
 						return true;
 					} else {
 						return false;
 					}
-				} else if (flavors.contains(DataFlavor.javaFileListFlavor)) {
-					List files = (List) ts.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
-					File file = (File) files.get(0);
-					DataImportWizard.importData(file, droppedOn.getLocation());
-					return true;
-				} else {
+				} catch (RepositoryException e) {
+					SwingTools.showSimpleErrorMessage("error_in_copy_repository_entry", e, loc.toString(), e.getMessage());
 					return false;
 				}
 			} catch (UnsupportedFlavorException e) {
@@ -246,8 +255,7 @@ public class RepositoryTree extends JTree {
 								e),
 						e);
 				return false;
-			} catch (IOException e) {
-				//LogService.getRoot().log(Level.WARNING, "Error during drop: "+e, e);
+			} catch (Exception e) {
 				LogService.getRoot().log(Level.WARNING,
 						I18N.getMessage(LogService.getRoot().getResourceBundle(),
 								"com.rapidminer.repository.RepositoryTree.error_during_drop",
@@ -276,9 +284,6 @@ public class RepositoryTree extends JTree {
 			TreePath path = getSelectionPath();
 			if (path != null) {
 				Entry e = (Entry) path.getLastPathComponent();
-				if(e instanceof Repository) {
-					return null;
-				}
 				final RepositoryLocation location = e.getLocation();
 				return new Transferable() {
 
