@@ -24,6 +24,7 @@
 package com.rapidminer.gui.new_plotter.templates.style;
 
 import java.awt.Color;
+import java.util.UUID;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -57,6 +58,8 @@ public class ColorRGB {
 
 	/** alpha portion of the RGB color */
 	private int alpha;
+	
+	private UUID id = UUID.randomUUID();
 
 	/**
 	 * Creates a new {@link ColorRGB} object with the specified r g b components and an alpha
@@ -166,8 +169,6 @@ public class ColorRGB {
 		this.alpha = convertHexToColorRGB.getAlpha();
 	}
 
-
-	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -175,6 +176,7 @@ public class ColorRGB {
 		result = prime * result + this.alpha;
 		result = prime * result + this.b;
 		result = prime * result + this.g;
+		result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
 		result = prime * result + this.r;
 		return result;
 	}
@@ -193,6 +195,11 @@ public class ColorRGB {
 		if (this.b != other.b)
 			return false;
 		if (this.g != other.g)
+			return false;
+		if (this.id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!this.id.equals(other.id))
 			return false;
 		if (this.r != other.r)
 			return false;
