@@ -26,6 +26,8 @@ package com.rapidminer.gui.new_plotter.templates.style;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -40,7 +42,7 @@ import com.rapidminer.tools.XMLException;
  * @author Marco Boeck, Nils Woehler
  * 
  */
-public class ColorScheme {
+public class ColorScheme extends Observable {
 
 	public static final String XML_TAG_NAME = "color-scheme";
 	private static final String GRADIENT_END_COLOR_XML_TAG = "gradient-end-color";
@@ -59,6 +61,14 @@ public class ColorScheme {
 
 	private transient String repositoryLocation;
 
+	private Observer delegatingObserver = new Observer() {
+		
+		@Override
+		public void update(Observable o, Object arg) {
+			setChanged();
+			ColorScheme.this.notifyObservers();
+		}
+	};
 	/**
 	 * Creates a new {@link ColorScheme}.
 	 * 
@@ -142,6 +152,8 @@ public class ColorScheme {
 	 */
 	public void setGradientStartColor(ColorRGB gradientStartColor) {
 		this.gradientStartColor = gradientStartColor;
+		setChanged();
+		notifyObservers(this);
 	}
 
 	/**
@@ -150,6 +162,8 @@ public class ColorScheme {
 	 */
 	public void setGradientEndColor(ColorRGB gradientEndColor) {
 		this.gradientEndColor = gradientEndColor;
+		setChanged();
+		notifyObservers(this);
 	}
 
 	/**
@@ -159,6 +173,8 @@ public class ColorScheme {
 	 */
 	public void setName(String name) {
 		this.name = name;
+		setChanged();
+		notifyObservers(this);
 	}
 
 	/**
@@ -171,6 +187,8 @@ public class ColorScheme {
 			throw new IllegalArgumentException("listOfColors must not be null!");
 		}
 		this.listOfColors = listOfColors;
+		setChanged();
+		notifyObservers(this);
 	}
 
 	/**
@@ -178,6 +196,9 @@ public class ColorScheme {
 	 */
 	public void addColor(ColorRGB color) {
 		this.listOfColors.add(color);
+		color.addObserver(delegatingObserver);
+		setChanged();
+		notifyObservers(this);
 	}
 
 	/**
@@ -191,7 +212,10 @@ public class ColorScheme {
 			ListUtility.changeIndex(listOfColors, color, index);
 		} else {
 			this.listOfColors.add(index, color);
+			color.addObserver(delegatingObserver);
 		}
+		setChanged();
+		notifyObservers(this);
 	}
 
 	/**
@@ -200,13 +224,21 @@ public class ColorScheme {
 	 */
 	public void removeColor(ColorRGB color) {
 		this.listOfColors.remove(color);
+		color.deleteObserver(delegatingObserver);
+		setChanged();
+		notifyObservers(this);
 	}
 
 	/** 
 	 * Removes the color at the provided index.
 	 */
 	public void removeColor(int index) {
-		this.listOfColors.remove(index);
+		ColorRGB color = this.listOfColors.remove(index);
+		if (color != null) {
+			color.deleteObserver(delegatingObserver);
+		}
+		setChanged();
+		notifyObservers(this);
 	}
 
 	/**
@@ -217,6 +249,8 @@ public class ColorScheme {
 		if (index != -1) {
 			this.listOfColors.set(index, newColor);
 		}
+		setChanged();
+		notifyObservers(this);
 	}
 
 	/**
@@ -351,6 +385,8 @@ public class ColorScheme {
 			listOfColors.set(i1, c2);
 			listOfColors.set(i2, c1);
 		}
+		setChanged();
+		notifyObservers(this);
 	}
 
 }

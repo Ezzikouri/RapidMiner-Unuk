@@ -24,6 +24,7 @@
 package com.rapidminer.gui.new_plotter.templates.style;
 
 import java.awt.Color;
+import java.util.Observable;
 import java.util.UUID;
 
 import org.w3c.dom.Document;
@@ -39,7 +40,7 @@ import com.rapidminer.tools.XMLException;
  * @author Marco Boeck, Nils Woehler
  *
  */
-public class ColorRGB {
+public class ColorRGB extends  Observable {
 
 	public static final String XML_TAG_NAME = "color";
 	private static final String R_XML_TAG = "red";
@@ -167,6 +168,8 @@ public class ColorRGB {
 		this.g = convertHexToColorRGB.getG();
 		this.b = convertHexToColorRGB.getB();
 		this.alpha = convertHexToColorRGB.getAlpha();
+		setChanged();
+		notifyObservers(this);
 	}
 
 	@Override

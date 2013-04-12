@@ -37,6 +37,7 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
+import com.rapidminer.gui.actions.ExitAction;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessSetupError.Severity;
@@ -164,6 +165,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 						Pattern valuePattern =  Pattern.compile(replaceWhat);
 						patternMappings.put(valuePattern, replaceBy);
 					} catch (PatternSyntaxException e) {
+						continue;
 					}
 				}
 				j++;
@@ -295,6 +297,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 		}
 		Iterator<String[]> listIterator = mappingParameterList.iterator();
 		int j = 0;
+		boolean entered = false;
 		while (listIterator.hasNext()) {
 			String[] pair = listIterator.next();
 			replaceWhat = pair[0];
@@ -305,7 +308,10 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 					Pattern valuePattern =  Pattern.compile(replaceWhat);
 					patternMappings.put(valuePattern, replaceBy);
 				} catch (PatternSyntaxException e) {
-					throw new UserError(this, 206, replaceWhat, e.getMessage());
+					if (!entered) {
+						entered = true;
+						throw new UserError(this, 206, replaceWhat, e.getMessage());
+					}
 				}
 			}
 			j++;
