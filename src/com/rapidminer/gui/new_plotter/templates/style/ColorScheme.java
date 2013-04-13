@@ -26,14 +26,13 @@ package com.rapidminer.gui.new_plotter.templates.style;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.rapidminer.gui.new_plotter.utility.ListUtility;
 import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.tools.AbstractChangeAwareSaveable;
 import com.rapidminer.tools.XMLException;
 
 /**
@@ -42,7 +41,7 @@ import com.rapidminer.tools.XMLException;
  * @author Marco Boeck, Nils Woehler
  * 
  */
-public class ColorScheme extends Observable {
+public class ColorScheme extends AbstractChangeAwareSaveable<ColorRGB> {
 
 	public static final String XML_TAG_NAME = "color-scheme";
 	private static final String GRADIENT_END_COLOR_XML_TAG = "gradient-end-color";
@@ -60,15 +59,9 @@ public class ColorScheme extends Observable {
 	private ColorRGB gradientEndColor;
 
 	private transient String repositoryLocation;
+	private transient boolean initialized = false;
+	
 
-	private Observer delegatingObserver = new Observer() {
-		
-		@Override
-		public void update(Observable o, Object arg) {
-			setChanged();
-			ColorScheme.this.notifyObservers();
-		}
-	};
 	/**
 	 * Creates a new {@link ColorScheme}.
 	 * 
@@ -93,13 +86,14 @@ public class ColorScheme extends Observable {
 		this.listOfColors = listOfColors;
 		this.gradientStartColor = listOfColors.get(0);
 		this.gradientEndColor = listOfColors.get(listOfColors.size() - 1);
-
+		this.initialized = true;
 	}
 
 	public ColorScheme(String name, List<ColorRGB> listOfColors, ColorRGB gradientStart, ColorRGB gradientEnd) {
 		this(name, listOfColors);
 		this.gradientStartColor = gradientStart;
 		this.gradientEndColor = gradientEnd;
+		this.initialized = true;
 	}
 
 	public ColorScheme(Element element) throws XMLException {
@@ -121,6 +115,7 @@ public class ColorScheme extends Observable {
 		for (Element colorElement : categoryColors) {
 			addColor(new ColorRGB(colorElement));
 		}
+		this.initialized = true;
 	}
 
 	/**
@@ -152,8 +147,7 @@ public class ColorScheme extends Observable {
 	 */
 	public void setGradientStartColor(ColorRGB gradientStartColor) {
 		this.gradientStartColor = gradientStartColor;
-		setChanged();
-		notifyObservers(this);
+		fireUpdate(this);
 	}
 
 	/**
@@ -162,8 +156,7 @@ public class ColorScheme extends Observable {
 	 */
 	public void setGradientEndColor(ColorRGB gradientEndColor) {
 		this.gradientEndColor = gradientEndColor;
-		setChanged();
-		notifyObservers(this);
+		fireUpdate(this);
 	}
 
 	/**
@@ -173,8 +166,7 @@ public class ColorScheme extends Observable {
 	 */
 	public void setName(String name) {
 		this.name = name;
-		setChanged();
-		notifyObservers(this);
+		fireUpdate(this);
 	}
 
 	/**
@@ -187,8 +179,7 @@ public class ColorScheme extends Observable {
 			throw new IllegalArgumentException("listOfColors must not be null!");
 		}
 		this.listOfColors = listOfColors;
-		setChanged();
-		notifyObservers(this);
+		fireUpdate(this);
 	}
 
 	/**
@@ -196,9 +187,8 @@ public class ColorScheme extends Observable {
 	 */
 	public void addColor(ColorRGB color) {
 		this.listOfColors.add(color);
-		color.addObserver(delegatingObserver);
-		setChanged();
-		notifyObservers(this);
+		observeForChanges(color);
+		fireUpdate(this);
 	}
 
 	/**
@@ -212,10 +202,9 @@ public class ColorScheme extends Observable {
 			ListUtility.changeIndex(listOfColors, color, index);
 		} else {
 			this.listOfColors.add(index, color);
-			color.addObserver(delegatingObserver);
+			observeForChanges(color);
 		}
-		setChanged();
-		notifyObservers(this);
+		fireUpdate(this);
 	}
 
 	/**
@@ -224,9 +213,8 @@ public class ColorScheme extends Observable {
 	 */
 	public void removeColor(ColorRGB color) {
 		this.listOfColors.remove(color);
-		color.deleteObserver(delegatingObserver);
-		setChanged();
-		notifyObservers(this);
+		stopObservingForChanges(color);
+		fireUpdate(this);
 	}
 
 	/** 
@@ -234,11 +222,8 @@ public class ColorScheme extends Observable {
 	 */
 	public void removeColor(int index) {
 		ColorRGB color = this.listOfColors.remove(index);
-		if (color != null) {
-			color.deleteObserver(delegatingObserver);
-		}
-		setChanged();
-		notifyObservers(this);
+		stopObservingForChanges(color);
+		fireUpdate(this);
 	}
 
 	/**
@@ -249,8 +234,7 @@ public class ColorScheme extends Observable {
 		if (index != -1) {
 			this.listOfColors.set(index, newColor);
 		}
-		setChanged();
-		notifyObservers(this);
+		fireUpdate(this);
 	}
 
 	/**
@@ -385,8 +369,22 @@ public class ColorScheme extends Observable {
 			listOfColors.set(i1, c2);
 			listOfColors.set(i2, c1);
 		}
-		setChanged();
-		notifyObservers(this);
+		fireUpdate(this);
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return initialized;
+	}
+
+	@Override
+	public String getPath() {
+		return getRepositoryLocation();
+	}
+
+	@Override
+	public boolean isAlreadyStored() {
+		return getRepositoryLocation() != null;
 	}
 
 }

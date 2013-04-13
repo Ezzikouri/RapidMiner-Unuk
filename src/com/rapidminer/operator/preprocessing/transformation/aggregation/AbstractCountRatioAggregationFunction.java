@@ -22,7 +22,10 @@
  */
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
+import java.util.List;
+
 import com.rapidminer.example.Attribute;
+import com.rapidminer.tools.Ontology;
 
 /**
  * This function first behaves like {@link CountAggregationFunction}, but it
@@ -33,21 +36,50 @@ import com.rapidminer.example.Attribute;
  * @author Marco Boeck
  *
  */
-public class CountPercentageAggregationFunction extends AbstractCountRatioAggregationFunction {
+public abstract class AbstractCountRatioAggregationFunction extends CountAggregationFunction {
 
 	public static final String FUNCTION_COUNT_PERCENTAGE = "percentage_count";
 
-	public CountPercentageAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
-		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_COUNT_PERCENTAGE);
+	public AbstractCountRatioAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName) {
+		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
 	}
 
-	public CountPercentageAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName,
+	public AbstractCountRatioAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName,
 			String separatorOpen, String separatorClose) {
 		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, separatorOpen, separatorClose);
 	}
 	
-	public double getRatioFactor() {
-		return 100.0;
+	public abstract double getRatioFactor();
+
+    @Override
+    public Aggregator createAggregator() {
+        return new CountIncludingMissingsAggregator(this);
+    }
+	
+
+	@Override
+	public void postProcessing(List<Aggregator> allAggregators) {
+		double totalCount = 0;
+		
+		// calculate total count
+		for (Aggregator aggregator : allAggregators) {
+			double value = ((CountIncludingMissingsAggregator)aggregator).getCount();
+			if (Double.isNaN(value)) {
+				totalCount = Double.NaN;
+				break;
+			}
+			totalCount += value;
+		}
+		
+		// devide by total count
+		for (Aggregator aggregator : allAggregators) {
+			CountIncludingMissingsAggregator countAggregator = (CountIncludingMissingsAggregator) aggregator;
+			countAggregator.setCount((countAggregator.getCount()/totalCount)*getRatioFactor());
+		}
 	}
 	
+	@Override
+	protected int getTargetValueType(int sourceValueType) {
+		return Ontology.REAL;
+	}
 }

@@ -142,19 +142,15 @@ public class ProcessEmbeddingOperator extends Operator {
 								getInputPorts().getPortByIndex(0).addError(new SimpleMetaDataError(Severity.ERROR, getInputPorts().getPortByIndex(0), "included_process_input_mismatch", requires, gets));
 							}
 						} else {
-							int missing = 0;
 							List<OutputPort> outputPorts = root.getSubprocess(0).getInnerSources().getAllPorts();
 							List<String> repositoryLocations = cachedProcess.getContext().getInputRepositoryLocations();
 							for (int a = 0; a < outputPorts.size(); a++) {
 								OutputPort port = outputPorts.get(a);
 								if (port.isConnected()) {
-									if (a > repositoryLocations.size() || repositoryLocations.get(a) == null || repositoryLocations.get(a).equals("")) {
-										missing++;
+									if (a >= repositoryLocations.size() || repositoryLocations.get(a) == null || repositoryLocations.get(a).equals("")) {
+										addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), Collections.singletonList(new ParameterSettingQuickFix(ProcessEmbeddingOperator.this, PARAMETER_USE_INPUT, "true")), "included_process_missing_data", a+1));
 									}
 								}
-							}
-							if (missing > 0) {
-								addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), Collections.singletonList(new ParameterSettingQuickFix(ProcessEmbeddingOperator.this, PARAMETER_USE_INPUT, "true")), "included_process_missing_context", missing));
 							}
 						}
 
