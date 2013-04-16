@@ -506,7 +506,7 @@ Name "${extension.name.long}"
 		<echo file="${rm.dir}/installation/extension_version.nsi">
 !define SHORT_VERSION ${extension.shortversion}
 !define LONG_VERSION ${extension.longversion}.0
-!defineRM_LONG_VERSION ${extension.longversion}
+!define RM_LONG_VERSION ${extension.longversion}
         </echo>
 	</target>
 
