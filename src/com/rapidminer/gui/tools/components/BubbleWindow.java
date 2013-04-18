@@ -62,12 +62,12 @@ import javax.swing.JPanel;
 import com.rapidminer.gui.Perspective;
 import com.rapidminer.gui.PerspectiveChangeListener;
 import com.rapidminer.gui.RapidMinerGUI;
-import com.rapidminer.gui.tools.ExtendedHTMLJEditorPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tour.Step;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.Tools;
 import com.sun.awt.AWTUtilities;
 import com.vlsolutions.swing.docking.DockableState;
 import com.vlsolutions.swing.docking.DockingDesktop;
@@ -98,11 +98,16 @@ public abstract class BubbleWindow extends JDialog {
 
 	private List<BubbleListener> listeners = new LinkedList<BubbleListener>();
 
+	/** indicates on which side the Bubble will appear*/
+	public enum AlignedSide {
+		RIGHT, LEFT, TOP, BOTTOM, MIDDLE
+	}
+
 	/** Used to define the position of the pointer of the bubble 
 	 * (Describes the corner which points to the component).
 	 * CENTER places the Bubble inside the Component. MIDDLE places the BubbleWindow in the middle of the mainframe( won't be checked by the BubbleWindow if chosen).
 	 */
-	public enum Alignment {
+	private enum Alignment {
 		TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT, LEFTTOP, LEFTBOTTOM, RIGHTTOP, RIGHTBOTTOM, INNERRIGHT, INNERLEFT, MIDDLE;
 	}
 
@@ -117,27 +122,31 @@ public abstract class BubbleWindow extends JDialog {
 
 	/** Shape used for setting the shape of the window and for rendering the outline. */
 	private Shape shape;
-	protected Alignment alignment;
+	protected Alignment realAlignment;
+	protected AlignedSide preferredAlignment;
 	private JPanel bubble;
+	private ImageIcon background;
 	private JButton close;
+	private GridBagConstraints constraints = null;
 	private ImageIcon passiveCloseIcon, activCloseIcon;
 	private ActionListener listener;
+	
+	private JLabel headline;
+	private JLabel mainText;
 
-	protected String title;
-	protected String text;
 
 	private PerspectiveChangeListener perspectiveListener = null;
-	private ComponentAdapter movementListener;
 	private WindowAdapter windowListener;
 	protected Window owner;
 	private String myPerspective;
+	/** indicates whether the listeners currently are added or not */
 	private boolean listenersAdded = false;
 	private boolean addPerspective = true;
 	protected String docKey = null;
 	protected Component dockable;
-	private ComponentListener compListener;
-	private DockingActionListener dockListener = null;
-	private final DockingDesktop desktop = RapidMinerGUI.getMainFrame().getDockingDesktop();
+	protected ComponentListener compListener;
+	protected DockingActionListener dockListener = null;
+	protected final DockingDesktop desktop = RapidMinerGUI.getMainFrame().getDockingDesktop();
 	private int dockingCounter = 0;
 
 	/**
@@ -147,27 +156,51 @@ public abstract class BubbleWindow extends JDialog {
 	 * @param ToAttach {@link Component} to which this {@link BubbleWindow} should be placed relative to. 
 	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
 	 */
-	public BubbleWindow(Window owner, final Alignment preferredAlignment, String i18nKey, String docKey, Object... arguments) {
+	public BubbleWindow(Window owner, final AlignedSide preferredAlignment, String i18nKey, String docKey, Object... arguments) {
 		super(owner);
 		this.owner = owner;
 		this.myPerspective = RapidMinerGUI.getMainFrame().getPerspectives().getCurrentPerspective().getName();
-		this.alignment = preferredAlignment;
-		if(docKey != null) {
+		this.preferredAlignment = preferredAlignment;
+		if (docKey != null) {
 			this.docKey = docKey;
 			dockable = BubbleWindow.getDockableByKey(docKey);
 		}
-		
-		title = I18N.getGUIBundle().getString("gui.bubble." + i18nKey + ".title");
-		text = I18N.getMessage(I18N.getGUIBundle(), "gui.bubble." + i18nKey + ".body", arguments);
-		//TODO: set comic-Font http://docs.oracle.com/javase/tutorial/2d/text/fonts.html
+		//load image for background //TODO: set comic background
+		background = new ImageIcon(Tools.getResource("/images/background_new.png"));
+		//headline label
+		{
+			headline = new JLabel(I18N.getGUIBundle().getString("gui.bubble." + i18nKey + ".title"));
+			headline.setFont(new Font("AlterEgoBB", Font.PLAIN, 14).deriveFont(Font.BOLD));
+			headline.setMinimumSize(new Dimension(WINDOW_WIDTH, 12));
+			headline.setPreferredSize(new Dimension(WINDOW_WIDTH, 12));
+		}
+		//mainText label
+		{
+			mainText = new JLabel("<html><div style=\"line-height: 150%;width:" + WINDOW_WIDTH + "px \">" + I18N.getMessage(I18N.getGUIBundle(), "gui.bubble." + i18nKey + ".body", arguments) + "</div></html>");
+			mainText.setOpaque(false);
+			mainText.setFont(new Font("AlterEgoBB", Font.PLAIN, 12));
+			mainText.setMinimumSize(new Dimension(150, 20));
+			mainText.setMaximumSize(new Dimension(WINDOW_WIDTH, 800));
+		}
 		
 	}
 
 	/**
-	 * builds the Bubble. !!! only call in Constuctor
+	 * should be used to update the Bubble. Call this instead of repaint and similar. Update the Alignment, shape and location. Also this method builds the Bubble by the first call.
+	 * @param reregisterListerns
 	 */
-	protected void buildBubble() {
-		this.alignment = this.calculateAlignment(this.alignment);
+	public void paint(boolean reregisterListerns) {
+		if(constraints == null) {
+			this.buildBubble();
+		} else {
+			this.paintAgain(reregisterListerns);
+		}
+	}
+	/**
+	 * builds the Bubble for the first time
+	 */
+	private void buildBubble() {
+		this.realAlignment = this.calculateAlignment(this.realAlignment);
 		setLayout(new BorderLayout());
 		setUndecorated(true);
 
@@ -175,7 +208,7 @@ public abstract class BubbleWindow extends JDialog {
 
 			@Override
 			public void componentResized(ComponentEvent e) {
-				shape = createShape(alignment);
+				shape = createShape(realAlignment);
 
 				String version = System.getProperty("java.version").substring(0, 3).replace(".", "");
 				try {
@@ -202,9 +235,10 @@ public abstract class BubbleWindow extends JDialog {
 			protected void paintComponent(Graphics gr) {
 				super.paintComponent(gr);
 				Graphics2D g = (Graphics2D) gr;
-				g.setColor(SwingTools.LIGHT_BROWN_FONT_COLOR);
-				g.setStroke(new BasicStroke(3));
+				g.setColor(SwingTools.RAPID_I_BROWN);
+				g.setStroke(new BasicStroke(6));
 				g.setRenderingHints(HI_QUALITY_HINTS);
+                g.drawImage(background.getImage(), 0, 0, this);
 				g.draw(AffineTransform.getTranslateInstance(-.5, -.5).createTransformedShape(getShape()));
 			}
 		};
@@ -212,10 +246,10 @@ public abstract class BubbleWindow extends JDialog {
 		bubble.setSize(getSize());
 		getContentPane().add(bubble, BorderLayout.CENTER);
 
-		GridBagConstraints c = new GridBagConstraints();
+		constraints = new GridBagConstraints();
 		Insets insetsLabel = new Insets(10, 10, 10, 10);
 		Insets insetsMainText = new Insets(0, 10, 10, 10);
-		switch (alignment) {
+		switch (realAlignment) {
 			case TOPLEFT:
 				insetsLabel = new Insets(CORNER_RADIUS + 15, 10, 10, 10);
 				break;
@@ -250,21 +284,19 @@ public abstract class BubbleWindow extends JDialog {
 				break;
 			default:
 		}
-		c.insets = insetsLabel;
-		c.fill = GridBagConstraints.BOTH;
-		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		c.weightx = 1;
-		c.weighty = 0;
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		JLabel label = new JLabel(title);
-		bubble.add(label, c);
-		label.setMinimumSize(new Dimension(WINDOW_WIDTH, 12));
-		label.setPreferredSize(new Dimension(WINDOW_WIDTH, 12));
-		label.setFont(label.getFont().deriveFont(Font.BOLD));
+		//add the headline
+		constraints.insets = insetsLabel;
+		constraints.fill = GridBagConstraints.BOTH;
+		constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+		constraints.weightx = 1;
+		constraints.weighty = 0;
+		constraints.gridwidth = GridBagConstraints.RELATIVE;
+		bubble.add(headline, constraints);
 
-		c.weightx = 0;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.insets = insetsLabel;
+		//create and add close Button for the Bubble
+		constraints.weightx = 0;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.insets = insetsLabel;
 		passiveCloseIcon = new ImageIcon(DockingDesktop.class.getResource("/com/vlsolutions/swing/docking/close16v2.png"));
 		activCloseIcon = new ImageIcon(DockingDesktop.class.getResource("/com/vlsolutions/swing/docking/close16v2rollover.png"));
 		close = new JButton(passiveCloseIcon);
@@ -303,39 +335,38 @@ public abstract class BubbleWindow extends JDialog {
 			}
 		});
 		close.setMargin(new Insets(0, 5, 0, 5));
-		bubble.add(close, c);
+		bubble.add(close, constraints);
 
-		ExtendedHTMLJEditorPane mainText = new ExtendedHTMLJEditorPane("text/html", "<div style=\"width:" + WINDOW_WIDTH + "px\">" + text + "</div>");
-		mainText.setMargin(new Insets(0, 0, 0, 0));
-		mainText.installDefaultStylesheet();
-		mainText.setOpaque(false);
-		mainText.setEditable(false);
-		mainText.setFont(mainText.getFont().deriveFont(Font.PLAIN));
-		mainText.setMinimumSize(new Dimension(150, 20));
-		mainText.setMaximumSize(new Dimension(WINDOW_WIDTH, 800));
-		c.insets = insetsMainText;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.weightx = 1;
-		c.weighty = 1;
-		bubble.add(mainText, c);
+		//add the main Text
+		constraints.insets = insetsMainText;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.weightx = 1;
+		constraints.weighty = 1;
+		bubble.add(mainText, constraints);
 
-		if (this.calculateAlignment(this.alignment) != this.alignment) {
-			this.paintAgain(false);
-		} else {
-			pack();
+		pack();
 
+		if (this.calculateAlignment(this.realAlignment) == this.realAlignment) {
 			positionRelative();
+		} else {
+			this.paintAgain(false);
 		}
 	}
 
 	/**
 	 * updates the Alignment and Position and repaints the Bubble
-	 * @param reregisterListeners if this value is true the Movement-Listeners will be removed and added again.
+	 * @param reregisterListeners if true the listeners will be removed and added again after the repaint
 	 */
-	protected void paintAgain(boolean reregisterListeners) {
-		alignment = this.calculateAlignment(alignment);
-		shape = createShape(alignment);
-		if(listenersAdded && reregisterListeners) {
+	private void paintAgain(boolean reregisterListeners) {
+		Alignment newAlignment = this.calculateAlignment(realAlignment);
+		if(realAlignment.equals(newAlignment)) {
+			this.pointAtComponent();
+			return;
+		} else {
+			realAlignment = newAlignment;
+		}
+		shape = createShape(realAlignment);
+		if (reregisterListeners) {
 			this.unregisterMovementListener();
 		}
 		//choose the right call for the right version
@@ -356,7 +387,7 @@ public abstract class BubbleWindow extends JDialog {
 		bubble.removeAll();
 		Insets insetsLabel = new Insets(10, 10, 10, 10);
 		Insets insetsMainText = new Insets(0, 10, 10, 10);
-		switch (alignment) {
+		switch (realAlignment) {
 			case TOPLEFT:
 				insetsLabel = new Insets(CORNER_RADIUS + 15, 10, 10, 10);
 				break;
@@ -391,44 +422,32 @@ public abstract class BubbleWindow extends JDialog {
 				break;
 			default:
 		}
-		GridBagConstraints c = new GridBagConstraints();
 		//add headline
-		c.insets = insetsLabel;
-		c.fill = GridBagConstraints.BOTH;
-		c.anchor = GridBagConstraints.FIRST_LINE_START;
-		c.weightx = 1;
-		c.weighty = 0;
-		c.gridwidth = GridBagConstraints.RELATIVE;
-		JLabel label = new JLabel(title);
-		bubble.add(label, c);
-		label.setMinimumSize(new Dimension(WINDOW_WIDTH, 12));
-		label.setPreferredSize(new Dimension(WINDOW_WIDTH, 12));
-		label.setFont(label.getFont().deriveFont(Font.BOLD));
+		constraints.insets = insetsLabel;
+		constraints.fill = GridBagConstraints.BOTH;
+		constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+		constraints.weightx = 1;
+		constraints.weighty = 0;
+		constraints.gridwidth = GridBagConstraints.RELATIVE;
+		bubble.add(headline, constraints);
 
 		//add close-Button
-		c.weightx = 0;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.insets = insetsLabel;
-		bubble.add(close, c);
+		constraints.weightx = 0;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.insets = insetsLabel;
+		bubble.add(close, constraints);
 
 		//add main text
-		ExtendedHTMLJEditorPane mainText = new ExtendedHTMLJEditorPane("text/html", "<div style=\"width:" + WINDOW_WIDTH + "px\">" + text + "</div>");
-		mainText.setMargin(new Insets(0, 0, 0, 0));
-		mainText.installDefaultStylesheet();
-		mainText.setOpaque(false);
-		mainText.setEditable(false);
-		mainText.setFont(mainText.getFont().deriveFont(Font.PLAIN));
-		mainText.setMinimumSize(new Dimension(150, 20));
-		mainText.setMaximumSize(new Dimension(WINDOW_WIDTH, 800));
-		c.insets = insetsMainText;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		c.weightx = 1;
-		c.weighty = 1;
-		bubble.add(mainText, c);
+		constraints.insets = insetsMainText;
+		constraints.gridwidth = GridBagConstraints.REMAINDER;
+		constraints.weightx = 1;
+		constraints.weighty = 1;
+		bubble.add(mainText, constraints);
 
 		pack();
+
+		positionRelative();
 		
-		pointAtComponent();
 	}
 
 	/**
@@ -571,7 +590,7 @@ public abstract class BubbleWindow extends JDialog {
 	}
 
 	/**
-	 * places the {@link BubbleWindow} relative to the Component which was given.
+	 * places the {@link BubbleWindow} relative to the Component which was given and adds the listeners.
 	 */
 	private void positionRelative() {
 
@@ -588,7 +607,7 @@ public abstract class BubbleWindow extends JDialog {
 		double targetx = 0;
 		double targety = 0;
 		Point target = new Point(0, 0);
-		if (alignment == Alignment.MIDDLE) {
+		if (realAlignment == Alignment.MIDDLE) {
 			targetx = owner.getWidth() * 0.5 - getWidth() * 0.5;
 			targety = owner.getHeight() * 0.5 - getHeight() * 0.5;
 		} else {
@@ -597,7 +616,7 @@ public abstract class BubbleWindow extends JDialog {
 			int y = (int) location.getY();
 			int h = this.getObjectHeight();
 			int w = this.getObjectWidth();
-			switch (alignment) {
+			switch (realAlignment) {
 				case TOPLEFT:
 					targetx = x + 0.5 * w;
 					targety = y + h;
@@ -662,7 +681,7 @@ public abstract class BubbleWindow extends JDialog {
 	}
 
 	/**
-	 * method to find a dockable component on the MainFrame
+	 * method to find the dockable component on the MainFrame with the given key 
 	 * @param dockableKey key of the dockable you want to find
 	 * @return the {@link Component} with the given key will be returned or an Exception will be thrown if the dockable was not found.
 	 */
@@ -751,21 +770,20 @@ public abstract class BubbleWindow extends JDialog {
 	 */
 	public Shape getShape() {
 		if (shape == null) {
-			shape = createShape(alignment);
+			shape = createShape(realAlignment);
 		}
 		return shape;
 	}
 
 	protected void registerMovementListener() {
 		if (!listenersAdded) {
-			if(addPerspective) {
+			if (addPerspective) {
 				perspectiveListener = new PerspectiveChangeListener() {
 
 					@Override
 					public void perspectiveChangedTo(Perspective perspective) {
 						if ((BubbleWindow.this.myPerspective).equals(perspective.getName())) {
 							BubbleWindow.this.reloadComponent();
-							BubbleWindow.this.registerSpecificListener();
 							BubbleWindow.this.setVisible(true);
 						} else {
 							BubbleWindow.this.setVisible(false);
@@ -773,27 +791,7 @@ public abstract class BubbleWindow extends JDialog {
 					}
 				};
 			}
-			movementListener = new ComponentAdapter() {
-
-				@Override
-				public void componentMoved(ComponentEvent e) {
-					if (BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment))) {
-						BubbleWindow.this.pointAtComponent();
-					} else {
-						BubbleWindow.this.paintAgain(true);
-					}
-					BubbleWindow.this.setVisible(true);
-				}
-
-				@Override
-				public void componentResized(ComponentEvent e) {
-					if (BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment))) {
-						BubbleWindow.this.pointAtComponent();
-					} else {
-						BubbleWindow.this.paintAgain(false);
-					}
-					BubbleWindow.this.setVisible(true);
-				}
+			compListener = new ComponentListener() {
 
 				@Override
 				public void componentShown(ComponentEvent e) {
@@ -802,11 +800,71 @@ public abstract class BubbleWindow extends JDialog {
 				}
 
 				@Override
+				public void componentResized(ComponentEvent e) {
+					if (BubbleWindow.this.realAlignment.equals(BubbleWindow.this.calculateAlignment(realAlignment))) {
+						BubbleWindow.this.pointAtComponent();
+					} else {
+						BubbleWindow.this.paintAgain(false);
+					}
+					BubbleWindow.this.setVisible(true);
+				}
+
+				@Override
+				public void componentMoved(ComponentEvent e) {
+					if (BubbleWindow.this.realAlignment.equals(BubbleWindow.this.calculateAlignment(realAlignment))) {
+						BubbleWindow.this.pointAtComponent();
+					} else {
+						BubbleWindow.this.paintAgain(true);
+					}
+					BubbleWindow.this.setVisible(true);
+				}
+
+				@Override
 				public void componentHidden(ComponentEvent e) {
 					BubbleWindow.this.setVisible(false);
 				}
-
 			};
+			if(docKey == null) {
+				//no component was attached but possible there are some side effects
+				RapidMinerGUI.getMainFrame().addComponentListener(compListener);
+			} else {
+				BubbleWindow.this.dockable.addComponentListener(compListener);
+				dockListener = new DockingActionListener() {
+
+					@Override
+					public void dockingActionPerformed(DockingActionEvent event) {
+						// actionType 2 indicates that a Dockable was splitted
+						// actionType 3 indicates that the Dockable has created his own position
+						// actionType 5 indicates that the Dockable was docked to another position
+						// actionType 6 indicates that the Dockable was separated
+						if (event.getActionType() == 5 || event.getActionType() == 3) {
+							if ((++dockingCounter) % 2 == 0) {
+								//get the new component of the Dockable because the current component is disabled
+								BubbleWindow.this.dockable.removeComponentListener(compListener);
+								BubbleWindow.this.reloadComponent();
+								//repaint
+								BubbleWindow.this.paintAgain(false);
+								BubbleWindow.this.setVisible(true);
+							}
+						}
+						if (event.getActionType() == 6 || event.getActionType() == 2) {
+							//get the new component of the Dockable because the current component is disabled
+							BubbleWindow.this.dockable.removeComponentListener(compListener);
+							BubbleWindow.this.reloadComponent();
+							//repaint
+							BubbleWindow.this.paintAgain(false);
+							BubbleWindow.this.setVisible(true);
+						}
+					}
+
+					@Override
+					public boolean acceptDockingAction(DockingActionEvent arg0) {
+						// no need to deny anything
+						return true;
+					}
+				};
+				desktop.addDockingActionListener(dockListener);
+			}
 			windowListener = new WindowAdapter() {
 
 				@Override
@@ -823,10 +881,9 @@ public abstract class BubbleWindow extends JDialog {
 				}
 
 			};
-			if(addPerspective) {
+			if (addPerspective) {
 				RapidMinerGUI.getMainFrame().getPerspectives().addPerspectiveChangeListener(perspectiveListener);
 			}
-			RapidMinerGUI.getMainFrame().addComponentListener(movementListener);
 			RapidMinerGUI.getMainFrame().addWindowStateListener(windowListener);
 			listenersAdded = true;
 		}
@@ -840,12 +897,19 @@ public abstract class BubbleWindow extends JDialog {
 	}
 
 	protected void unregisterMovementListener() {
-		RapidMinerGUI.getMainFrame().removeComponentListener(movementListener);
-		RapidMinerGUI.getMainFrame().removeWindowStateListener(windowListener);
-		if(addPerspective) {
-			RapidMinerGUI.getMainFrame().getPerspectives().removePerspectiveChangeListener(perspectiveListener);
+		if(listenersAdded) {
+			if(docKey == null) {
+				RapidMinerGUI.getMainFrame().removeComponentListener(compListener);
+			} else {
+				BubbleWindow.this.dockable.removeComponentListener(compListener);
+				desktop.removeDockingActionListener(dockListener);
+			}
+			if (addPerspective) {
+				RapidMinerGUI.getMainFrame().getPerspectives().removePerspectiveChangeListener(perspectiveListener);
+			}
+			RapidMinerGUI.getMainFrame().removeWindowStateListener(windowListener);
+			listenersAdded = false;
 		}
-		listenersAdded = false;
 	}
 
 	/**
@@ -882,104 +946,136 @@ public abstract class BubbleWindow extends JDialog {
 	 * @param ySize size in y-direction of the Object the Bubble should point to 
 	 * @return returns the calculated {@link Alignment}
 	 */
-	protected Alignment calculateAlignment(Alignment preferredAlignment) {
-		if (Alignment.MIDDLE == preferredAlignment) {
-			return preferredAlignment;
+	protected Alignment calculateAlignment(Alignment currentAlignment) {
+
+		if (AlignedSide.MIDDLE == this.preferredAlignment) {
+			return Alignment.MIDDLE;
 		}
 		//get Mainframe location
 		Point frameLocation = owner.getLocationOnScreen();
-		double xlocFrame = Math.max(frameLocation.getX(), 0);
-		double ylocFrame = Math.max(frameLocation.getY(), 0);
+		double xlocFrame = frameLocation.getX();
+		double ylocFrame = frameLocation.getY();
 
 		//get Mainframe size
-		int xframe = owner.getWidth();
-		int yframe = owner.getHeight();
+		int frameWidth = owner.getWidth();
+		int frameHeight = owner.getHeight();
 
 		//location and size of Component the want to attach to
-		Point location = this.getObjectLocation();
-		double xloc = location.getX();
-		double yloc = location.getY();
-		int xSize = this.getObjectWidth();
-		int ySize = this.getObjectHeight();
+		Point componentLocation = this.getObjectLocation();
+		double xlocComponent = componentLocation.getX();
+		double ylocComponent = componentLocation.getY();
+		int componentWidth = this.getObjectWidth();
+		int componentHeight = this.getObjectHeight();
 
-		//load height and with or the approximate Value of worstcase
-		double xSizeBubble = this.getWidth();
-		double ySizeBubble = this.getHeight();
-		if (xSizeBubble == 0 || ySizeBubble == 0) {
-			double approximateValue = (WINDOW_WIDTH + 2 * CORNER_RADIUS);
-			xSizeBubble = approximateValue;
-			ySizeBubble = approximateValue;
+		//load height and width or the approximate Value of worst case
+		double bubbleWidth = this.getWidth();
+		double bubbleHeight = this.getHeight();
+		if (bubbleWidth == 0 || bubbleHeight == 0) {
+			bubbleWidth = 326;
+			bubbleHeight = 200;
+		}
+//		TODO: after finishing design recalculate the save zone
+		if (currentAlignment == Alignment.TOPLEFT || currentAlignment == Alignment.TOPRIGHT || currentAlignment == Alignment.BOTTOMLEFT || currentAlignment == Alignment.BOTTOMRIGHT) {
+			bubbleWidth += 46;
+		} else {
+			bubbleHeight += 35;
 		}
 		// 0 = space above the component
 		// 1 = space right of the component
 		// 2 = space below the component
 		// 3 = space left of the Component
 		double space[] = new double[4];
-		space[0] = (yloc - ylocFrame) / ySizeBubble;
-		space[1] = ((xframe + xlocFrame) - (xloc + xSize)) / xSizeBubble;
-		space[2] = ((yframe + ylocFrame) - (yloc + ySize)) / ySizeBubble;
-		space[3] = (xloc - xlocFrame) / xSizeBubble;
+		space[0] = (ylocComponent - ylocFrame) / (bubbleHeight);
+		space[1] = ((frameWidth + xlocFrame) - (xlocComponent + componentWidth)) / (bubbleWidth);
+		space[2] = ((frameHeight + ylocFrame) - (ylocComponent + componentHeight)) / (bubbleHeight);
+		space[3] = (xlocComponent - xlocFrame) / (bubbleWidth);
 		// check if the preferred Alignment is valid and take it if it is valid
-		switch (preferredAlignment) {
-			case TOPLEFT:
+		switch (this.preferredAlignment) {
+			case BOTTOM:
 				if (space[2] > 1)
-					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
+					return this.fineTuneAlignment(Alignment.TOPLEFT, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
 				break;
-			case TOPRIGHT:
-				if (space[2] > 1)
-					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
-				break;
-			case LEFTBOTTOM:
+			case RIGHT:
 				if (space[1] > 1)
-					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
+					return this.fineTuneAlignment(Alignment.LEFTBOTTOM, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
 				break;
-			case LEFTTOP:
-				if (space[1] > 1)
-					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
-				break;
-			case RIGHTBOTTOM:
+			case LEFT:
 				if (space[3] > 1)
-					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
+					return this.fineTuneAlignment(Alignment.RIGHTBOTTOM, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
 				break;
-			case RIGHTTOP:
-				if (space[3] > 1)
-					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
-				break;
-			case BOTTOMLEFT:
+			case TOP:
 				if (space[0] > 1)
-					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
-				break;
-			case BOTTOMRIGHT:
-				if (space[0] > 1)
-					return this.fineTuneAlignement(preferredAlignment, xframe, yframe, frameLocation, location, xSize, ySize);
+					return this.fineTuneAlignment(Alignment.BOTTOMLEFT, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
 				break;
 			default:
 		}
-		//preferred Alignment was not valid. try to show bubble at the right side of the component
+		//preferred Alignment was not valid. try to show bubble at the same position as before
+		if (currentAlignment != null) {
+			switch (currentAlignment) {
+				case BOTTOMRIGHT:
+				case BOTTOMLEFT:
+					if (space[0] > 1)
+						return this.fineTuneAlignment(Alignment.BOTTOMLEFT, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+					break;
+				case LEFTTOP:
+				case LEFTBOTTOM:
+					if (space[1] > 1)
+						return this.fineTuneAlignment(Alignment.LEFTBOTTOM, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+					break;
+				case TOPRIGHT:
+				case TOPLEFT:
+					if (space[2] > 1)
+						return this.fineTuneAlignment(Alignment.TOPLEFT, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+					break;
+				case RIGHTTOP:
+				case RIGHTBOTTOM:
+					if (space[3] > 1)
+						return this.fineTuneAlignment(Alignment.RIGHTBOTTOM, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+					break;
+				case INNERRIGHT:
+				case INNERLEFT:
+					if (space[0] > 1) {
+						return this.fineTuneAlignment(Alignment.BOTTOMLEFT, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+					} else if (space[1] > 1) {
+						return this.fineTuneAlignment(Alignment.LEFTBOTTOM, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+					} else if (space[2] > 1) {
+						return this.fineTuneAlignment(Alignment.TOPLEFT, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+					} else if (space[3] > 1) {
+						return this.fineTuneAlignment(Alignment.RIGHTBOTTOM, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+					} else {
+//						return this.fineTuneAlignment(Alignment.INNERLEFT, frameWidth, frameHeight, frameLocation, location, componentWidth, componentHeight);
+						return realAlignment;
+					}
+				default:
+					throw new IllegalStateException("this part of code should be unreachable for this state of BubbleWindow");
+			}
+		}
 		if (space[1] > 1)
-			return this.fineTuneAlignement(Alignment.LEFTTOP, xframe, yframe, frameLocation, location, xSize, ySize);
-		// take the best fitting place
+			return this.fineTuneAlignment(Alignment.LEFTTOP, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+			
+		//can not keep the old alignment. take the best fitting place
 		int pointer = 0;
-		for (int i = 0; i < space.length; i++) {
-			if (i == 1)
-				i++;
-			if (space[i] > space[pointer])
+		for (int i = 1; i < space.length; i++) {
+			if (space[i] > space[pointer]) {
 				pointer = i;
+			}
 		}
 		if (space[pointer] > 1) {
 			switch (pointer) {
 				case 0:
-					return this.fineTuneAlignement(Alignment.BOTTOMLEFT, xframe, yframe, frameLocation, location, xSize, ySize);
+					return this.fineTuneAlignment(Alignment.BOTTOMLEFT, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
+				case 1:
+					return this.fineTuneAlignment(Alignment.LEFTTOP, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
 				case 2:
-					return this.fineTuneAlignement(Alignment.TOPLEFT, xframe, yframe, frameLocation, location, xSize, ySize);
+					return this.fineTuneAlignment(Alignment.TOPLEFT, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
 				case 3:
-					return this.fineTuneAlignement(Alignment.RIGHTTOP, xframe, yframe, frameLocation, location, xSize, ySize);
+					return this.fineTuneAlignment(Alignment.RIGHTTOP, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
 				default:
 					return null;
 			}
 		} else {
 			//can not place Bubble outside of the component so we take the right side of the inner of the Component.
-			return this.fineTuneAlignement(Alignment.INNERLEFT, xframe, yframe, frameLocation, location, xSize, ySize);
+			return this.fineTuneAlignment(Alignment.INNERLEFT, frameWidth, frameHeight, frameLocation, componentLocation, componentWidth, componentHeight);
 		}
 
 	}
@@ -996,7 +1092,7 @@ public abstract class BubbleWindow extends JDialog {
 	 * @param compHeight height of the component to attach to
 	 * @return
 	 */
-	private Alignment fineTuneAlignement(Alignment firstCompute, int xframe, int yframe, Point frameLocation, Point componentLocation, int compWidth, int compHeight) {
+	private Alignment fineTuneAlignment(Alignment firstCompute, int xframe, int yframe, Point frameLocation, Point componentLocation, int compWidth, int compHeight) {
 		switch (firstCompute) {
 			case TOPLEFT:
 			case TOPRIGHT:
@@ -1027,6 +1123,9 @@ public abstract class BubbleWindow extends JDialog {
 					return Alignment.BOTTOMLEFT;
 				}
 			default:
+				if (realAlignment == Alignment.INNERLEFT || realAlignment == Alignment.INNERRIGHT)
+					return realAlignment;
+
 				if ((componentLocation.x - frameLocation.x) > ((xframe + frameLocation.x) - (compWidth + componentLocation.x))) {
 					return Alignment.INNERRIGHT;
 				} else {
@@ -1035,7 +1134,7 @@ public abstract class BubbleWindow extends JDialog {
 		}
 
 	}
-	
+
 	protected void setAddPerspectiveListener(boolean addListener) {
 		this.addPerspective = addListener;
 	}
@@ -1059,98 +1158,22 @@ public abstract class BubbleWindow extends JDialog {
 	protected abstract int getObjectHeight();
 
 	/**
-	 * deletes old listeners, updates the Components which are listened and adds the listeners
+	 * deletes old listeners, updates the Components which are listened and adds the Component specific listeners again
 	 */
 	protected void reloadComponent() {
-		if(docKey != null) {
+		if (docKey != null) {
 			dockable = BubbleWindow.getDockableByKey(docKey);
-		}
-	}
-	
-	/**
-	 * unregister the components specific listeners defined in the subclasses
-	 */
-	protected void unregisterSpecificListeners() {
-		if(docKey != null) {
-			BubbleWindow.this.dockable.removeComponentListener(compListener);
-			desktop.removeDockingActionListener(dockListener);
-		}
-	}
-	
-	/** register the components specific listeners defined in the subclasses*/
-	protected void registerSpecificListener() {
-		if(docKey != null) {
-			compListener = new ComponentListener() {
-
-				@Override
-				public void componentShown(ComponentEvent e) {
-					BubbleWindow.this.pointAtComponent();
-					BubbleWindow.this.setVisible(true);
-				}
-
-				@Override
-				public void componentResized(ComponentEvent e) {
-					if (BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment))) {
-						BubbleWindow.this.pointAtComponent();
-					} else {
-						BubbleWindow.this.paintAgain(false);
-					}
-					BubbleWindow.this.setVisible(true);
-				}
-
-				@Override
-				public void componentMoved(ComponentEvent e) {
-					if (BubbleWindow.this.alignment.equals(BubbleWindow.this.calculateAlignment(alignment))) {
-						BubbleWindow.this.pointAtComponent();
-					} else {
-						BubbleWindow.this.paintAgain(true);
-					}
-					BubbleWindow.this.setVisible(true);
-				}
-
-				@Override
-				public void componentHidden(ComponentEvent e) {
-					BubbleWindow.this.setVisible(false);
-				}
-			};
-			dockListener = new DockingActionListener() {
-
-				@Override
-				public void dockingActionPerformed(DockingActionEvent event) {
-					// actionType 5 indicates that the Dockable was docked to another position
-					// actionType 3 indicates that the Dockable has created his own position
-					// actionType 6 indicates that the Dockable was separated
-					if (event.getActionType() == 5 || event.getActionType() == 3) {
-						if ((++dockingCounter) % 2 == 0) {
-							//get the new component of the Dockable because the current component is disabled
-							BubbleWindow.this.dockable.removeComponentListener(compListener);
-							BubbleWindow.this.reloadComponent();
-							BubbleWindow.this.dockable.addComponentListener(compListener);
-							//repaint
-							BubbleWindow.this.paintAgain(false);
-							BubbleWindow.this.setVisible(true);
-						}
-					}
-					if (event.getActionType() == 6) {
-						//get the new component of the Dockable because the current component is disabled
-						BubbleWindow.this.dockable.removeComponentListener(compListener);
-						BubbleWindow.this.reloadComponent();
-						BubbleWindow.this.dockable.addComponentListener(compListener);
-						//repaint
-						BubbleWindow.this.paintAgain(false);
-						BubbleWindow.this.setVisible(true);
-					}
-				}
-
-				@Override
-				public boolean acceptDockingAction(DockingActionEvent arg0) {
-					// no need to deny anything
-					return true;
-				}
-			};
 			BubbleWindow.this.dockable.addComponentListener(compListener);
 			desktop.addDockingActionListener(dockListener);
 		}
 	}
+
+	/**
+	 * unregister the components specific listeners defined in the subclasses
+	 */
+	protected abstract void unregisterSpecificListeners();
+
+	/** register the components specific listeners defined in the subclasses*/
+	protected abstract void registerSpecificListener();
 
 }

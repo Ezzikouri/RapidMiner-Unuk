@@ -32,7 +32,7 @@ import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleToOperator;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 
@@ -45,7 +45,7 @@ import com.rapidminer.operator.Operator;
 
 public class RenameOperatorStep extends Step {
 
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private BubbleTo element;
 	private String i18nKey;
@@ -62,7 +62,7 @@ public class RenameOperatorStep extends Step {
 	 * @param operatorClass Class or Superclass of the {@link Operator} which should be renamed.
 	 * @param targetName the Name the {@link Operator} should have after this Step.
 	 */
-	public RenameOperatorStep(BubbleTo element, Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetName) {
+	public RenameOperatorStep(BubbleTo element, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetName) {
 		super();
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
@@ -79,7 +79,7 @@ public class RenameOperatorStep extends Step {
 	 * @param targetName the Name the {@link Operator} should have after this Step.
 	 * @param attachToKey i18nkey of the {@link Component} to which the {@link BubbleWindow} should point to.
 	 */
-	public RenameOperatorStep(BubbleTo element, Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetName, String elementKey, Window owner) {
+	public RenameOperatorStep(BubbleTo element, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetName, String elementKey, Window owner) {
 		super();
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;

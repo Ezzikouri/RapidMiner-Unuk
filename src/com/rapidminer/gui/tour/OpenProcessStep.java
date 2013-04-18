@@ -29,7 +29,7 @@ import com.rapidminer.ProcessStorageListener;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 
 /**
  * This subclass of {@link Step} will open a {@link BubbleWindow} which closes if the user has opened a process.
@@ -40,7 +40,7 @@ import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 
 public class OpenProcessStep extends Step {
 
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private String i18nKey;
 	private String attachToKey;
@@ -53,7 +53,7 @@ public class OpenProcessStep extends Step {
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param attachTo Component to which the {@link BubbleWindow} should point to.
 	 */
-	public OpenProcessStep(Alignment preferedAlignment, String i18nKey, String attachToKey) {
+	public OpenProcessStep(AlignedSide preferedAlignment, String i18nKey, String attachToKey) {
 		this.alignment = preferedAlignment;
 		this.i18nKey = i18nKey;
 		this.attachToKey = attachToKey;
@@ -66,7 +66,7 @@ public class OpenProcessStep extends Step {
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param attachToKey key of the Component to which the {@link BubbleWindow} should point to.
 	 */
-	public OpenProcessStep(Alignment preferedAlignment, String i18nKey, String attachToKey, Window owner) {
+	public OpenProcessStep(AlignedSide preferedAlignment, String i18nKey, String attachToKey, Window owner) {
 		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;

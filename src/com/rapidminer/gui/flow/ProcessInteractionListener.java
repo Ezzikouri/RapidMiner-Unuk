@@ -25,6 +25,7 @@ package com.rapidminer.gui.flow;
 import javax.swing.JPopupMenu;
 
 import com.rapidminer.operator.Operator;
+import com.rapidminer.operator.OperatorChain;
 import com.rapidminer.operator.ports.Port;
 
 /** Interface for callbacks received from the {@link ProcessRenderer} when the user 
@@ -40,4 +41,10 @@ public interface ProcessInteractionListener {
 	
 	/** Called on right-clicking a port. */
 	public void portContextMenuWillOpen(JPopupMenu menu, Port port);
+	
+	/** Called when an operator is moved. */
+	public void operatorMoved(Operator op);
+
+	/** Called when the currently displayed {@link OperatorChain} changed. */
+	public void displayedChainChanged(OperatorChain displayedChain);
 }

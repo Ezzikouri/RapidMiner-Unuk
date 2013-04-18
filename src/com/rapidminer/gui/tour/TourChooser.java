@@ -171,7 +171,7 @@ public class TourChooser extends ButtonDialog {
 	}
 
 	public static DropDownButton makeAchievmentDropDown() {
-//				final JPopupMenu menu = new JPopupMenu();
+		
 		final DropDownButton dropDownToReturn = new DropDownButton(new ResourceActionAdapter(false, "achievements")) {
 
 			private static final long serialVersionUID = 1L;
@@ -182,7 +182,6 @@ public class TourChooser extends ButtonDialog {
 				for (JMenuItem item : makeTourList()) {
 					menu.add(item);
 				}
-				
 				return menu;
 			}
 
@@ -198,7 +197,7 @@ public class TourChooser extends ButtonDialog {
 					String text = "<html><body><div style=\"width:200px\"><h3 style=\"padding-left:5px;color:black;\">" + relation + "</h3><p style=\"padding-left:5px;\">" + description + "</p>" + progressBar + "</div></body></html>";
 					Icon icon = new ImageIcon(Tools.getResource(iconName), "");
 					toReturn[i] = new JMenuItem(text, icon);
-					toReturn[i].setToolTipText("Click to start tour.");
+					toReturn[i].setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.tour.dropDown.tooltip"));
 					//necessary to start the Tour effectively 
 					toReturn[i].setActionCommand(keys[i]);
 					toReturn[i].addActionListener(new ActionListener() {
@@ -254,7 +253,7 @@ public class TourChooser extends ButtonDialog {
 						complete++;
 				}
 				complete = (complete * 100) / keys.length;
-				dropDownToReturn.setText("<html><h3 style=\"color=red;\"><b>" + complete + "%</b></h3></html>");
+				dropDownToReturn.setText("<html><div><b><font color=\"#7CFC00\" >" + complete + "%</font></b></div></html>");
 			}
 
 			@Override

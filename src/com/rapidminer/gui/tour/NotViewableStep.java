@@ -29,7 +29,7 @@ import java.awt.event.ComponentListener;
 
 import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 
 
 /**
@@ -41,7 +41,7 @@ import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 public class NotViewableStep extends Step {
 	
 	
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner;
 	private String i18nKey = "hiddenButton";
 	private String dockableKey;
@@ -50,7 +50,7 @@ public class NotViewableStep extends Step {
 	private ComponentListener compListener = null;
 	private boolean showMe;
 	
-	public NotViewableStep(Alignment preferredAlignment, Window owner, String shouldBeViewable, String attachToKey) {
+	public NotViewableStep(AlignedSide preferredAlignment, Window owner, String shouldBeViewable, String attachToKey) {
 		this.owner = owner;
 		this.alignment = preferredAlignment;
 		this.watch = shouldBeViewable;

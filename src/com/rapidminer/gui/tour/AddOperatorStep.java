@@ -28,7 +28,7 @@ import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
@@ -48,7 +48,7 @@ public class AddOperatorStep extends Step {
 	}
 
 	private String i18nKey;
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private Class operatorClass;
 	private String targetDockKey;
@@ -63,7 +63,7 @@ public class AddOperatorStep extends Step {
 	 * @param operatorClass the Class or Superclass of the Operator which should be added to the Process.
 	 * @param targetDockKey the i18nKey of the Dockable to which we bubble should point to.
 	 */
-	public AddOperatorStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey) {
+	public AddOperatorStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey) {
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.operatorClass = operatorClass;
@@ -78,7 +78,7 @@ public class AddOperatorStep extends Step {
 	 * @param targetDockKey the i18nKey of the Dockable to which we bubble should point to.
 	 * @param checkForEnclosingOperatorChain indicates whether the {@link BubbleWindow} closes only if the Operator is also wired or not
 	 */
-	public AddOperatorStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey, boolean checkForEnclosingOperatorChain) {
+	public AddOperatorStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey, boolean checkForEnclosingOperatorChain) {
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.operatorClass = operatorClass;
@@ -94,7 +94,7 @@ public class AddOperatorStep extends Step {
 	 * @param targetDockKey the i18nKey of the dockable to which we bubble should point to.
 	 * @param targetEnclosingOperatorChain target OperatorChain
 	 */
-	public AddOperatorStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey, Class<? extends OperatorChain> targetEnclosingOperatorChain) {
+	public AddOperatorStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetDockKey, Class<? extends OperatorChain> targetEnclosingOperatorChain) {
 		this.i18nKey = i18nKey;
 		this.alignment = preferredAlignment;
 		this.operatorClass = operatorClass;

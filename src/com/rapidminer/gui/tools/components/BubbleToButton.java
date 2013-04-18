@@ -57,7 +57,7 @@ public class BubbleToButton extends BubbleWindow {
 	 * @param i18nKey of the message which should be shown
 	 * @param buttonKeyToAttach i18nKey of the Button to which this {@link BubbleWindow} should be placed relative to. 
 	 */
-	public BubbleToButton(Window owner, String nextDockableKey, Alignment preferredAlignment, String i18nKey, String buttonKeyToAttach, Object... arguments) {
+	public BubbleToButton(Window owner, String nextDockableKey, AlignedSide preferredAlignment, String i18nKey, String buttonKeyToAttach, Object... arguments) {
 		this(owner, nextDockableKey, preferredAlignment, i18nKey, buttonKeyToAttach, true, arguments);
 	}
 
@@ -68,7 +68,7 @@ public class BubbleToButton extends BubbleWindow {
 	 * @param buttonKeyToAttach i18nKey of the Button to which this {@link BubbleWindow} should be placed relative to. 
 	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
 	 */
-	public BubbleToButton(Window owner, String nextDockableKey, Alignment preferredAlignment, String i18nKey, String buttonKeyToAttach, boolean addListener, Object... arguments) {
+	public BubbleToButton(Window owner, String nextDockableKey, AlignedSide preferredAlignment, String i18nKey, String buttonKeyToAttach, boolean addListener, Object... arguments) {
 		this(owner, nextDockableKey, preferredAlignment, i18nKey, buttonKeyToAttach, addListener, true, arguments);
 	}
 	
@@ -80,9 +80,9 @@ public class BubbleToButton extends BubbleWindow {
 	 * @param addListener indicates whether the {@link BubbleWindow} closes if the Button was pressed or when another Listener added by a subclass of {@link Step} is fired.
 	 * @param listenToPerspective if true the {@link BubbleWindow} is only in one Perspective viewable else the Bubble will keep their position doesn't matter whether the perspective changes 
 	 */
-	public BubbleToButton(Window owner, String nextDockableKey, Alignment preferredAlignment, String i18nKey, String buttonKeyToAttach, boolean addListener, boolean listenToPerspective, Object... arguments) {
+	public BubbleToButton(Window owner, String nextDockableKey, AlignedSide preferredAlignment, String i18nKey, String buttonKeyToAttach, boolean addListener, boolean listenToPerspective, Object... arguments) {
 		super(owner, preferredAlignment, i18nKey, nextDockableKey, arguments);
-		if (preferredAlignment != Alignment.MIDDLE) {
+		if (preferredAlignment != AlignedSide.MIDDLE) {
 			//Bubble will be bind to a Component
 			this.buttonKey = buttonKeyToAttach;
 			if (buttonKey == null || buttonKey.equals("")) {
@@ -95,7 +95,7 @@ public class BubbleToButton extends BubbleWindow {
 			}
 		}
 		setAddPerspectiveListener(listenToPerspective);
-		super.buildBubble();
+		super.paint(false);
 	}
 
 	/** Positions the window such that the pointer points to the given button. 
@@ -164,12 +164,12 @@ public class BubbleToButton extends BubbleWindow {
 
 	@Override
 	protected void unregisterSpecificListeners() {
-		super.unregisterSpecificListeners();	
+
 	}
 
 	@Override
 	protected void registerSpecificListener() {
-		super.registerSpecificListener();
+	
 	}
 	
 	

@@ -33,7 +33,7 @@ import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleToOperator;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 import com.rapidminer.gui.tour.AddBreakpointStep.Position;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
@@ -46,7 +46,7 @@ import com.rapidminer.operator.Operator;
 
 public class RemoveBreakpointStep extends Step {
 	
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private String i18nKey;
 	private BubbleTo element;
@@ -64,7 +64,7 @@ public class RemoveBreakpointStep extends Step {
 	 * @param operatorClass the Class or Superclass of the {@link Operator} to which the breakpoint should be added.
 	 * @param position indicates whether the Step listens to a breakpoint before, after or any breakpoint which will be removed from the given operatorClass.
 	 */
-	public RemoveBreakpointStep(BubbleTo element, Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, Position position) {
+	public RemoveBreakpointStep(BubbleTo element, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, Position position) {
 		super();
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
@@ -81,7 +81,7 @@ public class RemoveBreakpointStep extends Step {
 	 * @param attachToKey i18nkey of the Button to which the {@link BubbleWindow} should point to.
 	 * @param position indicates whether the Step listens to a breakpoint before, after or any breakpoint which will be removed from the given operatorClass.
 	 */
-	public RemoveBreakpointStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, Position position) {
+	public RemoveBreakpointStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, Position position) {
 		super();
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
@@ -98,7 +98,7 @@ public class RemoveBreakpointStep extends Step {
 	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
 	 * @param position indicates whether the Step listens to a breakpoint before, after or any breakpoint which will be removed from the given operatorClass.
 	 */
-	public RemoveBreakpointStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, Position position, Window owner) {
+	public RemoveBreakpointStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, Position position, Window owner) {
 		
 	}
 	

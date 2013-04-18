@@ -29,7 +29,7 @@ import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.properties.OperatorPropertyPanel;
 import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.UndefinedParameterError;
@@ -47,7 +47,7 @@ public class ChangeParameterStep extends Step {
 	private String targetDockKey = OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY;
 	private String parameter;
 	private String targetValue;
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private Class<? extends Operator> operatorClass;
 	private ProcessSetupListener listener = null;
@@ -62,7 +62,7 @@ public class ChangeParameterStep extends Step {
 	 * @param targetDockKey the Component to which the {@link BubbleWindow} should point to.
 	 * @param targetValue the Value the user should select for the given parameter.
 	 */
-	public ChangeParameterStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue) {
+	public ChangeParameterStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue) {
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.targetDockKey = targetDockKey;
@@ -79,7 +79,7 @@ public class ChangeParameterStep extends Step {
 	 * @param targetDockKey the Component to which the {@link BubbleWindow} should point to.
 	 * @param targetValue the Value the user should select for the given parameter.
 	 */
-	public ChangeParameterStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue, Window owner) {
+	public ChangeParameterStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue, Window owner) {
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.targetDockKey = targetDockKey;

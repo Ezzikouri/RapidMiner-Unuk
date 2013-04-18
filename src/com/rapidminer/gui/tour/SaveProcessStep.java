@@ -29,7 +29,7 @@ import com.rapidminer.ProcessStorageListener;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 
 /**
  * This Subclass of {@link Step} will open a {@link BubbleWindow} which closes if the user saves the Process.
@@ -42,7 +42,7 @@ public class SaveProcessStep extends Step {
 
 	private String i18nKey;
 	private String buttonKey;
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private ProcessStorageListener listener = null;
 
@@ -52,7 +52,7 @@ public class SaveProcessStep extends Step {
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 */
-	public SaveProcessStep(Alignment preferredAlignment, String i18nKey, String buttonKey){
+	public SaveProcessStep(AlignedSide preferredAlignment, String i18nKey, String buttonKey){
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.buttonKey = buttonKey;
@@ -64,7 +64,7 @@ public class SaveProcessStep extends Step {
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param buttonKey i18nKey of the Button to which the {@link BubbleWindow} should point to.
 	 */
-	public SaveProcessStep(Alignment preferredAlignment, String i18nKey, String buttonKey, Window owner){
+	public SaveProcessStep(AlignedSide preferredAlignment, String i18nKey, String buttonKey, Window owner){
 		this.alignment = preferredAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;

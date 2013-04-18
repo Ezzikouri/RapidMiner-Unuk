@@ -37,7 +37,6 @@ import com.rapidminer.example.Attribute;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
-import com.rapidminer.gui.actions.ExitAction;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessSetupError.Severity;
@@ -213,7 +212,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 							oldValue = Double.valueOf(entry.getKey());
 						} catch (NumberFormatException e) {							
 							this.addError(new SimpleProcessSetupError(Severity.ERROR, AttributeValueMapper.this.getPortOwner(), "mapping_must_be_number", entry.getKey()));
-							continue;
+							break;
 						}
 					}
 					if (!entry.getValue().equals("?")) {
@@ -221,7 +220,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 							newValue = Double.valueOf(entry.getValue());
 						} catch (NumberFormatException e) {
 							this.addError(new SimpleProcessSetupError(Severity.ERROR, AttributeValueMapper.this.getPortOwner(), "mapping_must_be_number", entry.getValue()));
-							continue;
+							break;
 						}
 					}
 					numericalValueMapping.put(oldValue, newValue);

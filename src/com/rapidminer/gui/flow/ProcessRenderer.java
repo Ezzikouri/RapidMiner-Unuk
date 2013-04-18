@@ -115,8 +115,6 @@ import com.rapidminer.gui.tools.ResourceMenu;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.ToolTipWindow;
 import com.rapidminer.gui.tools.components.ToolTipWindow.TipProvider;
-import com.rapidminer.gui.tour.IntroductoryTour;
-import com.rapidminer.gui.tour.ProcessRendererListener;
 import com.rapidminer.io.process.ProcessXMLFilter;
 import com.rapidminer.io.process.ProcessXMLFilterRegistry;
 import com.rapidminer.operator.ExecutionUnit;
@@ -519,8 +517,8 @@ public class ProcessRenderer extends JPanel implements DragListener {
 	private static int GRID_AUTOARRANGE_WIDTH = OPERATOR_WIDTH * 3 / 2;
 	private static int GRID_AUTOARRANGE_HEIGHT = MIN_OPERATOR_HEIGHT * 3 / 2;
 
-	private static RenderingHints HI_QUALITY_HINTS = new RenderingHints(null);
-	private static RenderingHints LOW_QUALITY_HINTS = new RenderingHints(null);
+	public static RenderingHints HI_QUALITY_HINTS = new RenderingHints(null);
+	public static RenderingHints LOW_QUALITY_HINTS = new RenderingHints(null);
 
 	static {
 		HI_QUALITY_HINTS.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -667,9 +665,6 @@ public class ProcessRenderer extends JPanel implements DragListener {
 	private final ReceivingOperatorTransferHandler transferHandler;
 
 	private final FlowVisualizer flowVisualizer = new FlowVisualizer(this);
-
-	/**List of Listeners from a {@link IntroductoryTour} which waits for the moment that something is opened */
-	private LinkedList<ProcessRendererListener> listenersTour;
 
 	private List<ProcessInteractionListener> processInteractionListeners = new LinkedList<ProcessInteractionListener>();
 
@@ -1212,7 +1207,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		}
 		showProcesses(processes);
 
-		fireNewChainDisplayed();
+		fireDisplayedChainChanged(displayedChain);
 		autoFit();
 	}
 
@@ -1400,6 +1395,7 @@ public class ProcessRenderer extends JPanel implements DragListener {
 				updateComponentSize();
 			}
 		}
+		fireOperatorMoved(operator);
 	}
 
 	/**
@@ -3466,7 +3462,6 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		if (overviewPanel != null) {
 			overviewPanel.repaint();
 		}
-		fireRepainted();
 	}
 
 	private void rename(final Operator op) {
@@ -3729,38 +3724,6 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		return false;
 	}
 
-	public void addProcessRendererListener(ProcessRendererListener listener) {
-		if (listener != null) {
-			if (listenersTour != null) {
-				listenersTour.add(listener);
-			} else {
-				listenersTour = new LinkedList<ProcessRendererListener>();
-				listenersTour.add(listener);
-			}
-		}
-	}
-
-	public void removeProcessRendererListener(ProcessRendererListener listener) {
-		if (listener != null && listenersTour != null)
-			listenersTour.remove(listener);
-	}
-
-	private void fireNewChainDisplayed() {
-		if (listenersTour != null && !listenersTour.isEmpty()) {
-			for (ProcessRendererListener listener : ((LinkedList<ProcessRendererListener>) listenersTour.clone())) {
-				listener.newChainShowed(displayedChain);
-			}
-		}
-	}
-	
-	private void fireRepainted() {
-		if (listenersTour != null && !listenersTour.isEmpty()) {
-			for (ProcessRendererListener listener : ((LinkedList<ProcessRendererListener>) listenersTour.clone())) {
-				listener.repainted();
-			}
-		}
-	}
-
 	@Override
 	public void dragStarted(Transferable t) {
 
@@ -3869,6 +3832,20 @@ public class ProcessRenderer extends JPanel implements DragListener {
 		List<ProcessInteractionListener> copy = new LinkedList<ProcessInteractionListener>(processInteractionListeners);
 		for (ProcessInteractionListener l : copy) {
 			l.portContextMenuWillOpen(m, port);
+		}
+	}
+
+	private void fireOperatorMoved(Operator op) {
+		List<ProcessInteractionListener> copy = new LinkedList<ProcessInteractionListener>(processInteractionListeners);
+		for (ProcessInteractionListener l : copy) {
+			l.operatorMoved(op);
+		}
+	}
+
+	private void fireDisplayedChainChanged(OperatorChain op) {
+		List<ProcessInteractionListener> copy = new LinkedList<ProcessInteractionListener>(processInteractionListeners);
+		for (ProcessInteractionListener l : copy) {
+			l.displayedChainChanged(op);
 		}
 	}
 }

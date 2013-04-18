@@ -27,7 +27,7 @@ import java.awt.Window;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 
 /**
  * This Subclass of {@link Step} will open a {@link BubbleWindow} which closes if the given Button was pressed.
@@ -40,7 +40,7 @@ public class SimpleStep extends Step {
 
 	private String buttonKey;
 	private String i18nKey;
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner;
 	private boolean isInMenuBar;
 	
@@ -51,7 +51,7 @@ public class SimpleStep extends Step {
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param buttonKey i18nKey of the Button to which the {@link Step} listens and the {@link BubbleWindow} will point to.
 	 */
-	public SimpleStep(Alignment preferredAlignment, String i18nKey, String buttonKey, boolean isInMenuBar){
+	public SimpleStep(AlignedSide preferredAlignment, String i18nKey, String buttonKey, boolean isInMenuBar){
 		this(preferredAlignment, i18nKey, buttonKey, isInMenuBar, RapidMinerGUI.getMainFrame());
 	}
 	
@@ -63,7 +63,7 @@ public class SimpleStep extends Step {
 	 * @param buttonKey i18nKey of the Button to which the {@link Step} listens and the {@link BubbleWindow} will point to.
 	 * @param owner sets the owner of the Bubble from Mainframe to given owner
 	 */
-	public SimpleStep(Alignment preferredAlignment, String i18nKey, String buttonKey, boolean isInMenuBar , Window owner){
+	public SimpleStep(AlignedSide preferredAlignment, String i18nKey, String buttonKey, boolean isInMenuBar , Window owner){
 		super();
 		this.alignment = preferredAlignment;
 		this.owner = owner;

@@ -47,14 +47,14 @@ public class BubbleToDockable extends BubbleWindow {
 	 * @param docKey key of the Dockable to which this {@link BubbleWindow} should be placed relative to. 
 	 * @param arguments arguments to pass thought to the I18N Object 
 	 */
-	public BubbleToDockable(Window owner, final Alignment preferredAlignment, String i18nKey, String docKey, Object... arguments) {
+	public BubbleToDockable(Window owner, final AlignedSide preferredAlignment, String i18nKey, String docKey, Object... arguments) {
 		super(owner, preferredAlignment, i18nKey, docKey, arguments);
-		if(preferredAlignment != Alignment.MIDDLE) {
+		if(preferredAlignment != AlignedSide.MIDDLE) {
 			if(docKey == null) {
 				throw new IllegalArgumentException("key of Dockable can not be null if Alignment is not MIDDLE");
 			}
 		}
-		super.buildBubble();
+		super.paint(false);
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class BubbleToDockable extends BubbleWindow {
 
 	@Override
 	protected void registerSpecificListener() {
-		super.registerSpecificListener();
+
 	}
 	
 	@Override
@@ -76,7 +76,7 @@ public class BubbleToDockable extends BubbleWindow {
 	
 	@Override
 	protected void unregisterSpecificListeners() {
-		super.unregisterSpecificListeners();
+
 	}
 
 	@Override

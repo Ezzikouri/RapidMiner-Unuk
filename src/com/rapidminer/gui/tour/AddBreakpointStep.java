@@ -32,7 +32,7 @@ import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleToOperator;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 
@@ -53,7 +53,7 @@ public class AddBreakpointStep extends Step {
 
 	private Class<? extends Operator> operator;
 	private String i18nKey;
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private Position position;
 	private String elementKey = "breakpoint_after";
@@ -70,7 +70,7 @@ public class AddBreakpointStep extends Step {
 	 * @param operator the class of the Operator at which the Breakpoint should be added.
 	 * @param position position on which the Breakpoint should be set.
 	 */
-	public AddBreakpointStep(BubbleTo element,Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operator, Position position) {
+	public AddBreakpointStep(BubbleTo element,AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operator, Position position) {
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.position = position;
@@ -87,7 +87,7 @@ public class AddBreakpointStep extends Step {
 	 * @param i18nButtonKey key of the Button to which the {@link BubbleWindow} should be attached to.
 	 * @param position position on which the Breakpoint should be set.
 	 */
-	public AddBreakpointStep(BubbleTo element, Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operator, String elementKey, Position position) {
+	public AddBreakpointStep(BubbleTo element, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operator, String elementKey, Position position) {
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.position = position;
@@ -98,7 +98,7 @@ public class AddBreakpointStep extends Step {
 			dockableKey = elementKey;
 	}
 
-	public AddBreakpointStep(BubbleTo element, Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operator, String i18nButtonKey, Position position, Window owner) {
+	public AddBreakpointStep(BubbleTo element, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operator, String i18nButtonKey, Position position, Window owner) {
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.position = position;

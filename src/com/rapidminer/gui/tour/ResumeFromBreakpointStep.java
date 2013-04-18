@@ -30,7 +30,7 @@ import com.rapidminer.Process;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
 
@@ -48,7 +48,7 @@ public class ResumeFromBreakpointStep extends Step {
 	}
 
 	private String i18nKey;
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private AddBreakpointStep.Position position;
 	Class<? extends Operator> operatorClass;
@@ -64,7 +64,7 @@ public class ResumeFromBreakpointStep extends Step {
 	 * @param position indicates to which position of a breakpoint the {@link Step} listens.
 	 * @param attachToKey i18nKey of the {@link Component} to which the {@link BubbleWindow} should point to.
 	 */
-	public ResumeFromBreakpointStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, AddBreakpointStep.Position position) {
+	public ResumeFromBreakpointStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, AddBreakpointStep.Position position) {
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.operatorClass = operatorClass;
@@ -79,7 +79,7 @@ public class ResumeFromBreakpointStep extends Step {
 	 * @param operatorClass Class or Superclass of the {@link Operator} which owns the breakpoint.
 	 * @param attachToKey i18nKey of the {@link Component} to which the {@link BubbleWindow} should point to.
 	 */
-	public ResumeFromBreakpointStep(Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, AddBreakpointStep.Position position, Window owner) {
+	public ResumeFromBreakpointStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String attachToKey, AddBreakpointStep.Position position, Window owner) {
 		this.alignment = preferredAlignment;
 		this.i18nKey = i18nKey;
 		this.operatorClass = operatorClass;

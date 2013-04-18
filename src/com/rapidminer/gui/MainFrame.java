@@ -900,7 +900,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		toolBarPanel.add(editToolBar, new ToolBarConstraints(0, 1));
 		toolBarPanel.add(runToolBar, new ToolBarConstraints(0, 2));
 		toolBarPanel.add(viewToolBar, new ToolBarConstraints(0, 3));
-//		//TODO: shift achievementToolBar to the right
+		//TODO: shift achievementToolBar to the right
 //		toolBarPanel.add(achievementToolBar, new ToolBarConstraints(0, 4));
 		getContentPane().add(getStatusBar(), BorderLayout.SOUTH);
 		getStatusBar().startClockThread();

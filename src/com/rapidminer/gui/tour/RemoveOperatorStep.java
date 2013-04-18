@@ -32,7 +32,7 @@ import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleToOperator;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 
@@ -47,7 +47,7 @@ public class RemoveOperatorStep extends Step {
 	private String i18nKey;
 	private Window owner = RapidMinerGUI.getMainFrame();
 	private Class<? extends Operator> operatorClass;
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private BubbleTo element;
 	private String buttonKey = "delete";
 	private String dockableKey = OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY;
@@ -61,7 +61,7 @@ public class RemoveOperatorStep extends Step {
 	 * @param operatorClass Class or SuperClass of the {@link Operator} which should be deleted.
 	 * @param componentKey key of the {@link Component} to which the {@link BubbleWindow} should point to. 
 	 */
-	public RemoveOperatorStep(BubbleTo element, Alignment preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass) {
+	public RemoveOperatorStep(BubbleTo element, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass) {
 		this.i18nKey = i18nKey;
 		this.alignment = preferredAlignment;
 		this.operatorClass = operatorClass;

@@ -22,6 +22,9 @@
  */
 package com.rapidminer.gui.tour;
 
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,8 +35,10 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.logging.Level;
 
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.tools.FileSystemService;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.Tools;
 
 /**
  * This Class manages whether a Tour is new, started or finishid. Also it remembers the 
@@ -46,6 +51,16 @@ public class TourManager {
 
 	private static String TOUR_PROPERTIES = "tours.properties";
 
+	//log messages
+	private final String logPath = "com.rapidminer.gui.tour.TourManager.";
+	
+	private final String NO_FONT = logPath + "font_not_loaded";
+	private final String NOT_SAVED = logPath + "could_not_save";
+	private final String NOT_STARTED = logPath + "could_not_start";
+	private final String NOT_FOUND = logPath + "not_found";
+	private final String NO_KEY = logPath + "key_not_found";
+	private final String NO_INDEX = logPath +"index_not_found";
+	
 	private static TourManager INSTANCE;
 
 	private Properties properties;
@@ -59,8 +74,20 @@ public class TourManager {
 		load();
 		tours = new HashMap<String, Class<? extends IntroductoryTour>>();
 		indexList = new ArrayList<String>();
-		tours.put("RapidMiner", RapidMinerTour.class);
-		indexList.add("RapidMiner");
+		// try to load a comic Font
+		try {
+		     GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		     ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, Tools.getResourceInputStream("/fonts/AlterEgoBB.ttf"))); 
+		} catch (IOException e) {
+			LogService.getRoot().log(Level.WARNING, NO_FONT);
+		} catch (FontFormatException e1) {
+			LogService.getRoot().log(Level.WARNING, NO_FONT);
+		} catch (RepositoryException e2) {
+			LogService.getRoot().log(Level.WARNING, NO_FONT);
+		}
+		// registers tours from Rapid-i self
+		this.registerTour("RapidMiner", RapidMinerTour.class);
+		
 	}
 
 	/**
@@ -81,9 +108,9 @@ public class TourManager {
 			file.createNewFile();
 			properties.load(new FileInputStream(file));
 		} catch (FileNotFoundException e) {
-			LogService.getRoot().log(Level.WARNING, "tour_not_loaded");
+			LogService.getRoot().log(Level.INFO, NOT_FOUND);
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.WARNING, "tour_not_loaded");
+			LogService.getRoot().log(Level.INFO, NOT_FOUND);
 		}
 	}
 
@@ -93,10 +120,10 @@ public class TourManager {
 			properties.store(new FileOutputStream(file), "RapidMiner Datafiles");
 			return true;
 		} catch (FileNotFoundException e) {
-			LogService.getRoot().log(Level.WARNING, "tour_not_saved");
+			LogService.getRoot().log(Level.WARNING, NOT_SAVED);
 			return false;
 		} catch (IOException e) {
-			LogService.getRoot().log(Level.WARNING, "tour_not_saved");
+			LogService.getRoot().log(Level.WARNING, NOT_SAVED);
 			return false;
 		}
 	}
@@ -222,10 +249,10 @@ public class TourManager {
 		try {
 			tour = tours.get(indexList.get(index)).newInstance();
 		} catch (InstantiationException e) {
-			LogService.getRoot().log(Level.WARNING, "tour_not_found_index", new Object[] {index});
+			LogService.getRoot().log(Level.WARNING, NO_INDEX, new Object[] {index});
 			throw new IllegalArgumentException();
 		} catch (IllegalAccessException e) {
-			LogService.getRoot().log(Level.WARNING, "tour_not_found_index", new Object[] {index});
+			LogService.getRoot().log(Level.WARNING, NO_INDEX, new Object[] {index});
 			throw new IllegalArgumentException();
 		}
 		return tour;
@@ -241,11 +268,10 @@ public class TourManager {
 		try {
 			tour = tourClass.newInstance();
 		} catch (InstantiationException e) {
-			// TODO: Proper exception handling
-			LogService.getRoot().log(Level.WARNING, "tour_not_found", new Object[] {tourKey});
+			LogService.getRoot().log(Level.WARNING, NO_KEY, new Object[] {tourKey});
 			throw new IllegalArgumentException();
 		} catch (IllegalAccessException e) {
-			LogService.getRoot().log(Level.WARNING, "tour_not_found", new Object[] {tourKey});
+			LogService.getRoot().log(Level.WARNING, NO_KEY, new Object[] {tourKey});
 			throw new IllegalArgumentException();
 		}
 		return tour;
@@ -263,10 +289,10 @@ public class TourManager {
 			tour = tourClass.newInstance();
 			tour.startTour();
 		} catch (InstantiationException e) {
-			LogService.getRoot().log(Level.WARNING, "tour_not_start", new Object[] {tourKey});
+			LogService.getRoot().log(Level.WARNING, NOT_STARTED, new Object[] {tourKey});
 			throw new IllegalArgumentException();
 		} catch (IllegalAccessException e) {
-			LogService.getRoot().log(Level.WARNING, "tour_not_start", new Object[] {tourKey});
+			LogService.getRoot().log(Level.WARNING, NOT_STARTED, new Object[] {tourKey});
 			throw new IllegalArgumentException();
 		}
 		return tour;
