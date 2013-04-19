@@ -1197,7 +1197,7 @@ public class DatabaseHandler {
 		ParameterType argumentType = new ParameterTypeTupel("parameter", "Parameter to insert when statement is prepared",
 				new ParameterTypeCategory("type", "SQL type to use for insertion.", SQL_TYPES, 0),
 				new ParameterTypeString("parameter", "Parameter"));
-		ParameterTypeEnumeration paramsParam = new ParameterTypeEnumeration(DatabaseHandler.PARAMETER_PARAMETERS, "Parameters to insert into '?' placefholders when statement is prepared.",
+		ParameterTypeEnumeration paramsParam = new ParameterTypeEnumeration(DatabaseHandler.PARAMETER_PARAMETERS, "Parameters to insert into '?' placeholders when statement is prepared.",
 				argumentType);
 		paramsParam.registerDependencyCondition(new BooleanParameterCondition(handler, DatabaseHandler.PARAMETER_PREPARE_STATEMENT, false, true));
 		types.add(paramsParam);
