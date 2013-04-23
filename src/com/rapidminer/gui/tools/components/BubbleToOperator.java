@@ -70,6 +70,7 @@ public class BubbleToOperator extends BubbleWindow {
 	private ChangeListener viewPortListener;
 	private ComponentListener assistanceCompListener;
 	private DockingActionListener assistanceDockingListener;
+	private ProcessInteractionListener assistanceRendererListener;
 	private BubbleToDockable dockBubble = null;
 	
 	public BubbleToOperator(Window owner, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> toAttach, Object ... arguments) {
@@ -154,68 +155,14 @@ public class BubbleToOperator extends BubbleWindow {
 						}
 					}
 				} else if (homeChain.equals(displayedChain)) {
-					BubbleToOperator.this.paint(true);
-					BubbleToOperator.this.setVisible(true);
-					if(dockBubble != null) {
-						dockBubble.triggerFire();
-					}
+						//will be handled by the the assistance listener
 				} else {
 					BubbleToOperator.this.setVisible(false);
 					BubbleToOperator.this.unregisterMovementListener();
+					BubbleToOperator.this.changeToAssistanceListener();
 					dockBubble = new BubbleToDockable(owner, AlignedSide.RIGHT, "operatorNotDisplayed", BubbleToOperator.this.docKey, operatorClass.getName());
 					dockBubble.setVisible(true);
-					this.waitForReentering();
-					//TODO: kill listeners until operator is visible again
 				}
-			}
-			
-			private void waitForReentering() {
-//				renderer.addProcessInteractionListener(new ProcessInteractionListener() {
-//					
-//					@Override
-//					public void portContextMenuWillOpen(JPopupMenu menu, Port port) {
-//						// do not care
-//						
-//					}
-//					
-//					@Override
-//					public void operatorMoved(Operator op) {
-//						// do not care
-//						
-//					}
-//					
-//					@Override
-//					public void operatorContextMenuWillOpen(JPopupMenu menu, Operator operator) {
-//						// do not care
-//						
-//					}
-//					
-//					@Override
-//					public void displayedChainChanged(OperatorChain displayedChain) {
-//						if(onDisplay == null) {
-//							Operator[] matching = BubbleToOperator.this.getMatchingOperatorsInChain(operatorClass, displayedChain);
-//							if (matching.length != 0) {
-//								onDisplay = matching[(matching.length <= split ? matching.length - 1 : split - 1)];
-//								homeChain = renderer.getDisplayedChain();
-//								BubbleToOperator.this.registerMovementListener();
-//								if(dockBubble != null) {
-//									dockBubble.triggerFire();
-//								}
-//								renderer.removeProcessInteractionListener(this);
-//							}
-//						} else if (homeChain.equals(displayedChain)) {
-//							BubbleToOperator.this.registerMovementListener();
-//							BubbleToOperator.this.paintAgain(false);
-//							BubbleToOperator.this.setVisible(true);
-//							if(dockBubble != null) {
-//								dockBubble.triggerFire();
-//							}
-//							renderer.removeProcessInteractionListener(this);
-//						}
-//							
-//						
-//					}
-//				});
 			}
 		};
 		renderer.addProcessInteractionListener(rendererListener);
@@ -223,6 +170,47 @@ public class BubbleToOperator extends BubbleWindow {
 	
 	private void changeToAssistanceListener() {
 		this.unregisterMovementListener();
+		assistanceRendererListener = new ProcessInteractionListener() {
+			
+			@Override
+			public void portContextMenuWillOpen(JPopupMenu menu, Port port) {
+				// do not care
+			}
+			
+			@Override
+			public void operatorMoved(Operator op) {
+				// do not care
+			}
+			
+			@Override
+			public void operatorContextMenuWillOpen(JPopupMenu menu, Operator operator) {
+				// do not care
+				
+			}
+			
+			@Override
+			public void displayedChainChanged(OperatorChain displayedChain) {
+				if(onDisplay == null) {
+					Operator[] matching = BubbleToOperator.this.getMatchingOperatorsInChain(operatorClass, displayedChain);
+					if (matching.length != 0) {
+						onDisplay = matching[(matching.length <= split ? matching.length - 1 : split - 1)];
+						homeChain = renderer.getDisplayedChain();
+						if(dockBubble != null) {
+							dockBubble.triggerFire();
+						}
+					}
+				} else if (homeChain.equals(displayedChain)) {
+					BubbleToOperator.this.paint(true);
+					BubbleToOperator.this.setVisible(true);
+					if(dockBubble != null) {
+						dockBubble.triggerFire();
+						BubbleToOperator.this.changeToMainListeners();
+					}
+					//TODO: check this for mistakes
+				}
+			}
+		};
+		renderer.addProcessInteractionListener(assistanceRendererListener);
 		assistanceCompListener = new ComponentListener() {
 			
 			@Override
@@ -245,11 +233,11 @@ public class BubbleToOperator extends BubbleWindow {
 				//do not care
 			}
 		};
-		if(dockable != null) {
-			RapidMinerGUI.getMainFrame().addComponentListener(compListener);
+		if(dockable == null) {
+			RapidMinerGUI.getMainFrame().addComponentListener(assistanceCompListener);
 		} else {
-			dockable.addComponentListener(compListener);
-			dockListener = new DockingActionListener() {
+			dockable.addComponentListener(assistanceCompListener);
+			assistanceDockingListener = new DockingActionListener() {
 
 				int dockingCounter = 0;
 				@Override
@@ -276,7 +264,7 @@ public class BubbleToOperator extends BubbleWindow {
 					return true;
 				}
 			};
-			desktop.addDockingActionListener(dockListener);
+			desktop.addDockingActionListener(assistanceDockingListener);
 		}
 	}
 	
@@ -284,9 +272,16 @@ public class BubbleToOperator extends BubbleWindow {
 	private void changeToMainListeners() {
 		registerMovementListener();
 		if(dockable != null) {
-			
+			//remove assistance listeners
+			RapidMinerGUI.getMainFrame().removeComponentListener(assistanceCompListener);
+			renderer.removeProcessInteractionListener(assistanceRendererListener);
+			//add the correct listeners again
 		} else {
-		
+			//remove assistance listeners
+			dockable.removeComponentListener(assistanceCompListener);
+			desktop.removeDockingActionListener(assistanceDockingListener);
+			renderer.removeProcessInteractionListener(assistanceRendererListener);
+			//add the correct listeners again
 		}
 		this.registerMovementListener();
 	}
@@ -300,6 +295,7 @@ public class BubbleToOperator extends BubbleWindow {
 	@Override
 	protected void unregisterSpecificListeners() {
 		renderer.removeProcessInteractionListener(rendererListener);
+		RapidMinerGUI.getMainFrame().getProcessPanel().getViewPort().removeChangeListener(viewPortListener);
 	}
 
 	@Override
@@ -331,6 +327,7 @@ public class BubbleToOperator extends BubbleWindow {
 		super.reloadComponent();
 		if(assistanceActive && dockable != null){
 			dockable.removeComponentListener(compListener);
+			super.removeComponentListener(compListener);
 			desktop.removeDockingActionListener(dockListener);
 			dockable.addComponentListener(assistanceCompListener);
 			desktop.addDockingActionListener(assistanceDockingListener);

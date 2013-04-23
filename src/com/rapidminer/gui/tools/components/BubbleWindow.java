@@ -165,8 +165,8 @@ public abstract class BubbleWindow extends JDialog {
 			this.docKey = docKey;
 			dockable = BubbleWindow.getDockableByKey(docKey);
 		}
-		//load image for background //TODO: set comic background
-		background = new ImageIcon(Tools.getResource("/images/background_new.png"));
+		//load image for background
+		background = new ImageIcon(Tools.getResource("/images/comic-pattern.png"));
 		//headline label
 		{
 			headline = new JLabel(I18N.getGUIBundle().getString("gui.bubble." + i18nKey + ".title"));
