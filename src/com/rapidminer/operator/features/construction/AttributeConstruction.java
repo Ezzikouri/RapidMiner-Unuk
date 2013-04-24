@@ -230,13 +230,14 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 
 		AbstractExpressionParser parser = ExpressionParserFactory.getExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
 
+		List<String> newAttributeNames = new LinkedList<String>();
 		Iterator<String[]> j = getParameterList(PARAMETER_FUNCTIONS).iterator();
 		while (j.hasNext()) {
 			String[] nameFunctionPair = j.next();
 			String name = nameFunctionPair[0];
 			String function = nameFunctionPair[1];
 			try {
-				parser.addAttribute(exampleSet, name, function);
+				newAttributeNames.add(parser.addAttribute(exampleSet, name, function).getName());
 			} catch (GenerationException e) {
 				throw new UserError(this, e, 108, e.getMessage());
 			}
@@ -246,7 +247,9 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 
 		if (!getParameterAsBoolean(PARAMETER_KEEP_ALL)) {
 			for (Attribute attribute : originalAttributes) {
-				exampleSet.getAttributes().remove(attribute);
+				if (!newAttributeNames.contains(attribute.getName())) {
+					exampleSet.getAttributes().remove(attribute);
+				}
 			}
 		}
 

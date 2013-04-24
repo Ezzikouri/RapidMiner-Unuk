@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.preprocessing.filter;
 
 import java.util.List;
@@ -89,8 +90,7 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 					renameAttributeMetaData(metaData, pair[0], pair[1]);
 				}
 			}
-		} catch (UndefinedParameterError e) {
-		}
+		} catch (UndefinedParameterError e) {}
 		return metaData;
 	}
 
@@ -123,10 +123,14 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 	}
 
 	private void renameAttribute(ExampleSet exampleSet, String oldName, String newName) throws UserError {
+		if (oldName != null && oldName.equals(newName)) {
+			return;
+		}
 		Attribute attribute = exampleSet.getAttributes().get(oldName);
+
 		if (attribute == null) {
 			throw new UserError(this, 111, oldName);
-		} 
+		}
 		AttributeRole existingAttributeRole = exampleSet.getAttributes().findRoleByName(newName);
 		if (existingAttributeRole != null) {
 			throw new UserError(this, 152, newName);
@@ -152,7 +156,7 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 	public boolean writesIntoExistingData() {
 		return false;
 	}
-	
+
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), ChangeAttributeName.class, null);
