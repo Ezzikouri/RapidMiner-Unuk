@@ -98,6 +98,9 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 		AttributeMetaData amd = metaData.getAttributeByName(oldName);
 		if (amd != null && newName != null) {
 			if (metaData.containsAttributeName(newName) == MetaDataInfo.YES) {
+				if((oldName != null && oldName.equals(newName))){
+					return;
+				}
 				getInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(), "already_contains_attribute", newName));
 			} else {
 				amd.setName(newName);

@@ -82,7 +82,7 @@ public class BubbleToDockable extends BubbleWindow {
 	@Override
 	protected Point getObjectLocation() {
 		if (dockable != null) {
-			return dockable.getLocationOnScreen();
+			return dockable.getComponent().getLocationOnScreen();
 		} else {
 			return null;
 		}
@@ -91,7 +91,7 @@ public class BubbleToDockable extends BubbleWindow {
 	@Override
 	protected int getObjectWidth() {
 		if (dockable != null) {
-			return dockable.getWidth();
+			return dockable.getComponent().getWidth();
 		} else {
 			return 0;
 		}
@@ -100,7 +100,7 @@ public class BubbleToDockable extends BubbleWindow {
 	@Override
 	protected int getObjectHeight() {
 		if (dockable != null) {
-			return dockable.getHeight();
+			return dockable.getComponent().getHeight();
 		} else {
 			return 0;
 		}

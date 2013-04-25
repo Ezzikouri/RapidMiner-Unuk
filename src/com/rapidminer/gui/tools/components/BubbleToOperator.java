@@ -25,8 +25,6 @@ package com.rapidminer.gui.tools.components;
 
 import java.awt.Point;
 import java.awt.Window;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,13 +63,14 @@ public class BubbleToOperator extends BubbleWindow {
 	private Class<? extends Operator> operatorClass;
 	private Operator onDisplay = null;
 	private OperatorChain homeChain = null;
+	private BubbleToDockable dockBubble = null;
+	
 	private ProcessRenderer renderer = RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer();
 	private ProcessInteractionListener rendererListener;
 	private ChangeListener viewPortListener;
-	private ComponentListener assistanceCompListener;
 	private DockingActionListener assistanceDockingListener;
 	private ProcessInteractionListener assistanceRendererListener;
-	private BubbleToDockable dockBubble = null;
+
 	
 	public BubbleToOperator(Window owner, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> toAttach, Object ... arguments) {
 		this(owner, preferredAlignment, i18nKey, toAttach, 1, arguments);
@@ -85,14 +84,13 @@ public class BubbleToOperator extends BubbleWindow {
 		if(matchingOperators.length == 0) {
 			//TODO add information for user to enter the wanted chain with operator
 			this.registerMovementListener();
-			dockBubble = new BubbleToDockable(owner, AlignedSide.RIGHT, "operatorNotDisplayed", super.docKey, operatorClass.getName());
-			dockBubble.setVisible(true);
+			this.changeToAssistanceListener();
+			this.getBubbleToProcesspanel().setVisible(true);
 		} else {
 			onDisplay = matchingOperators[(matchingOperators.length <= split ? matchingOperators.length - 1 : split - 1)];
 			homeChain = renderer.getDisplayedChain();
 			renderer.scrollRectToVisible(renderer.getOperatorRect(onDisplay, false).getBounds());
 		}
-		
 		super.paint(false);
 	}
 	
@@ -146,12 +144,13 @@ public class BubbleToOperator extends BubbleWindow {
 			@Override
 			public void displayedChainChanged(OperatorChain displayedChain) {
 				if(onDisplay == null) {
+					//TODO outline because unreachable ...
 					Operator[] matching = BubbleToOperator.this.getMatchingOperatorsInChain(operatorClass, displayedChain);
 					if (matching.length != 0) {
 						onDisplay = matching[(matching.length <= split ? matching.length - 1 : split - 1)];
 						homeChain = renderer.getDisplayedChain();
 						if(dockBubble != null) {
-							dockBubble.triggerFire();
+							triggerfireForBubbleToDockable();
 						}
 					}
 				} else if (homeChain.equals(displayedChain)) {
@@ -160,8 +159,7 @@ public class BubbleToOperator extends BubbleWindow {
 					BubbleToOperator.this.setVisible(false);
 					BubbleToOperator.this.unregisterMovementListener();
 					BubbleToOperator.this.changeToAssistanceListener();
-					dockBubble = new BubbleToDockable(owner, AlignedSide.RIGHT, "operatorNotDisplayed", BubbleToOperator.this.docKey, operatorClass.getName());
-					dockBubble.setVisible(true);
+					getBubbleToProcesspanel().setVisible(true);
 				}
 			}
 		};
@@ -195,48 +193,20 @@ public class BubbleToOperator extends BubbleWindow {
 					if (matching.length != 0) {
 						onDisplay = matching[(matching.length <= split ? matching.length - 1 : split - 1)];
 						homeChain = renderer.getDisplayedChain();
-						if(dockBubble != null) {
-							dockBubble.triggerFire();
-						}
+						triggerfireForBubbleToDockable();
+						BubbleToOperator.this.changeToMainListeners();
 					}
 				} else if (homeChain.equals(displayedChain)) {
 					BubbleToOperator.this.paint(true);
 					BubbleToOperator.this.setVisible(true);
-					if(dockBubble != null) {
-						dockBubble.triggerFire();
-						BubbleToOperator.this.changeToMainListeners();
-					}
+					triggerfireForBubbleToDockable();
+					BubbleToOperator.this.changeToMainListeners();
 					//TODO: check this for mistakes
 				}
 			}
 		};
 		renderer.addProcessInteractionListener(assistanceRendererListener);
-		assistanceCompListener = new ComponentListener() {
-			
-			@Override
-			public void componentShown(ComponentEvent e) {
-				//do not care
-			}
-			
-			@Override
-			public void componentResized(ComponentEvent e) {
-				//do not care
-			}
-			
-			@Override
-			public void componentMoved(ComponentEvent e) {
-				reloadComponent(true);
-			}
-			
-			@Override
-			public void componentHidden(ComponentEvent e) {
-				//do not care
-			}
-		};
-		if(dockable == null) {
-			RapidMinerGUI.getMainFrame().addComponentListener(assistanceCompListener);
-		} else {
-			dockable.addComponentListener(assistanceCompListener);
+		if(dockable != null) {
 			assistanceDockingListener = new DockingActionListener() {
 
 				int dockingCounter = 0;
@@ -270,19 +240,15 @@ public class BubbleToOperator extends BubbleWindow {
 	
 	
 	private void changeToMainListeners() {
-		registerMovementListener();
-		if(dockable != null) {
-			//remove assistance listeners
-			RapidMinerGUI.getMainFrame().removeComponentListener(assistanceCompListener);
+		if(dockable == null) {
+			//remove assistance listener
 			renderer.removeProcessInteractionListener(assistanceRendererListener);
-			//add the correct listeners again
 		} else {
 			//remove assistance listeners
-			dockable.removeComponentListener(assistanceCompListener);
 			desktop.removeDockingActionListener(assistanceDockingListener);
 			renderer.removeProcessInteractionListener(assistanceRendererListener);
-			//add the correct listeners again
 		}
+		//add the correct listeners again
 		this.registerMovementListener();
 	}
 	
@@ -301,8 +267,9 @@ public class BubbleToOperator extends BubbleWindow {
 	@Override
 	protected Point getObjectLocation() {
 		//get all necessary parameters
-		int xDockable = dockable.getLocationOnScreen().x;
-		int yDockable = dockable.getLocationOnScreen().y;
+		
+		int xDockable = dockable.getComponent().getLocationOnScreen().x;
+		int yDockable = dockable.getComponent().getLocationOnScreen().y;
 		Rectangle2D rec = renderer.getOperatorRect(onDisplay, false);
 		double width = rec.getWidth();
 		double height = rec.getHeight();
@@ -311,6 +278,7 @@ public class BubbleToOperator extends BubbleWindow {
 		Point view = RapidMinerGUI.getMainFrame().getProcessPanel().getProcessRenderer().getVisibleRect().getLocation();
 		
 		return new Point((int) (xDockable + (width*0.3) +xOperator - view.x),(int) (yDockable + height*0.85 + yOperator - view.y));
+		
 	}
 	
 	@Override
@@ -323,13 +291,27 @@ public class BubbleToOperator extends BubbleWindow {
 		return (int) Math.round(renderer.getOperatorRect(onDisplay, false).getHeight());
 	}
 
+	/** returns the current instance of the BubbleToDockable Object or a new one*/
+	private BubbleToDockable getBubbleToProcesspanel() {
+		if(dockable == null) {
+			dockBubble = new BubbleToDockable(owner, AlignedSide.RIGHT, "operatorNotDisplayed", super.docKey, operatorClass.getName());; 
+		}
+		return dockBubble;
+	}
+	
+	/**disposes the BubbleToDockable object*/
+	private void triggerfireForBubbleToDockable() {
+		if(dockBubble != null)
+			dockBubble.triggerFire();
+		dockBubble = null;
+	}
+	
 	protected void reloadComponent(boolean assistanceActive) {
 		super.reloadComponent();
 		if(assistanceActive && dockable != null){
-			dockable.removeComponentListener(compListener);
+			dockable.getComponent().removeComponentListener(compListener);
 			super.removeComponentListener(compListener);
 			desktop.removeDockingActionListener(dockListener);
-			dockable.addComponentListener(assistanceCompListener);
 			desktop.addDockingActionListener(assistanceDockingListener);
 		}
 	}

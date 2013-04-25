@@ -27,6 +27,7 @@ import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleWindow;
 import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
@@ -65,7 +66,7 @@ public class NotViewableStep extends Step {
 		this.showMe = BubbleWindow.isButtonOnScreen(watch) == 0;
 		if(showMe) {
 			bubble = new BubbleToDockable(owner, alignment, i18nKey, dockableKey);
-			attachTo = BubbleWindow.getDockableByKey(dockableKey);
+			attachTo = RapidMinerGUI.getMainFrame().getDockingDesktop().getContext().getDockableByKey(dockableKey).getComponent();
 			compListener = new ComponentListener() {
 				
 				@Override

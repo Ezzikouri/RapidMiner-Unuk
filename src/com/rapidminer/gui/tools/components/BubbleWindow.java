@@ -69,8 +69,11 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Tools;
 import com.sun.awt.AWTUtilities;
+import com.vlsolutions.swing.docking.Dockable;
 import com.vlsolutions.swing.docking.DockableState;
 import com.vlsolutions.swing.docking.DockingDesktop;
+import com.vlsolutions.swing.docking.event.DockableStateChangeEvent;
+import com.vlsolutions.swing.docking.event.DockableStateChangeListener;
 import com.vlsolutions.swing.docking.event.DockingActionEvent;
 import com.vlsolutions.swing.docking.event.DockingActionListener;
 
@@ -134,7 +137,7 @@ public abstract class BubbleWindow extends JDialog {
 	private JLabel headline;
 	private JLabel mainText;
 
-
+	private DockableStateChangeListener stateChangeListener;
 	private PerspectiveChangeListener perspectiveListener = null;
 	private WindowAdapter windowListener;
 	protected Window owner;
@@ -143,7 +146,7 @@ public abstract class BubbleWindow extends JDialog {
 	private boolean listenersAdded = false;
 	private boolean addPerspective = true;
 	protected String docKey = null;
-	protected Component dockable;
+	protected Dockable dockable;
 	protected ComponentListener compListener;
 	protected DockingActionListener dockListener = null;
 	protected final DockingDesktop desktop = RapidMinerGUI.getMainFrame().getDockingDesktop();
@@ -163,7 +166,7 @@ public abstract class BubbleWindow extends JDialog {
 		this.preferredAlignment = preferredAlignment;
 		if (docKey != null) {
 			this.docKey = docKey;
-			dockable = BubbleWindow.getDockableByKey(docKey);
+			dockable = desktop.getContext().getDockableByKey(docKey);
 		}
 		//load image for background
 		background = new ImageIcon(Tools.getResource("/images/comic-pattern.png"));
@@ -331,7 +334,6 @@ public abstract class BubbleWindow extends JDialog {
 			public void mouseClicked(MouseEvent e) {
 				BubbleWindow.this.dispose();
 				fireEventCloseClicked();
-				unregister();
 			}
 		});
 		close.setMargin(new Insets(0, 5, 0, 5));
@@ -681,27 +683,12 @@ public abstract class BubbleWindow extends JDialog {
 	}
 
 	/**
-	 * method to find the dockable component on the MainFrame with the given key 
-	 * @param dockableKey key of the dockable you want to find
-	 * @return the {@link Component} with the given key will be returned or an Exception will be thrown if the dockable was not found.
-	 */
-	public static Component getDockableByKey(String dockableKey) {
-		DockableState[] dockables = RapidMinerGUI.getMainFrame().getDockingDesktop().getDockables();
-		for (DockableState ds : dockables) {
-			if (ds.getDockable().getDockKey().getKey().equals(dockableKey) && !ds.isClosed()) {
-				return ds.getDockable().getComponent().getParent().getParent();
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * method to get to know whether the dockable with the given key is on Screen
 	 * @param dockableKey i18nKey of the wanted Dockable
 	 * @return returns 1 if the Dockable is on the Screen and -1 if the Dockable is not on the Screen. 
 	 */
 	public static int isDockableOnScreen(String dockableKey) {
-		Component onScreen = BubbleWindow.getDockableByKey(dockableKey);
+		Dockable onScreen = RapidMinerGUI.getMainFrame().getDockingDesktop().getContext().getDockableByKey(dockableKey);
 		if (onScreen == null)
 			return -1;
 		return 1;
@@ -828,11 +815,12 @@ public abstract class BubbleWindow extends JDialog {
 				//no component was attached but possible there are some side effects
 				RapidMinerGUI.getMainFrame().addComponentListener(compListener);
 			} else {
-				BubbleWindow.this.dockable.addComponentListener(compListener);
+				BubbleWindow.this.dockable.getComponent().addComponentListener(compListener);
 				dockListener = new DockingActionListener() {
 
 					@Override
 					public void dockingActionPerformed(DockingActionEvent event) {
+						//TODO: use constants instead of integers and check for name first
 						// actionType 2 indicates that a Dockable was splitted
 						// actionType 3 indicates that the Dockable has created his own position
 						// actionType 5 indicates that the Dockable was docked to another position
@@ -840,7 +828,7 @@ public abstract class BubbleWindow extends JDialog {
 						if (event.getActionType() == 5 || event.getActionType() == 3) {
 							if ((++dockingCounter) % 2 == 0) {
 								//get the new component of the Dockable because the current component is disabled
-								BubbleWindow.this.dockable.removeComponentListener(compListener);
+								BubbleWindow.this.dockable.getComponent().removeComponentListener(compListener);
 								BubbleWindow.this.reloadComponent();
 								//repaint
 								BubbleWindow.this.paintAgain(false);
@@ -849,7 +837,7 @@ public abstract class BubbleWindow extends JDialog {
 						}
 						if (event.getActionType() == 6 || event.getActionType() == 2) {
 							//get the new component of the Dockable because the current component is disabled
-							BubbleWindow.this.dockable.removeComponentListener(compListener);
+							BubbleWindow.this.dockable.getComponent().removeComponentListener(compListener);
 							BubbleWindow.this.reloadComponent();
 							//repaint
 							BubbleWindow.this.paintAgain(false);
@@ -864,6 +852,49 @@ public abstract class BubbleWindow extends JDialog {
 					}
 				};
 				desktop.addDockingActionListener(dockListener);
+				stateChangeListener = new DockableStateChangeListener() {
+					
+					@Override
+					public void dockableStateChanged(DockableStateChangeEvent arg0) {
+						DockableState state = arg0.getNewState();
+						if (state.isClosed()) {
+							//TODO: try to reload
+							System.out.println("---dock closed");
+						} else if (state.isDocked()) {
+							//TODO: do nothing
+							System.out.println("---dock docked");
+						} else if (state.isFloating()) {
+							//TODO: re attach
+							System.out.println("---dock floating");
+						} else if (state.isMaximized()) {
+							//TODO: set reload bubble (paint(true))
+							System.out.println("---dock maximized");
+						}
+						if(arg0.getNewState().getDockable().getDockKey().getKey().equals(BubbleWindow.this.docKey)) {
+							state = arg0.getNewState();
+							if (state.isClosed()) {
+								//TODO: try to reload
+								System.out.println("dock closed");
+							} else if (state.isDocked()) {
+								//TODO: do nothing
+								System.out.println("dock docked");
+							} else if (state.isFloating()) {
+								//TODO: re attach
+								System.out.println("dock floating");
+							} else if (state.isMaximized()) {
+								//TODO: set reload bubble (paint(true))
+								System.out.println("dock maximized");
+							}
+							switch (state.getLocation()) {
+								default:
+									break;
+								
+							}
+						}
+						
+					}
+				};
+				desktop.getContext().addDockableStateChangeListener(stateChangeListener);
 			}
 			windowListener = new WindowAdapter() {
 
@@ -901,7 +932,7 @@ public abstract class BubbleWindow extends JDialog {
 			if(docKey == null) {
 				RapidMinerGUI.getMainFrame().removeComponentListener(compListener);
 			} else {
-				BubbleWindow.this.dockable.removeComponentListener(compListener);
+				BubbleWindow.this.dockable.getComponent().removeComponentListener(compListener);
 				desktop.removeDockingActionListener(dockListener);
 			}
 			if (addPerspective) {
@@ -1162,8 +1193,8 @@ public abstract class BubbleWindow extends JDialog {
 	 */
 	protected void reloadComponent() {
 		if (docKey != null) {
-			dockable = BubbleWindow.getDockableByKey(docKey);
-			BubbleWindow.this.dockable.addComponentListener(compListener);
+			dockable = desktop.getContext().getDockableByKey(docKey);
+			BubbleWindow.this.dockable.getComponent().addComponentListener(compListener);
 			desktop.addDockingActionListener(dockListener);
 		}
 	}

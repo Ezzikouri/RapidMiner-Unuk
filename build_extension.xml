@@ -23,6 +23,8 @@
 	<property name="compiler.debug" value="true" />
 	<property name="compiler.arguments" value="-Xlint:deprecation,finally,unchecked,path,serial" />
 	<property name="compiler.deprecation" value="yes" />
+	<property name="compiler.source" value="1.6" />
+	<property name="compiler.target" value="1.6" />
 
 	<!-- Update and release server properties -->
 	<property file="${rm.dir}/server.properties" />
@@ -157,7 +159,7 @@
 		<!-- building extension-->
 		<echo message="RapidMiner Extension ${extension.name}: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner Extension ${extension.name}: using Java version: ${java.version}" />
-		<javac encoding="${build.encoding}" debug="${compiler.debug}" destdir="${build.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" source="1.6" target="1.6">
+		<javac encoding="${build.encoding}" debug="${compiler.debug}" destdir="${build.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" source="${compiler.source}" target="${compiler.target}">
 			<src>
 				<path refid="build.sources.path" />
 			</src>
@@ -513,7 +515,7 @@ Name "${extension.name.long}"
 
 	<!-- StyleChecks -->
 	<target name="check.build">
-		<javac debug="false" destdir="${rm.dir}/build" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" target="1.6" source="1.6">
+		<javac debug="false" destdir="${rm.dir}/build" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" target="${compiler.source}" source="${compiler.target}">
 			<compilerarg value="${compiler.arguments}" />
 			<classpath refid="build.classpath" />
 			<src path="${rm.dir}/src" />
