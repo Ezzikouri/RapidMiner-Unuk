@@ -60,7 +60,7 @@ public abstract class AbstractDataImportWizard extends DataImportWizard {
 		addStep(new AnnotationDeclarationWizardStep(getState()));
 		addStep(new MetaDataDeclarationWizardStep(getState()));
 		if (getReader() == null) {
-			addStep(new StoreDataWizardStep(this, getState(), (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
+			addStep(new StoreDataWizardStep(this, getState(), (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null,true));
 		}
 	}
 

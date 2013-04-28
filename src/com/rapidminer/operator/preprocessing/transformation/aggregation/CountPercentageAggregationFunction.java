@@ -22,10 +22,7 @@
  */
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
-import java.util.List;
-
 import com.rapidminer.example.Attribute;
-import com.rapidminer.tools.Ontology;
 
 /**
  * This function first behaves like {@link CountAggregationFunction}, but it
@@ -36,42 +33,21 @@ import com.rapidminer.tools.Ontology;
  * @author Marco Boeck
  *
  */
-public class CountPercentageAggregationFunction extends CountAggregationFunction {
+public class CountPercentageAggregationFunction extends AbstractCountRatioAggregationFunction {
 
 	public static final String FUNCTION_COUNT_PERCENTAGE = "percentage_count";
 
 	public CountPercentageAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
-		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_COUNT_PERCENTAGE, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
+		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_COUNT_PERCENTAGE);
 	}
 
 	public CountPercentageAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName,
 			String separatorOpen, String separatorClose) {
 		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, separatorOpen, separatorClose);
 	}
-
-	@Override
-	public void postProcessing(List<Aggregator> allAggregators) {
-		double totalCount = 0;
-		
-		// calculate total count
-		for (Aggregator aggregator : allAggregators) {
-			double value = ((CountAggregator)aggregator).getCount();
-			if (Double.isNaN(value)) {
-				totalCount = Double.NaN;
-				break;
-			}
-			totalCount += value;
-		}
-		
-		// devide by total count
-		for (Aggregator aggregator : allAggregators) {
-			CountAggregator countAggregator = (CountAggregator) aggregator;
-			countAggregator.setCount((countAggregator.getCount()/totalCount)*100);
-		}
+	
+	public double getRatioFactor() {
+		return 100.0;
 	}
 	
-	@Override
-	protected int getTargetValueType(int sourceValueType) {
-		return Ontology.REAL;
-	}
 }

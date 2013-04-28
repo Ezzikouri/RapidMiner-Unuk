@@ -28,8 +28,11 @@ import java.awt.Window;
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.properties.OperatorPropertyPanel;
+import com.rapidminer.gui.tools.components.BubbleToButton;
+import com.rapidminer.gui.tools.components.BubbleToDockable;
+import com.rapidminer.gui.tools.components.BubbleToOperator;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 
@@ -42,15 +45,31 @@ import com.rapidminer.operator.Operator;
 
 public class RenameOperatorStep extends Step {
 
-	private Alignment alignment;
-	private Window owner;
+	private AlignedSide alignment;
+	private Window owner = RapidMinerGUI.getMainFrame().getWindow();
+	private BubbleTo element;
 	private String i18nKey;
 	private String targetName;
 	private Class<? extends Operator> operatorClass;
-	private Component attachTo;
-	private String attachToKey = null;
+	private String buttonKey = "rename_in_processrenderer";
 	private ProcessSetupListener listener = null;
 	private String dockableKey = OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY;
+	
+	/**
+	 * should be used to attach the Operator which should be renamed, the operator-property-panel or the rename button in the property-panel of the operator
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass Class or Superclass of the {@link Operator} which should be renamed.
+	 * @param targetName the Name the {@link Operator} should have after this Step.
+	 */
+	public RenameOperatorStep(BubbleTo element, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetName) {
+		super();
+		this.alignment = preferredAlignment;
+		this.i18nKey = i18nKey;
+		this.targetName = targetName;
+		this.operatorClass = operatorClass;
+		this.element = element;
+	}
 	
 	/**
 	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
@@ -60,38 +79,32 @@ public class RenameOperatorStep extends Step {
 	 * @param targetName the Name the {@link Operator} should have after this Step.
 	 * @param attachToKey i18nkey of the {@link Component} to which the {@link BubbleWindow} should point to.
 	 */
-	public RenameOperatorStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetName, String attachToKey) {
-		this(preferredAlignment, owner, i18nKey, operatorClass, targetName, (Component) null);
-		this.attachToKey = attachToKey;
-	}
-	
-	/**
-	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
-	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
-	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
-	 * @param operatorClass Class or Superclass of the {@link Operator} which should be renamed.
-	 * @param targetName the Name the {@link Operator} should have after this Step.
-	 * @param attachTo {@link Component} to which the {@link BubbleWindow} should point to.
-	 */
-	public RenameOperatorStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator> operatorClass, String targetName, Component attachTo) {
+	public RenameOperatorStep(BubbleTo element, AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator> operatorClass, String targetName, String elementKey, Window owner) {
 		super();
 		this.alignment = preferredAlignment;
-		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.targetName = targetName;
 		this.operatorClass = operatorClass;
-		this.attachTo = attachTo;
+		this.element = element;
+		this.owner = owner;
+		if(element == BubbleTo.DOCKABLE) {
+			this.buttonKey = elementKey;
+		} else if(element == BubbleTo.BUTTON) {
+			this.dockableKey = elementKey;
+		}
 	}
-
 
 	@Override
 	boolean createBubble() {
-		if (attachTo == null) {
-			if(attachToKey== null)
-				throw new IllegalArgumentException("Buttonkey and Component is null. Please add any Component to attach");
-			bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, attachToKey, false, new Object[] {});
-		} else {
-			bubble = new BubbleWindow(owner, dockableKey, alignment, i18nKey, attachTo);
+		switch(element) {
+			case BUTTON:
+				bubble = new BubbleToButton(owner, dockableKey, alignment, i18nKey, buttonKey, false, new Object[] {});
+				break;
+			case DOCKABLE:
+				bubble = new BubbleToDockable(owner, alignment, i18nKey, dockableKey, new Object[] {});
+				break;
+			case OPERATOR:
+				bubble = new BubbleToOperator(owner, alignment, i18nKey, operatorClass, new Object[] {});
 		}
 		listener = new ProcessSetupListener() {
 

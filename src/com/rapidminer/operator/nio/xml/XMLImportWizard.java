@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.nio.xml;
 
 import java.io.File;
@@ -44,53 +45,53 @@ import com.rapidminer.repository.RepositoryLocation;
  */
 public class XMLImportWizard extends AbstractDataImportWizard {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    public XMLImportWizard() throws OperatorException {
-        this(null, null, null);
-    }
+	public XMLImportWizard() throws OperatorException {
+		this(null, null, null);
+	}
 
-    public XMLImportWizard(File file, RepositoryLocation preselectedLocation) throws OperatorException {
-        super(null, preselectedLocation, "data_import_wizard");
+	public XMLImportWizard(File file, RepositoryLocation preselectedLocation) throws OperatorException {
+		super(null, preselectedLocation, "data_import_wizard");
 
-        // adding steps
-        // ExcelResultSetConfiguration excelConfig = (ExcelResultSetConfiguration) getState().getDataResultSetFactory();
-        // excelConfig.setWorkbookFile(file);
-        //
-        // ExcelSheetSelectionWizardStep wizardStep = new ExcelSheetSelectionWizardStep(excelConfig);
-        // wizardStep.performEnteringAction(WizardStepDirection.FORWARD);
-        // addStep(wizardStep);
-        addStep(new MetaDataDeclarationWizardStep(getState()));
+		// adding steps
+		// ExcelResultSetConfiguration excelConfig = (ExcelResultSetConfiguration) getState().getDataResultSetFactory();
+		// excelConfig.setWorkbookFile(file);
+		//
+		// ExcelSheetSelectionWizardStep wizardStep = new ExcelSheetSelectionWizardStep(excelConfig);
+		// wizardStep.performEnteringAction(WizardStepDirection.FORWARD);
+		// addStep(wizardStep);
+		addStep(new MetaDataDeclarationWizardStep(getState()));
 		if (getReader() == null) {
 			addStep(new StoreDataWizardStep(this, getState(), (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
 		}
 
-        layoutDefault(HUGE);
-    }
+		layoutDefault(HUGE);
+	}
 
-    public XMLImportWizard(XMLExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
-        super(source, preselectedLocation, "data_import_wizard");
+	public XMLImportWizard(XMLExampleSource source, ConfigurationListener listener, RepositoryLocation preselectedLocation) throws OperatorException {
+		super(source, preselectedLocation, "data_import_wizard");
 
-        // adding steps
-        addStep(new XMLFileSelectionWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
-        addStep(new XMLNamespaceMapWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
-        addStep(new XMLExampleExpressionWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
-        addStep(new XMLAttributeExpressionWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory())); 
+		// adding steps
+		addStep(new XMLFileSelectionWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
+		addStep(new XMLNamespaceMapWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
+		addStep(new XMLExampleExpressionWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
+		addStep(new XMLAttributeExpressionWizardStep(this, (XMLResultSetConfiguration) getState().getDataResultSetFactory()));
 
-        addStep(new MetaDataDeclarationWizardStep(getState()));
+		addStep(new MetaDataDeclarationWizardStep(getState()));
 		if (getReader() == null) {
-			addStep(new StoreDataWizardStep(this, getState(), (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null));
+			addStep(new StoreDataWizardStep(this, getState(), (preselectedLocation != null) ? preselectedLocation.getAbsoluteLocation() : null, true));
 		}
 
-        layoutDefault(HUGE);
-    }
+		layoutDefault(HUGE);
+	}
 
-    @Override
-    protected DataResultSetFactory makeFactory(AbstractDataResultSetReader reader) throws OperatorException {
-        if (reader != null) {
-            return new XMLResultSetConfiguration((XMLExampleSource) reader);
-        } else {
-            return new XMLResultSetConfiguration();
-        }
-    }
+	@Override
+	protected DataResultSetFactory makeFactory(AbstractDataResultSetReader reader) throws OperatorException {
+		if (reader != null) {
+			return new XMLResultSetConfiguration((XMLExampleSource) reader);
+		} else {
+			return new XMLResultSetConfiguration();
+		}
+	}
 }

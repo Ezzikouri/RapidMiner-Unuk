@@ -99,7 +99,7 @@ public class PendingPurchasesInstallationDialog extends ButtonDialog {
 		}
 
 		@Override
-		public List<String> fetchPackageNames() {
+		public List<String> handleFetchPackageNames() {
 			return packages;
 		}
 	}

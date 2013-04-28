@@ -25,8 +25,11 @@ package com.rapidminer.operator.nio.model;
 import static com.rapidminer.operator.nio.ExcelExampleSource.PARAMETER_SHEET_NUMBER;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.logging.Level;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
@@ -35,6 +38,7 @@ import jxl.Workbook;
 import jxl.WorkbookSettings;
 import jxl.read.biff.BiffException;
 
+import org.apache.poi.POIXMLException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
@@ -46,6 +50,8 @@ import com.rapidminer.operator.nio.ExcelExampleSource;
 import com.rapidminer.operator.nio.ExcelSheetTableModel;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.parameter.UndefinedParameterError;
+import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 import com.rapidminer.tools.io.Encoding;
@@ -66,6 +72,7 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 
 	private Charset encoding;
 	private org.apache.poi.ss.usermodel.Workbook workbookPOI;
+	private InputStream workbookPOIInputStream;
 	private jxl.Workbook workbookJXL;
 	private File workbookFile;
 
@@ -255,7 +262,15 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			workbookJXL = null;
 		}
 		workbookFile = selectedFile;
+		try {
+			if (workbookPOIInputStream != null) {
+				workbookPOIInputStream.close();
+			}
+		} catch (IOException e) {
+			LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.operator.nio.model.ExcelResultSetConfiguration.close_workbook_error", e.getMessage()), e);
+		}
 		workbookPOI = null;
+		workbookPOIInputStream = null;
 		rowOffset = 0;
 		columnOffset = 0;
 		rowLast = Integer.MAX_VALUE;
@@ -340,7 +355,15 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 			workbookJXL.close();
 			workbookJXL = null;
 		}
+		try {
+			if (workbookPOIInputStream != null) {
+				workbookPOIInputStream.close();
+			}
+		} catch (IOException e) {
+			LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.operator.nio.model.ExcelResultSetConfiguration.close_workbook_error", e.getMessage()), e);
+		}
 		workbookPOI = null;
+		workbookPOIInputStream = null;
 	}
 
 	@Override
@@ -420,6 +443,14 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 		if (workbookJXL != null) {
 			workbookJXL.close();
 		}
+		try {
+			if (workbookPOIInputStream != null) {
+				workbookPOIInputStream.close();
+				workbookPOIInputStream = null;
+			}
+		} catch (IOException e) {
+			LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.operator.nio.model.ExcelResultSetConfiguration.close_workbook_error", e.getMessage()), e);
+		}
 	}
 
 	/**
@@ -442,7 +473,16 @@ public class ExcelResultSetConfiguration implements DataResultSetFactory {
 	 * @throws IOException
 	 */
 	private void createWorkbookPOI() throws InvalidFormatException, IOException {
-		workbookPOI = WorkbookFactory.create(getFile());
+		workbookPOIInputStream = new FileInputStream(getFile());
+		try {
+			workbookPOI = WorkbookFactory.create(workbookPOIInputStream);
+		} catch (IllegalArgumentException e) {
+			// Thrown if the selected file is not a valid .xlsx file at all
+			throw new IOException(e.getMessage());
+		} catch (POIXMLException e) {
+			// Thrown if the selected file is a partially broken .xlsx file
+			throw new IOException(I18N.getMessage(I18N.getErrorBundle(), "import.excel.excel_file_broken"));
+		}
 	}
 
 	/**

@@ -27,8 +27,10 @@ import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
+import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 
 
 /**
@@ -40,20 +42,20 @@ import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 public class NotViewableStep extends Step {
 	
 	
-	private Alignment alignment;
+	private AlignedSide alignment;
 	private Window owner;
 	private String i18nKey = "hiddenButton";
-	private String attachToKey;
+	private String dockableKey;
 	private Component attachTo;
 	private String watch;
 	private ComponentListener compListener = null;
 	private boolean showMe;
 	
-	public NotViewableStep(Alignment preferredAlignment, Window owner, String shouldBeViewable, String attachToKey) {
+	public NotViewableStep(AlignedSide preferredAlignment, Window owner, String shouldBeViewable, String attachToKey) {
 		this.owner = owner;
 		this.alignment = preferredAlignment;
 		this.watch = shouldBeViewable;
-		this.attachToKey = attachToKey;
+		this.dockableKey = attachToKey;
 	}
 	
 	/* (non-Javadoc)
@@ -63,14 +65,13 @@ public class NotViewableStep extends Step {
 	boolean createBubble() {
 		this.showMe = BubbleWindow.isButtonOnScreen(watch) == 0;
 		if(showMe) {
-			bubble = new BubbleWindow(owner, attachToKey, alignment, i18nKey, BubbleWindow.getDockableByKey(attachToKey));
-			attachTo = BubbleWindow.getDockableByKey(attachToKey);
+			bubble = new BubbleToDockable(owner, alignment, i18nKey, dockableKey);
+			attachTo = RapidMinerGUI.getMainFrame().getDockingDesktop().getContext().getDockableByKey(dockableKey).getComponent();
 			compListener = new ComponentListener() {
 				
 				@Override
 				public void componentShown(ComponentEvent e) {
-				// TODO Auto-generated method stub
-				
+				// we do not need this part
 				}
 			
 				@Override
@@ -83,13 +84,13 @@ public class NotViewableStep extends Step {
 			
 				@Override
 				public void componentMoved(ComponentEvent e) {
-					// TODO Auto-generated method stub
+					// we do not need this part
 				
 				}
 			
 				@Override
 				public void componentHidden(ComponentEvent e) {
-				// TODO Auto-generated method stub
+				// we do not need this part
 				
 				}
 			};

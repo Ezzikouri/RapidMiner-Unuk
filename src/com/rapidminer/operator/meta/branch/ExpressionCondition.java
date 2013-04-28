@@ -22,11 +22,11 @@
  */
 package com.rapidminer.operator.meta.branch;
 
-import org.nfunk.jep.JEP;
-
 import com.rapidminer.generator.GenerationException;
 import com.rapidminer.operator.OperatorException;
-import com.rapidminer.tools.math.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser.ExpressionParserException;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 /**
  * This condition will parse the condition value as an expression and return
@@ -36,19 +36,26 @@ import com.rapidminer.tools.math.function.ExpressionParser;
  */
 public class ExpressionCondition implements ProcessBranchCondition {
 
-	private ExpressionParser expressionParser = new ExpressionParser(true);
+	private AbstractExpressionParser expressionParser = ExpressionParserFactory.getExpressionParser(true);
 	
 	@Override
 	public boolean check(ProcessBranch operator, String value) throws OperatorException {
-		JEP parser = expressionParser.getParser();
-		parser.parseExpression(value);
 		//check for errors
-		if (parser.hasError()) {
-			throw new GenerationException(value + ": " + parser.getErrorInfo());
-		}
 		
+		try {
+			expressionParser.parseExpression(value);
+		} catch (ExpressionParserException e) {
+			// TODO Auto-generated catch block
+			throw new GenerationException(value + ": " + expressionParser.getErrorInfo());
+		}
+
 		// create the new attribute from the delivered type 
-		Object result = parser.getValueAsObject();
+		Object result;
+		try {
+			result = expressionParser.getValueAsObject();
+		} catch (ExpressionParserException e) {
+			result = null;
+		}
 		
 		if (result instanceof Double) {
 			double resultValue = (Double) result;

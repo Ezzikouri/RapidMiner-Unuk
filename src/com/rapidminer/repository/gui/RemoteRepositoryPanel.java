@@ -54,6 +54,7 @@ import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.LinkButton;
 import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryException;
 import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.I18N;
@@ -227,7 +228,7 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 	}
 
 	@Override
-	public void makeRepository() {
+	public void makeRepository() throws RepositoryException {
 		final URL url;
 		try {
 			url = new URL(urlField.getText());
@@ -240,6 +241,8 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 			alias = url.toString();
 		}
 		final String finalAlias = alias;
+		
+		checkConfiguration(alias);
 
 		ProgressThread pt = new ProgressThread("add_repository") {
 
@@ -250,6 +253,10 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 				Repository repository = new RemoteRepository(url, finalAlias, userField.getText(), passwordField.getPassword(), false);
 				getProgressListener().setCompleted(90);
 				RepositoryManager.getInstance(null).addRepository(repository);
+				UserCredential authenticationCredentials = new UserCredential(urlField.getText(), userField.getText(), passwordField.getPassword());
+				// use alias as ID to store credentials
+				Wallet.getInstance().registerCredentials(finalAlias, authenticationCredentials);
+				Wallet.getInstance().saveCache();
 				getProgressListener().setCompleted(100);
 				getProgressListener().complete();
 			}
@@ -278,7 +285,7 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		aliasField.setText(((RemoteRepository) remote).getAlias());
 		urlField.setText(((RemoteRepository) remote).getBaseUrl().toString());
 		userField.setText(((RemoteRepository) remote).getUsername());
-		UserCredential credentials = Wallet.getInstance().getEntry(urlField.getText());
+		UserCredential credentials = Wallet.getInstance().getEntry(aliasField.getText(), urlField.getText());
 		if (credentials != null) {
 			passwordField.setText(new String(credentials.getPassword()));
 		}
@@ -296,16 +303,40 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 
 		String userName = userField.getText();
 		char[] password = passwordField.getPassword();
+		
+		String alias = aliasField.getText();
+		try {
+			// only check if Alias is different
+			if (((RemoteRepository) repository).getAlias().equals(alias)) {
+				alias = null;
+			}
+			checkConfiguration(alias);
+		} catch (RepositoryException e) {
+			SwingTools.showSimpleErrorMessage("cannot_configure_repository", e);
+			return false;
+		}
 
-		((RemoteRepository) repository).rename(aliasField.getText());
+		if (alias != null) {
+			((RemoteRepository) repository).rename(alias);
+		}
 		((RemoteRepository) repository).setBaseUrl(url);
 		((RemoteRepository) repository).setUsername(userName);
 		((RemoteRepository) repository).setPassword(password);
 
 		UserCredential authenticationCredentials = new UserCredential(urlField.getText(), userName, password);
-		Wallet.getInstance().registerCredentials(authenticationCredentials);
+		// use alias as ID to store credentials
+		String id = ((RemoteRepository) repository).getAlias();
+		Wallet.getInstance().registerCredentials(id, authenticationCredentials);
 		Wallet.getInstance().saveCache();
-
+		
+		try {
+			// this needs to be called after changing the credentials,
+			// otherwise the old webservice will keep using the previous credentials
+			((RemoteRepository) repository).resetRepositoryService();
+		} catch (RepositoryException e) {
+			SwingTools.showSimpleErrorMessage("error_connecting_to_server", e);
+		}
+		
 		return true;
 	}
 
@@ -337,6 +368,20 @@ public class RemoteRepositoryPanel extends JPanel implements RepositoryConfigura
 		checkLabel.setBackground(color);
 		checkLabel.setForeground(color);
 
+	}
+	
+	/**
+	 * Throws a {@link RepositoryException} if the given alias is invalid.
+	 * @param alias
+	 * @throws RepositoryException
+	 */
+	private void checkConfiguration(String alias) throws RepositoryException {
+		// make sure that it's not possible to create multiple repositories in the same location or with the same alias
+		for (Repository repo : RepositoryManager.getInstance(null).getRepositories()) {
+			if (repo.getName().equals(alias)) {
+				throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.repository_creation_duplicate_alias"));
+			}
+		}
 	}
 
 }

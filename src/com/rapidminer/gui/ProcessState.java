@@ -51,6 +51,18 @@ public interface ProcessState {
 
 	public void redo();
 
+	/**
+	 * Returns <code>true</code> if the current process has undo steps available.
+	 * @return
+	 */
+	public boolean hasUndoSteps();
+
+	/**
+	 * Returns <code>true</code> if the current process has redo steps available.
+	 * @return
+	 */
+	public boolean hasRedoSteps();
+
 	public void setOpenedProcess(Process process, boolean showInfo,
 			final String sourceName);
 

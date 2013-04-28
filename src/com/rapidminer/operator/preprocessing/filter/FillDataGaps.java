@@ -168,13 +168,14 @@ public class FillDataGaps extends AbstractExampleSetProcessing {
 			stepSize = MathFunctions.getGCD(distances);
 			distances.clear();
 		}
+		stepSize = Math.abs(stepSize);
 
 		// find gaps
 		List<Long> missingValues = new LinkedList<Long>();
 		long lastValue = 0;
 		boolean first = true;
 		long minValue = Long.MAX_VALUE;
-		long maxValue = - Long.MAX_VALUE;
+		long maxValue = Long.MIN_VALUE;
 		for (Example example : sortedSet) {
 			long value = (long)example.getValue(idAttribute);
 			minValue = Math.min(minValue, value);

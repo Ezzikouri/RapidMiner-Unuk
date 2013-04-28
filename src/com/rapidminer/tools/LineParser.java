@@ -124,6 +124,9 @@ public class LineParser {
 	
 	public void setSplitExpression(String splitExpression) throws OperatorException {
 		try {
+			if (splitExpression == null) {
+				splitExpression = "";
+			}
 			this.splitPattern = Pattern.compile(splitExpression);
 		} catch (PatternSyntaxException e) {
 			throw new OperatorException("Malformed split expression: " + splitExpression);
@@ -175,10 +178,12 @@ public class LineParser {
 				return split(line, splitPattern, trimLine, 
 						useQuotes ? quoteCharacter : NONE, 
 						quoteEscapeCharacter);
-			} else {
+			} else if (splitPattern.toString().length() == 1) {
 				return fastSplit(line, splitPattern.toString().charAt(0), trimLine,
 						useQuotes ? quoteCharacter : NONE, 
-						quoteEscapeCharacter);
+								quoteEscapeCharacter);
+			} else {
+				return new String[] {line};
 			}
 //		} else {
 ////			return fastSplit(line, splitPattern.toString().charAt(0), trimLine, quoteCharacter, quoteEscapeCharacter);

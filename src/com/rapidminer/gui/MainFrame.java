@@ -303,7 +303,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener, MainU
 		pack();
 		//state.metaDataUpdateQueue.start();
 	}
-
+	
 	/**
 	 * 
 	 * @deprecated Use {@link #getPerspectives()} and {@link Perspectives#showPerspective(String)}
@@ -624,6 +624,24 @@ public class MainFrame extends ApplicationFrame implements WindowListener, MainU
 		state.redo();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.rapidminer.gui.ProcessState#hasUndoSteps()
+	 */
+	@Override
+	public boolean hasUndoSteps() {
+		return state.hasUndoSteps();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.rapidminer.gui.ProcessState#hasRedoSteps()
+	 */
+	@Override
+	public boolean hasRedoSteps() {
+		return state.hasRedoSteps();
+	}
+
 	/* (non-Javadoc)
 	 * @see com.rapidminer.gui.ProcessState#setOpenedProcess(com.rapidminer.Process, boolean, java.lang.String)
 	 */
@@ -861,6 +879,15 @@ public class MainFrame extends ApplicationFrame implements WindowListener, MainU
 		return state.getImportExcelFileAction();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see com.rapidminer.gui.MainUIState#getImportXmlFileAction()
+	 */
+	@Override
+	public Action getImportXmlFileAction() {
+		return state.getImportXmlFileAction();
+	}
+
 	/* (non-Javadoc)
 	 * @see com.rapidminer.gui.MainUIState#getImportAccessFileAction()
 	 */
@@ -917,6 +944,15 @@ public class MainFrame extends ApplicationFrame implements WindowListener, MainU
 	@Override
 	public RunAction getRunAction() {
 		return state.getRunAction();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.rapidminer.gui.MainUIState#getSaveAction()
+	 */
+	@Override
+	public SaveAction getSaveAction() {
+		return state.getSaveAction();
 	}
 
 	/* (non-Javadoc)

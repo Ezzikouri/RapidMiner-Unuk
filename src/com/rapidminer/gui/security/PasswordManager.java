@@ -35,11 +35,12 @@ import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 
-/** The PasswordManger is a small dialog to manage all the passwords that were saved for different url's. 
+/**
+ * The PasswordManger is a small dialog to manage all the passwords that were saved for different url's. 
  * You can show your passwords and delete corresponding entries.
  * A possibility to change the username and password is also included.
  * 
- * @author Miguel B�scher
+ * @author Miguel Buescher
  *
  */
 public class PasswordManager extends ButtonDialog{
@@ -49,7 +50,9 @@ public class PasswordManager extends ButtonDialog{
 		{
 			setCondition(EDIT_IN_PROGRESS, DONT_CARE);
 		}
+		
 		private static final long serialVersionUID = 1L;
+		
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			new PasswordManager().setVisible(true);
@@ -61,6 +64,7 @@ public class PasswordManager extends ButtonDialog{
 	private CredentialsTableModel credentialsModel;
 	private Wallet clone;
 
+	
 	public PasswordManager(){
 
 		super("password_manager");

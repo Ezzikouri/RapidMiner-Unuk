@@ -26,6 +26,7 @@ import javax.swing.JComponent;
 
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.WizardStep;
+import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
 import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryLocationChooser;
@@ -59,9 +60,9 @@ public class RepositoryLocationSelectionWizardStep extends WizardStep {
 	/**
 	 * Constructor for this wizard step. If storeWizard is set to <code>true</code>, will enforce valid repository entry names.
 	 */
-	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue, boolean storeWizard,boolean onlyWriteableRepositories) {
+	public RepositoryLocationSelectionWizardStep(AbstractWizard parent, String initialValue, boolean storeWizard, boolean onlyWriteableRepositories) {
 		super("select_repository_location");
-		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue,true,false,false,onlyWriteableRepositories);
+		this.locationChooser = new RepositoryLocationChooser(parent, null, initialValue, true, false, false, onlyWriteableRepositories);
 		this.locationChooser.addChangeListener(parent);
 		if (storeWizard) {
 			this.locationChooser.setEnforceValidRepositoryEntryName(true);
@@ -94,5 +95,11 @@ public class RepositoryLocationSelectionWizardStep extends WizardStep {
 			// Only queried if hasSelection returned true, so we will not have an exception.
 			throw new RuntimeException(e);
 		}
+	}
+	
+	@Override
+	protected boolean performEnteringAction(WizardStepDirection direction) {
+		locationChooser.requestFocusInWindow();
+		return true;
 	}
 }

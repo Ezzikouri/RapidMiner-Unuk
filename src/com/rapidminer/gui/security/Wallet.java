@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -45,26 +46,36 @@ import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.XMLException;
 
-/** The Wallet stores user credentials (username and passwords). It is used by the
- *  {@link GlobalAuthenticator} and can be edited with the {@link PasswordManager}.
- *  {@link UserCredential}s are stored per {@link URL}.
- *   
- *  Note: Though this class has a {@link #getInstance()} method, it is not a pure singleton.
- *  In fact, the {@link PasswordManager} sets a new instance via {@link #setInstance(Wallet)}
- *  after editing.
- *  
- * @author Miguel Buescher
+/** 
+ * The Wallet stores user credentials (username and passwords). It is used by the
+ * {@link GlobalAuthenticator} and can be edited with the {@link PasswordManager}.
+ * {@link UserCredential}s are stored per {@link URL}.
+ * 
+ * Note: Though this class has a {@link #getInstance()} method, it is not a pure singleton.
+ * In fact, the {@link PasswordManager} sets a new instance via {@link #setInstance(Wallet)} after editing.
+ * 
+ * @author Miguel Buescher, Marco Boeck
  *
  */
 public class Wallet {
+	
 	private static final String CACHE_FILE_NAME = "secrets.xml";
 	private HashMap<String, UserCredential> wallet = new HashMap<String, UserCredential>();
+	
+	private static final String ID_PREFIX_URL_SEPERATOR = "___";
+	public static final String ID_MARKETPLACE = "Marketplace";
 
 	private static Wallet instance = new Wallet();
+	
 	static {
-		instance.readCache();		
+		instance.readCache();
 	}
 
+	
+	/**
+	 * Singleton access.
+	 * @return
+	 */
 	public static Wallet getInstance() {
 		return instance;
 	}
@@ -73,39 +84,38 @@ public class Wallet {
 		instance = wallet;		
 	}
 
-	/** Reads the wallet from the secrets.xml file in the user's home directory. */
+	/**
+	 * Reads the wallet from the secrets.xml file in the user's home directory.
+	 */
 	public void readCache() {
 		final File userConfigFile = FileSystemService.getUserConfigFile(CACHE_FILE_NAME);
 		if (!userConfigFile.exists()) {
 			return;
 		}
-		//LogService.getRoot().config("Reading secrets file.");
 		LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.security.Wallet.reading_secrets_file");
 		
 		Document doc;
 		try {
 			doc = XMLTools.parse(userConfigFile);
 		} catch (Exception e) {
-			//LogService.getRoot().log(Level.WARNING, "Failed to read secrets file: "+e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 					"com.rapidminer.gui.security.Wallet.reading_secrets_file_error", 
 					e),
 					e);
-
 			return;
 		}
 		NodeList secretElems = doc.getDocumentElement().getElementsByTagName("secret");
 		UserCredential usercredential;
 		for (int i = 0; i < secretElems.getLength(); i++) {			
 			Element secretElem = (Element) secretElems.item(i);
+			String id = XMLTools.getTagContents(secretElem, "id");
 			String url = XMLTools.getTagContents(secretElem, "url");
 			String user = XMLTools.getTagContents(secretElem, "user");
 			char[] password;
 			try {
 				password = new String(Base64.decode(XMLTools.getTagContents(secretElem, "password"))).toCharArray();				
 			} catch (IOException e) {
-				//LogService.getRoot().log(Level.WARNING, "Failed to read entry in secrets file: "+e, e);
 				LogService.getRoot().log(Level.WARNING,
 						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 						"com.rapidminer.gui.security.Wallet.reading_entry_in_secrets_file_error", 
@@ -114,31 +124,79 @@ public class Wallet {
 				continue;
 			}
 			usercredential = new UserCredential(url, user, password);
-			wallet.put(usercredential.getURL(), usercredential); 
-//			System.out.println(wallet.get(usercredential.getURL()));
+			if (id != null) {
+				// new entries with an id
+				wallet.put(buildKey(id, usercredential.getURL()), usercredential); 
+			} else {
+				// for old entries which do not have an id
+				wallet.put(usercredential.getURL(), usercredential); 
+			}
 		}
 
 	}
 
+	/**
+	 * Adds the given credentials.
+	 * @deprecated use {@link #registerCredentials(String, UserCredential)} instead.
+	 * @param authentication
+	 */
+	@Deprecated
 	public void registerCredentials(UserCredential authentication) {
-		wallet.put(authentication.getURL(), authentication);		
+		wallet.put(authentication.getURL(), authentication);
+	}
+	
+	/**
+	 * Adds the given credentials with the given ID.
+	 * ID is necessary because there may be more credentials than one for the same URL.
+	 * @param id
+	 * @param authentication
+	 * @throws IllegalArgumentException if the key is <code>null</code>
+	 */
+	public void registerCredentials(String id, UserCredential authentication) throws IllegalArgumentException {
+		if (id == null) {
+			throw new IllegalArgumentException("id must not be null!");
+		}
+		wallet.put(buildKey(id, authentication.getURL()), authentication);
+		
+		// we need to consider possibility of an old entry for the same URL, remove it here because it got replaced
+		if (getEntry(authentication.getURL()) != null) {
+			removeEntry(authentication.getURL());
+		}
 	}
 
+	/**
+	 * Returns the number of entries in the {@link Wallet}.
+	 * @return
+	 */
 	public int size() {
 		return wallet.size();
 	}
 
-	/** Deep clone. */
+	/**
+	 * Deep clone.
+	 */
 	@Override
 	public Wallet clone() {
 		Wallet clone = new Wallet();
-		for (String url : this.getKeys()) {
-			UserCredential entry = this.getEntry(url);
-			clone.registerCredentials(entry.clone());
+		for (String key : this.getKeys()) {
+			String[] urlAndMaybeID = key.split(ID_PREFIX_URL_SEPERATOR);
+			if (urlAndMaybeID.length == 2) {
+				// this is for new keys which have an ID prefix
+				UserCredential entry = wallet.get(buildKey(urlAndMaybeID[0], urlAndMaybeID[1]));
+				clone.registerCredentials(urlAndMaybeID[0], entry.clone());
+			} else {
+				// old keys which do not yet have the ID prefix
+				UserCredential entry = wallet.get(key);
+				clone.registerCredentials(entry.clone());
+			}
 		}		
 		return clone;
 	}
 	
+	/**
+	 * Returns a {@link List} of {@link String} keys in this {@link Wallet}.
+	 * @return
+	 */
 	public LinkedList<String> getKeys() {
 		Iterator<String> it = wallet.keySet().iterator();
 		LinkedList<String> keyset = new LinkedList<String>();
@@ -148,23 +206,64 @@ public class Wallet {
 		return keyset;
 	}
 
+	/**
+	 * Returns the {@link UserCredential} for the given url {@link String} or <code>null</code>
+	 * if there is no key matching this url.
+	 * @deprecated use {@link #getEntry(String, String)} instead.
+	 * @param url
+	 * @return
+	 */
+	@Deprecated
 	public UserCredential getEntry(String url) {
 		return wallet.get(url);
 	}
 	
+	/**
+	 * Returns the {@link UserCredential} for the given id and url {@link String}s.
+	 * If there is no key matching the given id and url tries to return the {@link UserCredential}
+	 * for the given url (fallback for old entries). If both fail, returns <code>null</code>.
+	 * @param id
+	 * @param url
+	 * @return
+	 */
+	public UserCredential getEntry(String id, String url) {
+		UserCredential credentials = wallet.get(buildKey(id, url));
+		if (credentials == null) {
+			// fallback for old entries which can supply a null key
+			credentials = wallet.get(url);
+		}
+		
+		return credentials;
+	}
+	
+	/**
+	 * Removes the {@link UserCredential} for the given url {@link String}.
+	 * @deprecated use {@link #removeEntry(String, String)} instead.
+	 * @param url
+	 */
+	@Deprecated
 	public void removeEntry(String url) {
 		wallet.remove(url);
 	}
 	
-	/** Saves the wallet to the secrets.xml file in the users home directory. */
+	/**
+	 * Removes the {@link UserCredential} for the given id and url {@link String}s.
+	 * @param id
+	 * @param url
+	 */
+	public void removeEntry(String id, String url) {
+		wallet.remove(buildKey(id, url));
+	}
+	
+	/**
+	 * Saves the wallet to the secrets.xml file in the users home directory.
+	 */
 	public void saveCache() {
-		//LogService.getRoot().config("Saving secrets file.");
 		LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.security.Wallet.saving_secrets_file");
 		Document doc;
 		try {
 			doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
 		} catch (ParserConfigurationException e) {
-			//LogService.getRoot().log(Level.WARNING, "Failed to create XML document: "+e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 					"com.rapidminer.gui.security.Wallet.creating_xml_document_error", 
@@ -177,7 +276,15 @@ public class Wallet {
 		for (String key : Wallet.getInstance().getKeys()){
 			Element entryElem = doc.createElement("secret");
 			root.appendChild(entryElem);
-			XMLTools.setTagContents(entryElem, "url", key);
+			String[] urlAndMaybeID = key.split(ID_PREFIX_URL_SEPERATOR);
+			if (urlAndMaybeID.length == 2) {
+				// this is for new keys which have an ID prefix
+				XMLTools.setTagContents(entryElem, "id", urlAndMaybeID[0]);
+				XMLTools.setTagContents(entryElem, "url", urlAndMaybeID[1]);
+			} else {
+				// old keys which do not yet have the ID prefix
+				XMLTools.setTagContents(entryElem, "url", key);
+			}
 			XMLTools.setTagContents(entryElem, "user", wallet.get(key).getUsername());
 			XMLTools.setTagContents(entryElem, "password", Base64.encodeBytes(new String(wallet.get(key).getPassword()).getBytes()));
 		}
@@ -185,7 +292,6 @@ public class Wallet {
 		try {
 			XMLTools.stream(doc, file, null);
 		} catch (XMLException e) {
-			//LogService.getRoot().log(Level.WARNING, "Failed to save secrets file: "+e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 					"com.rapidminer.gui.security.Wallet.saving_secrets_file_error", 
@@ -193,10 +299,29 @@ public class Wallet {
 					e);
 		}
 	}
-
-	public void remove(String forUrl) {
-		wallet.remove(forUrl);		
+	
+	/**
+	 * Builds the {@link String} from an ID and an URL {@link String} which is used to store/retrieve entries in the {@link Wallet}.
+	 * @param id
+	 * @param url
+	 * @return
+	 */
+	private String buildKey(String id, String url) {
+		return id + ID_PREFIX_URL_SEPERATOR + url;
 	}
-
+	
+	/**
+	 * Returns the id {@link String} contained in the key or <code>null</code> if there is no id.
+	 * @param key
+	 * @return
+	 */
+	public String extractIdFromKey(String key) {
+		String[] urlAndMaybeID = key.split(ID_PREFIX_URL_SEPERATOR);
+		if (urlAndMaybeID.length == 2) {
+			return urlAndMaybeID[0];
+		} else {
+			return null;
+		}
+	}
 
 }

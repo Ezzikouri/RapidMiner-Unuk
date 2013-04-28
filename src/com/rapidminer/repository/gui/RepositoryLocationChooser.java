@@ -24,6 +24,8 @@ package com.rapidminer.repository.gui;
 
 import java.awt.Component;
 import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -35,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -59,7 +62,10 @@ import com.rapidminer.repository.DataEntry;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.MalformedRepositoryLocationException;
+import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.RepositoryLocation;
+import com.rapidminer.repository.RepositoryManager;
+import com.rapidminer.repository.local.LocalRepository;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Observable;
@@ -82,6 +88,10 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	JLabel locationLabel;
 	private final JTextField locationField = new JTextField(30);
 	private final RepositoryEntryTextField locationFieldRepositoryEntry = new RepositoryEntryTextField();
+	private JLabel selectionErrorTextLabel;
+	private JLabel selectionErrorIconLabel;
+	private Icon standardIcon;
+	private Icon errorIcon;
 	
 	private boolean enforceValidRepositoryEntryName;
 	private volatile boolean currentEntryValid;
@@ -99,7 +109,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 
 	private boolean folderSelected;
 	
-	private static class RepositoryLocationChooserDialog extends ButtonDialog implements Observer<Boolean> {
+	private static class RepositoryLocationChooserDialog extends ButtonDialog {
 		private static final long serialVersionUID = -726540444296013310L;
 
 		private RepositoryLocationChooser chooser = null;
@@ -147,17 +157,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 				SwingTools.showSimpleErrorMessage("malformed_repository_location", e, e.getMessage());
 			}
 		}
-
-		@Override
-		public void update(Observable<Boolean> observable, Boolean arg) {
-			okButton.setEnabled(arg);
-		}
 	}
-
-
-//	public RepositoryLocationChooser(RepositoryLocation resolveRelativeTo, String initialValue) {
-//		this(null, resolveRelativeTo, initialValue);
-//	}
 
 	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue) {
 		this(owner, resolveRelativeTo, initialValue, true, false);
@@ -167,11 +167,13 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		this(owner, resolveRelativeTo, initialValue, allowEntries, allowFolders, false);
 	}
 	
-	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, boolean allowEntries, boolean allowFolders, boolean enforceValidRepositoryEntryName) {
-		this(owner, resolveRelativeTo, initialValue, allowEntries, allowFolders, enforceValidRepositoryEntryName,false);
+	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, boolean allowEntries, 
+	                                 boolean allowFolders, boolean enforceValidRepositoryEntryName) {
+		this(owner, resolveRelativeTo, initialValue, allowEntries, allowFolders, enforceValidRepositoryEntryName, false);
 	}
 
-	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries, final boolean allowFolders, boolean enforceValidRepositoryEntryName, final boolean onlyWriteableRepositories) {
+	public RepositoryLocationChooser(Dialog owner, RepositoryLocation resolveRelativeTo, String initialValue, final boolean allowEntries,
+	                                 final boolean allowFolders, boolean enforceValidRepositoryEntryName, final boolean onlyWriteableRepositories) {
 		if (initialValue != null) {
 			try {
 				RepositoryLocation repositoryLocation;
@@ -188,12 +190,24 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		}
 		this.resolveRelativeTo = resolveRelativeTo;
 		this.enforceValidRepositoryEntryName = enforceValidRepositoryEntryName;
-		tree = new RepositoryTree(owner, !allowEntries,onlyWriteableRepositories);
+		tree = new RepositoryTree(owner, !allowEntries, onlyWriteableRepositories, false);
 
 		if (initialValue != null) {
 			if (tree.expandIfExists(resolveRelativeTo, initialValue)) {
 				locationField.setText("");
 				locationFieldRepositoryEntry.setText("");
+			}
+		} else {
+			// no initial value, select the first local repository if one exists
+			List<Repository> repositories = RepositoryManager.getInstance(null).getRepositories();
+			for (Repository r : repositories) {
+				if (!r.isReadOnly() && LocalRepository.class.isInstance(r)) {
+					if (tree.expandIfExists(null, r.getLocation().getAbsoluteLocation())) {
+						locationField.setText("");
+						locationFieldRepositoryEntry.setText("");
+						break;
+					}
+				}
 			}
 		}
 		tree.getSelectionModel().addTreeSelectionListener(new TreeSelectionListener() {
@@ -251,8 +265,25 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		JScrollPane treePane = new ExtendedJScrollPane(tree);
 		treePane.setBorder(ButtonDialog.createBorder());
 		add(treePane, c);
+		
+		standardIcon = null;
+		errorIcon = SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.repository_location.location_invalid.icon"));
+		selectionErrorIconLabel = new JLabel();
+		selectionErrorIconLabel.setMinimumSize(new Dimension(16, 16));
+		selectionErrorIconLabel.setPreferredSize(new Dimension(16, 16));
+		selectionErrorTextLabel = new JLabel();
+		JPanel selectionErrorPanel = new JPanel();
+		selectionErrorPanel.setLayout(new FlowLayout());
+		selectionErrorPanel.add(selectionErrorIconLabel);
+		selectionErrorPanel.add(selectionErrorTextLabel);
+		c.weightx = 0;
+		c.weighty = 0;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.insets = new Insets(0, 0, 0, 0);
+		c.fill = GridBagConstraints.NONE;
+		add(selectionErrorPanel, c);
 
-		c.insets = new Insets(ButtonDialog.GAP, 0, 0, ButtonDialog.GAP);
+		c.insets = new Insets(0, 0, 0, ButtonDialog.GAP);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 0;
 		c.weighty = 0;
@@ -282,7 +313,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		c.insets = new Insets(ButtonDialog.GAP, 0, 0, 0);
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		add(resultLabel, c);
-
+		
 		if (resolveRelativeTo != null) {
 			resolveBox = new JCheckBox(new ResourceActionAdapter("repository_chooser.resolve", resolveRelativeTo.getAbsoluteLocation()));
 			resolveBox.setSelected(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_RESOLVE_RELATIVE_REPOSITORY_LOCATIONS).equals("true"));
@@ -327,7 +358,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		if (!enforceValidRepositoryEntryName) {
 			return hasSelection();
 		} else {
-			return currentEntryValid;
+			return hasSelection() && currentEntryValid;
 		}
 	}
 
@@ -340,7 +371,9 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	public boolean hasSelection(boolean allowFolders) {
 		if (!allowFolders && ((enforceValidRepositoryEntryName && locationFieldRepositoryEntry.getText().isEmpty()) ||
 				(!enforceValidRepositoryEntryName && locationField.getText().isEmpty()) ||
-				(enforceValidRepositoryEntryName && !RepositoryLocation.isNameValid(locationFieldRepositoryEntry.getText())))) {
+				(enforceValidRepositoryEntryName && !RepositoryLocation.isNameValid(locationFieldRepositoryEntry.getText()) ||
+				(enforceValidRepositoryEntryName && tree.getSelectedEntry() == null)) ||
+				(!enforceValidRepositoryEntryName && tree.getSelectedEntry() == null))) {
 			return false;
 		} else {
 			try {
@@ -417,11 +450,11 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	}
 	
 	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder, final boolean forceDisableRelativeResolve, final boolean enforceValidRepositoryEntryName) {
-		return selectLocation(resolveRelativeTo, initialValue, c, selectEntries, selectFolder, forceDisableRelativeResolve, enforceValidRepositoryEntryName,false);
+		return selectLocation(resolveRelativeTo, initialValue, c, selectEntries, selectFolder, forceDisableRelativeResolve, enforceValidRepositoryEntryName, false);
 	}
 
 	public static String selectLocation(RepositoryLocation resolveRelativeTo, String initialValue, Component c, final boolean selectEntries, final boolean selectFolder, final boolean forceDisableRelativeResolve, final boolean enforceValidRepositoryEntryName, final boolean onlyWriteableRepositories) {
-		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue, selectEntries, selectFolder,onlyWriteableRepositories);
+		final RepositoryLocationChooserDialog dialog = new RepositoryLocationChooserDialog(resolveRelativeTo, initialValue, selectEntries, selectFolder, onlyWriteableRepositories);
 		if (forceDisableRelativeResolve) {
 			dialog.chooser.setResolveRelative(false);
 			if (dialog.chooser.resolveBox != null) {
@@ -429,9 +462,7 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 			}
 		}
 		dialog.chooser.setEnforceValidRepositoryEntryName(enforceValidRepositoryEntryName);
-		if (enforceValidRepositoryEntryName) {
-			dialog.chooser.locationFieldRepositoryEntry.addObserver(dialog, true);
-		}
+		dialog.chooser.requestFocusInWindow();
 		dialog.setVisible(true);
 
 		// if user has used double click to submit
@@ -464,6 +495,14 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 		try {
 			String repositoryLocation = getRepositoryLocation();
 			resultLabel.setText(repositoryLocation);
+			// check if a repository folder is selected, if not, show warning
+			if (tree.getSelectedEntry() == null) {
+				selectionErrorTextLabel.setText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.repository_location.location_invalid_no_selection.label"));
+				selectionErrorIconLabel.setIcon(errorIcon);
+			} else {
+				selectionErrorTextLabel.setText("");
+				selectionErrorIconLabel.setIcon(standardIcon);
+			}
 		} catch (MalformedRepositoryLocationException e) {
 			//LogService.getRoot().log(Level.WARNING, "Malformed location: " + e, e);
 			LogService.getRoot().log(Level.WARNING,
@@ -513,5 +552,16 @@ public class RepositoryLocationChooser extends JPanel implements Observer<Boolea
 	public void update(Observable<Boolean> observable, Boolean arg) {
 		this.currentEntryValid = arg;
 		updateResult();
+	}
+	
+	@Override
+	public boolean requestFocusInWindow() {
+		// this bit allows for easy name entering when the dialog is used for saving
+		// instantly allows typing text and pressing Enter afterwards
+		if (locationFieldRepositoryEntry.isVisible()) {
+			return locationFieldRepositoryEntry.requestFocusInWindow();
+		} else {
+			return super.requestFocusInWindow();
+		}
 	}
 }

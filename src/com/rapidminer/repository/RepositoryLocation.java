@@ -170,7 +170,11 @@ public class RepositoryLocation {
 
 	/** Returns the last path component. */
 	public String getName() {
-		return path[path.length - 1];
+		if (path.length > 0) {
+			return path[path.length - 1];
+		} else {
+			return null;
+		}
 	}
 
 	public RepositoryLocation parent() {

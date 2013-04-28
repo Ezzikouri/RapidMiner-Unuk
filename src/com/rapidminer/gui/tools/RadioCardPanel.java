@@ -66,7 +66,7 @@ public class RadioCardPanel extends JPanel {
 	private int counter = 0;
 
 	public RadioCardPanel(String name, IOObject object) {
-		this(name, object, true, true, true);
+		this(name, object, true, true, false);
 	}
 	
 	public RadioCardPanel(String name, IOObject object, boolean showRepositoryStorageButton, boolean showExportMenuButton) {

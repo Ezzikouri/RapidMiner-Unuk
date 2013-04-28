@@ -88,7 +88,7 @@ public class SetParameterDialog extends ButtonDialog {
 			public void keyTyped(KeyEvent e) {}
 			
 		});
-		JButton okButton = makeOkButton();
+		JButton okButton = makeOkButton("set_parameter_dialog_apply");
 		layoutDefault(editorComponent, okButton, makeCancelButton());
 		getRootPane().setDefaultButton(okButton);
 	}

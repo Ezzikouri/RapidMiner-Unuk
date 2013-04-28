@@ -59,7 +59,7 @@ public abstract class IntroductoryTour {
 
 	private List<TourListener> listeners;
 	
-	private Step firstStep;
+	private Step head;
 
 	/**
 	 * This Constructor will initialize the {@link Step} step[] which has to be filled in the buildTour() Method and adds automatically a {@link FinalStep} to the end of your tour.
@@ -81,11 +81,7 @@ public abstract class IntroductoryTour {
 	public IntroductoryTour(int steps, String tourName, boolean addComppleteWindow) {
 		this.tourKey = tourName;
 		this.completeWindow = addComppleteWindow;
-//		if (addComppleteWindow) {
-//			this.maxSteps = steps + 1;
-//		} else {
-			this.maxSteps = steps;
-//		}
+		this.maxSteps = steps;
 		this.listeners = new LinkedList<TourListener>();
 	}
 
@@ -93,12 +89,7 @@ public abstract class IntroductoryTour {
 	 * method to initializes the needed Array of {@link Step} and the FinalStep if wanted
 	 */
 	private void init() {
-//		if (completeWindow) {
-//			step = new Step[maxSteps];
-//			step[maxSteps - 1] = new FinalStep(tourKey);
-//		} else {
 			step = new Step[maxSteps];
-//		}
 	}
 
 	/**
@@ -108,8 +99,7 @@ public abstract class IntroductoryTour {
 		init();
 		buildTour();
 		placeFollowers();
-//		step[0].start();
-		firstStep.start();
+		head.start();
 	}
 
 	/**
@@ -130,45 +120,93 @@ public abstract class IntroductoryTour {
 	 * After calling this method the isFinal-, tourKey-, index- and listeners-parameter of Step is set.
 	 */
 	private void placeFollowers() {
-		if(step[0].getPreconditions().length == 0) {
-			firstStep = step[0];
-		} else {
-			firstStep = step[0].getPreconditions()[0];
-		}
-		Step[] conditionsCurrent;
-		Step[] conditionsNext;
+		Step tail;
+		int counter = 1;
+		Step[] currentPreconditions = step[0].getPreconditions();
+		head = ((currentPreconditions.length == 0) ? step[0] : currentPreconditions[0]);
+		tail = head;
+		head.makeSettings(tourKey, ((currentPreconditions.length == 0) ? counter++ : counter), this.getSize(), false, listeners);
 		//iterate over Array and create a queue
-		for (int i = 0; i < step.length; i++) {
-			//insert Precondtions to queue
-			conditionsCurrent = step[i].getPreconditions();
-			if(conditionsCurrent.length != 0) {
-				if(i > 0)
-					step[i-1].setNext(conditionsCurrent[0]);
-				for (int j = 0; j < conditionsCurrent.length; j++) {
-					conditionsCurrent[j].makeSettings(tourKey, i + 1, false, listeners);
-					if(j == (conditionsCurrent.length -1)) {
-						conditionsCurrent[j].setNext(step[i]);
-					} else {
-						conditionsCurrent[j].setNext(conditionsCurrent[j + 1]);
+		for (int i = (counter - 1); i < step.length; i++) {
+			//enqueue the Preconditions
+			currentPreconditions = step[i].getPreconditions();
+			for (int j = 0; j < currentPreconditions.length; j++) {
+					if(i == 0 && j == 0) {
+						continue;
 					}
-				}
+					currentPreconditions[j].makeSettings(tourKey, counter , this.getSize(), false, listeners);
+					tail.setNext(currentPreconditions[j]);
+					tail = tail.getNext();
 			}
 			// add the current Step to the queue and set the next step
-			if(i <= (step.length - 2)) {
-				step[i].makeSettings(tourKey, i + 1, false, listeners);
-				conditionsNext = step[i +1].getPreconditions();
-				step[i].setNext(conditionsNext.length == 0 ? step[i +1] : conditionsNext[0]);
+			tail.setNext(step[i]);
+			tail = tail.getNext();
+			if(!completeWindow && i == (step.length - 1)){
+				//this is the final step
+				tail.makeSettings(tourKey, counter++ , this.getSize(), true, listeners);
 			} else {
-				if(completeWindow){
-					step[i].makeSettings(tourKey, i + 1, false, listeners);
-					step[i].setNext(new FinalStep(tourKey));
-					step[i].getNext().makeSettings(tourKey, maxSteps, true, listeners);
-				} else {
-					step[i].makeSettings(tourKey, maxSteps, true, listeners);
-				}
+				//this is just a step
+				tail.makeSettings(tourKey, counter++ , this.getSize(), false, listeners);
 			}
 		}
+		if(completeWindow) {
+			tail.setNext(new FinalStep(tourKey));
+			tail.getNext().makeSettings(tourKey, counter++ , this.getSize(), true, listeners);
+		}
 	}
+	
+//	private void placeFollowers() {
+//		Step tail;
+//		Step[] currentPreconditions = step[0].getPreconditions();
+//		Step[] nextPreconditions;
+//		tail = head;
+//		// set head and tail of the queue
+//		if(currentPreconditions.length == 0) {
+//			head = step[0];
+//			tail = head;
+//		} else {
+//			head = currentPreconditions[0];
+//			tail = head;
+//			if(currentPreconditions.length != 1) {
+//				for(int h = 1; h < currentPreconditions.length; h++) {
+//					tail.setNext(currentPreconditions[h]);
+//					tail = currentPreconditions[h];
+//				}
+//			}
+//			tail.setNext(step[0]);
+//			tail = step[0];
+//		}
+//		//iterate over Array and create a queue
+//		for (int i = 1; i < step.length; i++) {
+//			//enqueue the Preconditions
+//			currentPreconditions = step[i].getPreconditions();
+//			if(currentPreconditions.length != 0) {
+//				for (int j = 0; j < currentPreconditions.length; j++) {
+//					
+//					currentPreconditions[j].makeSettings(tourKey, i + 1, this.getSize(), false, listeners);
+//					if(j == (currentPreconditions.length -1)) {
+//						currentPreconditions[j].setNext(step[i]);
+//					} else {
+//						currentPreconditions[j].setNext(currentPreconditions[j + 1]);
+//					}
+//				}
+//			}
+//			// add the current Step to the queue and set the next step
+//			if(i <= (step.length - 2)) {
+//				step[i].makeSettings(tourKey, i + 1, this.getSize(), false, listeners);
+//				nextPreconditions = step[i +1].getPreconditions();
+//				step[i].setNext(nextPreconditions.length == 0 ? step[i +1] : nextPreconditions[0]);
+//			} else {
+//				if(completeWindow){
+//					step[i].makeSettings(tourKey, i + 1, this.getSize(), false, listeners);
+//					step[i].setNext(new FinalStep(tourKey));
+//					step[i].getNext().makeSettings(tourKey, maxSteps, this.getSize(), true, listeners);
+//				} else {
+//					step[i].makeSettings(tourKey, maxSteps, this.getSize(), true, listeners);
+//				}
+//			}
+//		}
+//	}
 
 	/**
 	 * Adds a {@link TourListener} to the IntroductoryTour and to all {@link Step}s of the Tour.
@@ -183,6 +221,6 @@ public abstract class IntroductoryTour {
 	 * @return returns the size of the Tour including the {@link FinalStep} if the flag was set.
 	 */
 	public int getSize() {
-		return this.maxSteps;
+		return (completeWindow ? this.maxSteps +1 : maxSteps);
 	}
 }

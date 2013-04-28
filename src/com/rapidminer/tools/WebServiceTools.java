@@ -24,15 +24,14 @@ package com.rapidminer.tools;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Map;
 import java.util.logging.Level;
 
 import javax.xml.ws.BindingProvider;
-
-import sun.net.www.protocol.http.AuthCacheImpl;
-import sun.net.www.protocol.http.AuthCacheValue;
 
 /**
  * Some utility methods for web services and url connections.
@@ -42,12 +41,21 @@ import sun.net.www.protocol.http.AuthCacheValue;
  */
 public class WebServiceTools {
 	
-	public static final String WEB_SERVICE_TIMEOUT = "connection.timeout";
-
-	private static final int TIMEOUT_URL_CONNECTION = Integer.parseInt(ParameterService.getParameterValue(WEB_SERVICE_TIMEOUT));
-	
 	// three minutes
 	private static final int READ_TIMEOUT = 180000;
+
+	public static final String WEB_SERVICE_TIMEOUT = "connection.timeout";
+
+	private static final int TIMEOUT_URL_CONNECTION; 
+	static {
+		String timeoutStr = ParameterService.getParameterValue(WEB_SERVICE_TIMEOUT);
+		if (timeoutStr != null) {
+			TIMEOUT_URL_CONNECTION = Integer.parseInt(timeoutStr);
+		} else {
+			TIMEOUT_URL_CONNECTION = READ_TIMEOUT;
+		}
+	}
+	
 
 	public static void setTimeout(BindingProvider port) {
 		setTimeout(port, TIMEOUT_URL_CONNECTION);
@@ -129,7 +137,14 @@ public class WebServiceTools {
 	/** Clears all (Java-)cached credentials for Web services. */
 	public static void clearAuthCache() {
 		try {
-			AuthCacheValue.setAuthCache(new AuthCacheImpl());		
+			// this is evil, but there is no official way to clear the authentication cache...
+			// use of Reflection API so no sun classes are imported
+			Class<?> authCacheValueClass = Class.forName("sun.net.www.protocol.http.AuthCacheValue");
+			Class<?> authCacheClass = Class.forName("sun.net.www.protocol.http.AuthCache");
+			Class<?> authCacheImplClass = Class.forName("sun.net.www.protocol.http.AuthCacheImpl");
+			Constructor<?> authCacheImplConstructor = authCacheImplClass.getConstructor();
+			Method setAuthCacheMethod = authCacheValueClass.getMethod("setAuthCache", authCacheClass);
+			setAuthCacheMethod.invoke(null, authCacheImplConstructor.newInstance());
 		} catch(Throwable t) {
 			LogService.getRoot().log(Level.WARNING, "Could not clear auth cache!", t);
 		}

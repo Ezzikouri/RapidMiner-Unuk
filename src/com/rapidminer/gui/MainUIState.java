@@ -15,6 +15,7 @@ import com.rapidminer.ProcessStorageListener;
 import com.rapidminer.gui.actions.Actions;
 import com.rapidminer.gui.actions.RunAction;
 import com.rapidminer.gui.actions.RunRemoteNowAction;
+import com.rapidminer.gui.actions.SaveAction;
 import com.rapidminer.gui.actions.ToggleAction;
 import com.rapidminer.gui.flow.ProcessPanel;
 import com.rapidminer.gui.operatortree.OperatorTree;
@@ -120,6 +121,8 @@ public interface MainUIState extends MenusUI, TutorialState, ProcessState {
 
 	Action getImportExcelFileAction();
 
+	Action getImportXmlFileAction();
+
 	Action getImportAccessFileAction();
 
 	Action getImportDatabaseTableAction();
@@ -133,6 +136,8 @@ public interface MainUIState extends MenusUI, TutorialState, ProcessState {
 	RunRemoteNowAction getRunRemoteNowAction();
 
 	RunAction getRunAction();
+	
+	SaveAction getSaveAction();
 
 	ToggleAction getToggleExpertModeAction();
 

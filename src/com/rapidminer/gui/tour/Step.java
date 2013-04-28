@@ -40,12 +40,17 @@ import com.rapidminer.gui.tour.IntroductoryTour.TourListener;
  */
 public abstract class Step {
 
+	public enum BubbleTo {
+		OPERATOR, BUTTON, DOCKABLE
+	}
+	
 	protected Step next;
 	protected BubbleWindow bubble;
 	protected String tourkey;
 	protected boolean finalStep;
 	protected LinkedList<TourListener> listeners = new LinkedList<IntroductoryTour.TourListener>();
 	protected int index;
+	protected int length;
 
 	abstract boolean createBubble();
 
@@ -137,12 +142,13 @@ public abstract class Step {
 	 * @param isfinal indicates whether the Step is the last one or not.
 	 * @param listener List of {@link TourListener} which should be added.
 	 */
-	public void makeSettings(String tourKey, int index, boolean isfinal, List<TourListener> listener) {
+	public void makeSettings(String tourKey, int index, int totalSteps, boolean isfinal, List<TourListener> listener) {
 		this.tourkey = tourKey;
 		this.finalStep = isfinal;
 		if (listener != null && !listener.isEmpty())
 			this.listeners.addAll(listener);
 		this.index = index;
+		this.length = totalSteps;
 	}
 
 	/**
@@ -160,7 +166,7 @@ public abstract class Step {
 	protected void writeStateToFile() {
 		TourManager tm = TourManager.getInstance();
 		tm.setTourState(tourkey, (isFinal() ? TourState.COMPLETED : TourState.NOT_COMPLETED));
-		tm.setTourProgress(tourkey, index);
+		tm.setTourProgress(tourkey, index, length);
 	}
 
 	/**

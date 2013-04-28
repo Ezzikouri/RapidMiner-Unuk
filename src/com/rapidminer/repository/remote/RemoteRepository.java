@@ -194,8 +194,6 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			if ((username != null) && (username.length() != 0) &&
 					(password != null) && (password.length != 0)) {
 				
-				repositoryServiceURL = getRepositoryServiceWSDLUrl(new URL(url));
-
 				// create new count down latch with counter of 1
 				// because this method is synchronized, it is possible to have only
 				// one count down latch with a count of 1 at the same time.
@@ -203,6 +201,8 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 				// with RapidAnalytics until this method has finished.
 				// This has to be done because we will exchange the default authenticator soon.
 				checkConfigCountDownLatch = new CountDownLatch(1);
+				
+				repositoryServiceURL = getRepositoryServiceWSDLUrl(new URL(url));
 
 				// clear auth cache
 				WebServiceTools.clearAuthCache();
@@ -271,7 +271,9 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			
 			// count down the current count down latch so it reaches zero. All instances that have waited for
 			// checkConfiguration are now able to proceed. 
-			checkConfigCountDownLatch.countDown();
+			if(checkConfigCountDownLatch != null) {
+				checkConfigCountDownLatch.countDown();
+			}
 		}
 	}
 
@@ -527,25 +529,25 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			// this is probably because the password was wrong, so rather force dialog than
 			// using cache again.
 			if (getProtocollExceptionCount() > 3) {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra.wrong.credentials.protocol.error", getName(), protocolException.getLocalizedMessage());
 			} else if (getProtocollExceptionCount() > 0) {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra.wrong.credentials", getName());
 			} else {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra", getName());
 			}
 			this.cachedPasswordUsed = false;
 		} else {
 			if (getProtocollExceptionCount() > 3) {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra.wrong.credentials.protocol.error", getName(), protocolException.getLocalizedMessage());
 			} else if (getProtocollExceptionCount() > 0) {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, false, "authentication.ra.wrong.credentials", getName());
 			} else {
-				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getBaseUrl().toString(),
+				passwordAuthentication = PasswordDialog.getPasswordAuthentication(getAlias(), getBaseUrl().toString(),
 						false, true, "authentication.ra", getName());
 			}
 			this.cachedPasswordUsed = true;
@@ -577,6 +579,11 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 			}
 		}
 		return repositoryService;
+	}
+	
+	public void resetRepositoryService() throws RepositoryException {
+		repositoryService = null;
+		getRepositoryService();
 	}
 
 	private void setupBindingProvider(BindingProvider bp) {
@@ -805,12 +812,19 @@ public class RemoteRepository extends RemoteFolder implements Repository {
 		RepositoryManager.getInstance(null).removeRepository(this);
 	}
 
+	/**
+	 *  @deprecated do not use, as it returns wrong results in case repositories are removed. 
+	 *  Use {@link RepositoryManager#getRemoteRepositories()} instead.
+	 */
+	@Deprecated
 	public static List<RemoteRepository> getAll() {
 		List<RemoteRepository> result = new LinkedList<RemoteRepository>();
 		for (WeakReference<RemoteRepository> ref : ALL_REPOSITORIES.values()) {
 			if (ref != null) {
 				RemoteRepository rep = ref.get();
-				result.add(rep);
+				if(rep != null) {
+					result.add(rep);
+				}
 			}
 		}
 		return result;

@@ -656,8 +656,8 @@ public class XMLImporter {
                     boolean knownType = operator.getParameters().setParameter(parameter[0], parameter[1]);
                     if (!knownType) {
                         if (relevantParameter(className, parameter[0])) {
-                            addMessage("The parameter '<code>" + parameter[0] + "</code>' is unknown for operator '<var>" + operator.getName() + "</var>' (<code>" + operator.getOperatorDescription().getName() + "</code>).");
-                            unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), parameter[0], parameter[1]));
+                            LogService.getRoot().log(Level.INFO, "com.rapidminer.io.process.XMLImporter.attribute_not_found_unknown", new Object[] {parameter[0], operator.getName(), operator.getOperatorDescription().getName()});
+//                            unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), parameter[0], parameter[1]));
                         }
                     }
                 } else if (inner.getTagName().toLowerCase().equals("list")) {
@@ -665,8 +665,8 @@ public class XMLImporter {
                     ParameterType type = operator.getParameters().getParameterType(key);
                     if (type == null) {
                         if (relevantParameter(className, key)) {
-                            addMessage("The parameter '" + key + "' of type list is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
-                            unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
+                            LogService.getRoot().log(Level.INFO, "com.rapidminer.io.process.XMLImporter.attribute_not_found_list", new Object[] {key, operator.getName(), operator.getOperatorDescription().getName()});
+//                            unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
                         }
                     } else {
                         if (!(type instanceof ParameterTypeList)) {
@@ -678,8 +678,8 @@ public class XMLImporter {
                         boolean knownType = operator.getParameters().setParameter(listDescription.getKey(), listString);
                         if (!knownType) {
                             if (relevantParameter(className, listDescription.getKey())) {
-                                addMessage("The parameter '" + listDescription.getKey() + "' is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
-                                unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), listDescription.getKey(), listDescription.getList().toString()));
+                                LogService.getRoot().log(Level.INFO, "com.rapidminer.io.process.XMLImporter.attribute_not_found_unknown", new Object[] {listDescription.getKey(), operator.getName(), operator.getOperatorDescription().getName()});
+//                                unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), listDescription.getKey(), listDescription.getList().toString()));
                             }
                         }
                     }
@@ -688,8 +688,8 @@ public class XMLImporter {
                     ParameterType type = operator.getParameters().getParameterType(key);
                     if (type == null) {
                         if (relevantParameter(className, key)) {
-                            addMessage("The parameter '" + key + "' of type enumeration is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
-                            unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
+                            LogService.getRoot().log(Level.INFO, "com.rapidminer.io.process.XMLImporter.attribute_not_found_enum", new Object[] {key, operator.getName(), operator.getOperatorDescription().getName()});
+//                            unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, ""));
                         }
                     } else {
                         if (!(type instanceof ParameterTypeEnumeration)) {
@@ -700,8 +700,8 @@ public class XMLImporter {
                         boolean knownType = operator.getParameters().setParameter(key, ParameterTypeEnumeration.transformEnumeration2String(parsed));
                         if (!knownType) {
                             if (relevantParameter(className, key)) {
-                                addMessage("The parameter '" + key + "' is unknown for operator '" + operator.getName() + "' (" + operator.getOperatorDescription().getName() + ").");
-                                unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, parsed.toString()));
+                                LogService.getRoot().log(Level.INFO, "com.rapidminer.io.process.XMLImporter.attribute_not_found_unknown", new Object[] {key, operator.getName(), operator.getOperatorDescription().getName()});
+//                                unknownParameterInformation.add(new UnknownParameterInformation(operator.getName(), operator.getOperatorDescription().getName(), key, parsed.toString()));
                             }
                         }
                     }

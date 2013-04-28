@@ -34,7 +34,8 @@ import com.rapidminer.generator.ConstantGenerator;
 import com.rapidminer.generator.FeatureGenerator;
 import com.rapidminer.generator.GenerationException;
 import com.rapidminer.tools.LoggingHandler;
-import com.rapidminer.tools.math.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 
 /**
@@ -102,7 +103,8 @@ public class AttributeParser {
 	 * @deprecated Use {@link ExpressionParser#generateAll(LoggingHandler, ExampleSet, InputStream)} */
 	@Deprecated
 	public static void generateAll(LoggingHandler logging, ExampleSet exampleSet, InputStream in) throws IOException, GenerationException {
-		ExpressionParser.generateAll(logging, exampleSet, in);
+		AbstractExpressionParser expressionParser = ExpressionParserFactory.getExpressionParser(true);
+		expressionParser.generateAll(logging, exampleSet, in);
 	}
 
 	public Attribute generateAttribute(LoggingHandler logging, String constructionDescription, ExampleTable table) throws GenerationException {

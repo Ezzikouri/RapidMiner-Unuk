@@ -64,7 +64,7 @@ public class ConfirmDialog extends ButtonDialog {
 
 	public static final int YES_NO_CANCEL_OPTION = JOptionPane.YES_NO_CANCEL_OPTION;
 
-	private int returnOption = CANCEL_OPTION;
+	protected int returnOption = CANCEL_OPTION;
 
 	private JCheckBox dontAskAgainCheckbox = null;
 

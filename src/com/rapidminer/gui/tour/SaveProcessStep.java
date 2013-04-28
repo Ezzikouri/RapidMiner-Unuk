@@ -27,8 +27,9 @@ import java.awt.Window;
 import com.rapidminer.Process;
 import com.rapidminer.ProcessStorageListener;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 
 /**
  * This Subclass of {@link Step} will open a {@link BubbleWindow} which closes if the user saves the Process.
@@ -41,18 +42,20 @@ public class SaveProcessStep extends Step {
 
 	private String i18nKey;
 	private String buttonKey;
-	private Alignment alignment;
-	private Window owner;
+	private AlignedSide alignment;
+	private Window owner = RapidMinerGUI.getMainFrame().getWindow();
 	private ProcessStorageListener listener = null;
 
 	/**
-	 * This Class will automatically point to the normal save-Button
+	 * use "save" for the normal save-button or "save_as" for the save as button
 	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
 	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 */
-	public SaveProcessStep(Alignment preferredAlignment, Window owner, String i18nKey){
-		this(preferredAlignment, owner, i18nKey, "save");
+	public SaveProcessStep(AlignedSide preferredAlignment, String i18nKey, String buttonKey){
+		this.alignment = preferredAlignment;
+		this.i18nKey = i18nKey;
+		this.buttonKey = buttonKey;
 	}
 	
 	/**
@@ -61,7 +64,7 @@ public class SaveProcessStep extends Step {
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param buttonKey i18nKey of the Button to which the {@link BubbleWindow} should point to.
 	 */
-	public SaveProcessStep(Alignment preferredAlignment, Window owner, String i18nKey, String buttonKey){
+	public SaveProcessStep(AlignedSide preferredAlignment, String i18nKey, String buttonKey, Window owner){
 		this.alignment = preferredAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
@@ -72,7 +75,7 @@ public class SaveProcessStep extends Step {
 	boolean createBubble() {
 		if(buttonKey == null)
 			throw new IllegalArgumentException("NO Buttonkey to attach to. Please enter a Buttonkey or call Constructor without Buttonkey");
-		bubble = new BubbleWindow(owner, null, alignment, i18nKey, buttonKey, false, new Object[] {});
+		bubble = new BubbleToButton(owner, null, alignment, i18nKey, buttonKey, false, false, new Object[] {});
 		listener = new ProcessStorageListener() {
 			
 			@Override

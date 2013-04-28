@@ -1702,10 +1702,14 @@
       </setParameter>
    </select_by_random>
    <set_role>
-      <replaceParameter>
-         <oldparameter>role</oldparameter>
-         <newparameter>target_role</newparameter>
-      </replaceParameter>
+		<replaceParameter>
+		  <oldparameter>role</oldparameter>
+		  <newparameter>target_role</newparameter>
+		</replaceParameter>
+		<replaceParameter appliesBefore="5.3.006">
+		 <oldparameter>name</oldparameter>
+		 <newparameter>attribute_name</newparameter>
+	  </replaceParameter>
    </set_role>
    <shuffle>
       <setParameter>

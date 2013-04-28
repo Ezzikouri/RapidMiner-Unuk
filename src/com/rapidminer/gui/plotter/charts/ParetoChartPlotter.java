@@ -342,10 +342,12 @@ public class ParetoChartPlotter extends LabelRotatingPlotterAdapter {
 				String groupByValue = this.dataTable.getValueAsString(row, this.groupByColumn);
 				String countValue = this.dataTable.getValueAsString(row, this.countColumn);
 
-				if (countValue.equals(this.countValue)) {
-					counters.get(groupByValue).getAndIncrement();
+				if (countValue != null && groupByValue != null) {
+					if (countValue.equals(this.countValue)) {
+						counters.get(groupByValue).getAndIncrement();
+					}
+					totalCounters.get(groupByValue).getAndIncrement();
 				}
-				totalCounters.get(groupByValue).getAndIncrement();
 			}
 
 			for (Map.Entry<String, AtomicInteger> entry : counters.entrySet()) {

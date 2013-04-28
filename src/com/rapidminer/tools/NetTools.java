@@ -1,7 +1,7 @@
 /*
  *  RapidMiner
  *
- *  Copyright (C) 2001-2012 by Rapid-I and the contributors
+ *  Copyright (C) 2001-2013 by Rapid-I and the contributors
  *
  *  Complete list of developers available at our web site:
  *
@@ -43,44 +43,44 @@ import com.rapidminer.gui.tools.SwingTools;
 public class NetTools {
 	protected static final String ICON_PROTOCOLL = "icon";
 	protected static final String RESOURCE_PROTOCOLL = "resource";
-	
+	protected static final String DYNAMIC_ICON_PROTOCOL = "dynicon";
+
 	private static boolean initialized = false;
+
 	public static final URLStreamHandlerFactory fac = new URLStreamHandlerFactory() {
 		@Override
 		public URLStreamHandler createURLStreamHandler(final String protocol) {
-			if (ICON_PROTOCOLL.equals(protocol)) {
-				return new URLStreamHandler() {
-					@Override
-					protected URLConnection openConnection(final URL u)
-							throws IOException {
-						final URL resource = Tools.getResource("icons"
-								+ u.getPath());
-						if (resource != null) {
-							URLConnection conn = resource.openConnection();
-							WebServiceTools.setURLConnectionDefaults(conn);
-							return conn;
-						}
-						throw new IOException("Icon not found.");
+					if (ICON_PROTOCOLL.equals(protocol)) {
+						return new URLStreamHandler() {
+							@Override
+							protected URLConnection openConnection(URL u) throws IOException {
+								URL resource = Tools.getResource("icons" + u.getPath());
+								if (resource != null) {
+									URLConnection conn = resource.openConnection();
+									WebServiceTools.setURLConnectionDefaults(conn);
+									return conn;
+								}
+								throw new IOException("Icon not found.");
+							}
+						};
+					} else if (RESOURCE_PROTOCOLL.equals(protocol)) {
+						return new URLStreamHandler() {
+							@Override
+							protected URLConnection openConnection(URL u) throws IOException {
+								URL resource = Tools.getResource(u.getPath().substring(1, u.getPath().length()));
+								if (resource != null) {
+									URLConnection conn = resource.openConnection();
+									WebServiceTools.setURLConnectionDefaults(conn);
+									return conn;
+								}
+								throw new IOException("Resource not found.");
+							}
+						};
+					} else if (DYNAMIC_ICON_PROTOCOL.equals(protocol)) {
+						return new DynamicIconUrlStreamHandler();
 					}
-				};
-			} else if (RESOURCE_PROTOCOLL.equals(protocol)) {
-				return new URLStreamHandler() {
-					@Override
-					protected URLConnection openConnection(final URL u)
-							throws IOException {
-						final URL resource = Tools.getResource(u.getPath()
-								.substring(1, u.getPath().length()));
-						if (resource != null) {
-							URLConnection conn = resource.openConnection();
-							WebServiceTools.setURLConnectionDefaults(conn);
-							return conn;
-						}
-						throw new IOException("Resource not found.");
-					}
-				};
-			}
-			return null;
-		}
+					return null;
+				}
 	};
 
 	public static void init() {

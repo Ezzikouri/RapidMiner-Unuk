@@ -28,8 +28,6 @@ import java.io.IOException;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.ProcessEntry;
 import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Tools;
 /**
  * @author Simon Fischer
@@ -92,28 +90,15 @@ public class SimpleProcessEntry extends SimpleDataEntry implements ProcessEntry 
 	}
 	
 	@Override
-	public boolean rename(String newName) throws RepositoryException {
-		// check for possible invalid name
-		if (!RepositoryLocation.isNameValid(newName)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName, getLocation()));
-		}
-
-		renameFile(getFile(), newName);
-		return super.rename(newName);
+	protected void handleRename(String newName) throws RepositoryException {
+		renameFile(getFile(), newName);		
 	}
 	
 	@Override
-	public boolean move(Folder newParent) {		
-		moveFile(getFile(), ((SimpleFolder)newParent).getFile());
-		return super.move(newParent);
-	}
-	
-	@Override
-	public boolean move(Folder newParent, String newName) {	
+	protected void handleMove(Folder newParent, String newName) throws RepositoryException {
 		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), newName, RMP_SUFFIX);
-		return super.move(newParent, newName);
 	}
-
+	
 	@Override
 	public long getDate() {
 		return getFile().lastModified();

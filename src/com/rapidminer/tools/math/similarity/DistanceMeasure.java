@@ -48,6 +48,10 @@ public abstract class DistanceMeasure implements Serializable {
         Attribute[] secondSetAttributes;
         // this indicates if a distance can be calculated at all
         boolean isMatching = true;
+        
+        public boolean isMatching() {return isMatching;}
+        public Attribute[] getFirstSetAttributes() {return firstSetAttributes;}
+        public Attribute[] getSecondSetAttributes() {return secondSetAttributes;}
     }
 
     private transient SoftReference<DistanceMeasureConfig> initConfig = new SoftReference<DistanceMeasure.DistanceMeasureConfig>(null);
@@ -184,7 +188,7 @@ public abstract class DistanceMeasure implements Serializable {
             // this will build the config and assign it to the softreference initConfig
             config = init(firstExample.getAttributes(), secondExample.getAttributes());
         }
-        if (config.isMatching) {
+        if (config.isMatching()) {
             double[] firstValues = new double[config.firstSetAttributes.length];
             double[] secondValues = new double[config.secondSetAttributes.length];
 
@@ -233,7 +237,7 @@ public abstract class DistanceMeasure implements Serializable {
             // this will build the config and assign it to the softreference initConfig
             config = init(firstExample.getAttributes(), secondExample.getAttributes());
         }
-        if (config.isMatching) {
+        if (config.isMatching()) {
             double[] firstValues = new double[config.firstSetAttributes.length];
             double[] secondValues = new double[config.secondSetAttributes.length];
 

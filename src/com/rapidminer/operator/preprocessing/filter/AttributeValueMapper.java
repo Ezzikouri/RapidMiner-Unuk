@@ -164,6 +164,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 						Pattern valuePattern =  Pattern.compile(replaceWhat);
 						patternMappings.put(valuePattern, replaceBy);
 					} catch (PatternSyntaxException e) {
+						continue;
 					}
 				}
 				j++;
@@ -211,7 +212,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 							oldValue = Double.valueOf(entry.getKey());
 						} catch (NumberFormatException e) {							
 							this.addError(new SimpleProcessSetupError(Severity.ERROR, AttributeValueMapper.this.getPortOwner(), "mapping_must_be_number", entry.getKey()));
-							continue;
+							break;
 						}
 					}
 					if (!entry.getValue().equals("?")) {
@@ -219,7 +220,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 							newValue = Double.valueOf(entry.getValue());
 						} catch (NumberFormatException e) {
 							this.addError(new SimpleProcessSetupError(Severity.ERROR, AttributeValueMapper.this.getPortOwner(), "mapping_must_be_number", entry.getValue()));
-							continue;
+							break;
 						}
 					}
 					numericalValueMapping.put(oldValue, newValue);
@@ -295,6 +296,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 		}
 		Iterator<String[]> listIterator = mappingParameterList.iterator();
 		int j = 0;
+		boolean entered = false;
 		while (listIterator.hasNext()) {
 			String[] pair = listIterator.next();
 			replaceWhat = pair[0];
@@ -305,7 +307,10 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 					Pattern valuePattern =  Pattern.compile(replaceWhat);
 					patternMappings.put(valuePattern, replaceBy);
 				} catch (PatternSyntaxException e) {
-					throw new UserError(this, 206, replaceWhat, e.getMessage());
+					if (!entered) {
+						entered = true;
+						throw new UserError(this, 206, replaceWhat, e.getMessage());
+					}
 				}
 			}
 			j++;
@@ -376,10 +381,18 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 					double oldValue = Double.NaN;
 					double newValue = Double.NaN;
 					if (!entry.getKey().equals("?")) {
-						oldValue = Double.valueOf(entry.getKey());
+						try {
+							oldValue = Double.valueOf(entry.getKey());
+						} catch (NumberFormatException e) {
+							continue;
+						}
 					}
 					if (!entry.getValue().equals("?")) {
-						newValue = Double.valueOf(entry.getValue());
+						try {
+							newValue = Double.valueOf(entry.getValue());
+						} catch (NumberFormatException e) {
+							continue;
+						}
 					}
 					numericalValueMapping.put(oldValue, newValue);
 				}

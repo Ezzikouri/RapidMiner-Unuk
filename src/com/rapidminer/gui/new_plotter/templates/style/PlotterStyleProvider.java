@@ -30,8 +30,6 @@ import javax.swing.JPanel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
-
 /**
  * Abstract class which all style providers for the new plotter templates have to extend.
  * 

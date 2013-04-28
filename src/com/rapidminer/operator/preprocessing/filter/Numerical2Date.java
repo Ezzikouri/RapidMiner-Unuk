@@ -25,6 +25,7 @@ package com.rapidminer.operator.preprocessing.filter;
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.table.AttributeFactory;
@@ -40,7 +41,6 @@ import com.rapidminer.operator.ports.metadata.SetRelation;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeBoolean;
-import com.rapidminer.parameter.ParameterTypeDouble;
 import com.rapidminer.parameter.ParameterTypeLong;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
@@ -112,8 +112,10 @@ public class Numerical2Date extends AbstractDateDataProcessing {
 		}
 
 		if (!getParameterAsBoolean(PARAMETER_KEEP_OLD_ATTRIBUTE)) {
+			AttributeRole oldRole = exampleSet.getAttributes().getRole(numericalAttribute);
 			exampleSet.getAttributes().remove(numericalAttribute);
 			newAttribute.setName(attributeName);
+			exampleSet.getAttributes().setSpecialAttribute(newAttribute, oldRole.getSpecialName());
 		} else {
 			newAttribute.setName(attributeName + "_AS_DATE");
 		}

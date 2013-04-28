@@ -45,10 +45,15 @@ public class RefreshRepositoryEntryAction extends AbstractRepositoryAction<Folde
 	public void actionPerformed(final Folder folder) {					
 		ProgressThread openProgressThread = new ProgressThread("refreshing") {
 			public void run() {
+				getProgressListener().setTotal(100);
+				getProgressListener().setCompleted(0);
 				try {
+					getProgressListener().setCompleted(50);
 					folder.refresh();
 				} catch (Exception e) {
 					SwingTools.showSimpleErrorMessage("cannot_refresh_folder", e);
+				} finally {
+					getProgressListener().setCompleted(100);
 				}
 			}
 		};

@@ -84,13 +84,16 @@ public class ManageParallelLinesDialog extends JDialog {
 	private JComboBox rangeAxisSelectionCombobox;
 	
 	/** the {@link JList} which displays the appropriate crosshair lines according to the user selections */
-	private JList linesList;
+	private JList<AxisParallelLineConfiguration> linesList;
 	
 	/** this button deletes the selected line(s) */
 	private JButton deleteSelectedLinesButton;
 	
 	/** this button modifies the selected line */
 	private JButton modifySelectedLineButton;
+	
+	/** this button adds a new line */
+	private JButton addNewLineButton;
 	
 	/** the current {@link JFreeChartPlotEngine} */
 	private JFreeChartPlotEngine engine;
@@ -99,7 +102,10 @@ public class ManageParallelLinesDialog extends JDialog {
 	private PlotConfiguration plotConfig;
 	
 	/** the {@link EditParallelLineDialog} instance */
-	private EditParallelLineDialog dialog;
+	private EditParallelLineDialog modifyLineDialog;
+	
+	/** the {@link AddParallelLineDialog} instance */
+	private AddParallelLineDialog addLineDialog;
 	
 	
 	private static final long serialVersionUID = 1932257219370926682L;
@@ -183,7 +189,7 @@ public class ManageParallelLinesDialog extends JDialog {
 		gbc.weighty = 1;
 		gbc.gridwidth = 2;
 		gbc.anchor = GridBagConstraints.CENTER;
-		linesList = new JList();
+		linesList = new JList<AxisParallelLineConfiguration>();
 		linesList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		linesList.addListSelectionListener(new ListSelectionListener() {
 			
@@ -215,17 +221,17 @@ public class ManageParallelLinesDialog extends JDialog {
 		
 		JPanel listActionPanel = new JPanel();
 		
-		deleteSelectedLinesButton = new JButton();
-		deleteSelectedLinesButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.delete_lines.tip"));
-		deleteSelectedLinesButton.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.delete_lines.icon")));
-		deleteSelectedLinesButton.addActionListener(new ActionListener() {
+		addNewLineButton = new JButton();
+		addNewLineButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.add_line.tip"));
+		addNewLineButton.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.add_line.icon")));
+		addNewLineButton.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				deleteSelectedLines();
+				addNewLine();
 			}
 		});
-		listActionPanel.add(deleteSelectedLinesButton);
+		listActionPanel.add(addNewLineButton);
 		
 		modifySelectedLineButton = new JButton();
 		modifySelectedLineButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.modify_line.tip"));
@@ -238,6 +244,18 @@ public class ManageParallelLinesDialog extends JDialog {
 			}
 		});
 		listActionPanel.add(modifySelectedLineButton);
+		
+		deleteSelectedLinesButton = new JButton();
+		deleteSelectedLinesButton.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.delete_lines.tip"));
+		deleteSelectedLinesButton.setIcon(SwingTools.createIcon("16/" + I18N.getMessage(I18N.getGUIBundle(), "gui.action.manage_parallel_lines.delete_lines.icon")));
+		deleteSelectedLinesButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				deleteSelectedLines();
+			}
+		});
+		listActionPanel.add(deleteSelectedLinesButton);
 		
 		gbc.gridx = 0;
 		gbc.gridy = 3;
@@ -368,7 +386,7 @@ public class ManageParallelLinesDialog extends JDialog {
 		
 		// get all vertical lines of the selected RangeAxisConfig and display them
 		RangeAxisConfig selectedConfig = (RangeAxisConfig) rangeAxisSelectionCombobox.getSelectedItem();
-		DefaultListModel model = new DefaultListModel();
+		DefaultListModel<AxisParallelLineConfiguration> model = new DefaultListModel<AxisParallelLineConfiguration>();
 		if (selectedConfig != null) {
 			List<AxisParallelLineConfiguration> rangeAxisLines = selectedConfig.getCrossHairLines().getLines();
 			for (int i=0; i<rangeAxisLines.size(); i++) {
@@ -376,6 +394,7 @@ public class ManageParallelLinesDialog extends JDialog {
 				model.addElement(line);
 			}
 		}
+		
 		linesList.setModel(model);
 	}
 
@@ -388,12 +407,13 @@ public class ManageParallelLinesDialog extends JDialog {
 		linesList.clearSelection();
 		
 		// get all horizontal lines and display them
-		DefaultListModel model = new DefaultListModel();
+		DefaultListModel<AxisParallelLineConfiguration> model = new DefaultListModel<AxisParallelLineConfiguration>();
 		List<AxisParallelLineConfiguration> domainLines = engine.getPlotInstance().getMasterPlotConfiguration().getDomainConfigManager().getCrosshairLines().getLines();
 		for (int i=0; i<domainLines.size(); i++) {
 			AxisParallelLineConfiguration line = domainLines.get(i);
 			model.addElement(line);
 		}
+		
 		linesList.setModel(model);
 	}
 	
@@ -431,12 +451,31 @@ public class ManageParallelLinesDialog extends JDialog {
 		}
 		AxisParallelLineConfiguration line = (AxisParallelLineConfiguration) linesList.getSelectedValue();
 		if (line != null) {
-			if (dialog == null) {
-				dialog = new EditParallelLineDialog();
+			if (modifyLineDialog == null) {
+				modifyLineDialog = new EditParallelLineDialog();
 			}
 			
-			dialog.setLine(line, true);
-			dialog.showDialog();
+			modifyLineDialog.setLine(line, true);
+			modifyLineDialog.showDialog();
+		}
+	}
+	
+	/**
+	 * Adds a new line.
+	 */
+	private void addNewLine() {
+		if (addLineDialog == null) {
+			addLineDialog = new AddParallelLineDialog();
+		}
+		
+		addLineDialog.setChartEngine(engine);
+		addLineDialog.showDialog();
+		
+		// after added new line, update list
+		if (horizontalLineRadiobutton.isSelected()) {
+			setHorizontalLineSelected();
+		} else if (verticalLineRadiobutton.isSelected()) {
+			setVerticalLineSelected();
 		}
 	}
 	

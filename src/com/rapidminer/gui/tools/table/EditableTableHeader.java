@@ -73,7 +73,7 @@ public class EditableTableHeader extends JTableHeader implements CellEditorListe
 		TableColumn[] oldCols = new TableColumn[n];
 		for (int i = 0; i < n; i++) {
 			oldCols[i] = columnModel.getColumn(i);
-			newCols[i] = new EditableTableHeaderColumn();
+			newCols[i] = new EditableTableHeaderColumn(i);
 			newCols[i].copyValues(oldCols[i]);
 		}
 		for (int i = 0; i < n; i++) {

@@ -52,7 +52,9 @@ import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.OperatorResourceConsumptionHandler;
-import com.rapidminer.tools.math.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser.ExpressionParserException;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 /**
  * Allows the declaration of a missing value (nominal or numeric) on a selected subset. The given value 
@@ -92,13 +94,13 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 	private static final String[] VALUE_TYPES = new String[]{NUMERIC, NOMINAL, EXPRESSION};
 	
 	/** the ExpressionParser instance */
-	private static ExpressionParser expParser;
+	private static AbstractExpressionParser expParser;
 	
 	
 	public DeclareMissingValueOperator(OperatorDescription description) {
 		super(description);
-		expParser = new ExpressionParser(true);
-		expParser.getParser().setAllowUndeclared(true);
+		expParser = ExpressionParserFactory.getExpressionParser(true);
+		expParser.setAllowUndeclared(true);
 	}
 
 	@Override
@@ -170,22 +172,30 @@ public class DeclareMissingValueOperator extends AbstractExampleSetProcessing {
 		if (mode.equals(EXPRESSION)) {
 			// parse expression
 			String expression = getParameterAsString(PARAMETER_MISSING_VALUE_EXPRESSION);
-			expParser.getParser().parseExpression(expression);
 			// error after parsing?
-			if (expParser.getParser().hasError()) {
-		        throw new UserError(this, "cannot_parse_expression", expression, expParser.getParser().getErrorInfo());
+			
+			
+			try {
+				expParser.parseExpression(expression);
+			} catch (ExpressionParserException e) {
+				throw new UserError(this, "cannot_parse_expression", expression, expParser.getErrorInfo());
 			}
 			
 			// let the parser know the attributes
-	        Map<String, Attribute> name2attributes = ExpressionParser.deriveVariablesFromExampleSet(expParser.getParser(), exampleSet);
+	        Map<String, Attribute> name2attributes = expParser.deriveVariablesFromExampleSet(exampleSet);
 	        
 	        for (Example example : subset) {
 	        	// assign values to the variables
-	        	ExpressionParser.assignVariableValuesFromExample(expParser.getParser(), example, name2attributes);
+	        	expParser.assignVariableValuesFromExample(example, name2attributes);
 
 	        	for (Attribute attribute : attributes) {
 
-	        		Object result = expParser.getParser().getValueAsObject();
+	        		Object result;
+					try {
+						result = expParser.getValueAsObject();
+					} catch (ExpressionParserException e) {
+						result = null;
+					}
 	        		if (!(result instanceof Boolean)) {
 	        			//throw new OperatorException("expression does not evaluate to boolean!");
 	        		} else {

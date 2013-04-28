@@ -57,8 +57,6 @@ public class CountAggregator implements Aggregator {
         if (!Double.isNaN(value)) {
             if (!isCountingOnlyDistinct || valuesOccured.add(value))
                 count++;
-        } else if (!isIgnoringMissings) {
-            count = Double.NaN;
         }
     }
 

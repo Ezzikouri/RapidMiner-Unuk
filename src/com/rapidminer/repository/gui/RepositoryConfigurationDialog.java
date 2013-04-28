@@ -31,7 +31,6 @@ import javax.swing.JButton;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.repository.Repository;
-import com.rapidminer.repository.RepositoryException;
 
 /** Dialog to configure an existing repository.
  * 
@@ -48,7 +47,7 @@ public class RepositoryConfigurationDialog extends ButtonDialog {
 	public RepositoryConfigurationDialog(Repository repository) {
 		super("repositoryconfigdialog", true,new Object[]{});
 		this.repository = repository;
-		JButton okButton = makeOkButton();
+		JButton okButton = makeOkButton("repository_configuration_dialog.save");
 		configurationPanel = repository.makeConfigurationPanel();
 		configurationPanel.setOkButton(okButton);
 		configurationPanel.configureUIElementsFrom(repository);
@@ -63,13 +62,15 @@ public class RepositoryConfigurationDialog extends ButtonDialog {
 
 	@Override
 	protected void ok() {
-		configurationPanel.configure(repository);
+		if (!configurationPanel.configure(repository)) {
+			return;
+		}
 		try {
 			repository.refresh();
-		} catch (RepositoryException e) {
-			SwingTools.showSimpleErrorMessage("cannot_refresh_folder", e);
+			super.ok();
+		} catch (Exception e) {
+			SwingTools.showSimpleErrorMessage("repository_configuration_dialog.cannot_refresh_folder", e);
 		}
-		super.ok();
 	}
 	
 }

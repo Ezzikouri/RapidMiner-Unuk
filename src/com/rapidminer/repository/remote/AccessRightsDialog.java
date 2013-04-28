@@ -226,7 +226,7 @@ public class AccessRightsDialog extends ButtonDialog {
 		});
 		JScrollPane tablePane = new ExtendedJScrollPane(table);
 		tablePane.setBorder(createBorder());
-		layoutDefault(tablePane, NORMAL, addRowButton, removeRowButton, makeOkButton(), makeCancelButton());
+		layoutDefault(tablePane, NORMAL, addRowButton, removeRowButton, makeOkButton("access_rights_dialog_apply"), makeCancelButton());
 	}
 
 

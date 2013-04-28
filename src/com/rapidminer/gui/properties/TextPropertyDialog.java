@@ -94,7 +94,7 @@ public class TextPropertyDialog extends PropertyDialog {
         textArea.setAnimateBracketMatching(type.getTextType().isBracketMatching());
         textArea.setAutoIndentEnabled(type.getTextType().isAutoIntending());
         textArea.setAutoscrolls(true);
-        layoutDefault(new RTextScrollPane(textArea), NORMAL, resizeButton, makeOkButton(), makeCancelButton());
+        layoutDefault(new RTextScrollPane(textArea), NORMAL, resizeButton, makeOkButton("text_property_dialog_apply"), makeCancelButton());
         
         textArea.requestFocusInWindow();
     }

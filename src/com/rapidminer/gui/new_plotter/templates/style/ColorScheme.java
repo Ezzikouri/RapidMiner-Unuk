@@ -20,185 +20,34 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.gui.new_plotter.templates.style;
 
-import java.awt.Color;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.rapidminer.gui.new_plotter.utility.ListUtility;
+import com.rapidminer.io.process.XMLTools;
+import com.rapidminer.tools.AbstractChangeAwareSaveable;
+import com.rapidminer.tools.XMLException;
 
 /**
- * Contains a color scheme.
+ * Contains a color scheme. May contain the same colors multiple times.
  * 
  * @author Marco Boeck, Nils Woehler
  * 
  */
-public class ColorScheme {
+public class ColorScheme extends AbstractChangeAwareSaveable<ColorRGB> {
 
-	/**
-	 * Describes a color in RGB scheme and contains an alpha value for the color.
-	 */
-	public static class ColorRGB {
-
-		/** r portion of the RGB color */
-		private int r;
-
-		/** g portion of the RGB color */
-		private int g;
-
-		/** b portion of the RGB color */
-		private int b;
-
-		/** alpha portion of the RGB color */
-		private int alpha;
-
-		/**
-		 * Creates a new {@link ColorRGB} object with the specified r g b components and an alpha
-		 * value of 255.
-		 * 
-		 * @param r
-		 * @param g
-		 * @param b
-		 */
-		public ColorRGB(int r, int g, int b) {
-			this(r, g, b, 255);
-		}
-
-		/**
-		 * Creates a new {@link ColorRGB} object with the specified r g b and alpha components.
-		 * 
-		 * @param r
-		 * @param g
-		 * @param b
-		 * @param alpha
-		 */
-		public ColorRGB(int r, int g, int b, int alpha) {
-			// check for illegal values
-			if (r > 255 || r < 0) {
-				throw new IllegalArgumentException("r must be between 0 and 255, but was '" + r + "'!");
-			}
-			if (g > 255 || g < 0) {
-				throw new IllegalArgumentException("g must be between 0 and 255, but was '" + g + "'!");
-			}
-			if (b > 255 || b < 0) {
-				throw new IllegalArgumentException("b must be between 0 and 255, but was '" + b + "'!");
-			}
-			if (alpha > 255 || alpha < 0) {
-				throw new IllegalArgumentException("alpha must be between 0 and 255, but was '" + alpha + "'!");
-			}
-
-			this.r = r;
-			this.g = g;
-			this.b = b;
-			this.alpha = alpha;
-		}
-
-		/**
-		 * Returns the R component of this color.
-		 * 
-		 * @return
-		 */
-		public int getR() {
-			return r;
-		}
-
-		/**
-		 * Returns the G component of this color.
-		 * 
-		 * @return
-		 */
-		public int getG() {
-			return g;
-		}
-
-		/**
-		 * Returns the B component of this color.
-		 * 
-		 * @return
-		 */
-		public int getB() {
-			return b;
-		}
-
-		/**
-		 * Returns the Alpha component of this color.
-		 * 
-		 * @return
-		 */
-		public int getAlpha() {
-			return alpha;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (obj == null || !(obj instanceof ColorRGB)) {
-				return false;
-			}
-			
-			ColorRGB givenColorRGB = (ColorRGB)obj;
-			
-			if (givenColorRGB.getR() != this.getR()) {
-				return false;
-			}
-			if (givenColorRGB.getG() != this.getG()) {
-				return false;
-			}
-			if (givenColorRGB.getB() != this.getB()) {
-				return false;
-			}
-			if (givenColorRGB.getAlpha() != this.getAlpha()) {
-				return false;
-			}
-			
-			return true;
-		}
-		
-		/**
-		 * Converts a {@link ColorRGB} input to a {@link Color} object.
-		 * 
-		 * @param colorRGB
-		 * @return
-		 */
-		public static Color convertToColor(ColorRGB colorRGB) {
-			return new Color(colorRGB.getR(), colorRGB.getG(), colorRGB.getB());
-		}
-
-		/**
-		 * Converts a {@link ColorRGB} input to a {@link Color} object including the alpha value.
-		 * 
-		 * @param colorRGB
-		 * @return
-		 */
-		public static Color convertToColorWithAlpha(ColorRGB colorRGB) {
-			return new Color(colorRGB.getR(), colorRGB.getG(), colorRGB.getB(), colorRGB.getAlpha());
-		}
-
-		/**
-		 * Converts a {@link Color} input to a {@link ColorRGB} object.
-		 * 
-		 * @param colorRGB
-		 * @return
-		 */
-		public static ColorRGB convertColorToColorRGB(Color color) {
-			return new ColorRGB(color.getRed(), color.getGreen(), color.getBlue());
-		}
-
-		/**
-		 * Converts a {@link Color} input to a {@link ColorRGB} object including the alpha value.
-		 * 
-		 * @param colorRGB
-		 * @return
-		 */
-		public static ColorRGB convertColorWithAlphaToColorRGB(Color color) {
-			return new ColorRGB(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
-		}
-		
-		@Override
-		public ColorRGB clone() {
-			return new ColorRGB(r, g, b, alpha);
-		}
-	}
+	public static final String XML_TAG_NAME = "color-scheme";
+	private static final String GRADIENT_END_COLOR_XML_TAG = "gradient-end-color";
+	private static final String GRADIENT_START_COLOR_XML_TAG = "gradient-start-color";
+	private static final String COLORS_XML_TAG = "category-colors";
+	private static final String NAME_XML_TAG = "name";
 
 	/** the name of the {@link ColorScheme} */
 	private String name;
@@ -208,6 +57,10 @@ public class ColorScheme {
 
 	private ColorRGB gradientStartColor;
 	private ColorRGB gradientEndColor;
+
+	private transient String repositoryLocation;
+	private transient boolean initialized = false;
+	
 
 	/**
 	 * Creates a new {@link ColorScheme}.
@@ -231,15 +84,38 @@ public class ColorScheme {
 
 		this.name = name;
 		this.listOfColors = listOfColors;
-		this.gradientStartColor =  listOfColors.get(0);
+		this.gradientStartColor = listOfColors.get(0);
 		this.gradientEndColor = listOfColors.get(listOfColors.size() - 1);
-
+		this.initialized = true;
 	}
 
 	public ColorScheme(String name, List<ColorRGB> listOfColors, ColorRGB gradientStart, ColorRGB gradientEnd) {
 		this(name, listOfColors);
 		this.gradientStartColor = gradientStart;
 		this.gradientEndColor = gradientEnd;
+		this.initialized = true;
+	}
+
+	public ColorScheme(Element element) throws XMLException {
+		if (!XML_TAG_NAME.equals(element.getTagName())) {
+			throw new XMLException("<" + XML_TAG_NAME + "> expected.");
+		}
+
+		name = XMLTools.getTagContents(element, NAME_XML_TAG);
+
+		Element gradientStartColorElement = XMLTools.getChildTag(element, GRADIENT_START_COLOR_XML_TAG, false);
+		gradientStartColor = new ColorRGB(XMLTools.getChildTag(gradientStartColorElement, ColorRGB.XML_TAG_NAME, false));
+
+		Element gradientEndColorElement = XMLTools.getChildTag(element, GRADIENT_END_COLOR_XML_TAG, false);
+		gradientEndColor = new ColorRGB(XMLTools.getChildTag(gradientEndColorElement, ColorRGB.XML_TAG_NAME, false));
+
+		listOfColors = new LinkedList<ColorRGB>();
+		Element categoryColorsElement = XMLTools.getChildTag(element, COLORS_XML_TAG, false);
+		Collection<Element> categoryColors = XMLTools.getChildElements(categoryColorsElement, ColorRGB.XML_TAG_NAME);
+		for (Element colorElement : categoryColors) {
+			addColor(new ColorRGB(colorElement));
+		}
+		this.initialized = true;
 	}
 
 	/**
@@ -270,9 +146,8 @@ public class ColorScheme {
 	 *            the gradientStartColor to set
 	 */
 	public void setGradientStartColor(ColorRGB gradientStartColor) {
-		if(!this.gradientStartColor.equals(gradientStartColor)) {
-			this.gradientStartColor = gradientStartColor;
-		}
+		this.gradientStartColor = gradientStartColor;
+		fireUpdate(this);
 	}
 
 	/**
@@ -280,9 +155,8 @@ public class ColorScheme {
 	 *            the gradientEndColor to set
 	 */
 	public void setGradientEndColor(ColorRGB gradientEndColor) {
-		if(!this.gradientEndColor.equals(gradientEndColor)) {
-			this.gradientEndColor = gradientEndColor;
-		}
+		this.gradientEndColor = gradientEndColor;
+		fireUpdate(this);
 	}
 
 	/**
@@ -292,6 +166,7 @@ public class ColorScheme {
 	 */
 	public void setName(String name) {
 		this.name = name;
+		fireUpdate(this);
 	}
 
 	/**
@@ -303,21 +178,19 @@ public class ColorScheme {
 		if (listOfColors == null) {
 			throw new IllegalArgumentException("listOfColors must not be null!");
 		}
-
 		this.listOfColors = listOfColors;
+		fireUpdate(this);
 	}
-	
+
 	/**
-	 * Adds a color to the color scheme. If the color already exists, nothing will be done.
-	 * If the color already exists will be checked via equals().
+	 * Adds a color to the color scheme.
 	 */
 	public void addColor(ColorRGB color) {
-		if(listOfColors.contains(color)) {
-			return;
-		}
 		this.listOfColors.add(color);
+		observeForChanges(color);
+		fireUpdate(this);
 	}
-	
+
 	/**
 	 * Adds a color to the color scheme at specified index. Shifts the element currently at that position (if any) and 
 	 * any subsequent elements to the right (adds one to their indices). If the color is already present in current color scheme
@@ -325,82 +198,193 @@ public class ColorScheme {
 	 */
 	public void addColor(int index, ColorRGB color) {
 		int oldIdx = listOfColors.indexOf(color);
-		if(oldIdx != -1) {
+		if (oldIdx != -1) {
 			ListUtility.changeIndex(listOfColors, color, index);
 		} else {
 			this.listOfColors.add(index, color);
+			observeForChanges(color);
 		}
+		fireUpdate(this);
 	}
-	
+
 	/**
-	 * Removes the specified color from the {@link ColorScheme}.
+	 * Removes the specified color from the {@link ColorScheme}. Will first be checked by class reference.
+	 * If reference cannot be found (should not happen), the color is removed via {@link List#remove(Object)}.
 	 */
 	public void removeColor(ColorRGB color) {
 		this.listOfColors.remove(color);
+		stopObservingForChanges(color);
+		fireUpdate(this);
 	}
-	
+
+	/** 
+	 * Removes the color at the provided index.
+	 */
+	public void removeColor(int index) {
+		ColorRGB color = this.listOfColors.remove(index);
+		stopObservingForChanges(color);
+		fireUpdate(this);
+	}
+
 	/**
 	 *  Replaces old color with new color if old color is already in color scheme.
 	 */
 	public void setColor(ColorRGB oldColor, ColorRGB newColor) {
 		int index = listOfColors.indexOf(oldColor);
-		if(index != -1) {
+		if (index != -1) {
 			this.listOfColors.set(index, newColor);
 		}
+		fireUpdate(this);
 	}
 
 	/**
 	 * Returns a list with all {@link ColorRGB} objects this {@link ColorScheme} consists of.
 	 */
 	public List<ColorRGB> getColors() {
-		return listOfColors;
+		return new LinkedList<ColorRGB>(listOfColors);
+	}
+
+	/**
+	 * @return the category colors as an array of colors in hex presentation without a preceding '#'.
+	 */
+	public String[] getColorsAsHexArray() {
+		List<ColorRGB> colors = getColors();
+		String[] hexColors = new String[colors.size()];
+		int index = 0;
+		for (ColorRGB color : colors) {
+			hexColors[index] = ColorRGB.convertColorRGBToHex(color);
+			++index;
+		}
+		return hexColors;
+	}
+
+	public String getGradientStartColorAsHex() {
+		return ColorRGB.convertColorRGBToHex(getGradientStartColor());
+	}
+
+	public String getGradientEndColorAsHex() {
+		return ColorRGB.convertColorRGBToHex(getGradientEndColor());
 	}
 
 	@Override
 	public String toString() {
 		return name;
 	}
-	
+
 	@Override
 	public ColorScheme clone() {
-		 List<ColorRGB> clonedList = new LinkedList<ColorScheme.ColorRGB>();
-		 for(ColorRGB color : listOfColors) {
-			 clonedList.add((ColorRGB) color.clone());
-		 }
+		List<ColorRGB> clonedList = new LinkedList<ColorRGB>();
+		for (ColorRGB color : listOfColors) {
+			clonedList.add((ColorRGB) color.clone());
+		}
 		return new ColorScheme(name, clonedList, (ColorRGB) gradientStartColor.clone(), (ColorRGB) gradientEndColor.clone());
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null || !(obj instanceof ColorScheme)) {
 			return false;
 		}
-		ColorScheme givenColorScheme = (ColorScheme)obj;
-		
-		if(!name.equals(givenColorScheme.getName())) {
+		ColorScheme givenColorScheme = (ColorScheme) obj;
+
+		if (!name.equals(givenColorScheme.getName())) {
 			return false;
 		}
-		
-		if(!gradientStartColor.equals(givenColorScheme.getGradientStartColor())) {
+
+		if (!gradientStartColor.equals(givenColorScheme.getGradientStartColor())) {
 			return false;
 		}
-		
-		if(!gradientEndColor.equals(givenColorScheme.getGradientEndColor())) {
+
+		if (!gradientEndColor.equals(givenColorScheme.getGradientEndColor())) {
 			return false;
 		}
-		
+
 		if (givenColorScheme.getColors().size() != this.getColors().size()) {
 			return false;
 		}
-		
-		for (int i=0; i<givenColorScheme.getColors().size(); i++) {
+
+		for (int i = 0; i < givenColorScheme.getColors().size(); i++) {
 			ColorRGB givenColorRGB = givenColorScheme.getColors().get(i);
 			ColorRGB thisColorRGB = this.getColors().get(i);
 			if (!givenColorRGB.equals(thisColorRGB)) {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
+
+	public Document toXML() {
+		Document doc = XMLTools.createDocument();
+		doc.appendChild(toXML(doc));
+		return doc;
+	}
+
+	public Element toXML(Document doc) {
+		Element root = doc.createElement(XML_TAG_NAME);
+		XMLTools.setTagContents(root, NAME_XML_TAG, getName());
+
+		Element colors = XMLTools.addTag(root, COLORS_XML_TAG);
+		for (ColorRGB color : getColors()) {
+			colors.appendChild(color.toXML(doc));
+		}
+
+		Element gradientStartColorTag = XMLTools.addTag(root, GRADIENT_START_COLOR_XML_TAG);
+		gradientStartColorTag.appendChild(getGradientStartColor().toXML(doc));
+
+		Element gradientEndColorTag = XMLTools.addTag(root, GRADIENT_END_COLOR_XML_TAG);
+		gradientEndColorTag.appendChild(getGradientEndColor().toXML(doc));
+
+		return root;
+	}
+
+	/** 
+	 * Parses the output generated by {@link #toXML(Document)}. 
+	 **/
+	public static ColorScheme fromXML(Document doc) throws XMLException {
+		return new ColorScheme(doc.getDocumentElement());
+	}
+
+	/**
+	 * @return the repositoryLocation
+	 */
+	public String getRepositoryLocation() {
+		return this.repositoryLocation;
+	}
+
+	/**
+	 * @param repositoryLocation the repositoryLocation to set
+	 */
+	public void setRepositoryLocation(String repositoryLocation) {
+		this.repositoryLocation = repositoryLocation;
+	}
+
+	public void exchange(ColorRGB c1, ColorRGB c2) {
+		if (c1 == c2) {
+			return;
+		}
+		int i1 = listOfColors.indexOf(c1);
+		int i2 = listOfColors.indexOf(c2);
+		if ((i1 != -1) && (i2 != -1)) {
+			listOfColors.set(i1, c2);
+			listOfColors.set(i2, c1);
+		}
+		fireUpdate(this);
+	}
+
+	@Override
+	public boolean isInitialized() {
+		return initialized;
+	}
+
+	@Override
+	public String getPath() {
+		return getRepositoryLocation();
+	}
+
+	@Override
+	public boolean isAlreadyStored() {
+		return getRepositoryLocation() != null;
+	}
+
 }

@@ -20,10 +20,12 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.gui.process;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,10 +51,15 @@ import com.rapid_i.repository.wsimport.ProcessStackTrace;
 import com.rapid_i.repository.wsimport.ProcessStackTraceElement;
 import com.rapidminer.io.process.XMLTools;
 import com.rapidminer.repository.RemoteProcessState;
+import com.rapidminer.repository.Repository;
+import com.rapidminer.repository.RepositoryManager;
 import com.rapidminer.repository.remote.ProcessServiceFacade;
 import com.rapidminer.repository.remote.RemoteRepository;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.Observable;
+import com.rapidminer.tools.Observer;
+import com.rapidminer.tools.container.Pair;
 
 /**
  * The TreeModel for the log of remotely executed processes.
@@ -63,19 +70,53 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 	private static final long UPDATE_PERIOD = 2500;
 
-	private class ProcessList {
+	/** Object returned by {@link #getChild(Object, int)} if the list is empty or an error has occurred. */
+	public static final Object EMPTY_PROCESS_LIST = new Object();
+	public static final Object PENDING_PROCESS_LIST = new Object();
+
+	public static enum ProcessListState {
+		PENDING,
+		READY,
+		ERROR,
+		CANCELED
+	}
+
+	class ProcessList {
 
 		private List<Integer> knownIds = new LinkedList<Integer>();
 		private Map<Integer, ProcessResponse> processResponses = new HashMap<Integer, ProcessResponse>();
+
+		private ProcessListState state = ProcessListState.PENDING;
+
+		private int maxID = 0;
 
 		public int add(ProcessResponse pr) {
 			int newIndex = -1;
 			if (!processResponses.containsKey(pr.getId())) {
 				newIndex = knownIds.size();
+
+				if (pr.getId() > maxID) {
+					maxID = pr.getId();
+					newIndex = 0;
+				}
+
 				knownIds.add(pr.getId());
+				Collections.sort(knownIds);
+				Collections.reverse(knownIds);
 			}
+			
+
 			processResponses.put(pr.getId(), pr);
+			state = ProcessListState.READY;
 			return newIndex;
+		}
+
+		public ProcessListState getState() {
+			return state;
+		}
+
+		public void setState(ProcessListState state) {
+			this.state = state;
 		}
 
 		public ProcessResponse getByIndex(int index) {
@@ -102,7 +143,8 @@ public class RemoteProcessesTreeModel implements TreeModel {
 			return -1;
 		}
 
-		private TreeModelEvent trim(Set<Integer> processIds, RemoteRepository repos) {
+		private void trim(Set<Integer> processIds, RemoteRepository repos) {
+			boolean wasEmpty = knownIds.isEmpty();
 			List<Integer> removedIndices = new LinkedList<Integer>();
 			List<Object> removedObjects = new LinkedList<Object>();
 			Iterator<Integer> i = knownIds.iterator();
@@ -117,14 +159,17 @@ public class RemoteProcessesTreeModel implements TreeModel {
 				}
 				index++;
 			}
-			if (!removedIndices.isEmpty()) {
+			if (!wasEmpty && knownIds.isEmpty()) {
+				// list was not empty before, but now it is empty, so we fire structure changed. Model will return only EMPTY_PROCESS_LIST
+				fireStructureChanged(new TreeModelEvent(this, new Object[] { root, repos }));
+			} else if (!removedIndices.isEmpty()) {
 				int[] indices = new int[removedIndices.size()];
 				for (int j = 0; j < removedIndices.size(); j++) {
 					indices[j] = removedIndices.get(j);
 				}
-				return new TreeModelEvent(this, new Object[] { root, repos }, indices, removedObjects.toArray());
+				fireDelete(new TreeModelEvent(this, new Object[] { root, repos }, indices, removedObjects.toArray()));
 			} else {
-				return null;
+				return;
 			}
 		}
 	}
@@ -133,103 +178,192 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 		@Override
 		public void run() {
-			final List<RemoteRepository> newRepositories = RemoteRepository.getAll();
-			if (!newRepositories.equals(repositories)) {
-				try {
-					SwingUtilities.invokeAndWait(new Runnable() {
+			Iterator<RemoteRepository> iterator = getRepositoryIterator();
 
-						public void run() {
-							synchronized (repositories) {
-								repositories = newRepositories;
-								processes.clear();
-								for (RemoteRepository repos : repositories) {
-									processes.put(repos, new ProcessList());
-								}
-								fireStructureChanged(new TreeModelEvent(this, new Object[] { root }));
-							}
-						};
-					});
-				} catch (InterruptedException e) {
-					LogService.getRoot().log(Level.WARNING, e.toString(), e);
-				} catch (InvocationTargetException e) {
-					LogService.getRoot().log(Level.WARNING, e.toString(), e);
-				}
-			}
-			synchronized (repositories) {
-				Iterator<RemoteRepository> iterator = repositories.iterator();
-				while (iterator.hasNext()) {
-					final RemoteRepository repos = iterator.next();
-					if (observedRepositories.contains(repos)) {
-						final ProcessList processList = processes.get(repos);
-						try {
-							if (repos.isPasswordInputCanceled()) {
-								LogService.getRoot().log(Level.FINE,
+			// iterate over all current repositories
+			while (iterator.hasNext()) {
+				final RemoteRepository repos = iterator.next();
+
+				// check if the current repository is observed
+				if (observedRepositories.contains(repos)) {
+
+					// get process list from repository
+					final ProcessList processList = getProcessList(repos);
+					try {
+
+						// if password input has been canceled
+						if (repos.isPasswordInputCanceled()) {
+
+							// set it into canceled state and log action
+							if (processList.getState() != ProcessListState.CANCELED) {
+								LogService.getRoot().log(Level.INFO,
 										I18N.getMessage(LogService.getRoot().getResourceBundle(),
 												"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.skipping_user_canceled_auth", repos.getName()));
-								continue;
+								SwingUtilities.invokeAndWait(new Runnable() {
+
+									@Override
+									public void run() {
+										setIntoState(repos, ProcessListState.CANCELED);
+									}
+								});
 							}
-							ProcessServiceFacade processService = repos.getProcessService();
-							final Collection<Integer> processIds = processService.getRunningProcesses(since);
-							// First, delete removed ids
+							continue;
+						}
+
+						ProcessServiceFacade processService = repos.getProcessService();
+						if (processService == null) {
 							SwingUtilities.invokeAndWait(new Runnable() {
 
 								@Override
 								public void run() {
-									if (processIds != null) {
-										TreeModelEvent deleteEvent = processList.trim(new HashSet<Integer>(processIds), repos);
-										if (deleteEvent != null) {
-											fireDelete(deleteEvent);
-										}
-									}
+									setIntoState(repos, ProcessListState.ERROR);
 								}
 							});
+							continue;
+						}
+						final Collection<Integer> processIds = processService.getRunningProcesses(since);
 
-							for (Integer processId : processIds) {
-								ProcessResponse oldProcess = processList.getById(processId);
-								// we update if we don't know the id yet or if the process is not complete						
-								if (oldProcess == null) {
-									final ProcessResponse newResponse = processService.getRunningProcessesInfo(processId);
-									SwingUtilities.invokeAndWait(new Runnable() {
+						// First, delete removed ids
+						SwingUtilities.invokeAndWait(new Runnable() {
 
-										@Override
-										public void run() {
-											int newIndex = processList.add(newResponse);
-											fireAdd(new TreeModelEvent(this, new Object[] { root, repos },
-													new int[] { newIndex },
-													new Object[] { newResponse }));
-
+							@Override
+							public void run() {
+								if (processIds != null) {
+									if (processIds.isEmpty()) {
+										processList.setState(ProcessListState.READY);
+										fireStructureChanged(new TreeModelEvent(this, new Object[] { root, repos }));
+									} else {
+										if (processList.getState() != ProcessListState.ERROR) {
+											processList.setState(ProcessListState.READY);
 										}
-									});
-								} else if (!RemoteProcessState.valueOf(oldProcess.getState()).isTerminated()) {
-									final ProcessResponse updatedResponse = processService.getRunningProcessesInfo(processId);
-									SwingUtilities.invokeAndWait(new Runnable() {
-
-										@Override
-										public void run() {
-											processList.add(updatedResponse);
-											fireStructureChanged(new TreeModelEvent(this, new Object[] { root, repos, updatedResponse }));
-										}
-									});
-								} else {
-									// If process is terminated, there is not need to update.
-									// The process is already in the list since it is copied
+									}
+									processList.trim(new HashSet<Integer>(processIds), repos);
 								}
 							}
-						} catch (Exception ex) {
+						});
+						// Now, update model for new / existing IDs
+						for (Integer processId : processIds) {
+							ProcessResponse oldProcess = processList.getById(processId);
+							// we update if we don't know the id yet or if the process is not complete						
+							if (oldProcess == null) {
+								final ProcessResponse newResponse = processService.getRunningProcessesInfo(processId);
+								SwingUtilities.invokeAndWait(new Runnable() {
+
+									@Override
+									public void run() {
+										// If was empty before, fire event to remove EMPTY_PROCESS_LIST
+										if (processList.size() == 0) {
+											fireDelete(new TreeModelEvent(this, new Object[] { root, repos },
+													new int[] { 0 },
+													new Object[] { EMPTY_PROCESS_LIST }));
+										}
+										int newIndex = processList.add(newResponse);
+
+
+
+										fireAdd(new TreeModelEvent(this, new Object[] { root, repos },
+												new int[] { newIndex },
+												new Object[] { newResponse }));
+
+
+									}
+								});
+							} else if (!RemoteProcessState.valueOf(oldProcess.getState()).isTerminated()) {
+								final ProcessResponse updatedResponse = processService.getRunningProcessesInfo(processId);
+								SwingUtilities.invokeAndWait(new Runnable() {
+
+									@Override
+									public void run() {
+										processList.add(updatedResponse);
+										fireStructureChanged(new TreeModelEvent(this, new Object[] { root, repos, updatedResponse }));
+									}
+								});
+							} else {
+								// If process is terminated, there is not need to update.
+								// The process is already in the list since it is copied
+							}
+						}
+					} catch (Exception ex) {
+						if (processList.getState() != ProcessListState.ERROR) {
 							LogService.getRoot().log(Level.WARNING,
 									I18N.getMessage(LogService.getRoot().getResourceBundle(),
 											"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.fetching_remote_process_list_error",
 											ex),
 									ex);
-							fireStructureChanged(new TreeModelEvent(this, new TreePath(new Object[] { root, repos })));
+							try {
+								SwingUtilities.invokeAndWait(new Runnable() {
+
+									@Override
+									public void run() {
+										setIntoState(repos, ProcessListState.ERROR);
+									}
+								});
+							} catch (InvocationTargetException e) {
+								LogService.getRoot().log(Level.WARNING,
+										I18N.getMessage(LogService.getRoot().getResourceBundle(),
+												"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.fetching_remote_process_list_error",
+												e),
+										e);
+							} catch (InterruptedException e) {
+								LogService.getRoot().log(Level.WARNING,
+										I18N.getMessage(LogService.getRoot().getResourceBundle(),
+												"com.rapidminer.repository.gui.process.RemoteProcessesTreeModel.fetching_remote_process_list_error",
+												e),
+										e);
+							}
 						}
 					}
 				}
 			}
 		}
+
 	}
 
-	private Map<RemoteRepository, ProcessList> processes = new HashMap<RemoteRepository, ProcessList>();
+	private Observer<Repository> repositoryManagerObserver = new Observer<Repository>() {
+
+		@Override
+		public void update(Observable<Repository> observable, final Repository arg) {
+			// repository has been removed
+			if (arg == null) {
+
+				// rebuild repositories, observerRepositories and processes lists
+				synchronized (repositories) {
+
+					// remember old observed repositories
+					Set<RemoteRepository> oldObserverRepositories = new HashSet<RemoteRepository>(observedRepositories);
+
+					// remove all current repositories
+					List<RemoteRepository> oldRemoteRepositories = new LinkedList<RemoteRepository>(repositories);
+					for (RemoteRepository repo : oldRemoteRepositories) {
+						removeRepository(repo);
+					}
+
+					// add all remote repositories that still exists
+					List<RemoteRepository> newRemoteRepositories =
+							new LinkedList<RemoteRepository>(RepositoryManager.getInstance(null).getRemoteRepositories());
+					for (RemoteRepository repo : newRemoteRepositories) {
+						addRepository(repo);
+					}
+
+					// start observing all repositories again that still exists
+					for (RemoteRepository repo : oldObserverRepositories) {
+						if (repositories.contains(repo)) {
+							observe(repo);
+						}
+					}
+				}
+			} else {
+				// repository has been added
+				if (arg instanceof RemoteRepository) {
+					RemoteRepository addedRepo = (RemoteRepository) arg;
+					addRepository(addedRepo);
+				}
+
+			}
+		}
+	};
+
+	private List<Pair<RemoteRepository, ProcessList>> processes = new LinkedList<Pair<RemoteRepository, ProcessList>>();
 	private List<RemoteRepository> repositories = new LinkedList<RemoteRepository>();
 	private Set<RemoteRepository> observedRepositories = new HashSet<RemoteRepository>();
 
@@ -241,6 +375,47 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 	public RemoteProcessesTreeModel() {
 		updateTimer.schedule(new UpdateTask(), UPDATE_PERIOD, UPDATE_PERIOD);
+
+		RepositoryManager.getInstance(null).addObserver(repositoryManagerObserver, false);
+
+		// initialize model
+		for (RemoteRepository repo : RepositoryManager.getInstance(null).getRemoteRepositories()) {
+			addRepository(repo);
+		}
+	}
+
+	private void addRepository(RemoteRepository repo) {
+		synchronized (repositories) {
+			// add repository
+			repositories.add(repo);
+
+			// create new process list for repository
+			processes.add(new Pair<RemoteRepository, ProcessList>(repo, new ProcessList()));
+			fireAdd(new TreeModelEvent(this, new Object[] { root }, new int[] { getIndexOfChild(root, repo) }, new Object[] { repo }));
+		}
+	}
+
+	private void removeRepository(RemoteRepository repo) {
+		synchronized (repositories) {
+			int indexOfRepo = repositories.indexOf(repo);
+
+			// remove repository from list
+			repositories.remove(indexOfRepo);
+
+			// remove repository, process list pair from list
+			Iterator<Pair<RemoteRepository, ProcessList>> iterator = processes.iterator();
+			while (iterator.hasNext()) {
+				Pair<RemoteRepository, ProcessList> next = iterator.next();
+				if (next.getFirst() == repo) {
+					iterator.remove();
+					break;
+				}
+			}
+
+			// remove repository from observed repositories
+			observedRepositories.remove(repo);
+			fireDelete(new TreeModelEvent(this, new Object[] { root }, new int[] { indexOfRepo }, new Object[] { repo }));
+		}
 	}
 
 	private EventListenerList listeners = new EventListenerList();
@@ -260,7 +435,16 @@ public class RemoteProcessesTreeModel implements TreeModel {
 		if (parent == root) {
 			return repositories.get(index);
 		} else if (parent instanceof RemoteRepository) {
-			return processes.get(parent).getByIndex(index);
+			ProcessList processList = getProcessList((RemoteRepository) parent);
+			if (processList.size() == 0) {
+				if (processList.getState() == ProcessListState.PENDING) {
+					return PENDING_PROCESS_LIST;
+				} else {
+					return EMPTY_PROCESS_LIST;
+				}
+			} else {
+				return processList.getByIndex(index);
+			}
 		} else if (parent instanceof ProcessResponse) {
 			ProcessResponse proResponse = (ProcessResponse) parent;
 			if (proResponse.getException() != null) {
@@ -291,9 +475,9 @@ public class RemoteProcessesTreeModel implements TreeModel {
 		if (parent == root) {
 			return repositories.size();
 		} else if (parent instanceof RemoteRepository) {
-			ProcessList list = processes.get(parent);
-			if (list == null) {
-				return 0;
+			ProcessList list = getProcessList((RemoteRepository) parent);
+			if ((list == null) || (list.size() == 0)) {
+				return 1; // if empty, just display single message string
 			} else {
 				return list.size();
 			}
@@ -319,10 +503,16 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 	@Override
 	public int getIndexOfChild(Object parent, Object child) {
-		if (parent == root) {
+		if (child == RemoteProcessesTreeModel.EMPTY_PROCESS_LIST || child == RemoteProcessesTreeModel.PENDING_PROCESS_LIST) {
+			return 0;
+		} else if (parent == root) {
 			return repositories.indexOf(child);
 		} else if (parent instanceof RemoteRepository) {
-			return processes.get(parent).indexOf((ProcessResponse) child);
+			if (child instanceof ProcessResponse) {
+				return getProcessList((RemoteRepository) parent).indexOf((ProcessResponse) child);
+			} else {
+				return 0;
+			}
 		} else if (parent instanceof ProcessResponse) {
 			ProcessResponse proResponse = (ProcessResponse) parent;
 			if (child instanceof ProcessStackTraceElement) {
@@ -369,12 +559,6 @@ public class RemoteProcessesTreeModel implements TreeModel {
 		}
 	}
 
-//	private void fireUpdate(TreeModelEvent e) {
-//		for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
-//			l.treeNodesChanged(e);
-//		}
-//	}
-
 	private void fireDelete(TreeModelEvent event) {
 		for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
 			l.treeNodesRemoved(event);
@@ -383,24 +567,67 @@ public class RemoteProcessesTreeModel implements TreeModel {
 
 	private void fireStructureChanged(TreeModelEvent e) {
 		for (TreeModelListener l : listeners.getListeners(TreeModelListener.class)) {
+
 			l.treeStructureChanged(e);
 		}
 	}
 
 	public void setSince(Date since) {
+		if (((since == null) && (this.since == null)) ||
+				((since != null) && since.equals(this.since))) {
+			return;
+		}
 		if (since == null) {
 			this.since = null;
 		} else {
 			this.since = XMLTools.getXMLGregorianCalendar(since);
 		}
+
+		// update all models and reset state into PENDING
+		Iterator<RemoteRepository> iterator = getRepositoryIterator();
+		while (iterator.hasNext()) {
+			final RemoteRepository repos = iterator.next();
+			setIntoState(repos, ProcessListState.PENDING);
+		}
+
 	}
 
-	public void observe(RemoteRepository rep) {
-		observedRepositories.add(rep);
+	private Iterator<RemoteRepository> getRepositoryIterator() {
+		synchronized (repositories) {
+			return new LinkedList<RemoteRepository>(repositories).iterator();
+		}
 	}
 
-	public void ignore(RemoteRepository rep) {
-		observedRepositories.remove(rep);
+	private void setIntoState(final RemoteRepository repos, ProcessListState state) {
+		ProcessList processList = getProcessList(repos);
+		if (processList.getState() == state) {
+			return; // nothing to do
+		}
+		processList.setState(state);
+		fireStructureChanged(new TreeModelEvent(this, new TreePath(new Object[] { root, repos })));
 	}
-	
+
+	protected void observe(RemoteRepository rep) {
+		synchronized (repositories) {
+			observedRepositories.add(rep);
+		}
+	}
+
+	protected void ignore(RemoteRepository rep) {
+		synchronized (repositories) {
+			observedRepositories.remove(rep);
+		}
+	}
+
+	protected ProcessList getProcessList(RemoteRepository repository) {
+		List<Pair<RemoteRepository, ProcessList>> copiedProcessList = new LinkedList<Pair<RemoteRepository, ProcessList>>(processes);
+		synchronized (repositories) {
+			for (Pair<RemoteRepository, ProcessList> repoProcessListPair : copiedProcessList) {
+				if (repoProcessListPair.getFirst() == repository) {
+					return repoProcessListPair.getSecond();
+				}
+			}
+		}
+		return null;
+	}
 }

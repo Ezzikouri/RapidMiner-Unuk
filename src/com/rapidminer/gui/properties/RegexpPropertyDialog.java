@@ -76,6 +76,7 @@ import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.ParameterTypeRegexp;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.Tools;
 
 
 /**
@@ -199,14 +200,14 @@ public class RegexpPropertyDialog extends PropertyDialog {
 				output += "<html>"+
 						"<span style=\"font-size:11px;margin:2px 0 2px 4px;\">" +
 						//"Match "+number+": <b>'"+match+"'</b>" +
-						I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.result_list.match", number, "<b>'"+match+"'</b>") +
+						I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.result_list.match", number, "<b>'"+Tools.escapeHTML(match)+"'</b>") +
 						"</span>";
 				if (groups.length > 0) {
 					output += 
 							"<ol style=\"margin:1px 0 0 24px\">";
 					for (int i = 0; i < groups.length; i++) {
 						//output += "<li>Group matches: <b>'" + groups[i] +"'</b></li>";
-						output += "<li>" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.result_list.group_match", "<b>'" + groups[i] +"'</b>") + "</li>";
+						output += "<li>" + I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.result_list.group_match", "<b>'" + Tools.escapeHTML(groups[i]) +"'</b>") + "</li>";
 						
 					}
 					output += "</ul>";
@@ -633,7 +634,7 @@ public class RegexpPropertyDialog extends PropertyDialog {
 			panel.add(itemPanel, 0, 1);
 		}
 
-		okButton = makeOkButton();
+		okButton = makeOkButton("regexp_property_dialog_apply");
 		fireRegularExpressionUpdated();
 		
 		layoutDefault(panel, supportsItems ? NORMAL : NARROW, okButton, makeCancelButton());
@@ -778,7 +779,6 @@ public class RegexpPropertyDialog extends PropertyDialog {
 			}
 			if (isConstruct) {
 				if (regexpConstructInsertionEncloseSelected[row] && regexpTextField.getSelectedText() != null) {
-					System.out.println(1);
 					int selectionStart = regexpTextField.getSelectionStart();
 					int selectionEnd = regexpTextField.getSelectionEnd();
 					String newText = text.substring(0, selectionStart) +
@@ -791,7 +791,6 @@ public class RegexpPropertyDialog extends PropertyDialog {
 					regexpTextField.setSelectionStart(selectionStart + regexpConstructInsertionSelectionIndices[row][0]);
 					regexpTextField.setSelectionEnd(selectionEnd + regexpConstructInsertionSelectionIndices[row][1]);
 				} else {
-					System.out.println(2);
 					int cursorPosition = regexpTextField.getCaretPosition();
 					String newText = text.substring(0, cursorPosition) + insertionString +
 									 (cursorPosition < text.length() ? text.substring(cursorPosition) : "");
@@ -801,7 +800,6 @@ public class RegexpPropertyDialog extends PropertyDialog {
 					regexpTextField.setSelectionEnd(cursorPosition + regexpConstructInsertionSelectionIndices[row][1]);
 				}
 			} else {
-				System.out.println(3);
 				int cursorPosition = regexpTextField.getCaretPosition();
 				String newText = text.substring(0, cursorPosition) + insertionString +
 								 (cursorPosition < text.length() ? text.substring(cursorPosition) : "");

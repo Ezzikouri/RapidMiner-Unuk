@@ -22,9 +22,12 @@
  */
 package com.rapidminer.repository.gui.actions;
 
+import javax.swing.SwingUtilities;
+
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryTree;
 
 /**
@@ -35,17 +38,40 @@ import com.rapidminer.repository.gui.RepositoryTree;
 public class DeleteRepositoryEntryAction extends AbstractRepositoryAction<Entry> {
 	
 	private static final long serialVersionUID = 1L;
+	
+	private RepositoryTree tree;
 
 	
 	public DeleteRepositoryEntryAction(RepositoryTree tree) {
 		super(tree, Entry.class, false, "repository_delete_entry");
+		this.tree = tree;
 	}
 
 	@Override
 	public void actionPerformed(Entry entry) {
 		if (SwingTools.showConfirmDialog("file_chooser.delete", ConfirmDialog.YES_NO_OPTION, entry.getName()) == ConfirmDialog.YES_OPTION) {
 			try {
+				final RepositoryLocation location;
+				if (entry.getContainingFolder() != null) {
+					location = entry.getContainingFolder().getLocation();
+				} else {
+					location = null;
+				}
 				entry.delete();
+				// select parent node (if possible)
+				// invoke later because a JTree will select another node as a result of a deletion event
+				// we want to select our parent node afterwards
+				if (location == null) {
+					return;
+				}
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						tree.expandAndSelectIfExists(location);
+					}
+					
+				});
 			} catch (Exception e1) {
 				SwingTools.showSimpleErrorMessage("cannot_delete_entry", e1, entry.getLocation());
 			}

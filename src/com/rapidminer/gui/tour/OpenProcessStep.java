@@ -22,16 +22,14 @@
  */
 package com.rapidminer.gui.tour;
 
-import java.awt.Component;
 import java.awt.Window;
-
-import javax.swing.AbstractButton;
 
 import com.rapidminer.Process;
 import com.rapidminer.ProcessStorageListener;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.tools.components.BubbleToButton;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 
 /**
  * This subclass of {@link Step} will open a {@link BubbleWindow} which closes if the user has opened a process.
@@ -42,10 +40,9 @@ import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
 
 public class OpenProcessStep extends Step {
 
-	private Alignment alignment;
-	private Window owner;
+	private AlignedSide alignment;
+	private Window owner = RapidMinerGUI.getMainFrame().getWindow();
 	private String i18nKey;
-	private Component attachTo;
 	private String attachToKey;
 	private ProcessStorageListener listener = null;
 
@@ -56,12 +53,10 @@ public class OpenProcessStep extends Step {
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param attachTo Component to which the {@link BubbleWindow} should point to.
 	 */
-	public OpenProcessStep(Alignment preferedAlignment, Window owner, String i18nKey, Component attachTo) {
+	public OpenProcessStep(AlignedSide preferedAlignment, String i18nKey, String attachToKey) {
 		this.alignment = preferedAlignment;
-		this.owner = owner;
 		this.i18nKey = i18nKey;
-		this.attachTo = attachTo;
-		this.attachToKey = null;
+		this.attachToKey = attachToKey;
 	}
 
 	/**
@@ -71,26 +66,23 @@ public class OpenProcessStep extends Step {
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param attachToKey key of the Component to which the {@link BubbleWindow} should point to.
 	 */
-	public OpenProcessStep(Alignment preferedAlignment, Window owner, String i18nKey, String attachToKey) {
+	public OpenProcessStep(AlignedSide preferedAlignment, String i18nKey, String attachToKey, Window owner) {
 		this.alignment = preferedAlignment;
 		this.owner = owner;
 		this.i18nKey = i18nKey;
-		this.attachTo = null;
 		this.attachToKey = attachToKey;
 	}
 
 	@Override
 	boolean createBubble() {
-		if (attachTo == null) {
-			if (attachToKey == null)
-				throw new IllegalArgumentException("no component to attach !");
-			bubble = new BubbleWindow(owner, null, alignment, i18nKey, attachToKey, false, new Object[] {});
-		} else {
-			bubble = new BubbleWindow(owner, null, alignment, i18nKey,(AbstractButton) attachTo, false, new Object[] {});
-		}
+		if (attachToKey == null)
+			throw new IllegalArgumentException("no component to attach !");
+		bubble = new BubbleToButton(owner, null, alignment, i18nKey, attachToKey, false, new Object[] {});
 		listener = new ProcessStorageListener() {
 			@Override
-			public void stored(Process process) { }
+			public void stored(Process process) { 
+				
+			}
 
 			@Override
 			public void opened(Process process) {				

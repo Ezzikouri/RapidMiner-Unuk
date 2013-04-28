@@ -382,7 +382,8 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
                 }
                 StringBuilder b = new StringBuilder();
                 b.append("<h3>").append(opDesc.getName()).append("</h3><p>");
-                b.append(opDesc.getLongDescriptionHTML()).append("</p>");
+                //b.append(opDesc.getLongDescriptionHTML()).append("</p>");
+                b.append(opDesc.getShortDescription()).append("</p>");
                 return b.toString();
             }
 

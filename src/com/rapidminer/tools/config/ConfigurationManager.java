@@ -232,6 +232,10 @@ public abstract class ConfigurationManager {
 			try {
 				HttpURLConnection connection = ra.getHTTPConnection("/RAWS/" + RAPIDANALYTICS_CONFIGURATION_URL_PREFIX + typeId, true);
 				WebServiceTools.setURLConnectionDefaults(connection);
+				if (connection.getResponseCode() == 404) {
+					LogService.getRoot().log(Level.INFO, "com.rapidminer.tools.config.ConfigurationManager.loading_configuration.unknown", new Object[] { typeId, ra.getName() });
+					continue;
+				}
 				Map<Pair<Integer, String>, Map<String, String>> configurationParameters = fromXML(XMLTools.parse(connection.getInputStream()), configurator);
 				int counter = configurationParameters.size();
 				createAndRegisterConfigurables(configurator, configurationParameters, ra);
@@ -252,7 +256,6 @@ public abstract class ConfigurationManager {
 			try {
 				parameters = loadAllParameters(configurator);
 			} catch (ConfigurationException e1) {
-				//LogService.getRoot().log(Level.WARNING, "Failed to load configuration for "+configurator.getName()+": "+e1, e1);
 				LogService.getRoot().log(Level.WARNING,
 						I18N.getMessage(LogService.getRoot().getResourceBundle(),
 								"com.rapidminer.tools.config.ConfigurationManager.loading_configuration_error",

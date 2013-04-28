@@ -345,12 +345,23 @@ public class Tools {
 	 * @throws OperatorException
 	 */
 	public static void onlyNumericalAttributes(ExampleSet es, String task) throws OperatorException {
-		for (Attribute attribute : es.getAttributes()) {
+		onlyNumericalAttributes(es.getAttributes(), task);
+	}
+
+	/**
+	 * The attributes all have to be numerical.
+	 * 
+	 * @param es
+	 *            the example set
+	 * @throws OperatorException
+	 */
+	public static void onlyNumericalAttributes(Attributes attributes, String task) throws OperatorException {
+		for (Attribute attribute : attributes) {
 			if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.NUMERICAL))
 				throw new UserError(null, 104, task, attribute.getName());
 		}
 	}
-
+	
 	/**
 	 * The attributes all have to be nominal or binary.
 	 * 
@@ -359,7 +370,16 @@ public class Tools {
 	 * @throws OperatorException
 	 */
 	public static void onlyNominalAttributes(ExampleSet es, String task) throws OperatorException {
-		for (Attribute attribute : es.getAttributes()) {
+		onlyNominalAttributes(es.getAttributes(), task);
+	}
+	
+	/**
+	 * The attributes all have to be nominal or binary.
+	 * 
+	 * @throws OperatorException
+	 */
+	public static void onlyNominalAttributes(Attributes attributes, String task) throws OperatorException {
+		for (Attribute attribute : attributes) {
 			if (!Ontology.ATTRIBUTE_VALUE_TYPE.isA(attribute.getValueType(), Ontology.NOMINAL))
 				throw new UserError(null, 103, task, attribute.getName());
 		}

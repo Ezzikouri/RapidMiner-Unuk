@@ -1,5 +1,5 @@
 <project name="buildExtension" xmlns:ac="antlib:net.sf.antcontrib">
-	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar" />
+	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="${rm.dir}/ant/ant-contrib-1.0b3.jar" />
 	<property file="build.properties" />
 
 	<property name="extension.updateServerId" value="rmx_${extension.namespace}" />
@@ -23,6 +23,8 @@
 	<property name="compiler.debug" value="true" />
 	<property name="compiler.arguments" value="-Xlint:deprecation,finally,unchecked,path,serial" />
 	<property name="compiler.deprecation" value="yes" />
+	<property name="compiler.source" value="1.6" />
+	<property name="compiler.target" value="1.6" />
 
 	<!-- Update and release server properties -->
 	<property file="${rm.dir}/server.properties" />
@@ -87,7 +89,7 @@
 		<taskdef onerror="fail" resource="org/freecompany/redline/ant/antlib.xml" classpath="ant/redline-1.1.3.jar" />
 
 		<!-- FOR Tasks -->
-		<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="../RapidMiner_Unuk/ant/ant-contrib-1.0b3.jar" />
+		<taskdef onerror="fail" resource="net/sf/antcontrib/antlib.xml" classpath="${rm.dir}/ant/ant-contrib-1.0b3.jar" />
 
 		<!-- SCP Tasks -->
 		<copy file="ant/jsch-0.1.42.jar" todir="${ant.library.dir}" failonerror="false" />
@@ -133,9 +135,22 @@
 		<property name="lock.isCopied" value="true" />
 	</target>
 
-	<target name="build" depends="init, copy-resources, merge.changes" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
+	<target name="prepare_agpl" if="build.no_agpl">
+		<antcall target="prepare-jep" />
+	</target>
+
+	<target name="build" depends="init, copy-resources, merge.changes,prepare_agpl" unless="lock.isBuilt" description="Compiles classes after copying resources to the build directory">
 		<!-- testing if rapid miner must be built beforehand -->
-		<available file="${rm.lib}/rapidminer.jar" property="build.rmAvailable" />
+		<echo message="build.no_agpl=${build.no_agpl}" />
+		<condition property="build.rmAvailable">
+			<and>
+				<available file="${rm.lib}/rapidminer.jar" />
+				<not>
+					<isset property="build.no_agpl" />
+				</not>
+			</and>
+		</condition>
+		<!--available file="${rm.lib}/rapidminer.jar" property="build.rmAvailable" /-->
 		<antcall target="build.rm" />
 
 		<!-- building all dependend plugins-->
@@ -144,7 +159,7 @@
 		<!-- building extension-->
 		<echo message="RapidMiner Extension ${extension.name}: Compile with Java from dir: ${java.home}" />
 		<echo message="RapidMiner Extension ${extension.name}: using Java version: ${java.version}" />
-		<javac encoding="${build.encoding}" debug="${compiler.debug}" destdir="${build.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" source="1.6" target="1.6">
+		<javac encoding="${build.encoding}" debug="${compiler.debug}" destdir="${build.build}" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" source="${compiler.source}" target="${compiler.target}">
 			<src>
 				<path refid="build.sources.path" />
 			</src>
@@ -200,9 +215,18 @@
 		<echo message="...Finished" />
 	</target>
 
-	<target name="build.rm" unless="build.rmAvailable" description="This target will build the rapidminer, if not already done.">
-		<ant antfile="${rm.dir}/build.xml" target="createJar" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
+	<target name="build.rm" unless="build.rmAvailable" depends="clean_agpl" description="This target will build the rapidminer, if not already done.">
+		<ant antfile="${rm.dir}/build.xml" target="createJar" dir="${rm.dir}" inheritall="false" inheritrefs="false">
+			<property name="build.no_agpl" value="${build.no_agpl}" />
+			<property name="lib.exclude" value="${lib.exclude}" />
+		</ant>
 		<ant antfile="${rm.dir}/build.xml" target="test.build" dir="${rm.dir}" inheritall="false" inheritrefs="false" />
+	</target>
+
+	<target name="clean_agpl" depends="clean" if="build.no_agpl">
+		<ant antfile="${rm.dir}/build.xml" target="clean" dir="${rm.dir}" inheritall="false" inheritrefs="false">
+			<property name="build.no_agpl" value="${build.no_agpl}" />
+		</ant>
 	</target>
 
 	<target name="unzipLibs" unless="build.noRebundleJars">
@@ -482,16 +506,16 @@ Name "${extension.name.long}"
 	<target name="version.updateFiles">
 		<!-- Installer version-->
 		<echo file="${rm.dir}/installation/extension_version.nsi">
-                !define SHORT_VERSION ${extension.shortversion}
-                !define LONG_VERSION ${extension.longversion}.0
-        	    !define RM_LONG_VERSION ${extension.longversion}
+!define SHORT_VERSION ${extension.shortversion}
+!define LONG_VERSION ${extension.longversion}.0
+!define RM_LONG_VERSION ${extension.longversion}
         </echo>
 	</target>
 
 
 	<!-- StyleChecks -->
 	<target name="check.build">
-		<javac debug="false" destdir="${rm.dir}/build" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" target="1.6" source="1.6">
+		<javac debug="false" destdir="${rm.dir}/build" deprecation="${compiler.deprecation}" compiler="${compiler.version}" fork="true" memorymaximumsize="400m" target="${compiler.source}" source="${compiler.target}">
 			<compilerarg value="${compiler.arguments}" />
 			<classpath refid="build.classpath" />
 			<src path="${rm.dir}/src" />

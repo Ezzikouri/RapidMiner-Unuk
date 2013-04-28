@@ -44,7 +44,7 @@ import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeFile;
 import com.rapidminer.parameter.UndefinedParameterError;
-import com.rapidminer.tools.math.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 
 /**
@@ -94,7 +94,7 @@ public class AttributeConstructionsLoader extends Operator {
 			InputStream in = null;
 			try {
 				in = new FileInputStream(file);
-				generatedAttributes = ExpressionParser.generateAll(this, exampleSet, in);
+				generatedAttributes = ExpressionParserFactory.getExpressionParser(true).generateAll(this, exampleSet, in);
 			} catch (java.io.IOException e) {
 				throw new UserError(this, e, 302, new Object[] { file.getName(), e.getMessage() });
 			} finally {

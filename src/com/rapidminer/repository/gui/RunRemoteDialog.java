@@ -170,7 +170,7 @@ public class RunRemoteDialog extends ButtonDialog {
 		}
 		processField.selectAll();
 
-		final JButton okButton = makeOkButton();
+		final JButton okButton = makeOkButton("run_remote_dialog_schedule");
 		final JButton cancelButton = makeCancelButton();
 
 		List<RemoteRepository> remoteRepositories = RepositoryManager.getInstance(null).getRemoteRepositories();

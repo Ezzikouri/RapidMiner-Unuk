@@ -20,8 +20,12 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.nio.model;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -29,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TimeZone;
+import java.util.logging.Level;
 
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
@@ -40,6 +45,8 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.tools.I18N;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.ProgressListener;
 import com.rapidminer.tools.Tools;
 
@@ -66,6 +73,7 @@ public class Excel2007ResultSet implements DataResultSet {
 	private Cell[] currentRowCells;
 
 	private Workbook workbook;
+	private InputStream workbookInputStream;
 
 	//private ExcelResultSetConfiguration configuration;
 
@@ -73,7 +81,6 @@ public class Excel2007ResultSet implements DataResultSet {
 
 	private String timeZone;
 	private String dateFormat;
-
 
 	/**
 	 * The constructor to build an ExcelResultSet from the given configuration. The calling operator might be null. It
@@ -84,20 +91,20 @@ public class Excel2007ResultSet implements DataResultSet {
 		columnOffset = configuration.getColumnOffset();
 		rowOffset = configuration.getRowOffset();
 		currentRow = configuration.getRowOffset() - 1;
-		
+
 		timeZone = configuration.getTimezone();
 		dateFormat = configuration.getDatePattern();
-		
 		try {
-			workbook = WorkbookFactory.create(configuration.getFile());
+			workbookInputStream = new FileInputStream(configuration.getFile());
+			workbook = WorkbookFactory.create(workbookInputStream);
 		} catch (Exception e1) {
 			throw new UserError(callingOperator, "file_consumer.error_loading_file");
 		}
-		
+
 		// check range
 		if (columnOffset > configuration.getColumnLast() || rowOffset > configuration.getRowLast() || columnOffset < 0 || rowOffset < 0)
 			throw new UserError(callingOperator, 223, Tools.getExcelColumnName(columnOffset) + rowOffset + ":" + Tools.getExcelColumnName(configuration.getColumnLast()) + configuration.getRowLast());
-		
+
 		// check file presence
 		if (configuration.getFile() == null) {
 			throw new UserError(callingOperator, "file_consumer.no_file_defined");
@@ -119,7 +126,7 @@ public class Excel2007ResultSet implements DataResultSet {
 
 		if (totalNumberOfColumns < 0 || totalNumberOfRows < 0)
 			throw new UserError(callingOperator, 404);
-		
+
 		emptyColumns = new boolean[totalNumberOfColumns];
 		emptyRows = new boolean[totalNumberOfRows];
 
@@ -170,7 +177,7 @@ public class Excel2007ResultSet implements DataResultSet {
 
 		// retrieve or generate attribute names
 		attributeNames = new String[nonEmptyColumnsList.size()];
-		
+
 		if (!configuration.isEmulatingOldNames()) {
 			for (int i = 0; i < numberOfAttributes; i++) {
 				attributeNames[i] = Tools.getExcelColumnName(nonEmptyColumnsList.get(i));
@@ -230,7 +237,14 @@ public class Excel2007ResultSet implements DataResultSet {
 
 	@Override
 	public void close() throws OperatorException {
-		//configuration.closeWorkbook();
+		try {
+			if (workbookInputStream != null) {
+				workbookInputStream.close();
+				workbookInputStream = null;
+			}
+		} catch (IOException e) {
+			LogService.getRoot().log(Level.WARNING, I18N.getMessage(LogService.getRoot().getResourceBundle(), "com.rapidminer.operator.nio.model.ExcelResultSetConfiguration.close_workbook_error", e.getMessage()), e);
+		}
 	}
 
 	@Override
@@ -247,10 +261,10 @@ public class Excel2007ResultSet implements DataResultSet {
 	public boolean isMissing(int columnIndex) {
 		Cell cell = getCurrentCell(columnIndex);
 		try {
-		boolean missing = cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK ||
-				cell.getCellType() == Cell.CELL_TYPE_ERROR ||
-				"".equals(cell.getStringCellValue().trim());
-		return missing;
+			boolean missing = cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK ||
+					cell.getCellType() == Cell.CELL_TYPE_ERROR ||
+					"".equals(cell.getStringCellValue().trim());
+			return missing;
 		} catch (IllegalStateException e) {
 			return false;
 		}
@@ -269,7 +283,7 @@ public class Excel2007ResultSet implements DataResultSet {
 	@Override
 	public Number getNumber(int columnIndex) throws ParseException {
 		final Cell cell = getCurrentCell(columnIndex);
-		if(cell == null) {
+		if (cell == null) {
 			return Double.NaN;
 		}
 		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC || cell.getCellType() == Cell.CELL_TYPE_FORMULA) {
@@ -291,7 +305,7 @@ public class Excel2007ResultSet implements DataResultSet {
 	@Override
 	public Date getDate(int columnIndex) throws ParseException {
 		final Cell cell = getCurrentCell(columnIndex);
-		if(cell == null) {
+		if (cell == null) {
 			return null;
 		}
 		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
@@ -316,7 +330,7 @@ public class Excel2007ResultSet implements DataResultSet {
 	@Override
 	public String getString(int columnIndex) {
 		final Cell cell = getCurrentCell(columnIndex);
-		if(cell == null) {
+		if (cell == null) {
 			return "";
 		}
 		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
@@ -354,7 +368,7 @@ public class Excel2007ResultSet implements DataResultSet {
 			} else {
 				return ValueType.NUMBER;
 			}
-		} else if (type == Cell.CELL_TYPE_FORMULA){
+		} else if (type == Cell.CELL_TYPE_FORMULA) {
 			return ValueType.NUMBER;
 		} else {
 			return ValueType.STRING;

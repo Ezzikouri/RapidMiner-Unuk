@@ -77,7 +77,7 @@ public abstract class ResourceAction extends ConditionalAction {
 			if (name != null && name.length() > 0 && 
 					(name.indexOf(mne.charAt(0)) == -1) && 
 					(name.indexOf(Character.toLowerCase(mne.charAt(0))) == -1)) {
-				LogService.getRoot().log(Level.WARNING, 
+				LogService.getRoot().log(Level.FINE, 
 						"com.rapidminer.gui.tools.ResourceAction.key_not_found", 
 						new Object[] {mne, i18nKey, name});
 			}
@@ -133,7 +133,7 @@ public abstract class ResourceAction extends ConditionalAction {
 				comp.getInputMap(condition).put(keyStroke, actionKey);
 				comp.getActionMap().put(actionKey, this);
 			} else {
-				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.tools.ResourceAction.add_action_key_error", key);
+				LogService.getRoot().log(Level.FINE, "com.rapidminer.gui.tools.ResourceAction.add_action_key_error", key);
 			}
 			if (disableOnFocusLost) {
 				comp.addFocusListener(new FocusListener() {

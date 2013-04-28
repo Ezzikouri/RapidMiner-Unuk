@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
 import java.util.ArrayList;
@@ -90,539 +91,538 @@ import com.rapidminer.tools.OperatorService;
  */
 public class AggregationOperator extends AbstractDataProcessing {
 
-    public static class AggregationTreeNode {
-        private TreeMap<Object, AggregationTreeNode> childrenMap = null;
-        private TreeMap<Object, LeafAggregationTreeNode> leafMap = null;
+	public static class AggregationTreeNode {
 
-        public AggregationTreeNode getOrCreateChild(Object value) {
-            // creating map dynamically to save allocated objects in case this won't be used
-            if (childrenMap == null) {
-                childrenMap = new TreeMap<Object, AggregationTreeNode>();
-            }
+		private TreeMap<Object, AggregationTreeNode> childrenMap = null;
+		private TreeMap<Object, LeafAggregationTreeNode> leafMap = null;
 
-            // searching entry and creating it if necessary
-            AggregationTreeNode childNode = childrenMap.get(value);
-            if (childNode == null) {
-                childNode = new AggregationTreeNode();
-                childrenMap.put(value, childNode);
-            }
-            return childNode;
-        }
+		public AggregationTreeNode getOrCreateChild(Object value) {
+			// creating map dynamically to save allocated objects in case this won't be used
+			if (childrenMap == null) {
+				childrenMap = new TreeMap<Object, AggregationTreeNode>();
+			}
 
-        public AggregationTreeNode getChild(Object value) {
-            if (childrenMap != null) {
-                return childrenMap.get(value);
-            }
-            return null;
-        }
+			// searching entry and creating it if necessary
+			AggregationTreeNode childNode = childrenMap.get(value);
+			if (childNode == null) {
+				childNode = new AggregationTreeNode();
+				childrenMap.put(value, childNode);
+			}
+			return childNode;
+		}
 
-        public Set<Entry<Object, AggregationTreeNode>> getChilds() {
-            return childrenMap.entrySet();
-        }
+		public AggregationTreeNode getChild(Object value) {
+			if (childrenMap != null) {
+				return childrenMap.get(value);
+			}
+			return null;
+		}
 
-        public LeafAggregationTreeNode getOrCreateLeaf(Object value, List<AggregationFunction> aggregationFunctions) {
-            // creating map dynamically to save allocated objects in case this won't be used
-            if (leafMap == null) {
-                leafMap = new TreeMap<Object, LeafAggregationTreeNode>();
-            }
+		public Set<Entry<Object, AggregationTreeNode>> getChilds() {
+			return childrenMap.entrySet();
+		}
 
-            // searching entry and creating it if necessary
-            LeafAggregationTreeNode leafNode = leafMap.get(value);
-            if (leafNode == null) {
-                leafNode = new LeafAggregationTreeNode(aggregationFunctions);
-                leafMap.put(value, leafNode);
-            }
-            return leafNode;
-        }
+		public LeafAggregationTreeNode getOrCreateLeaf(Object value, List<AggregationFunction> aggregationFunctions) {
+			// creating map dynamically to save allocated objects in case this won't be used
+			if (leafMap == null) {
+				leafMap = new TreeMap<Object, LeafAggregationTreeNode>();
+			}
 
-        public LeafAggregationTreeNode getLeaf(Object value) {
-            if (leafMap != null) {
-                return leafMap.get(value);
-            }
-            return null;
-        }
+			// searching entry and creating it if necessary
+			LeafAggregationTreeNode leafNode = leafMap.get(value);
+			if (leafNode == null) {
+				leafNode = new LeafAggregationTreeNode(aggregationFunctions);
+				leafMap.put(value, leafNode);
+			}
+			return leafNode;
+		}
 
-        public Set<Entry<Object, LeafAggregationTreeNode>> getLeaves() {
-            return leafMap.entrySet();
-        }
+		public LeafAggregationTreeNode getLeaf(Object value) {
+			if (leafMap != null) {
+				return leafMap.get(value);
+			}
+			return null;
+		}
 
-        public Collection<? extends Object> getValues() {
-            if (childrenMap != null)
-                return childrenMap.keySet();
-            if (leafMap != null)
-                return leafMap.keySet();
-            return Collections.emptyList();
-        }
-    }
+		public Set<Entry<Object, LeafAggregationTreeNode>> getLeaves() {
+			return leafMap.entrySet();
+		}
 
-    public static class LeafAggregationTreeNode {
-        private List<Aggregator> aggregators;
+		public Collection<? extends Object> getValues() {
+			if (childrenMap != null)
+				return childrenMap.keySet();
+			if (leafMap != null)
+				return leafMap.keySet();
+			return Collections.emptyList();
+		}
+	}
 
-        /**
-         * Creates a new {@link LeafAggregationTreeNode} for all the given {@link AggregationFunction}s.
-         * For each function, one {@link Aggregator} will be created, that will keep track of the current
-         * counted values.
-         */
-        public LeafAggregationTreeNode(List<AggregationFunction> aggregationFunctions) {
-            aggregators = new ArrayList<Aggregator>(aggregationFunctions.size());
-            for (AggregationFunction function : aggregationFunctions) {
-                aggregators.add(function.createAggregator());
-            }
-        }
+	public static class LeafAggregationTreeNode {
 
-        /**
-         * This will count the given examples for all registered {@link Aggregator}s.
-         */
-        public void count(Example example) {
-            for (Aggregator aggregator : aggregators) {
-                aggregator.count(example);
-            }
-        }
+		private List<Aggregator> aggregators;
 
-        /**
-         * This will count the given examples for all registered {@link Aggregator}s with the given weight.
-         * If there's no weight attribute available, it is preferable to use the {@link #count(Example)} method,
-         * as it might be more efficiently implemented.
-         */
-        public void count(Example example, double weight) {
-            for (Aggregator aggregator : aggregators) {
-                aggregator.count(example, weight);
-            }
-        }
+		/**
+		 * Creates a new {@link LeafAggregationTreeNode} for all the given {@link AggregationFunction}s.
+		 * For each function, one {@link Aggregator} will be created, that will keep track of the current
+		 * counted values.
+		 */
+		public LeafAggregationTreeNode(List<AggregationFunction> aggregationFunctions) {
+			aggregators = new ArrayList<Aggregator>(aggregationFunctions.size());
+			for (AggregationFunction function : aggregationFunctions) {
+				aggregators.add(function.createAggregator());
+			}
+		}
 
-        /**
-         * This simply returns the list of all aggregators. They may be used for setting values within
-         * the respective data row of the created example set.
-         */
-        public List<Aggregator> getAggregators() {
-            return aggregators;
-        }
-    }
+		/**
+		 * This will count the given examples for all registered {@link Aggregator}s.
+		 */
+		public void count(Example example) {
+			for (Aggregator aggregator : aggregators) {
+				aggregator.count(example);
+			}
+		}
 
-    public static final String PARAMETER_USE_DEFAULT_AGGREGATION = "use_default_aggregation";
-    public static final String PARAMETER_DEFAULT_AGGREGATION_FUNCTION = "default_aggregation_function";
-    public static final String PARAMETER_AGGREGATION_ATTRIBUTES = "aggregation_attributes";
-    public static final String PARAMETER_AGGREGATION_FUNCTIONS = "aggregation_functions";
-    public static final String PARAMETER_GROUP_BY_ATTRIBUTES = "group_by_attributes";
-    public static final String PARAMETER_ONLY_DISTINCT = "only_distinct";
-    public static final String PARAMETER_IGNORE_MISSINGS = "ignore_missings";
-    public static final String PARAMETER_ALL_COMBINATIONS = "count_all_combinations";
+		/**
+		 * This will count the given examples for all registered {@link Aggregator}s with the given weight.
+		 * If there's no weight attribute available, it is preferable to use the {@link #count(Example)} method,
+		 * as it might be more efficiently implemented.
+		 */
+		public void count(Example example, double weight) {
+			for (Aggregator aggregator : aggregators) {
+				aggregator.count(example, weight);
+			}
+		}
 
-    /* These two only remain for compatibility */
-    public static final String GENERIC_GROUP_NAME = "group";
-    public static final String GENERIC_ALL_NAME = "all";
+		/**
+		 * This simply returns the list of all aggregators. They may be used for setting values within
+		 * the respective data row of the created example set.
+		 */
+		public List<Aggregator> getAggregators() {
+			return aggregators;
+		}
+	}
 
-    /*
-     * Later from this version, no group attribute will be created if no attributes for groups were selected.
-     * Also after this numerical attributes used for grouping will not be transformed into nominal attributes anymore.
-     */
-    private static final OperatorVersion VERSION_5_1_6 = new OperatorVersion(5, 1, 6);
+	public static final String PARAMETER_USE_DEFAULT_AGGREGATION = "use_default_aggregation";
+	public static final String PARAMETER_DEFAULT_AGGREGATION_FUNCTION = "default_aggregation_function";
+	public static final String PARAMETER_AGGREGATION_ATTRIBUTES = "aggregation_attributes";
+	public static final String PARAMETER_AGGREGATION_FUNCTIONS = "aggregation_functions";
+	public static final String PARAMETER_GROUP_BY_ATTRIBUTES = "group_by_attributes";
+	public static final String PARAMETER_ONLY_DISTINCT = "only_distinct";
+	public static final String PARAMETER_IGNORE_MISSINGS = "ignore_missings";
+	public static final String PARAMETER_ALL_COMBINATIONS = "count_all_combinations";
+
+	/* These two only remain for compatibility */
+	public static final String GENERIC_GROUP_NAME = "group";
+	public static final String GENERIC_ALL_NAME = "all";
+
+	/*
+	 * Later from this version, no group attribute will be created if no attributes for groups were selected.
+	 * Also after this numerical attributes used for grouping will not be transformed into nominal attributes anymore.
+	 */
+	private static final OperatorVersion VERSION_5_1_6 = new OperatorVersion(5, 1, 6);
 	private static final OperatorVersion VERSION_5_2_8 = new OperatorVersion(5, 2, 8);
 
-    private final AttributeSubsetSelector attributeSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
+	private final AttributeSubsetSelector attributeSelector = new AttributeSubsetSelector(this, getExampleSetInputPort());
 
-    public AggregationOperator(OperatorDescription desc) {
-        super(desc);
-    }
+	public AggregationOperator(OperatorDescription desc) {
+		super(desc);
+	}
 
-    @Override
-    protected MetaData modifyMetaData(ExampleSetMetaData metaData) throws UndefinedParameterError {
-        ExampleSetMetaData resultMD = metaData.clone();
-        resultMD.clear();
+	@Override
+	protected MetaData modifyMetaData(ExampleSetMetaData metaData) throws UndefinedParameterError {
+		ExampleSetMetaData resultMD = metaData.clone();
+		resultMD.clear();
 
-        // add group by attributes
-        if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && !getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).isEmpty()) {
-            String attributeRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
-            Pattern pattern = Pattern.compile(attributeRegex);
+		// add group by attributes
+		if (isParameterSet(PARAMETER_GROUP_BY_ATTRIBUTES) && !getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES).isEmpty()) {
+			String attributeRegex = getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES);
+			Pattern pattern = Pattern.compile(attributeRegex);
 
-            for (AttributeMetaData amd : metaData.getAllAttributes()) {
-                if (pattern.matcher(amd.getName()).matches()) {
-                    if (amd.isNumerical() && getCompatibilityLevel().isAtMost(VERSION_5_1_6)) { // converting type to mimic
-                        // NumericalToPolynomial used below
-                        amd.setType(Ontology.NOMINAL);
-                        amd.setValueSet(Collections.<String> emptySet(), SetRelation.SUPERSET);
-                    }
-                    resultMD.addAttribute(amd);
-                }
-            }
-            resultMD.getNumberOfExamples().reduceByUnknownAmount();
-        }
-        if (resultMD.getAllAttributes().isEmpty() && getCompatibilityLevel().isAtMost(VERSION_5_1_6)) {
-            AttributeMetaData allGroup = new AttributeMetaData(GENERIC_GROUP_NAME, Ontology.NOMINAL);
-            Set<String> values = new TreeSet<String>();
-            values.add(GENERIC_ALL_NAME);
-            allGroup.setValueSet(values, SetRelation.EQUAL);
-            resultMD.addAttribute(allGroup);
-            resultMD.setNumberOfExamples(new MDInteger(1));
-        }
+			for (AttributeMetaData amd : metaData.getAllAttributes()) {
+				if (pattern.matcher(amd.getName()).matches()) {
+					if (amd.isNumerical() && getCompatibilityLevel().isAtMost(VERSION_5_1_6)) { // converting type to mimic
+						// NumericalToPolynomial used below
+						amd.setType(Ontology.NOMINAL);
+						amd.setValueSet(Collections.<String> emptySet(), SetRelation.SUPERSET);
+					}
+					resultMD.addAttribute(amd);
+				}
+			}
+			resultMD.getNumberOfExamples().reduceByUnknownAmount();
+		}
+		if (resultMD.getAllAttributes().isEmpty() && getCompatibilityLevel().isAtMost(VERSION_5_1_6)) {
+			AttributeMetaData allGroup = new AttributeMetaData(GENERIC_GROUP_NAME, Ontology.NOMINAL);
+			Set<String> values = new TreeSet<String>();
+			values.add(GENERIC_ALL_NAME);
+			allGroup.setValueSet(values, SetRelation.EQUAL);
+			resultMD.addAttribute(allGroup);
+			resultMD.setNumberOfExamples(new MDInteger(1));
+		}
 
-        // add aggregated attributes of default aggregation: They will apply only to those attribute not mentioned explicitly
-        List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
-        HashSet<String> explicitDefinedAttributes = new HashSet<String>();
-        for (String[] function : parameterList) {
-            explicitDefinedAttributes.add(function[0]);
-        }
-        if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
-            String defaultFunction = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
-            ExampleSetMetaData metaDataSubset = attributeSelector.getMetaDataSubset(metaData, false);
-            for (AttributeMetaData amd : metaDataSubset.getAllAttributes()) {
-                if (!explicitDefinedAttributes.contains(amd.getName())) {
-                    AttributeMetaData newAMD = AggregationFunction.getAttributeMetaData(defaultFunction, amd, getExampleSetInputPort());
-                    if (newAMD != null)
-                        resultMD.addAttribute(newAMD);
-                }
-            }
-        }
+		// add aggregated attributes of default aggregation: They will apply only to those attribute not mentioned explicitly
+		List<String[]> parameterList = this.getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
+		HashSet<String> explicitDefinedAttributes = new HashSet<String>();
+		for (String[] function : parameterList) {
+			explicitDefinedAttributes.add(function[0]);
+		}
+		if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
+			String defaultFunction = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
+			ExampleSetMetaData metaDataSubset = attributeSelector.getMetaDataSubset(metaData, false);
+			for (AttributeMetaData amd : metaDataSubset.getAllAttributes()) {
+				if (!explicitDefinedAttributes.contains(amd.getName())) {
+					AttributeMetaData newAMD = AggregationFunction.getAttributeMetaData(defaultFunction, amd, getExampleSetInputPort());
+					if (newAMD != null)
+						resultMD.addAttribute(newAMD);
+				}
+			}
+		}
 
-        // add explicitly defined attributes of list
-        for (String[] function : parameterList) {
-            AttributeMetaData amd = metaData.getAttributeByName(function[0]);
-            if (amd != null) {
-                AttributeMetaData newMD = AggregationFunction.getAttributeMetaData(function[1], amd, getExampleSetInputPort());
-                if (newMD != null)
-                    resultMD.addAttribute(newMD);
-            } else {
-                // in this case we should register a warning, but continue anyway in cases we don't have the correct set available
-                getExampleSetInputPort().addError(new SimpleMetaDataError(Severity.WARNING, getExampleSetInputPort(), "aggregation.attribute_unknown", function[0]));
-                AttributeMetaData newAMD = AggregationFunction.getAttributeMetaData(function[1], new AttributeMetaData(function[0], Ontology.ATTRIBUTE_VALUE), getExampleSetInputPort());
-                if (newAMD != null)
-                    resultMD.addAttribute(newAMD);
-            }
-        }
+		// add explicitly defined attributes of list
+		for (String[] function : parameterList) {
+			AttributeMetaData amd = metaData.getAttributeByName(function[0]);
+			if (amd != null) {
+				AttributeMetaData newMD = AggregationFunction.getAttributeMetaData(function[1], amd, getExampleSetInputPort());
+				if (newMD != null)
+					resultMD.addAttribute(newMD);
+			} else {
+				// in this case we should register a warning, but continue anyway in cases we don't have the correct set available
+				getExampleSetInputPort().addError(new SimpleMetaDataError(Severity.WARNING, getExampleSetInputPort(), "aggregation.attribute_unknown", function[0]));
+				AttributeMetaData newAMD = AggregationFunction.getAttributeMetaData(function[1], new AttributeMetaData(function[0], Ontology.ATTRIBUTE_VALUE), getExampleSetInputPort());
+				if (newAMD != null)
+					resultMD.addAttribute(newAMD);
+			}
+		}
 
-        return resultMD;
-    }
+		return resultMD;
+	}
 
-    @Override
-    public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
-        // creating data structures for building aggregates
-        List<AggregationFunction> aggregationFunctions = createAggreationFunctions(exampleSet);
+	@Override
+	public ExampleSet apply(ExampleSet exampleSet) throws OperatorException {
+		// creating data structures for building aggregates
+		List<AggregationFunction> aggregationFunctions = createAggreationFunctions(exampleSet);
 
-        // getting attributes that define groups and weights
-        Attribute[] groupAttributes = getMatchingAttributes(exampleSet.getAttributes(), getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES));
-        Attribute weightAttribute = exampleSet.getAttributes().getWeight();
-        boolean useWeights = weightAttribute != null;
+		// getting attributes that define groups and weights
+		Attribute[] groupAttributes = getMatchingAttributes(exampleSet.getAttributes(), getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES));
+		Attribute weightAttribute = exampleSet.getAttributes().getWeight();
+		boolean useWeights = weightAttribute != null;
 
-        // running over exampleSet and aggregate data of each example
-        AggregationTreeNode rootNode = new AggregationTreeNode();
-        LeafAggregationTreeNode leafNode = null;
-        if (groupAttributes.length == 0) {
-            // if no grouping, we will directly insert into leaf node
-            leafNode = new LeafAggregationTreeNode(aggregationFunctions);
-        }
-        for (Example example : exampleSet) {
-            if (groupAttributes.length > 0) {
-                AggregationTreeNode currentNode = rootNode;
-                // now traversing aggregation tree for m-1 group attributes
-                for (int i = 0; i < groupAttributes.length - 1; i++) {
-                    Attribute currentAttribute = groupAttributes[i];
-                    if (currentAttribute.isNominal()) {
-                        currentNode = currentNode.getOrCreateChild(example.getValueAsString(currentAttribute));
-                    } else {
-                        currentNode = currentNode.getOrCreateChild(example.getValue(currentAttribute));
-                    }
-                }
+		// running over exampleSet and aggregate data of each example
+		AggregationTreeNode rootNode = new AggregationTreeNode();
+		LeafAggregationTreeNode leafNode = null;
+		if (groupAttributes.length == 0) {
+			// if no grouping, we will directly insert into leaf node
+			leafNode = new LeafAggregationTreeNode(aggregationFunctions);
+		}
+		for (Example example : exampleSet) {
+			if (groupAttributes.length > 0) {
+				AggregationTreeNode currentNode = rootNode;
+				// now traversing aggregation tree for m-1 group attributes
+				for (int i = 0; i < groupAttributes.length - 1; i++) {
+					Attribute currentAttribute = groupAttributes[i];
+					if (currentAttribute.isNominal()) {
+						currentNode = currentNode.getOrCreateChild(example.getValueAsString(currentAttribute));
+					} else {
+						currentNode = currentNode.getOrCreateChild(example.getValue(currentAttribute));
+					}
+				}
 
-                // now we have to get the leaf node containing the aggregators
-                Attribute currentAttribute = groupAttributes[groupAttributes.length - 1];
-                if (currentAttribute.isNominal()) {
-                    leafNode = currentNode.getOrCreateLeaf(example.getValueAsString(currentAttribute), aggregationFunctions);
-                } else {
-                    leafNode = currentNode.getOrCreateLeaf(example.getValue(currentAttribute), aggregationFunctions);
-                }
-            }
-            // now count current example
-            if (!useWeights)
-                leafNode.count(example);
-            else
-                leafNode.count(example, example.getValue(weightAttribute));
-        }
+				// now we have to get the leaf node containing the aggregators
+				Attribute currentAttribute = groupAttributes[groupAttributes.length - 1];
+				if (currentAttribute.isNominal()) {
+					leafNode = currentNode.getOrCreateLeaf(example.getValueAsString(currentAttribute), aggregationFunctions);
+				} else {
+					leafNode = currentNode.getOrCreateLeaf(example.getValue(currentAttribute), aggregationFunctions);
+				}
+			}
+			// now count current example
+			if (!useWeights)
+				leafNode.count(example);
+			else
+				leafNode.count(example, example.getValue(weightAttribute));
+		}
 
-        // now derive new example set from aggregated values
-        boolean isCountingAllCombinations = getParameterAsBoolean(PARAMETER_ALL_COMBINATIONS);
+		// now derive new example set from aggregated values
+		boolean isCountingAllCombinations = getParameterAsBoolean(PARAMETER_ALL_COMBINATIONS);
 
-        // building new attributes from grouping attributes and aggregation functions
-        Attribute[] newAttributes = new Attribute[groupAttributes.length + aggregationFunctions.size()];
-        for (int i = 0; i < groupAttributes.length; i++) {
-            newAttributes[i] = AttributeFactory.createAttribute(groupAttributes[i]);
-        }
-        int i = groupAttributes.length;
-        for (AggregationFunction function : aggregationFunctions) {
-            newAttributes[i] = function.getTargetAttribute();
-            i++;
-        }
+		// building new attributes from grouping attributes and aggregation functions
+		Attribute[] newAttributes = new Attribute[groupAttributes.length + aggregationFunctions.size()];
+		for (int i = 0; i < groupAttributes.length; i++) {
+			newAttributes[i] = AttributeFactory.createAttribute(groupAttributes[i]);
+		}
+		int i = groupAttributes.length;
+		for (AggregationFunction function : aggregationFunctions) {
+			newAttributes[i] = function.getTargetAttribute();
+			i++;
+		}
 
-        // creating example table
-        MemoryExampleTable table = new MemoryExampleTable(newAttributes);
-        ;
-        DataRowFactory factory = new DataRowFactory(DataRowFactory.TYPE_DOUBLE_ARRAY, '.');
-        double[] dataOfUpperLevels = new double[groupAttributes.length];
+		// creating example table
+		MemoryExampleTable table = new MemoryExampleTable(newAttributes);
+		;
+		DataRowFactory factory = new DataRowFactory(DataRowFactory.TYPE_DOUBLE_ARRAY, '.');
+		double[] dataOfUpperLevels = new double[groupAttributes.length];
 
-        // prepare empty lists
-    	ArrayList<List<Aggregator>> allAggregators = new ArrayList<List<Aggregator>>();
-    	for (int aggregatorIdx = 0; aggregatorIdx < aggregationFunctions.size(); ++aggregatorIdx) {
-    		allAggregators.add(new ArrayList<Aggregator>());
-    	}
-    	
-    	ArrayList<double[]> allGroupCombinations = new ArrayList<double[]>();
+		// prepare empty lists
+		ArrayList<List<Aggregator>> allAggregators = new ArrayList<List<Aggregator>>();
+		for (int aggregatorIdx = 0; aggregatorIdx < aggregationFunctions.size(); ++aggregatorIdx) {
+			allAggregators.add(new ArrayList<Aggregator>());
+		}
 
-        
-        if (groupAttributes.length > 0) {
-            // going through all possible groups recursively
-            parseTree(rootNode, groupAttributes, dataOfUpperLevels, 0, allGroupCombinations, allAggregators, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
-        } else {
-            // just enter values from single leaf node
-            parseLeaf(leafNode, dataOfUpperLevels, allGroupCombinations, allAggregators, factory, newAttributes, aggregationFunctions);
-        }
-        
-        
-        // apply post-processing
-        int currentFunctionIdx = 0;
-        for (AggregationFunction aggregationFunction : aggregationFunctions) {
-        	aggregationFunction.postProcessing(allAggregators.get(currentFunctionIdx));
-        	++currentFunctionIdx;
-        }
-        
-        // write data into table
-        int currentRow = 0;
-        for (double[] groupValues : allGroupCombinations) {
-        	double[] rowData = new double[newAttributes.length];
-        	
-        	// copy group values into row
-        	System.arraycopy(groupValues, 0, rowData, 0, groupValues.length);
-          DoubleArrayDataRow dataRow = new DoubleArrayDataRow(rowData);
+		ArrayList<double[]> allGroupCombinations = new ArrayList<double[]>();
 
-        	// copy aggregated values into row
-        	int currentColumn = groupValues.length;
-        	for (List<Aggregator> aggregatorsForColumn : allAggregators) {
-        		Aggregator aggregatorForCurrentCell = aggregatorsForColumn.get(currentRow);
-        		Attribute currentAttribute = newAttributes[currentColumn];
-        		if (aggregatorForCurrentCell != null) {
+		if (groupAttributes.length > 0) {
+			// going through all possible groups recursively
+			parseTree(rootNode, groupAttributes, dataOfUpperLevels, 0, allGroupCombinations, allAggregators, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
+		} else {
+			// just enter values from single leaf node
+			parseLeaf(leafNode, dataOfUpperLevels, allGroupCombinations, allAggregators, factory, newAttributes, aggregationFunctions);
+		}
+
+		// apply post-processing
+		int currentFunctionIdx = 0;
+		for (AggregationFunction aggregationFunction : aggregationFunctions) {
+			aggregationFunction.postProcessing(allAggregators.get(currentFunctionIdx));
+			++currentFunctionIdx;
+		}
+
+		// write data into table
+		int currentRow = 0;
+		for (double[] groupValues : allGroupCombinations) {
+			double[] rowData = new double[newAttributes.length];
+
+			// copy group values into row
+			System.arraycopy(groupValues, 0, rowData, 0, groupValues.length);
+			DoubleArrayDataRow dataRow = new DoubleArrayDataRow(rowData);
+
+			// copy aggregated values into row
+			int currentColumn = groupValues.length;
+			for (List<Aggregator> aggregatorsForColumn : allAggregators) {
+				Aggregator aggregatorForCurrentCell = aggregatorsForColumn.get(currentRow);
+				Attribute currentAttribute = newAttributes[currentColumn];
+				if (aggregatorForCurrentCell != null) {
 					aggregatorForCurrentCell.set(currentAttribute, dataRow);
-        		} else {
-        			aggregationFunctions.get(currentColumn-groupAttributes.length).setDefault(currentAttribute, dataRow);
-        		}
-        		++currentColumn;
-        	}
-        	table.addDataRow(dataRow);
-        	++currentRow;
-        }
+				} else {
+					aggregationFunctions.get(currentColumn - groupAttributes.length).setDefault(currentAttribute, dataRow);
+				}
+				++currentColumn;
+			}
+			table.addDataRow(dataRow);
+			++currentRow;
+		}
 
-
-        // postprocessing for remaining compatibility: Old versions automatically added group "all". Must remain this way for old operator
-        // version
+		// postprocessing for remaining compatibility: Old versions automatically added group "all". Must remain this way for old operator
+		// version
 		if (getCompatibilityLevel().isAtMost(VERSION_5_1_6)) {
-            if (groupAttributes.length == 0) {
-                Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL);
-                table.addAttribute(resultGroupAttribute);
-                table.getDataRow(0).set(resultGroupAttribute, resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME));
+			if (groupAttributes.length == 0) {
+				Attribute resultGroupAttribute = AttributeFactory.createAttribute(GENERIC_GROUP_NAME, Ontology.NOMINAL);
+				table.addAttribute(resultGroupAttribute);
+				table.getDataRow(0).set(resultGroupAttribute, resultGroupAttribute.getMapping().mapString(GENERIC_ALL_NAME));
 
-                ExampleSet resultSet = table.createExampleSet();
-                resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
-                for (Attribute attribute : newAttributes) {
-                    resultSet.getAttributes().remove(attribute);
-                    resultSet.getAttributes().addRegular(attribute);
-                }
-                return resultSet;
-            } else {
-                // make attributes nominal
-                ExampleSet resultSet = table.createExampleSet();
-                resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
-                try {
-                    NumericToNominal toNominalOperator = OperatorService.createOperator(NumericToPolynominal.class);
-                    toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
-                    toNominalOperator.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES));
-                    toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");
-                    return toNominalOperator.apply(resultSet);
-                } catch (OperatorCreationException e) {
-                    // otherwise compatibility could not be ensured
-                    return resultSet;
-                }
-            }
-        }
-        
-        // for recent version table is correct: Deliver example set
-        ExampleSet resultSet = table.createExampleSet();
-        resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
-        return resultSet;
-    }
+				ExampleSet resultSet = table.createExampleSet();
+				resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
+				for (Attribute attribute : newAttributes) {
+					resultSet.getAttributes().remove(attribute);
+					resultSet.getAttributes().addRegular(attribute);
+				}
+				return resultSet;
+			} else {
+				// make attributes nominal
+				ExampleSet resultSet = table.createExampleSet();
+				resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
+				try {
+					NumericToNominal toNominalOperator = OperatorService.createOperator(NumericToPolynominal.class);
+					toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_FILTER_TYPE, AttributeSubsetSelector.CONDITION_REGULAR_EXPRESSION + "");
+					toNominalOperator.setParameter(RegexpAttributeFilter.PARAMETER_REGULAR_EXPRESSION, getParameterAsString(PARAMETER_GROUP_BY_ATTRIBUTES));
+					toNominalOperator.setParameter(AttributeSubsetSelector.PARAMETER_INCLUDE_SPECIAL_ATTRIBUTES, "true");
+					return toNominalOperator.apply(resultSet);
+				} catch (OperatorCreationException e) {
+					// otherwise compatibility could not be ensured
+					return resultSet;
+				}
+			}
+		}
 
-    private void parseLeaf(LeafAggregationTreeNode node, double[] dataOfUpperLevels, List<double[]> allGroupCombinations, List<List<Aggregator>> allAggregators, DataRowFactory factory, Attribute[] newAttributes, List<AggregationFunction> aggregationFunctions) {
-    	// first copying data from groups
-        double[] newGroupCombination = new double[dataOfUpperLevels.length];
-        System.arraycopy(dataOfUpperLevels, 0, newGroupCombination, 0, dataOfUpperLevels.length);
-        allGroupCombinations.add(newGroupCombination);
+		// for recent version table is correct: Deliver example set
+		ExampleSet resultSet = table.createExampleSet();
+		resultSet.getAnnotations().addAll(exampleSet.getAnnotations());
+		return resultSet;
+	}
+
+	private void parseLeaf(LeafAggregationTreeNode node, double[] dataOfUpperLevels, List<double[]> allGroupCombinations, List<List<Aggregator>> allAggregators, DataRowFactory factory, Attribute[] newAttributes, List<AggregationFunction> aggregationFunctions) {
+		// first copying data from groups
+		double[] newGroupCombination = new double[dataOfUpperLevels.length];
+		System.arraycopy(dataOfUpperLevels, 0, newGroupCombination, 0, dataOfUpperLevels.length);
+		allGroupCombinations.add(newGroupCombination);
 
 //        DoubleArrayDataRow row = new DoubleArrayDataRow(newData);
 
-        // check whether leaf exists
-        if (node != null) {
+		// check whether leaf exists
+		if (node != null) {
 //            int i = dataOfUpperLevels.length;	// number of group attributes
-        	int i = 0;
-            for (Aggregator aggregator : node.getAggregators()) {
-            	allAggregators.get(i).add(aggregator);
+			int i = 0;
+			for (Aggregator aggregator : node.getAggregators()) {
+				allAggregators.get(i).add(aggregator);
 //                aggregator.set(newAttributes[i], row);
-                i++;
-            }
-        } else {
-            // fill in defaults for all aggregation functions
+				i++;
+			}
+		} else {
+			// fill in defaults for all aggregation functions
 //            int i = dataOfUpperLevels.length;	// number of group attributes
 //            for (AggregationFunction function : aggregationFunctions) {
 //                function.setDefault(newAttributes[i], row);
 //                i++;
-        	for ( List<Aggregator> current : allAggregators) {
-        		current.add(null);
-        	}
-        }
+			for (List<Aggregator> current : allAggregators) {
+				current.add(null);
+			}
+		}
 
 //        table.addDataRow(row);
-    }
-    
-    private void parseTree(AggregationTreeNode node, Attribute[] groupAttributes, double[] dataOfUpperLevels, int groupLevel, List<double[]> allGroupCombinations, List<List<Aggregator>> allAggregators, DataRowFactory factory, Attribute[] newAttributes, boolean isCountingAllCombinations, List<AggregationFunction> aggregationFunctions) throws UserError {
-        Attribute currentAttribute = groupAttributes[groupLevel];
-        if (currentAttribute.isNominal()) {
-            Collection<? extends Object> nominalValues = null;
-            if (isCountingAllCombinations) {
-                nominalValues = currentAttribute.getMapping().getValues();
-            } else {
-                nominalValues = node.getValues();
-            }
-            for (Object nominalValue : nominalValues) {
-                dataOfUpperLevels[groupLevel] = newAttributes[groupLevel].getMapping().mapString(nominalValue.toString());
-                // check if we have more group defining attributes
-                if (groupLevel + 1 < groupAttributes.length) {
-                    parseTree(node.getOrCreateChild(nominalValue), groupAttributes, dataOfUpperLevels, groupLevel + 1, allGroupCombinations, allAggregators, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
-                } else {
-                    // if not, insert values from aggregation functions
-                    parseLeaf(node.getLeaf(nominalValue), dataOfUpperLevels, allGroupCombinations, allAggregators, factory, newAttributes, aggregationFunctions);
-                }
+	}
 
-            }
-        } else if (currentAttribute.isNumerical() || Ontology.ATTRIBUTE_VALUE_TYPE.isA(currentAttribute.getValueType(), Ontology.DATE_TIME)) {
-            for (Object numericalValue : node.getValues()) {
-                dataOfUpperLevels[groupLevel] = (Double) numericalValue;
-                if (groupLevel + 1 < groupAttributes.length) {
-                    parseTree(node.getOrCreateChild(numericalValue), groupAttributes, dataOfUpperLevels, groupLevel + 1, allGroupCombinations, allAggregators, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
-                } else {
-                    // if not, insert values from aggregation functions
-                    parseLeaf(node.getLeaf(numericalValue), dataOfUpperLevels, allGroupCombinations, allAggregators, factory, newAttributes, aggregationFunctions);
-                }
-            }
-        } else {
-        	throw new UserError(this, "aggregation_operator.unsupported_value_type", currentAttribute.getName(), Ontology.ATTRIBUTE_VALUE_TYPE.getNames()[currentAttribute.getValueType()]);
-        }
-    }
+	private void parseTree(AggregationTreeNode node, Attribute[] groupAttributes, double[] dataOfUpperLevels, int groupLevel, List<double[]> allGroupCombinations, List<List<Aggregator>> allAggregators, DataRowFactory factory, Attribute[] newAttributes, boolean isCountingAllCombinations, List<AggregationFunction> aggregationFunctions) throws UserError {
+		Attribute currentAttribute = groupAttributes[groupLevel];
+		if (currentAttribute.isNominal()) {
+			Collection<? extends Object> nominalValues = null;
+			if (isCountingAllCombinations) {
+				nominalValues = currentAttribute.getMapping().getValues();
+			} else {
+				nominalValues = node.getValues();
+			}
+			for (Object nominalValue : nominalValues) {
+				dataOfUpperLevels[groupLevel] = newAttributes[groupLevel].getMapping().mapString(nominalValue.toString());
+				// check if we have more group defining attributes
+				if (groupLevel + 1 < groupAttributes.length) {
+					parseTree(node.getOrCreateChild(nominalValue), groupAttributes, dataOfUpperLevels, groupLevel + 1, allGroupCombinations, allAggregators, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
+				} else {
+					// if not, insert values from aggregation functions
+					parseLeaf(node.getLeaf(nominalValue), dataOfUpperLevels, allGroupCombinations, allAggregators, factory, newAttributes, aggregationFunctions);
+				}
 
-    private Attribute[] getMatchingAttributes(Attributes attributes, String regex) throws OperatorException {
-        Pattern pattern = null;
-        try {
-            pattern = Pattern.compile(regex);
-        } catch (PatternSyntaxException e) {
-            throw new UserError(this, 206, regex, e.getMessage());
-        }
-        List<Attribute> attributeList = new LinkedList<Attribute>();
-        Iterator<Attribute> iterator = attributes.allAttributes();
-        while (iterator.hasNext()) {
-            Attribute attribute = iterator.next();
-            if (pattern.matcher(attribute.getName()).matches()) {
-                attributeList.add(attribute);
-            }
-        }
+			}
+		} else if (currentAttribute.isNumerical() || Ontology.ATTRIBUTE_VALUE_TYPE.isA(currentAttribute.getValueType(), Ontology.DATE_TIME)) {
+			for (Object numericalValue : node.getValues()) {
+				dataOfUpperLevels[groupLevel] = (Double) numericalValue;
+				if (groupLevel + 1 < groupAttributes.length) {
+					parseTree(node.getOrCreateChild(numericalValue), groupAttributes, dataOfUpperLevels, groupLevel + 1, allGroupCombinations, allAggregators, factory, newAttributes, isCountingAllCombinations, aggregationFunctions);
+				} else {
+					// if not, insert values from aggregation functions
+					parseLeaf(node.getLeaf(numericalValue), dataOfUpperLevels, allGroupCombinations, allAggregators, factory, newAttributes, aggregationFunctions);
+				}
+			}
+		} else {
+			throw new UserError(this, "aggregation_operator.unsupported_value_type", currentAttribute.getName(), Ontology.ATTRIBUTE_VALUE_TYPE.getNames()[currentAttribute.getValueType()]);
+		}
+	}
 
-        // building array of attributes for faster access.
-        Attribute[] attributesArray = new Attribute[attributeList.size()];
-        attributesArray = attributeList.toArray(attributesArray);
-        return attributesArray;
-    }
+	private Attribute[] getMatchingAttributes(Attributes attributes, String regex) throws OperatorException {
+		Pattern pattern = null;
+		try {
+			pattern = Pattern.compile(regex);
+		} catch (PatternSyntaxException e) {
+			throw new UserError(this, 206, regex, e.getMessage());
+		}
+		List<Attribute> attributeList = new LinkedList<Attribute>();
+		Iterator<Attribute> iterator = attributes.allAttributes();
+		while (iterator.hasNext()) {
+			Attribute attribute = iterator.next();
+			if (pattern.matcher(attribute.getName()).matches()) {
+				attributeList.add(attribute);
+			}
+		}
 
-    private List<AggregationFunction> createAggreationFunctions(ExampleSet exampleSet) throws OperatorException {
-        // load global switches
-        boolean ignoreMissings = getParameterAsBoolean(PARAMETER_IGNORE_MISSINGS);
-        boolean countOnlyDistinct = getParameterAsBoolean(PARAMETER_ONLY_DISTINCT);
+		// building array of attributes for faster access.
+		Attribute[] attributesArray = new Attribute[attributeList.size()];
+		attributesArray = attributeList.toArray(attributesArray);
+		return attributesArray;
+	}
 
-        // creating data structures for building aggregates
-        List<AggregationFunction> aggregationFunctions = new LinkedList<AggregationFunction>();
+	private List<AggregationFunction> createAggreationFunctions(ExampleSet exampleSet) throws OperatorException {
+		// load global switches
+		boolean ignoreMissings = getParameterAsBoolean(PARAMETER_IGNORE_MISSINGS);
+		boolean countOnlyDistinct = getParameterAsBoolean(PARAMETER_ONLY_DISTINCT);
 
-        // building functions for all explicitly defined aggregation attributes
-        Set<Attribute> explicitlyAggregatedAttributes = new HashSet<Attribute>();
-        List<String[]> aggregationFunctionPairs = getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
-        for (String[] aggregationFunctionPair : aggregationFunctionPairs) {
-            Attribute attribute = exampleSet.getAttributes().get(aggregationFunctionPair[0]);
-            if (attribute == null) {
-                throw new UserError(this, "aggregation.aggregation_attribute_not_present", aggregationFunctionPair[0]);
-            }
-            AggregationFunction function = AggregationFunction.createAggregationFunction(aggregationFunctionPair[1], attribute, ignoreMissings, countOnlyDistinct);
-            if (!function.isCompatible()) {
-                throw new UserError(this, "aggregation.incompatible_attribute_type", attribute.getName(), aggregationFunctionPair[1]);
-            }
-            // adding objects for this attribute to structure
-            explicitlyAggregatedAttributes.add(attribute);
-            aggregationFunctions.add(function);
-        }
+		// creating data structures for building aggregates
+		List<AggregationFunction> aggregationFunctions = new LinkedList<AggregationFunction>();
 
-        // building the default aggregations
-        if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
-            String defaultAggregationFunctionName = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
-            
-            Iterator<Attribute> iterator = attributeSelector.getAttributeSubset(exampleSet, false).iterator();
-            if (getCompatibilityLevel().isAtMost(VERSION_5_2_8)) {
-            	iterator = exampleSet.getAttributes().iterator();
-            }
-            
+		// building functions for all explicitly defined aggregation attributes
+		Set<Attribute> explicitlyAggregatedAttributes = new HashSet<Attribute>();
+		List<String[]> aggregationFunctionPairs = getParameterList(PARAMETER_AGGREGATION_ATTRIBUTES);
+		for (String[] aggregationFunctionPair : aggregationFunctionPairs) {
+			Attribute attribute = exampleSet.getAttributes().get(aggregationFunctionPair[0]);
+			if (attribute == null) {
+				throw new UserError(this, "aggregation.aggregation_attribute_not_present", aggregationFunctionPair[0]);
+			}
+			AggregationFunction function = AggregationFunction.createAggregationFunction(aggregationFunctionPair[1], attribute, ignoreMissings, countOnlyDistinct);
+			if (!function.isCompatible()) {
+				throw new UserError(this, "aggregation.incompatible_attribute_type", attribute.getName(), aggregationFunctionPair[1]);
+			}
+			// adding objects for this attribute to structure
+			explicitlyAggregatedAttributes.add(attribute);
+			aggregationFunctions.add(function);
+		}
+
+		// building the default aggregations
+		if (getParameterAsBoolean(PARAMETER_USE_DEFAULT_AGGREGATION)) {
+			String defaultAggregationFunctionName = getParameterAsString(PARAMETER_DEFAULT_AGGREGATION_FUNCTION);
+
+			Iterator<Attribute> iterator = attributeSelector.getAttributeSubset(exampleSet, false).iterator();
+			if (getCompatibilityLevel().isAtMost(VERSION_5_2_8)) {
+				iterator = exampleSet.getAttributes().iterator();
+			}
+
 			while (iterator.hasNext()) {
 				Attribute attribute = iterator.next();
-                if (!explicitlyAggregatedAttributes.contains(attribute)) {
-                    AggregationFunction function = AggregationFunction.createAggregationFunction(defaultAggregationFunctionName, attribute, ignoreMissings, countOnlyDistinct);
-                    if (function.isCompatible()) {
-                        aggregationFunctions.add(function);
-                    }
-                }
-            }
-        }
+				if (!explicitlyAggregatedAttributes.contains(attribute)) {
+					AggregationFunction function = AggregationFunction.createAggregationFunction(defaultAggregationFunctionName, attribute, ignoreMissings, countOnlyDistinct);
+					if (function.isCompatible()) {
+						aggregationFunctions.add(function);
+					}
+				}
+			}
+		}
 
-        return aggregationFunctions;
-    }
+		return aggregationFunctions;
+	}
 
-    @Override
-    public List<ParameterType> getParameterTypes() {
-        List<ParameterType> types = super.getParameterTypes();
+	@Override
+	public List<ParameterType> getParameterTypes() {
+		List<ParameterType> types = super.getParameterTypes();
 
-        types.add(new ParameterTypeBoolean(PARAMETER_USE_DEFAULT_AGGREGATION, "If checked you can select a default aggregation function for a subset of the attributes.", false, false));
-        List<ParameterType> parameterTypes = attributeSelector.getParameterTypes();
-        for (ParameterType type : parameterTypes) {
-            type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_DEFAULT_AGGREGATION, false, true));
-            types.add(type);
-        }
-        String[] functions = AggregationFunction.getAvailableAggregationFunctionNames();
-        ParameterType type = new ParameterTypeStringCategory(PARAMETER_DEFAULT_AGGREGATION_FUNCTION, "The type of the used aggregation function for all default attributes.", functions, functions[0]);
-        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_DEFAULT_AGGREGATION, false, true));
-        type.setExpert(false);
-        types.add(type);
+		types.add(new ParameterTypeBoolean(PARAMETER_USE_DEFAULT_AGGREGATION, "If checked you can select a default aggregation function for a subset of the attributes.", false, false));
+		List<ParameterType> parameterTypes = attributeSelector.getParameterTypes();
+		for (ParameterType type : parameterTypes) {
+			type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_DEFAULT_AGGREGATION, false, true));
+			types.add(type);
+		}
+		String[] functions = AggregationFunction.getAvailableAggregationFunctionNames();
+		ParameterType type = new ParameterTypeStringCategory(PARAMETER_DEFAULT_AGGREGATION_FUNCTION, "The type of the used aggregation function for all default attributes.", functions, functions[0]);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_DEFAULT_AGGREGATION, false, true));
+		type.setExpert(false);
+		types.add(type);
 
-        types.add(new ParameterTypeList(PARAMETER_AGGREGATION_ATTRIBUTES, "The attributes which should be aggregated.",
-                new ParameterTypeAttribute("aggregation_attribute", "Specifies the attribute which is aggregated.", getExampleSetInputPort()),
-                new ParameterTypeStringCategory(PARAMETER_AGGREGATION_FUNCTIONS, "The type of the used aggregation function.", functions, functions[0]), false));
-        types.add(new ParameterTypeAttributes(PARAMETER_GROUP_BY_ATTRIBUTES, "Performs a grouping by the values of the attributes whose names match the given regular expression.", getExampleSetInputPort(), true, false));
-        types.add(new ParameterTypeBoolean(PARAMETER_ALL_COMBINATIONS, "Indicates that all possible combinations of the values of the group by attributes are counted, even if they don't occur. Please handle with care, since the number might be enormous.", false));
-        type = new ParameterTypeBoolean(PARAMETER_ONLY_DISTINCT, "Indicates if only rows with distinct values for the aggregation attribute should be used for the calculation of the aggregation function.", false);
-        type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_ALL_COMBINATIONS, false, false));
-        types.add(type);
-        types.add(new ParameterTypeBoolean(PARAMETER_IGNORE_MISSINGS, "Indicates if missings should be ignored and aggregation should be based only on existing values or not. In the latter case the aggregated value will be missing in the presence of missing values.", true));
-        return types;
-    }
+		types.add(new ParameterTypeList(PARAMETER_AGGREGATION_ATTRIBUTES, "The attributes which should be aggregated.",
+				new ParameterTypeAttribute("aggregation_attribute", "Specifies the attribute which is aggregated.", getExampleSetInputPort()),
+				new ParameterTypeStringCategory(PARAMETER_AGGREGATION_FUNCTIONS, "The type of the used aggregation function.", functions, functions[0]), false));
+		types.add(new ParameterTypeAttributes(PARAMETER_GROUP_BY_ATTRIBUTES, "Performs a grouping by the values of the attributes whose names match the given regular expression.", getExampleSetInputPort(), true, false));
+		types.add(new ParameterTypeBoolean(PARAMETER_ALL_COMBINATIONS, "Indicates that all possible combinations of the values of the group by attributes are counted, even if they don't occur. Please handle with care, since the number might be enormous.", false));
+		type = new ParameterTypeBoolean(PARAMETER_ONLY_DISTINCT, "Indicates if only rows with distinct values for the aggregation attribute should be used for the calculation of the aggregation function.", false);
+		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_ALL_COMBINATIONS, false, false));
+		types.add(type);
+		types.add(new ParameterTypeBoolean(PARAMETER_IGNORE_MISSINGS, "Indicates if missings should be ignored and aggregation should be based only on existing values or not. In the latter case the aggregated value will be missing in the presence of missing values.", true));
+		return types;
+	}
 
-    @Override
-    public OperatorVersion[] getIncompatibleVersionChanges() {
-        return new OperatorVersion[] { VERSION_5_1_6, VERSION_5_2_8 };
-    }
+	@Override
+	public OperatorVersion[] getIncompatibleVersionChanges() {
+		return new OperatorVersion[] { VERSION_5_1_6, VERSION_5_2_8 };
+	}
 
-    @Override
-    public boolean writesIntoExistingData() {
-        return false;
-    }
+	@Override
+	public boolean writesIntoExistingData() {
+		return false;
+	}
 
-    @Override
-    public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
-        return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AggregationOperator.class, null);
-    }
+	@Override
+	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
+		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), AggregationOperator.class, null);
+	}
 }

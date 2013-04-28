@@ -24,14 +24,20 @@ package com.rapidminer.operator.nio;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -42,12 +48,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.table.TableModel;
 
 import com.rapidminer.gui.tools.CharTextField;
 import com.rapidminer.gui.tools.ExtendedJTable;
 import com.rapidminer.gui.tools.ProgressThread;
+import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.UpdateQueue;
 import com.rapidminer.gui.tools.dialogs.ButtonDialog;
 import com.rapidminer.gui.tools.dialogs.wizards.AbstractWizard.WizardStepDirection;
@@ -79,6 +85,7 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 	private final JRadioButton spaceButton = new JRadioButton("Space");
 	private final JRadioButton regexButton = new JRadioButton("Regular Expression");
 	private final JTextField regexTextField = new JTextField(LineParser.DEFAULT_SPLIT_EXPRESSION);
+	private final JButton regexEvalButton = new JButton();
 
 	private CSVResultSetConfiguration configuration;
 
@@ -171,14 +178,6 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 				settingsChanged();
 			}
 		});		
-		regexButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				regexTextField.setEnabled(regexButton.isSelected());
-				configuration.setColumnSeparators(getSplitExpression());
-				settingsChanged();
-			}
-		});
 
 		ButtonGroup buttonGroup = new ButtonGroup();
 		buttonGroup.add(commaButton);
@@ -189,6 +188,7 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 		ActionListener separatorListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				enableFields();
 				configuration.setColumnSeparators(getSplitExpression());
 				settingsChanged();
 			}
@@ -198,20 +198,6 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 		spaceButton.addActionListener(separatorListener);
 		tabButton.addActionListener(separatorListener);
 		regexButton.addActionListener(separatorListener);		
-		regexTextField.addKeyListener(new KeyAdapter() {
-			private Timer timer = new Timer(2000, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					timer.stop();
-					settingsChanged();
-				}
-			});			
-			@Override
-			public void keyTyped(KeyEvent e) {
-				timer.stop();
-				timer.start();
-			}
-		});
 	}
 
 	private void makePanel() {
@@ -231,13 +217,52 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 
 		optionPanel.setBorder(ButtonDialog.createTitledBorder("File Reading"));
 
+		JPanel regexPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.gridx = 0;
+		gbc.weightx = 1;
+		gbc.weighty = 1;
+		gbc.gridx = GridBagConstraints.RELATIVE;
+		regexPanel.add(regexTextField, gbc);
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.weightx = 0;
+		gbc.gridx = 1;
+		Action evalRegexAction = new ResourceAction(true, "import_regex_refresh") {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				configuration.setColumnSeparators(getSplitExpression());
+				settingsChanged();
+			}			
+		};
+		regexEvalButton.setAction(evalRegexAction);
+		regexEvalButton.setEnabled(false);
+		regexTextField.setEnabled(false);
+		regexTextField.addFocusListener(new FocusListener() {
+			
+			@Override
+			public void focusLost(FocusEvent e) {
+				if (!e.isTemporary()) {
+					configuration.setColumnSeparators(getSplitExpression());
+					settingsChanged();
+				}
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				// nothing to do
+			}
+		});
+		regexPanel.add(regexEvalButton, gbc);
+		
 		JPanel separationPanel = new JPanel(ButtonDialog.createGridLayout(5, 2));
 		separationPanel.add(commaButton);
 		separationPanel.add(spaceButton);
 		separationPanel.add(semicolonButton);
 		separationPanel.add(tabButton);
 		separationPanel.add(regexButton);
-		separationPanel.add(regexTextField);
+		separationPanel.add(regexPanel);
 		separationPanel.add(escapeCharacterLabel);
 		separationPanel.add(escapeCharacterTextField);
 		separationPanel.add(useQuotesBox);
@@ -354,5 +379,10 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 	@Override
 	protected boolean canGoBack() {
 		return true;
+	}
+	
+	private void enableFields() {
+		regexTextField.setEnabled(regexButton.isSelected());
+		regexEvalButton.setEnabled(regexButton.isSelected());
 	}
 }

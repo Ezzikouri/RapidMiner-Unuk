@@ -42,7 +42,7 @@ public class TopRatedPackageListModel extends AbstractPackageListModel {
 	}
 	
 	@Override
-	public List<String> fetchPackageNames() {
+	public List<String> handleFetchPackageNames() {
 		UpdateService updateService = cache.getUpdateService();
 		return updateService.getTopRated();
 	}

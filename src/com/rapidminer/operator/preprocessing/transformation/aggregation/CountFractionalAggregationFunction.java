@@ -22,10 +22,7 @@
  */
 package com.rapidminer.operator.preprocessing.transformation.aggregation;
 
-import java.util.List;
-
 import com.rapidminer.example.Attribute;
-import com.rapidminer.tools.Ontology;
 
 /**
  * This function first behaves like {@link CountAggregationFunction}, but it
@@ -36,12 +33,12 @@ import com.rapidminer.tools.Ontology;
  * @author Marco Boeck
  *
  */
-public class CountFractionalAggregationFunction extends CountAggregationFunction {
+public class CountFractionalAggregationFunction extends AbstractCountRatioAggregationFunction {
 
 	public static final String FUNCTION_COUNT_FRACTIONAL = "fractional_count";
 
 	public CountFractionalAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct) {
-		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_COUNT_FRACTIONAL, FUNCTION_SEPARATOR_OPEN, FUNCTION_SEPARATOR_CLOSE);
+		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, FUNCTION_COUNT_FRACTIONAL);
 	}
 
 	public CountFractionalAggregationFunction(Attribute sourceAttribute, boolean ignoreMissings, boolean countOnlyDisctinct, String functionName,
@@ -49,29 +46,12 @@ public class CountFractionalAggregationFunction extends CountAggregationFunction
 		super(sourceAttribute, ignoreMissings, countOnlyDisctinct, functionName, separatorOpen, separatorClose);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.rapidminer.operator.preprocessing.transformation.aggregation.AbstractCountRatioAggregationFunction#getRatioFactor()
+	 */
 	@Override
-	public void postProcessing(List<Aggregator> allAggregators) {
-		double totalCount = 0;
-		
-		// calculate total count
-		for (Aggregator aggregator : allAggregators) {
-			double value = ((CountAggregator)aggregator).getCount();
-			if (Double.isNaN(value)) {
-				totalCount = Double.NaN;
-				break;
-			}
-			totalCount += value;
-		}
-		
-		// devide by total count
-		for (Aggregator aggregator : allAggregators) {
-			CountAggregator countAggregator = (CountAggregator) aggregator;
-			countAggregator.setCount(countAggregator.getCount()/totalCount);
-		}
+	public double getRatioFactor() {
+		return 1.0;
 	}
 	
-	@Override
-	protected int getTargetValueType(int sourceValueType) {
-		return Ontology.REAL;
-	}
 }

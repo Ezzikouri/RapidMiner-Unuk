@@ -25,6 +25,7 @@ package com.rapidminer.operator.nio.model;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -155,18 +156,31 @@ public class DataResultSetTranslator {
             if (currentAnnotation != null) {
                 // registering annotation on all attributes
                 int attributeIndex = 0;
+                List<String> attributeNames = new ArrayList<String>();
                 for (Attribute attribute : attributes) {
                     if (AbstractDataResultSetReader.ANNOTATION_NAME.equals(currentAnnotation)) {
                         // resetting name
+
+                    	// going into here, setting the names, maybe add checks here
+                    	
                         String newAttributeName = getString(dataResultSet, exampleIndex, attributeColumns[attributeIndex], isFaultTolerant);
                         if (newAttributeName != null && !newAttributeName.isEmpty()) {
-                            attribute.setName(newAttributeName);
-                            attribute.setConstruction(newAttributeName);
+                        	
+                        	// going into here, setting the names, maybe add checks here
+                        	String uniqueAttributeName = newAttributeName;
+                        	int uniqueNameNumber = 1;
+                        	while(attributeNames.contains(uniqueAttributeName)) {
+                        		uniqueAttributeName = newAttributeName + "(" + uniqueNameNumber + ")";
+                        		uniqueNameNumber++;
+                        	}
+                        	
+                            attribute.setName(uniqueAttributeName);
+                            attribute.setConstruction(uniqueAttributeName);
                             // We also remember the name in the CMD since we otherwise would override the attribute name later in this method
                             ColumnMetaData cmd = configuration.getColumnMetaData(attributeColumns[attributeIndex]);
                             if (cmd != null) {
                                 if (!cmd.isAttributeNameSpecified()) {
-                                    cmd.setUserDefinedAttributeName(newAttributeName);
+                                    cmd.setUserDefinedAttributeName(uniqueAttributeName);
                                 }
                             }
 
@@ -177,6 +191,7 @@ public class DataResultSetTranslator {
                         if (annotationValue != null && !annotationValue.isEmpty())
                             attribute.getAnnotations().put(currentAnnotation, annotationValue);
                     }
+                    attributeNames.add(attribute.getName());
                     attributeIndex++;
                 }
             } else {
@@ -225,6 +240,7 @@ public class DataResultSetTranslator {
         }       
 
         int attributeIndex = 0;
+        List<String> attributeNames = new ArrayList<String>();
         for (Attribute attribute : allAttributes) {
             // if user defined names have been found, rename accordingly
             final ColumnMetaData cmd = configuration.getColumnMetaData(attributeColumns[attributeIndex]);
@@ -232,14 +248,25 @@ public class DataResultSetTranslator {
                 attributeIndex++;
                 continue;
             }
+            
             String userDefinedName = cmd.getUserDefinedAttributeName();
-            if (userDefinedName != null && !userDefinedName.isEmpty())
-                attribute.setName(userDefinedName);
-            attribute.setConstruction(userDefinedName);
+            String uniqueUserDefinedName = userDefinedName;
+        	int uniqueNameNumber = 1;
+        	while(attributeNames.contains(uniqueUserDefinedName)) {
+        		uniqueUserDefinedName = userDefinedName + "(" + uniqueNameNumber + ")";
+        		uniqueNameNumber++;
+        	}
+            
+            if (uniqueUserDefinedName != null && !uniqueUserDefinedName.isEmpty()) {
+                attribute.setName(uniqueUserDefinedName);
+            }
+            attribute.setConstruction(uniqueUserDefinedName);
+            
             String roleId = cmd.getRole();
             if (!Attributes.ATTRIBUTE_NAME.equals(roleId))
                 exampleSet.getAttributes().setSpecialAttribute(attribute, roleId);
             attributeIndex++;
+            attributeNames.add(attribute.getName());
         }
 
         isReading = false;

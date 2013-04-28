@@ -5,7 +5,8 @@
         class="com.rapidminer.operator.IOObject"
         reportable="false"
         >
-        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>     
+        <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+        <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
 
 

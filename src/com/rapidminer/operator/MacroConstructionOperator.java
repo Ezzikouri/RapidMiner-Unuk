@@ -33,7 +33,8 @@ import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeExpression;
 import com.rapidminer.parameter.ParameterTypeList;
 import com.rapidminer.parameter.ParameterTypeString;
-import com.rapidminer.tools.math.function.ExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
 
 /**
  * <p>This operator constructs new macros from expressions which might also 
@@ -162,8 +163,7 @@ public class MacroConstructionOperator extends Operator {
 
 	@Override
 	public void doWork() throws OperatorException {		
-		ExpressionParser parser = new ExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
-
+		AbstractExpressionParser parser = ExpressionParserFactory.getExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
 		Iterator<String[]> j = getParameterList(PARAMETER_FUNCTIONS).iterator();
 		while (j.hasNext()) {
 			String[] nameFunctionPair = j.next();

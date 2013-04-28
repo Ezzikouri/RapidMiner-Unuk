@@ -75,7 +75,7 @@ import com.rapidminer.tools.OperatorResourceConsumptionHandler;
 public class ChangeAttributeRole extends AbstractDataProcessing {
 
 	/** The parameter name for &quot;The name of the attribute of which the type should be changed.&quot; */
-	public static final String PARAMETER_NAME = "name";
+	public static final String PARAMETER_NAME = "attribute_name";
 
 	/** The parameter name for &quot;The target type of the attribute (only changed if parameter change_attribute_type is true).&quot; */
 	public static final String PARAMETER_TARGET_ROLE = "target_role";
@@ -155,9 +155,14 @@ public class ChangeAttributeRole extends AbstractDataProcessing {
 
 	private void setRole(ExampleSet exampleSet, String name, String newRole) throws UserError {
 		Attribute attribute = exampleSet.getAttributes().get(name);
-
+		
 		if (attribute == null) {
-			throw new UserError(this, 111, name);
+
+			if (!name.isEmpty()) {
+				throw new UserError(this, 160, name);
+			} else {
+				throw new UserError(this, 111, name);
+			}
 		}
 
 		exampleSet.getAttributes().remove(attribute);

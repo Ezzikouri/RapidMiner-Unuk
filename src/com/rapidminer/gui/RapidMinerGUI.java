@@ -57,7 +57,7 @@ import com.rapidminer.ProcessLocation;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.RepositoryProcessLocation;
 import com.rapidminer.gui.actions.OpenAction;
-import com.rapidminer.gui.dialog.ResultHistory;
+import com.rapidminer.gui.autosave.AutoSave;
 import com.rapidminer.gui.docking.RapidDockableContainerFactory;
 import com.rapidminer.gui.look.RapidLookAndFeel;
 import com.rapidminer.gui.look.fc.BookmarkIO;
@@ -201,82 +201,82 @@ public class RapidMinerGUI extends RapidMiner {
 
 	private static LinkedList<ProcessLocation> recentFiles = new LinkedList<ProcessLocation>();
 
-	private static ResultHistory resultHistory = new ResultHistory();
-
 	private static SafeMode safeMode;
 
-    /**
-     * This thread listens for System shutdown and cleans up after shutdown.
-     * This included saving the recent file list and other GUI properties.
-     */
-    private static class ShutdownHook extends Thread {
-        @Override
-        public void run() {
-            //LogService.getRoot().info("Running shutdown sequence.");
-            LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.RapidMinerGUI.running_shutdown_sequence");
-            RapidMinerGUI.saveRecentFileList();
-            RapidMinerGUI.saveGUIProperties();
-            UsageStatistics.getInstance().save();
-            RepositoryManager.shutdown();
-        }
-    }
+	/**
+	 * This thread listens for System shutdown and cleans up after shutdown.
+	 * This included saving the recent file list and other GUI properties.
+	 */
+	private static class ShutdownHook extends Thread {
 
-    //private static UpdateManager updateManager = new CommunityUpdateManager();
+		@Override
+		public void run() {
+			//LogService.getRoot().info("Running shutdown sequence.");
+			LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.RapidMinerGUI.running_shutdown_sequence");
+			RapidMinerGUI.saveRecentFileList();
+			RapidMinerGUI.saveGUIProperties();
+			UsageStatistics.getInstance().save();
+			RepositoryManager.shutdown();
+		}
+	}
 
-    public void run(final String openLocation) throws Exception {
-        // check if resources were copied
-        URL logoURL = Tools.getResource("rapidminer_logo.png");
-        if (logoURL == null) {
-            //LogService.getRoot().severe("Cannot find resources. Probably the ant target 'copy-resources' must be performed!");
-            LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.RapidMinerGUI.finding_resources_error");
-            RapidMiner.quit(RapidMiner.ExitMode.ERROR);
-        }
+	//private static UpdateManager updateManager = new CommunityUpdateManager();
 
-        // Initialize Docking UI -- important must be done as early as possible!
-        DockingUISettings.setInstance(new RapidDockingUISettings());
-        DockableContainerFactory.setFactory(new RapidDockableContainerFactory());
+	public void run(final String openLocation) throws Exception {
+		// check if resources were copied
+		URL logoURL = Tools.getResource("rapidminer_logo.png");
+		if (logoURL == null) {
+			//LogService.getRoot().severe("Cannot find resources. Probably the ant target 'copy-resources' must be performed!");
+			LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.RapidMinerGUI.finding_resources_error");
+			RapidMiner.quit(RapidMiner.ExitMode.ERROR);
+		}
 
-        RapidMiner.showSplash();
+		// Initialize Docking UI -- important must be done as early as possible!
+		DockingUISettings.setInstance(new RapidDockingUISettings());
+		DockableContainerFactory.setFactory(new RapidDockableContainerFactory());
 
-        RapidMiner.splashMessage("basic");
-        RapidMiner.init();
+		RapidMiner.showSplash();
 
-        RapidMiner.splashMessage("workspace");
-        RapidMiner.splashMessage("plaf");
-        setupToolTipManager();
-        setupGUI();
+		RapidMiner.splashMessage("basic");
+		RapidMiner.init();
 
-        RapidMiner.splashMessage("history");
-        loadRecentFileList();
+		RapidMiner.splashMessage("workspace");
+		RapidMiner.splashMessage("plaf");
+		setupToolTipManager();
+		setupGUI();
 
-        RapidMiner.splashMessage("icons");
-        SwingTools.loadIcons();
+		RapidMiner.splashMessage("history");
+		loadRecentFileList();
 
-        RepositoryManager.getInstance(null).createRepositoryIfNoneIsDefined();
+		RapidMiner.splashMessage("icons");
+		SwingTools.loadIcons();
 
-        RapidMiner.splashMessage("create_frame");
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                setMainFrame(new MainFrame(openLocation != null ? "design" : "welcome"));
-            }
-        });
+		RepositoryManager.getInstance(null).createRepositoryIfNoneIsDefined();
 
-        RapidMiner.splashMessage("gui_properties");
-        if (mainFrame instanceof MainFrame) {//TODO
-        	loadGUIProperties((MainFrame)mainFrame);
-        }
+		RapidMiner.splashMessage("create_frame");
+		SwingUtilities.invokeAndWait(new Runnable() {
 
-        RapidMiner.splashMessage("plugin_gui");
-        Plugin.initPluginGuis(mainFrame);
+			@Override
+			public void run() {
+				setMainFrame(new MainFrame(openLocation != null ? "design" : "welcome"));
+			}
+		});
 
-        RapidMiner.splashMessage("show_frame");
+		RapidMiner.splashMessage("gui_properties");
+		if (mainFrame instanceof MainFrame) {//TODO
+			loadGUIProperties((MainFrame)mainFrame);
+		}
 
-        if (mainFrame instanceof Window) {
-        	((Window)mainFrame).setVisible(true);
-        }
+		RapidMiner.splashMessage("plugin_gui");
+		Plugin.initPluginGuis(mainFrame);
 
-        UsageStatsTransmissionDialog.init();
+		RapidMiner.splashMessage("show_frame");
+
+		if (mainFrame instanceof Window) {
+			((Window)mainFrame).setVisible(true);
+		}
+
+		UsageStatsTransmissionDialog.init();
 
 		RapidMiner.splashMessage("checks");
 		Plugin.initFinalChecks();
@@ -302,137 +302,133 @@ public class RapidMinerGUI extends RapidMiner {
 		UpdateManager.checkForUpdates();
 		UpdateManager.checkForPurchasedNotInstalled();
 
+		AutoSave autosave = new AutoSave();
+		autosave.onLaunch();
+
 		//TODO: re-enable when tour is finished
 //		new WelcomeTourAction().checkTours();
-    }
+	}
 
-    private void setupToolTipManager() {
-        // setup tool tip text manager
-        ToolTipManager manager = ToolTipManager.sharedInstance();
-        manager.setDismissDelay(25000); // original: 4000
-        manager.setInitialDelay(1500);   // original: 750
-        manager.setReshowDelay(50);    // original: 500
-    }
+	private void setupToolTipManager() {
+		// setup tool tip text manager
+		ToolTipManager manager = ToolTipManager.sharedInstance();
+		manager.setDismissDelay(25000); // original: 4000
+		manager.setInitialDelay(1500);   // original: 750
+		manager.setReshowDelay(50);    // original: 500
+	}
 
-    /** This default implementation only setup the tool tip durations. Subclasses might
-     *  override this method. */
-    protected void setupGUI() throws NoOpUserError {
-        System.setProperty(BookmarkIO.PROPERTY_BOOKMARKS_DIR, FileSystemService.getUserRapidMinerDir().getAbsolutePath());
-        System.setProperty(BookmarkIO.PROPERTY_BOOKMARKS_FILE, ".bookmarks");
-        System.setProperty(DatabaseConnectionService.PROPERTY_CONNECTIONS_FILE, "connections");
-        try {
-            UIManager.setLookAndFeel(new RapidLookAndFeel());
-            //OperatorService.reloadIcons();
-        } catch (Exception e) {
-            //LogService.getRoot().log(Level.WARNING, "Cannot setup modern look and feel, using default.", e);
-        	LogService.getRoot().log(Level.WARNING,
+	/** This default implementation only setup the tool tip durations. Subclasses might
+	 *  override this method. */
+	protected void setupGUI() throws NoOpUserError {
+		System.setProperty(BookmarkIO.PROPERTY_BOOKMARKS_DIR, FileSystemService.getUserRapidMinerDir().getAbsolutePath());
+		System.setProperty(BookmarkIO.PROPERTY_BOOKMARKS_FILE, ".bookmarks");
+		System.setProperty(DatabaseConnectionService.PROPERTY_CONNECTIONS_FILE, "connections");
+		try {
+			UIManager.setLookAndFeel(new RapidLookAndFeel());
+			//OperatorService.reloadIcons();
+		} catch (Exception e) {
+			//LogService.getRoot().log(Level.WARNING, "Cannot setup modern look and feel, using default.", e);
+			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.gui.RapidMinerGUI.setting_up_modern_look_and_feel_error"),
+							"com.rapidminer.gui.RapidMinerGUI.setting_up_modern_look_and_feel_error"),
 					e);
-        }
-    }
+		}
+	}
 
-    public static <State extends MainUIState & ProcessEndHandler> void setMainFrame(State mf) {
-        mainFrame = mf;
-    }
+	public static <State extends MainUIState & ProcessEndHandler> void setMainFrame(State mf) {
+		mainFrame = mf;
+	}
 
-    public static MainUIState getMainFrame() {
-        return mainFrame;
-    }
+	public static MainUIState getMainFrame() {
+		return mainFrame;
+	}
 
-
-
-
-    public static void useProcessFile(Process process) {
-        ProcessLocation location = process.getProcessLocation();
-        addToRecentFiles(location);
-    }
+	public static void useProcessFile(Process process) {
+		ProcessLocation location = process.getProcessLocation();
+		addToRecentFiles(location);
+	}
 
 	public static void addToRecentFiles(ProcessLocation location) {
 		if (location != null) {
-            while (recentFiles.contains(location)) {
-                recentFiles.remove(location);
-            }
-            recentFiles.addFirst(location);
-            while (recentFiles.size() > NUMBER_OF_RECENT_FILES) {
-                recentFiles.removeLast();
-            }
-            saveRecentFileList();
-        }
+			while (recentFiles.contains(location)) {
+				recentFiles.remove(location);
+			}
+			recentFiles.addFirst(location);
+			while (recentFiles.size() > NUMBER_OF_RECENT_FILES) {
+				recentFiles.removeLast();
+			}
+			saveRecentFileList();
+		}
 	}
 
-    public static ResultHistory getResultHistory() {
-        return resultHistory;
-    }
+	public static List<ProcessLocation> getRecentFiles() {
+		return recentFiles;
+	}
 
-    public static List<ProcessLocation> getRecentFiles() {
-        return recentFiles;
-    }
-
-    private static void loadRecentFileList() {
-        File file = FileSystemService.getUserConfigFile("history");
-        if (!file.exists())
-            return;
-        BufferedReader in = null;
-        try {
-            in = new BufferedReader(new FileReader(file));
-            recentFiles.clear();
-            String line = null;
-            while ((line = in.readLine()) != null) {
-                if (line.startsWith("file ")) {
-                    recentFiles.add(new FileProcessLocation(new File(line.substring(5))));
-                } else if (line.startsWith("repository ")) {
-                    try {
-                        recentFiles.add(new RepositoryProcessLocation(new RepositoryLocation(line.substring(11))));
-                    } catch (MalformedRepositoryLocationException e) {
-                        //LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);
-                        LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.RapidMinerGUI.unparseable_line", line);
-                    }
-                } else {
-                    //LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);
-                	LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.RapidMinerGUI.unparseable_line", line);
-                }
-            }
-        } catch (IOException e) {
-            //LogService.getRoot().log(Level.WARNING, "Cannot read history file", e);
-            LogService.getRoot().log(Level.WARNING,
+	private static void loadRecentFileList() {
+		File file = FileSystemService.getUserConfigFile("history");
+		if (!file.exists())
+			return;
+		BufferedReader in = null;
+		try {
+			in = new BufferedReader(new FileReader(file));
+			recentFiles.clear();
+			String line = null;
+			while ((line = in.readLine()) != null) {
+				if (line.startsWith("file ")) {
+					recentFiles.add(new FileProcessLocation(new File(line.substring(5))));
+				} else if (line.startsWith("repository ")) {
+					try {
+						recentFiles.add(new RepositoryProcessLocation(new RepositoryLocation(line.substring(11))));
+					} catch (MalformedRepositoryLocationException e) {
+						//LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);
+						LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.RapidMinerGUI.unparseable_line", line);
+					}
+				} else {
+					//LogService.getRoot().log(Level.WARNING, "Unparseable line in history file: "+line);
+					LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.RapidMinerGUI.unparseable_line", line);
+				}
+			}
+		} catch (IOException e) {
+			//LogService.getRoot().log(Level.WARNING, "Cannot read history file", e);
+			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-					"com.rapidminer.gui.RapidMinerGUI.reading_history_file_error"),
+							"com.rapidminer.gui.RapidMinerGUI.reading_history_file_error"),
 					e);
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                    //LogService.getRoot().log(Level.WARNING, "Cannot read history file", e);
-                    LogService.getRoot().log(Level.WARNING,
-        					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-        					"com.rapidminer.gui.RapidMinerGUI.reading_history_file_error"),
-        					e);
-                }
-            }
-        }
-    }
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					//LogService.getRoot().log(Level.WARNING, "Cannot read history file", e);
+					LogService.getRoot().log(Level.WARNING,
+							I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+									"com.rapidminer.gui.RapidMinerGUI.reading_history_file_error"),
+							e);
+				}
+			}
+		}
+	}
 
-    private static void saveRecentFileList() {
-        File file = FileSystemService.getUserConfigFile("history");
-        PrintWriter out = null;
-        try {
-            out = new PrintWriter(new FileWriter(file));
-            for (ProcessLocation loc : recentFiles) {
-                out.println(loc.toHistoryFileString());
-            }
-        } catch (IOException e) {
-            SwingTools.showSimpleErrorMessage("cannot_write_history_file", e);
-        } finally {
-            if (out != null) {
-                out.close();
-            }
-        }
-    }
+	private static void saveRecentFileList() {
+		File file = FileSystemService.getUserConfigFile("history");
+		PrintWriter out = null;
+		try {
+			out = new PrintWriter(new FileWriter(file));
+			for (ProcessLocation loc : recentFiles) {
+				out.println(loc.toHistoryFileString());
+			}
+		} catch (IOException e) {
+			SwingTools.showSimpleErrorMessage("cannot_write_history_file", e);
+		} finally {
+			if (out != null) {
+				out.close();
+			}
+		}
+	}
 
-    private static void saveGUIProperties() {
-        Properties properties = new Properties();
+	private static void saveGUIProperties() {
+		Properties properties = new Properties();
 		MainUIState mainFrame = getMainFrame();
 		if (mainFrame != null && mainFrame instanceof java.awt.Frame) {
 			java.awt.Frame frame = (java.awt.Frame) mainFrame;
@@ -441,135 +437,135 @@ public class RapidMinerGUI extends RapidMiner {
 			properties.setProperty(PROPERTY_GEOMETRY_WIDTH, "" + frame.getWidth());
 			properties.setProperty(PROPERTY_GEOMETRY_HEIGHT, "" + frame.getHeight());
 			properties.setProperty(PROPERTY_GEOMETRY_EXTENDED_STATE, "" + frame.getExtendedState());
-            //properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_MAIN, "" + mainFrame.getMainDividerLocation());
-            //properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_EDITOR, "" + mainFrame.getEditorDividerLocation());
-            //properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_LOGGING, "" + mainFrame.getLoggingDividerLocation());
-            //properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_GROUPSELECTION, "" + mainFrame.getGroupSelectionDividerLocation());
-            properties.setProperty(PROPERTY_EXPERT_MODE, "" + mainFrame.getPropertyPanel().isExpertMode());
-            File file = FileSystemService.getUserConfigFile("gui.properties");
-            OutputStream out = null;
-            try {
-                out = new FileOutputStream(file);
-                properties.store(out, "RapidMiner GUI properties");
-            } catch (IOException e) {
-                //LogService.getRoot().log(Level.WARNING, "Cannot write GUI properties: " + e.getMessage(), e);
-                LogService.getRoot().log(Level.WARNING,
-    					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-    					"com.rapidminer.gui.RapidMinerGUI.writing_gui_properties_error", 
-    					e.getMessage()),
-    					e);
-            } finally {
-                try {
-                    if (out != null)
-                        out.close();
-                } catch (IOException e) { }
-            }
-            mainFrame.getResultDisplay().clearAll();
-            mainFrame.getPerspectives().saveAll();
-        }
-    }
+			//properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_MAIN, "" + mainFrame.getMainDividerLocation());
+			//properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_EDITOR, "" + mainFrame.getEditorDividerLocation());
+			//properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_LOGGING, "" + mainFrame.getLoggingDividerLocation());
+			//properties.setProperty(PROPERTY_GEOMETRY_DIVIDER_GROUPSELECTION, "" + mainFrame.getGroupSelectionDividerLocation());
+			properties.setProperty(PROPERTY_EXPERT_MODE, "" + mainFrame.getPropertyPanel().isExpertMode());
+			File file = FileSystemService.getUserConfigFile("gui.properties");
+			OutputStream out = null;
+			try {
+				out = new FileOutputStream(file);
+				properties.store(out, "RapidMiner GUI properties");
+			} catch (IOException e) {
+				//LogService.getRoot().log(Level.WARNING, "Cannot write GUI properties: " + e.getMessage(), e);
+				LogService.getRoot().log(Level.WARNING,
+						I18N.getMessage(LogService.getRoot().getResourceBundle(), 
+								"com.rapidminer.gui.RapidMinerGUI.writing_gui_properties_error", 
+								e.getMessage()),
+						e);
+			} finally {
+				try {
+					if (out != null)
+						out.close();
+				} catch (IOException e) { }
+			}
+			mainFrame.getResultDisplay().clearAll();
+			mainFrame.getPerspectives().saveAll();
+		}
+	}
 
-    private static <Frame extends JFrame & MainUIState> void loadGUIProperties(Frame mainFrame) {
-        Properties properties = new Properties();
-        File file = FileSystemService.getUserConfigFile("gui.properties");
-        if (file.exists()) {
-            InputStream in = null;
-            try {
-                in = new FileInputStream(file);
-                properties.load(in);
-            } catch (IOException e) {
-                setDefaultGUIProperties();
-            } finally {
-                try {
-                    if (in != null)
-                        in.close();
-                } catch (IOException e) {
-                    throw new Error(e); // should not occur
-                }
-            }
-            try {
-                mainFrame.setLocation(Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_X)), Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_Y)));
-                mainFrame.setSize(new Dimension(Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_WIDTH)), Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_HEIGHT))));
-                int extendedState;
-                if (properties.getProperty(PROPERTY_GEOMETRY_EXTENDED_STATE) == null) {
-                    extendedState = JFrame.NORMAL;
-                } else {
-                    extendedState = Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_EXTENDED_STATE));
-                }
-                mainFrame.setExtendedState(extendedState);
-                mainFrame.setExpertMode(Boolean.valueOf(properties.getProperty(PROPERTY_EXPERT_MODE)).booleanValue());
-            } catch (NumberFormatException e) {
-                setDefaultGUIProperties();
-            }
-        } else {
-            setDefaultGUIProperties();
-        }
-        mainFrame.getPerspectives().loadAll();
-    }
+	private static <Frame extends JFrame & MainUIState> void loadGUIProperties(Frame mainFrame) {
+		Properties properties = new Properties();
+		File file = FileSystemService.getUserConfigFile("gui.properties");
+		if (file.exists()) {
+			InputStream in = null;
+			try {
+				in = new FileInputStream(file);
+				properties.load(in);
+			} catch (IOException e) {
+				setDefaultGUIProperties();
+			} finally {
+				try {
+					if (in != null)
+						in.close();
+				} catch (IOException e) {
+					throw new Error(e); // should not occur
+				}
+			}
+			try {
+				mainFrame.setLocation(Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_X)), Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_Y)));
+				mainFrame.setSize(new Dimension(Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_WIDTH)), Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_HEIGHT))));
+				int extendedState;
+				if (properties.getProperty(PROPERTY_GEOMETRY_EXTENDED_STATE) == null) {
+					extendedState = JFrame.NORMAL;
+				} else {
+					extendedState = Integer.parseInt(properties.getProperty(PROPERTY_GEOMETRY_EXTENDED_STATE));
+				}
+				mainFrame.setExtendedState(extendedState);
+				mainFrame.setExpertMode(Boolean.valueOf(properties.getProperty(PROPERTY_EXPERT_MODE)).booleanValue());
+			} catch (NumberFormatException e) {
+				setDefaultGUIProperties();
+			}
+		} else {
+			setDefaultGUIProperties();
+		}
+		mainFrame.getPerspectives().loadAll();
+	}
 
-    /** This method sets some default GUI properties. This method can be invoked if the properties
-     *  file was not found or produced any error messages (which might happen after version changes).
-     */
-    private static void setDefaultGUIProperties() {
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	/** This method sets some default GUI properties. This method can be invoked if the properties
+	 *  file was not found or produced any error messages (which might happen after version changes).
+	 */
+	private static void setDefaultGUIProperties() {
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		if (mainFrame instanceof Window) {
 			Window window = (Window) mainFrame;
 			window.setLocation((int)(0.05d * screenSize.getWidth()), (int) (0.05d * screenSize.getHeight()));
 			window.setSize((int)(0.9d * screenSize.getWidth()), (int) (0.9d * screenSize.getHeight()));
 			//window.setDividerLocations((int)(0.6d * screenSize.getHeight()), (int)(0.2d * screenSize.getWidth()), (int)(0.75d * screenSize.getWidth()), (int)(0.4d * screenSize.getWidth()));
 		}
-        mainFrame.setExpertMode(false);
-    }
+		mainFrame.setExpertMode(false);
+	}
 
-    public static void main(String[] args) throws Exception {
-        System.setSecurityManager(null);
-        RapidMiner.addShutdownHook(new ShutdownHook());
+	public static void main(String[] args) throws Exception {
+		System.setSecurityManager(null);
+		RapidMiner.addShutdownHook(new ShutdownHook());
 		setExecutionMode(
 				System.getProperty(PROPERTY_HOME_REPOSITORY_URL) == null ?
-                        ExecutionMode.UI : ExecutionMode.WEBSTART);
+						ExecutionMode.UI : ExecutionMode.WEBSTART);
 
-        boolean shouldLaunch = true;
-        if (args.length > 0) {
-            if (!LaunchListener.defaultLaunchWithArguments(args, new RemoteControlHandler() {
-                @Override
-                public boolean handleArguments(String[] args) {
-                    //LogService.getRoot().info("Received message from second launching client: "+Arrays.toString(args));
-                    LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.RapidMinerGUI.received_message", Arrays.toString(args));
-                    ((MainFrame)mainFrame).requestFocus();
-                    if (args.length >= 1) {
-                        OpenAction.open(args[0], false);
-                    }
-                    return true;
-                }
-            })) {
-                shouldLaunch = false;
-            }
-        }
+		boolean shouldLaunch = true;
+		if (args.length > 0) {
+			if (!LaunchListener.defaultLaunchWithArguments(args, new RemoteControlHandler() {
+				@Override
+				public boolean handleArguments(String[] args) {
+					//LogService.getRoot().info("Received message from second launching client: "+Arrays.toString(args));
+					LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.RapidMinerGUI.received_message", Arrays.toString(args));
+					((MainFrame)mainFrame).requestFocus();
+					if (args.length >= 1) {
+						OpenAction.open(args[0], false);
+					}
+					return true;
+				}
+			})) {
+				shouldLaunch = false;
+			}
+		}
 
-        if (shouldLaunch) {
+		if (shouldLaunch) {
 			safeMode = new SafeMode();
 			safeMode.launchStarts();
-            launch(args);
+			launch(args);
 			safeMode.launchComplete();
-        } else {
-            //LogService.getRoot().config("Other RapidMiner instance already up. Exiting.");
-            LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.RapidMinerGUI.other_instance_up");
-        }
-    }
+		} else {
+			//LogService.getRoot().config("Other RapidMiner instance already up. Exiting.");
+			LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.RapidMinerGUI.other_instance_up");
+		}
+	}
 
-    private static void launch(String[] args) throws Exception {
-        String openLocation = null;
+	private static void launch(String[] args) throws Exception {
+		String openLocation = null;
 
-        if (args.length > 0) {
-            if (args.length != 1) {
-                System.out.println("java " + RapidMinerGUI.class.getName() + " [processfile]");
-                return;
-            }
-            openLocation = args[0];
-        }
-        RapidMiner.setInputHandler(new GUIInputHandler());
-        new RapidMinerGUI().run(openLocation);        
-    }
+		if (args.length > 0) {
+			if (args.length != 1) {
+				System.out.println("java " + RapidMinerGUI.class.getName() + " [processfile]");
+				return;
+			}
+			openLocation = args[0];
+		}
+		RapidMiner.setInputHandler(new GUIInputHandler());
+		new RapidMinerGUI().run(openLocation);
+	}
 
 	/**
 	 * @return the safeMode

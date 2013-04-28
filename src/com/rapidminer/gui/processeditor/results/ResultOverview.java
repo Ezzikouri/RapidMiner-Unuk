@@ -34,6 +34,7 @@ import java.util.List;
 import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 import com.rapidminer.Process;
 import com.rapidminer.gui.RapidMinerGUI;
@@ -114,15 +115,22 @@ public class ResultOverview extends JPanel {
     public void addResults(Process process, List<IOObject> results, String statusMessage) {
         if (process.getProcessState() != Process.PROCESS_STATE_PAUSED ||
                 "true".equals(ParameterService.getParameterValue(RapidMinerGUI.PROPERTY_ADD_BREAKPOINT_RESULTS_TO_HISTORY))) {
-            ProcessExecutionResultOverview newOverview = new ProcessExecutionResultOverview(this, process, results, statusMessage);
+            final ProcessExecutionResultOverview newOverview = new ProcessExecutionResultOverview(this, process, results, statusMessage);
+            // Swing calls need to be done in EDT to avoid freezing up of the Result Overview
+            SwingUtilities.invokeLater(new Runnable() {
 
-            processOverviews.add(newOverview);
-            add(newOverview);
+            	@Override
+            	public void run() {
+            		processOverviews.add(newOverview);
+            		add(newOverview);
 
-            while (processOverviews.size() > HISTORY_LENGTH) {
-                ProcessExecutionResultOverview first = processOverviews.removeFirst();
-                remove(first);
-            }
+            		while (processOverviews.size() > HISTORY_LENGTH) {
+            			ProcessExecutionResultOverview first = processOverviews.removeFirst();
+            			remove(first);
+            		}
+            	}
+
+            });
         }
     }
 

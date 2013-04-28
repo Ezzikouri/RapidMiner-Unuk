@@ -160,7 +160,7 @@ public class SaveAsTemplateDialog extends ButtonDialog {
         c.insets    = new Insets(0, 0, 0, 0);
         panel.add(tablePane, c);
 
-        JButton okButton = makeOkButton();
+        JButton okButton = makeOkButton("save_as_template_dialog_save");
         layoutDefault(panel, NORMAL, okButton, makeCancelButton());
         getRootPane().setDefaultButton(okButton);
     }

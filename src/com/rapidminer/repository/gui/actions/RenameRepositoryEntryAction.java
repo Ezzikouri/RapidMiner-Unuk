@@ -24,6 +24,7 @@ package com.rapidminer.repository.gui.actions;
 
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.Entry;
+import com.rapidminer.repository.Repository;
 import com.rapidminer.repository.gui.RepositoryTree;
 
 /**
@@ -42,13 +43,17 @@ public class RenameRepositoryEntryAction extends AbstractRepositoryAction<Entry>
 
 	@Override
 	public void actionPerformed(Entry entry) {
+		// no renaming of repositores allowed, RepositoryConfigurationDialog is responsible for that
+		if (entry instanceof Repository) {
+			return;
+		}
 		String name = SwingTools.showRepositoryEntryInputDialog("file_chooser.rename", entry.getName(), entry.getName());
 		if ((name != null) && !name.equals(entry.getName())) {
 			boolean success = false;
 			try {
 				success = entry.rename(name);
 			} catch (Exception e) {
-				SwingTools.showSimpleErrorMessage("cannot_rename_entry", e, entry.getName(), name);
+				SwingTools.showSimpleErrorMessage("cannot_rename_entry", e, entry.getName(), name, e.getMessage());
 				return;
 			}
 			if (!success) {

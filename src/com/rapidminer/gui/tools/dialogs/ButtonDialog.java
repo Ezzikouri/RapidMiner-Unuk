@@ -32,6 +32,7 @@ import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -57,6 +58,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import com.rapidminer.gui.ApplicationFrame;
+import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.FixedWidthLabel;
@@ -337,8 +339,21 @@ public class ButtonDialog extends JDialog {
 		case LARGE:
 			return new Dimension(800, 600);
 		case HUGE:
-			return new Dimension(1000,760);		
-		
+			// this dimension is too large for HD-ready displays and also for presentation resolutions
+			// return the next smaller dimension instead to avoid components being too large for display
+			if (RapidMinerGUI.getMainFrame() != null && RapidMinerGUI.getMainFrame().getWindow().getGraphicsConfiguration() != null) {
+				if (RapidMinerGUI.getMainFrame().getWindow().getGraphicsConfiguration().getBounds().getHeight() < 801) {
+					return getDefaultSize(LARGE);
+				} else {
+					return new Dimension(1000, 760);		
+				}
+			} else {
+				if (Toolkit.getDefaultToolkit().getScreenSize().getHeight() < 801) {
+					return getDefaultSize(LARGE);
+				} else {
+					return new Dimension(1000, 760);		
+				}
+			}
 		case MESSAGE:
 			return new Dimension(600, 200);
 		case MESSAGE_EXTENDED:

@@ -63,8 +63,8 @@ import com.rapidminer.gui.new_plotter.listener.events.ValueGroupingChangeEvent.V
 import com.rapidminer.gui.new_plotter.listener.events.ValueRangeChangeEvent;
 import com.rapidminer.gui.new_plotter.listener.events.ValueRangeChangeEvent.ValueRangeChangeType;
 import com.rapidminer.gui.new_plotter.listener.events.ValueSourceChangeEvent;
+import com.rapidminer.gui.new_plotter.templates.style.ColorRGB;
 import com.rapidminer.gui.new_plotter.templates.style.ColorScheme;
-import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 import com.rapidminer.gui.new_plotter.utility.CategoricalColorProvider;
 import com.rapidminer.gui.new_plotter.utility.ContinuousColorProvider;
 import com.rapidminer.gui.new_plotter.utility.DataStructureUtils;

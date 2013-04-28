@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
@@ -91,6 +92,8 @@ public abstract class ApplicationPerspectives {
     private final Map<String,Perspective> perspectives = new LinkedHashMap<String,Perspective>();
 
     private RapidDockingToolbar workspaceToolBar;
+    
+    private LinkedList<PerspectiveChangeListener> perspectiveChangeListenerList;
 
     public ApplicationPerspectives(DockingContext context) {
         this.context = context;
@@ -124,13 +127,30 @@ public abstract class ApplicationPerspectives {
         current = perspective;
         RESTORE_DEFAULT_ACTION.setEnabled(!current.isUserDefined());
         
-        // try to request focus for the process renderer so actions are enabled after perspective switch
-        if ("design".equals(perspective.getName())) {
-        	MainUIState mainFrame = RapidMinerGUI.getMainFrame();
-        	if(mainFrame != null) {
+        
+        //TODO: change to listener mechanism
+        MainUIState mainFrame = RapidMinerGUI.getMainFrame();
+        if(mainFrame != null) {
+        	
+        	// check all ConditionalActions on perspective switch
+        	mainFrame.getActions().enableActions();
+        	
+        	// try to request focus for the process renderer so actions are enabled after perspective switch and
+        	// ProcessRenderer is visible
+        	if (mainFrame.getProcessPanel().getProcessRenderer().isShowing()) {
         		mainFrame.getProcessPanel().getProcessRenderer().requestFocusInWindow();
         	}
+        	
+        	// disable close action on the result dockable when in pre-defined results perspective
+        	//TODO: commented out because a fast switch between perspectives during this call breaks the Dockable (turns blue)
+        	/*
+        	if (perspective.getName().contains("result")) {
+        		mainFrame.getResultDisplay().getDockKey().setCloseEnabled(false);
+        	} else {
+        		mainFrame.getResultDisplay().getDockKey().setCloseEnabled(true);
+        	}*/
         }
+        this.notifyChangeListener();
     }
 
     public JMenu getWorkspaceMenu() {
@@ -391,4 +411,28 @@ public abstract class ApplicationPerspectives {
             throw new NoSuchElementException("No such perspective: "+name);
         }
     }
+    
+    public void addPerspectiveChangeListener(PerspectiveChangeListener listener) {
+    	if(perspectiveChangeListenerList == null) {
+    		perspectiveChangeListenerList = new LinkedList<PerspectiveChangeListener>();
+    	}
+    	perspectiveChangeListenerList.add(listener);
+    }
+    
+    public boolean removePerspectiveChangeListener(PerspectiveChangeListener listener) {
+    	if(perspectiveChangeListenerList == null) {
+    		return false;
+    	}
+    	return perspectiveChangeListenerList.remove(listener);
+    }
+    
+    public void notifyChangeListener() {
+    	if(perspectiveChangeListenerList != null) {
+    		LinkedList<PerspectiveChangeListener> list = (LinkedList<PerspectiveChangeListener>) perspectiveChangeListenerList.clone();
+    		for(PerspectiveChangeListener listener : list) {
+    			listener.perspectiveChangedTo(current);
+    		}
+    	}
+    }
+    
 }

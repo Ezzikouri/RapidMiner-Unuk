@@ -118,9 +118,10 @@ public class ErrorTableModel extends AbstractTableModel {
 	}
 	
 	private String listToString(List<Integer> list) {
+		Collections.sort(list);
 		String output = "";
 		for (int i = 0; i < list.size(); i++) {
-			Integer column = list.get(i);
+			Integer column = list.get(i)+1;
 			if (i < list.size()-2) {
 				output += column + ", ";
 			} else if (i == list.size()-2) {

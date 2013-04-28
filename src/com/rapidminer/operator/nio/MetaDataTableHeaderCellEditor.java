@@ -22,6 +22,7 @@
  */
 package com.rapidminer.operator.nio;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -94,7 +95,6 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 						nameField.setText(value.getOriginalAttributeName());
 						value.setUserDefinedAttributeName(value.getOriginalAttributeName());
 					}
-					if (validator != null) validator.validate();
 				}
 			}
 			
@@ -116,7 +116,6 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 			public void actionPerformed(ActionEvent e) {
 				if (value != null) {
 					value.setRole(roleBox.getSelectedItem().toString());
-					if (validator != null) validator.validate();
 				}
 			}
 		});
@@ -190,22 +189,34 @@ public class MetaDataTableHeaderCellEditor extends JPanel implements TableCellEd
 
 	@Override
 	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-		setMetaData((ColumnMetaData) value);
+		setMetaData((ColumnMetaData) value, column);
 		return this;
 	}
 
 	@Override
 	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-		setMetaData((ColumnMetaData) value);
+		setMetaData((ColumnMetaData) value, column);
 		return this;
 	}
 
-	private void setMetaData(ColumnMetaData value) {
+	private void setMetaData(ColumnMetaData value, int column) {		
 		this.value = value;
 		valueTypeBox.setSelectedIndex(value.getAttributeValueType());
 		selectCheckBox.setSelected(value.isSelected());
 		nameField.setText(value.getUserDefinedAttributeName());
-		roleBox.setSelectedItem(value.getRole());
+		if (validator != null && validator.isDuplicateNameColumn(column)) {
+			nameField.setBackground(Color.red);
+		} else {
+			nameField.setBackground(this.getBackground());
+		}
+		if (value.getRole() != roleBox.getSelectedItem()) {
+			roleBox.setSelectedItem(value.getRole());
+		}
+		if (validator!= null && validator.isDuplicateRoleColumn(column)) {
+			roleBox.getEditor().getEditorComponent().setBackground(Color.red);
+		} else {
+			roleBox.getEditor().getEditorComponent().setBackground(this.getBackground());
+		}
 	}
 	
 	public void updateColumnMetaData() {

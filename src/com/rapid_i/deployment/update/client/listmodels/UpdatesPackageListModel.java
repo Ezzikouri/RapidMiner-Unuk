@@ -28,6 +28,7 @@ import java.util.List;
 
 import com.rapid_i.deployment.update.client.ManagedExtension;
 import com.rapid_i.deployment.update.client.PackageDescriptorCache;
+import com.rapid_i.deployment.update.client.UpdateManager;
 import com.rapidminer.RapidMiner;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.VersionNumber;
@@ -47,7 +48,7 @@ public class UpdatesPackageListModel extends AbstractPackageListModel {
 	}
 
 	@Override
-	public List<String> fetchPackageNames() {
+	public List<String> handleFetchPackageNames() {
 		List<String> packageNames = new ArrayList<String>();
 		packageNames.add("rapidminer");
 		for (ManagedExtension me : ManagedExtension.getAll()) {
@@ -64,7 +65,7 @@ public class UpdatesPackageListModel extends AbstractPackageListModel {
 			String packageName = i.next();
 			PackageDescriptor desc = cache.getPackageInfo(packageName);			
 			ManagedExtension ext = ManagedExtension.get(desc.getPackageId());
-			if ("rapidminer".equals(packageName)) {
+			if (UpdateManager.getRMPackageId().equals(packageName)) {
 				if (RapidMiner.getVersion().toString().compareTo(desc.getVersion()) >= 0) {
 					i.remove();
 				}

@@ -66,6 +66,8 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 	private boolean readOnly = false;
 	private boolean forbidden = false;
 
+	private Object childrenLock = new Object();
+
 	RemoteFolder(String location) {
 		super(location);
 	}
@@ -122,40 +124,48 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 			if (forbidden) {
 				return;
 			}
-			if ((entries == null) || (folders == null)) {
+			if ((entries == null) || (folders == null)) {				
 				FolderContentsResponse response;
 				String path = getPath();
 				RemoteRepository repository = getRepository();
 				RepositoryService repositoryService = repository.getRepositoryService();
-				entries = new LinkedList<DataEntry>();
-				folders = new LinkedList<Folder>();
-				if (repositoryService == null) {
-					return;
-				}
-				response = repositoryService.getFolderContents(path);
-				if (response.getStatus() != RepositoryConstants.OK) {
-					if (response.getStatus() == RepositoryConstants.ACCESS_DENIED) {
-						readOnly = true;
-						forbidden = true;
-					} else {
-						getLogger().warning("Cannot get folder: " + response.getErrorMessage());
+				List<DataEntry> newEntries = new LinkedList<DataEntry>();
+				List<Folder> newFolders = new LinkedList<Folder>();
+				try {
+					if (repositoryService == null) {
+						return;
 					}
-					return;
-				}
-				for (EntryResponse entry : response.getEntries()) {
-					if (entry.getType().equals(Folder.TYPE_NAME)) {
-						folders.add(new RemoteFolder(entry, this, repository));
-					} else if (entry.getType().equals(ProcessEntry.TYPE_NAME)) {
-						entries.add(new RemoteProcessEntry(entry, this, repository));
-					} else if (entry.getType().equals(IOObjectEntry.TYPE_NAME)) {
-						entries.add(new RemoteIOObjectEntry(entry, this, repository));
-					} else if (entry.getType().equals(BlobEntry.TYPE_NAME)) {
-						entries.add(new RemoteBlobEntry(entry, this, repository));
-					} else {
-						getLogger().warning("Unknown entry type: " + entry.getType());
+					response = repositoryService.getFolderContents(path);
+					if (response.getStatus() != RepositoryConstants.OK) {
+						if (response.getStatus() == RepositoryConstants.ACCESS_DENIED) {
+							readOnly = true;
+							forbidden = true;
+						} else {
+							getLogger().warning("Cannot get folder: " + response.getErrorMessage());
+						}
+						return;
+					}
+					for (EntryResponse entry : response.getEntries()) {
+						if (entry.getType().equals(Folder.TYPE_NAME)) {
+							newFolders.add(new RemoteFolder(entry, this, repository));
+						} else if (entry.getType().equals(ProcessEntry.TYPE_NAME)) {
+							newEntries.add(new RemoteProcessEntry(entry, this, repository));
+						} else if (entry.getType().equals(IOObjectEntry.TYPE_NAME)) {
+							newEntries.add(new RemoteIOObjectEntry(entry, this, repository));
+						} else if (entry.getType().equals(BlobEntry.TYPE_NAME)) {
+							newEntries.add(new RemoteBlobEntry(entry, this, repository));
+						} else {
+							getLogger().warning("Unknown entry type: " + entry.getType());
+						}
+					}
+				} finally {
+					// atomically set entries and folders
+					// lock used in willBlock()
+					synchronized (childrenLock) {
+						entries = newEntries;
+						folders = newFolders;
 					}
 				}
-
 			}
 			return;
 		}
@@ -174,7 +184,9 @@ public class RemoteFolder extends RemoteEntry implements Folder {
 
 	@Override
 	public boolean willBlock() {
-		return (folders == null) || (entries == null);
+		synchronized (childrenLock) {
+			return (folders == null) || (entries == null);
+		}
 	}
 
 	@Override

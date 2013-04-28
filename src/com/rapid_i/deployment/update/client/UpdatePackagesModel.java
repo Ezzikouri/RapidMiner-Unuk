@@ -101,11 +101,8 @@ public class UpdatePackagesModel extends Observable {
 			if (isUpToDate(desc)) {
 				select = false;
 			}
-			if (desc.getPackageTypeName().equals("RAPIDMINER_PLUGIN")) {
-//				if (select) {
-//					resolveDependencies(desc);
-//				}
-			} else if (desc.getPackageTypeName().equals("STAND_ALONE")) {
+			if (UpdateManager.PACKAGE_TYPE_RAPIDMINER_PLUGIN.equals(desc.getPackageTypeName())) {
+			} else if (UpdateManager.PACKAGE_TYPE_STAND_ALONE.equals(desc.getPackageTypeName())) {
 				String longVersion = RapidMiner.getLongVersion();
 				String myVersion = ManagedExtension.normalizeVersion(longVersion);
 				String remoteVersion = ManagedExtension.normalizeVersion(desc.getVersion());
@@ -173,15 +170,6 @@ public class UpdatePackagesModel extends Observable {
 
 	public String getExtensionURL(PackageDescriptor descriptor) {
 		return UpdateManager.getBaseUrl() + "/faces/product_details.xhtml?productId=" + descriptor.getPackageId();
-	}
-
-	public void markAllPackages(List<String> packageNames, PackageDescriptorCache cache) {
-		for (String packageName : packageNames) {
-			PackageDescriptor pd = cache.getPackageInfo(packageName);
-			if (!isSelectedForInstallation(pd) && (!usAccount.isLoggedIn() || !pd.isRestricted() || isPurchased(pd))) {
-				toggleSelectionForInstallation(pd);
-			}
-		}
 	}
 
 	public String toString(PackageDescriptor descriptor, String changes) {

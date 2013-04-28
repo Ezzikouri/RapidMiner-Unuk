@@ -47,7 +47,7 @@ public class LicencedPackageListModel extends AbstractPackageListModel {
 	}
 	
 	@Override
-	public List<String> fetchPackageNames() {
+	public List<String> handleFetchPackageNames() {
 		UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
 		if (!account.isLoggedIn()) return new ArrayList<String>();
 		

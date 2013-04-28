@@ -27,10 +27,10 @@ import java.util.LinkedList;
 
 import javax.swing.table.AbstractTableModel;
 
-/** An own table model wrapped around a {@link Wallet} used by the {@link PasswordManager} to
- *  edit user credentials. 
+/** 
+ * A table model wrapped around a {@link Wallet} used by the {@link PasswordManager} to edit user credentials. 
  * 
- * @author Miguel B�scher
+ * @author Miguel Buescher
  *
  */
 public class CredentialsTableModel extends AbstractTableModel {
@@ -39,7 +39,8 @@ public class CredentialsTableModel extends AbstractTableModel {
 
 	private boolean showPasswords;
 	private Wallet wallet;
-	private LinkedList<String> url = new LinkedList<String>();
+	private LinkedList<String> listOfWalletKeys = new LinkedList<String>();
+	
 	
 	public CredentialsTableModel(Wallet wallet) {
 		this.wallet = wallet;
@@ -48,10 +49,9 @@ public class CredentialsTableModel extends AbstractTableModel {
 	@Override
 	public int getColumnCount() {
 		if (isShowPasswords()) {
-			return 3;
-		} else {
-			return 2;
+			return 4;
 		}
+		return 3;
 	}
 
 	@Override
@@ -60,15 +60,19 @@ public class CredentialsTableModel extends AbstractTableModel {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		this.url = getWallet().getKeys();
-		UserCredential userCredential = getWallet().getEntry(url.get(rowIndex));
+		this.listOfWalletKeys = getWallet().getKeys();
+		// uses list of keys directly which may or may not contain ID attribute, therefore this call is correct
+		UserCredential userCredential = getWallet().getEntry(listOfWalletKeys.get(rowIndex));
 		switch (columnIndex) {
 		case 0:
-			return userCredential.getURL(); 
+			return getWallet().extractIdFromKey(listOfWalletKeys.get(rowIndex));
 		case 1:
-			return userCredential.getUsername(); 
+			return userCredential.getURL(); 
 		case 2:
+			return userCredential.getUsername(); 
+		case 3:
 			return new String(userCredential.getPassword());
 		default: throw new RuntimeException("No such column: " + columnIndex); // cannot happen
 		}		
@@ -76,21 +80,20 @@ public class CredentialsTableModel extends AbstractTableModel {
 	
 	@Override
 	public boolean isCellEditable(int rowIndex, int columnIndex){ 
-		if (columnIndex == 0) return false;
+		if (columnIndex == 0 || columnIndex == 1) return false;
 		return true;
 	}
 	
 	@Override
+	@SuppressWarnings("deprecation")
     public void setValueAt(Object value, int row, int col) {
-		this.url = getWallet().getKeys();
-		UserCredential userCredential = getWallet().getEntry(url.get(row));
-//    	if (col == 0) {
-//    		userCredential.setUrl((String) value);
-//    	}
-    	if (col == 1){
+		this.listOfWalletKeys = getWallet().getKeys();
+		// uses list of keys directly which may or may not contain ID attribute, therefore this call is correct
+		UserCredential userCredential = getWallet().getEntry(listOfWalletKeys.get(row));
+    	if (col == 2){
     		userCredential.setUser((String) value);
     	} 
-    	if (col == 2){
+    	if (col == 3){
     		userCredential.setPassword(((String) value).toCharArray());
     	}
     	
@@ -102,10 +105,12 @@ public class CredentialsTableModel extends AbstractTableModel {
 	public String getColumnName(int column) {
 		switch (column) {
 		case 0:
-			return "URL"; 
+			return "ID";
 		case 1:
-			return "Username"; 
+			return "URL"; 
 		case 2:
+			return "Username"; 
+		case 3:
 			return "Password";
 		default: throw new RuntimeException("No such column: "+column); // cannot happen
 		}
@@ -120,17 +125,22 @@ public class CredentialsTableModel extends AbstractTableModel {
 		return showPasswords;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void removeRow(int index) {
-		getWallet().removeEntry(url.get(index));
+		// uses list of keys directly which may or may not contain ID attribute, therefore this call is correct
+		getWallet().removeEntry(listOfWalletKeys.get(index));
 		fireTableStructureChanged();
 	}
 	
 	@SuppressWarnings("unchecked")
 	public Class getColumnClass(int c) {
+		if (getValueAt(0, c) == null) {
+			return String.class;
+		}
         return getValueAt(0, c).getClass();
     }
 
-	public Wallet getWallet() {
+	private Wallet getWallet() {
 		return wallet;
 	}
 }

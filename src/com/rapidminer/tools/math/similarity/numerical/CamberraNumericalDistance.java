@@ -39,14 +39,16 @@ public class CamberraNumericalDistance extends DistanceMeasure {
 	@Override
 	public double calculateDistance(double[] value1, double[] value2) {
 		double sum = 0.0;
+		boolean changed = false; 
 		for (int i = 0; i < value1.length; i++) {
 			double v1 = value1[i];
 			double v2 = value2[i];
 			if ((!Double.isNaN(v1)) && (!Double.isNaN(v2))) {
 				sum = sum + Math.abs(v1 - v2) / Math.abs(v1 + v2);
+				changed = true;
 			}
 		}
-		return sum;
+		return changed ? sum : Double.NaN;
 	}
 
 	@Override

@@ -30,6 +30,7 @@ import javax.swing.AbstractListModel;
 import javax.swing.SwingUtilities;
 
 import com.rapid_i.deployment.update.client.PackageDescriptorCache;
+import com.rapid_i.deployment.update.client.UpdateManager;
 import com.rapidminer.deployment.client.wsimport.PackageDescriptor;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.tools.I18N;
@@ -123,7 +124,26 @@ public abstract class AbstractPackageListModel extends AbstractListModel {
 		});
 	}
 
-	public abstract List<String> fetchPackageNames();
+	public abstract List<String> handleFetchPackageNames();
+	
+	public List<String> fetchPackageNames() {
+		List<String> packageNames = handleFetchPackageNames();
+		List<String> result = new ArrayList<String>(packageNames.size());
+		boolean containsRM = false;
+		for (String pid : packageNames) {
+			if (UpdateManager.PACKAGEID_RAPIDMINER.equals(pid) || UpdateManager.getRMPackageId().equals(pid)) {
+				if (containsRM) {
+					// noop
+				} else {
+					result.add(UpdateManager.getRMPackageId());
+					containsRM = true;
+				}
+			} else {
+				result.add(pid);
+			}
+		}
+		return result;
+	}
 	
 	public void modifyPackageList() {
 		return;

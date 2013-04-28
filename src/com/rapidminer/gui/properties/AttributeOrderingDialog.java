@@ -558,7 +558,7 @@ public class AttributeOrderingDialog extends PropertyDialog {
 		attributeListPanel.setPreferredSize(d);
 		selectedRulesListPanel.setPreferredSize(d);
 
-		layoutDefault(panel, NORMAL, makeOkButton(), makeCancelButton());
+		layoutDefault(panel, NORMAL, makeOkButton("attribute_ordering_dialog_order"), makeCancelButton());
 		addRuleTextField.requestFocusInWindow();
 
 		// finally add conditions

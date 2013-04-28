@@ -60,8 +60,11 @@ import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.ModelMetaData;
 import com.rapidminer.parameter.ParameterTypeExpression;
-import com.rapidminer.tools.math.function.ExpressionParser;
-import com.rapidminer.tools.math.function.FunctionDescription;
+import com.rapidminer.tools.LogService;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.AbstractExpressionParser.ExpressionParserException;
+import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
+import com.rapidminer.tools.expression.parser.FunctionDescription;
 
 /**
  * 
@@ -90,7 +93,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 	private JLabel validationLabel = new JLabel();
 	private JLabel validationIcon = new JLabel(ERROR_ICON);
 	
-	private final ExpressionParser parser;// = new ExpressionParser(true);
+	private final AbstractExpressionParser parser;// = new ExpressionParser(true);
 	private final com.rapidminer.Process controlingProcess;
 	
 	private JScrollPane functionButtonScrollPane;
@@ -112,7 +115,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		} else {
 			controlingProcess=null;			
 		}
-		parser = new ExpressionParser(true, controlingProcess);
+		parser = ExpressionParserFactory.getExpressionParser(true, controlingProcess);
 		
 		final Vector<String> knownAttributes = new Vector<String>();
 		
@@ -139,7 +142,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		Collections.sort(knownAttributes);
 		
 		Collection<AbstractButton> buttons = new LinkedList<AbstractButton>();
-		buttons.add(makeOkButton());
+		buttons.add(makeOkButton("expression_property_dialog_apply"));
 		buttons.add(makeCancelButton());
 		
 		JPanel mainPanel = new JPanel();
@@ -353,17 +356,21 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 			parser.initParser(true);
 		}
 		if (allowUndeclared) {
-			parser.getParser().setAllowUndeclared(true);
+			parser.setAllowUndeclared(true);
 		} else {
 			InputPort inPort = ((ParameterTypeExpression)getParameterType()).getInputPort();
 			if (inPort != null) {
 				if (inPort.getMetaData() instanceof ExampleSetMetaData) {
 					ExampleSetMetaData emd = (ExampleSetMetaData) inPort.getMetaData();
 					for (AttributeMetaData amd : emd.getAllAttributes()) {
-						if (amd.isNominal()) {
-							parser.getParser().addVariable(amd.getName(), "");
-						} else {
-							parser.getParser().addVariable(amd.getName(), Double.NaN);
+						try {
+							if (amd.isNominal()) {
+								parser.addVariable(amd.getName(), "");
+							} else {
+								parser.addVariable(amd.getName(), Double.NaN);
+							}							
+						} catch (ExpressionParserException e) {
+							LogService.getRoot().warning(e.getMessage());
 						}
 					}
 				} else if (inPort.getMetaData() instanceof ModelMetaData) {
@@ -372,10 +379,14 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 						ExampleSetMetaData emd = mmd.getTrainingSetMetaData();
 						if (emd != null) {
 							for (AttributeMetaData amd : emd.getAllAttributes()) {
-								if (amd.isNominal()) {
-									parser.getParser().addVariable(amd.getName(), "");
-								} else {
-									parser.getParser().addVariable(amd.getName(), Double.NaN);
+								try {
+									if (amd.isNominal()) {
+										parser.addVariable(amd.getName(), "");
+									} else {
+										parser.addVariable(amd.getName(), Double.NaN);
+									}
+								} catch (ExpressionParserException e) {
+									LogService.getRoot().warning(e.getMessage());
 								}
 							}
 						}
@@ -522,11 +533,10 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 	private void validateExpression() {
 		String expression = currentExpression.getText();
 		if (expression != null) {
-			if (expression.length() > 0) {								
-				parser.getParser().parseExpression(expression);
-				if (parser.getParser().hasError()) {
+			if (expression.length() > 0) {				
+				if (parser.hasError()) {
 					validationIcon.setIcon(ERROR_ICON);
-					validationLabel.setText("<html><b>Error: </b>" + parser.getParser().getErrorInfo() + "</html>");
+					validationLabel.setText("<html><b>Error: </b>" + parser.getErrorInfo() + "</html>");
 					return;
 				} else {
 					validationIcon.setIcon(OK_ICON);

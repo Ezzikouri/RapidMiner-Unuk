@@ -25,6 +25,7 @@ package com.rapidminer;
 import java.io.IOException;
 import java.util.logging.Level;
 
+import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.repository.Entry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.ProcessEntry;
@@ -98,7 +99,12 @@ public class RepositoryProcessLocation implements ProcessLocation {
 				folder.createProcessEntry(repositoryLocation.getName(), process.getRootOperator().getXML(false));
 			} else {
 				if (entry instanceof ProcessEntry) {
-					((ProcessEntry) entry).storeXML(process.getRootOperator().getXML(false));
+					boolean isReadOnly = repositoryLocation.getRepository().isReadOnly();
+					if (isReadOnly) {
+						SwingTools.showSimpleErrorMessage("save_to_read_only_repo", "", repositoryLocation.toString());
+					} else {
+						((ProcessEntry) entry).storeXML(process.getRootOperator().getXML(false));
+					}
 				} else {
 					throw new RepositoryException("Entry "+repositoryLocation+" is not a process entry.");
 				}

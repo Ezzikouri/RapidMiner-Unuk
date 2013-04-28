@@ -38,8 +38,8 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 
+import com.rapidminer.gui.new_plotter.templates.style.ColorRGB;
 import com.rapidminer.gui.new_plotter.templates.style.ColorScheme;
-import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 
 /**
  * @author Nils Woehler

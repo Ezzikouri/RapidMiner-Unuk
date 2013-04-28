@@ -34,6 +34,9 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Set;
 import java.util.logging.Level;
 
 import javax.swing.Action;
@@ -48,6 +51,7 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TableModelEvent;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
@@ -177,7 +181,6 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		limitedPreviewBox.setSelected(true);
 
 		this.state = state;
-		this.headerValidator = new MetaDataValidator(this, state.getTranslationConfiguration());
 		dateFormatField.setEditable(true);
 		dateFormatField.addActionListener(new ActionListener() {
 
@@ -303,9 +306,14 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		return true;
 	}
 
+	public void updateErrors(final Set<?> updateColumns) {
+		updateErrors();
+		((UpdatableHeaderRowFilteringTableModel)previewTable.getModel()).updateHeader(updateColumns);
+	}
+	
 	public void updateErrors() {
 		final List<ParsingError> errorList = new ArrayList<ParsingError>();
-		
+
 		canProceed = true;
 		if (headerValidator.getErrors().size() > 0) {
 			List<ParsingError> headerErrors = headerValidator.getErrors();
@@ -313,28 +321,67 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 			canProceed = false;
 		}
 		errorList.addAll(state.getTranslator().getErrors());
-		SwingUtilities.invokeLater(new Runnable() {
-			
-			@Override
-			public void run() {
 
-				final int size = errorList.size();
-				errorLabel.setText(size + " errors.");
-				if (size == 0) {
-					errorLabel.setIcon(SwingTools.createIcon("16/ok.png"));
-				} else {
-					errorLabel.setIcon(SwingTools.createIcon("16/error.png"));
-				}
-			}
-		});
+		final int size = errorList.size();
+		errorLabel.setText(size + " errors.");
+		if (size == 0) {
+			errorLabel.setIcon(SwingTools.createIcon("16/ok.png"));
+		} else {
+			errorLabel.setIcon(SwingTools.createIcon("16/error.png"));
+		}
+
 		errorTableModel.setErrors(errorList);
 		fireStateChanged();	
 	}
 
+	private class UpdatableHeaderRowFilteringTableModel extends RowFilteringTableModel {
+
+		private static final long serialVersionUID = 1L;
+
+		public UpdatableHeaderRowFilteringTableModel(TableModel wrappedModel, int[] rowMap, boolean enabled) {
+			super(wrappedModel, rowMap, enabled);
+		}
+
+		public void updateHeader(Set<?> columns) {
+			fireTableCellUpdated(TableModelEvent.HEADER_ROW, TableModelEvent.ALL_COLUMNS);
+			for (Object column : columns) {
+				if (column instanceof Integer) {
+					fireTableCellUpdated(TableModelEvent.HEADER_ROW, (Integer)column);
+				}
+			}
+			
+		}
+
+	}
+
 	private void updateTableModel(ExampleSet exampleSet) {
 		if (previewTable == null) {
-			previewTable = new ExtendedJTable(false, false, false);
+			previewTable = new ExtendedJTable(false, false, false) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void createDefaultColumnsFromModel() {
+					 TableModel m = getModel();
+				        if (m != null) {
+				            // Remove any current columns
+				            TableColumnModel cm = getColumnModel();
+				            while (cm.getColumnCount() > 0) {
+				                cm.removeColumn(cm.getColumn(0));
+				            }
+
+				            // Create new columns from the data model info
+				            for (int i = 0; i < m.getColumnCount(); i++) {
+				            	EditableTableHeaderColumn col = new EditableTableHeaderColumn(i);
+				    			col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
+				    			col.setHeaderRenderer(headerRenderer);
+				    			col.setHeaderEditor(headerEditor);
+				                addColumn(col);
+				            }
+				        }
+				}
+			};
 		}
+		previewTable.setAutoCreateColumnsFromModel(true);
 
 		// data model
 		DataTableViewerTableModel model = new DataTableViewerTableModel(new DataTableExampleSetAdapter(exampleSet, null));
@@ -351,25 +398,36 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		for (Integer row : rowsList) {
 			rowMap[j++] = row;
 		}
-		filteredModel = new RowFilteringTableModel(model, rowMap, filterErrorsBox.isSelected());
+		filteredModel = new UpdatableHeaderRowFilteringTableModel(model, rowMap, filterErrorsBox.isSelected());
 		previewTable.setModel(filteredModel);
 
+		// Header validator
+		this.headerValidator = new MetaDataValidator();
+		headerValidator.addObserver(new Observer(){
+			@Override
+			public void update(Observable o, Object arg) {
+				if (arg instanceof Set<?>) {
+					updateErrors((Set<?>)arg);
+				}
+			}
+		});
+		
 		// Header model
-
 		TableColumnModel columnModel = previewTable.getColumnModel();
 		previewTable.setTableHeader(new EditableTableHeader(columnModel));
-		// header editors and renderers and values
-		MetaDataTableHeaderCellEditor headerRenderer = new MetaDataTableHeaderCellEditor();
-		MetaDataTableHeaderCellEditor headerEditor = new MetaDataTableHeaderCellEditor(headerValidator);
-		headerValidator.addHeaderRenderer(headerRenderer);
+		headerRenderer = new MetaDataTableHeaderCellEditor(headerValidator);
+		headerEditor = new MetaDataTableHeaderCellEditor(headerValidator);
 		for (int i = 0; i < previewTable.getColumnCount(); i++) {
 			EditableTableHeaderColumn col = (EditableTableHeaderColumn) previewTable.getColumnModel().getColumn(i);
-			col.setHeaderValue(state.getTranslationConfiguration().getColumnMetaData()[i]);
+			ColumnMetaData cmd = state.getTranslationConfiguration().getColumnMetaData()[i];
+			headerValidator.addColumnMetaData(cmd, i);
+			col.setHeaderValue(cmd);
 			col.setHeaderRenderer(headerRenderer);
 			col.setHeaderEditor(headerEditor);
 		}
+		headerValidator.checkForDuplicates();
 		previewTable.getTableHeader().setReorderingAllowed(false);
-
+		
 		previewTable.setCellColorProvider(new CellColorProviderAlternating() {
 
 			@Override
@@ -454,7 +512,6 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 						try {
 							resultSet.close();
 						} catch (OperatorException e) {
-							//LogService.getRoot().log(Level.WARNING, "Failed to close result set: " + e, e);
 							LogService.getRoot().log(Level.WARNING,
 									I18N.getMessage(LogService.getRoot().getResourceBundle(),
 											"com.rapidminer.operator.nio.MetaDataDeclarationWizardStep.closing_result_set_error",
@@ -544,6 +601,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	private boolean isGuessing = false;
 	private boolean isReloading = false;
 	private ExtendedJTable previewTable;
+	private MetaDataTableHeaderCellEditor headerRenderer;
+	private MetaDataTableHeaderCellEditor headerEditor;
 
 	private void cancelGuessing() {
 		state.getTranslator().cancelGuessing();

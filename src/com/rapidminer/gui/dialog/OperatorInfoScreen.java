@@ -42,7 +42,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 
-import com.rapidminer.gui.OperatorDocViewer;
+import com.rapidminer.gui.OperatorDocumentationBrowser;
 import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.components.FixedWidthLabel;
@@ -78,8 +78,8 @@ public class OperatorInfoScreen extends ButtonDialog {
 		
 		JTabbedPane tabs = new JTabbedPane();
 
-		OperatorDocViewer documentationViewer = new OperatorDocViewer();
-		documentationViewer.setDisplayedOperator(operator);
+		OperatorDocumentationBrowser browser = new OperatorDocumentationBrowser();
+		browser.setDisplayedOperator(operator);
 		
 		final JPanel overviewPanel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -186,7 +186,7 @@ public class OperatorInfoScreen extends ButtonDialog {
 
 		});
 		tabs.add("Overview", overviewPane);
-		tabs.add("Description", documentationViewer);
+		tabs.add("Description", browser);
 		layoutDefault(tabs, NORMAL, makeCloseButton());
 	}
 	

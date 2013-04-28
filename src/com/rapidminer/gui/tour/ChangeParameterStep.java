@@ -26,8 +26,10 @@ import java.awt.Window;
 
 import com.rapidminer.ProcessSetupListener;
 import com.rapidminer.gui.RapidMinerGUI;
+import com.rapidminer.gui.properties.OperatorPropertyPanel;
+import com.rapidminer.gui.tools.components.BubbleToDockable;
 import com.rapidminer.gui.tools.components.BubbleWindow;
-import com.rapidminer.gui.tools.components.BubbleWindow.Alignment;
+import com.rapidminer.gui.tools.components.BubbleWindow.AlignedSide;
 import com.rapidminer.operator.ExecutionUnit;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.parameter.UndefinedParameterError;
@@ -42,11 +44,11 @@ import com.rapidminer.parameter.UndefinedParameterError;
 public class ChangeParameterStep extends Step {
 
 	private String i18nKey;
-	private String targetDockKey;
+	private String targetDockKey = OperatorPropertyPanel.PROPERTY_EDITOR_DOCK_KEY;
 	private String parameter;
 	private String targetValue;
-	private Alignment alignment;
-	private Window owner;
+	private AlignedSide alignment;
+	private Window owner = RapidMinerGUI.getMainFrame().getWindow();
 	private Class<? extends Operator> operatorClass;
 	private ProcessSetupListener listener = null;
 	
@@ -54,16 +56,14 @@ public class ChangeParameterStep extends Step {
 	
 	/**
 	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
-	 * @param owner the {@link Window} on which the {@link BubbleWindow} should be shown.
 	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
 	 * @param operatorClass the class of Operator of which you want to change the parameter.
 	 * @param parameter the key of the parameter which you want to change.
 	 * @param targetDockKey the Component to which the {@link BubbleWindow} should point to.
 	 * @param targetValue the Value the user should select for the given parameter.
 	 */
-	public ChangeParameterStep(Alignment preferredAlignment, Window owner, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue) {
+	public ChangeParameterStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue) {
 		this.alignment = preferredAlignment;
-		this.owner = owner;
 		this.i18nKey = i18nKey;
 		this.targetDockKey = targetDockKey;
 		this.parameter = parameter;
@@ -71,9 +71,27 @@ public class ChangeParameterStep extends Step {
 		this.operatorClass = operatorClass;
 	}
 
+	/**
+	 * @param preferredAlignment offer for alignment but the Class will calculate by itself whether the position is usable.
+	 * @param i18nKey of the message which will be shown in the {@link BubbleWindow}.
+	 * @param operatorClass the class of Operator of which you want to change the parameter.
+	 * @param parameter the key of the parameter which you want to change.
+	 * @param targetDockKey the Component to which the {@link BubbleWindow} should point to.
+	 * @param targetValue the Value the user should select for the given parameter.
+	 */
+	public ChangeParameterStep(AlignedSide preferredAlignment, String i18nKey, Class<? extends Operator>  operatorClass, String parameter, String targetDockKey, String targetValue, Window owner) {
+		this.alignment = preferredAlignment;
+		this.i18nKey = i18nKey;
+		this.targetDockKey = targetDockKey;
+		this.parameter = parameter;
+		this.targetValue = targetValue;
+		this.operatorClass = operatorClass;
+		this.owner = owner;
+	}
+	
 	@Override
 	boolean createBubble() {
-		bubble = new BubbleWindow(owner, targetDockKey, alignment, i18nKey, BubbleWindow.getDockableByKey(targetDockKey));
+		bubble = new BubbleToDockable(owner, alignment, i18nKey, targetDockKey);
 		listener = new ProcessSetupListener() {
 			
 			@Override

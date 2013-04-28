@@ -20,11 +20,13 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.preprocessing.filter;
 
 import java.util.List;
 
 import com.rapidminer.example.Attribute;
+import com.rapidminer.example.AttributeRole;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -88,8 +90,7 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 					renameAttributeMetaData(metaData, pair[0], pair[1]);
 				}
 			}
-		} catch (UndefinedParameterError e) {
-		}
+		} catch (UndefinedParameterError e) {}
 		return metaData;
 	}
 
@@ -97,6 +98,9 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 		AttributeMetaData amd = metaData.getAttributeByName(oldName);
 		if (amd != null && newName != null) {
 			if (metaData.containsAttributeName(newName) == MetaDataInfo.YES) {
+				if((oldName != null && oldName.equals(newName))){
+					return;
+				}
 				getInputPort().addError(new SimpleMetaDataError(Severity.ERROR, getInputPort(), "already_contains_attribute", newName));
 			} else {
 				amd.setName(newName);
@@ -122,12 +126,16 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 	}
 
 	private void renameAttribute(ExampleSet exampleSet, String oldName, String newName) throws UserError {
+		if (oldName != null && oldName.equals(newName)) {
+			return;
+		}
 		Attribute attribute = exampleSet.getAttributes().get(oldName);
+
 		if (attribute == null) {
 			throw new UserError(this, 111, oldName);
-		} 
-		Attribute newAttribute = exampleSet.getAttributes().get(newName);
-		if (newAttribute != null) {
+		}
+		AttributeRole existingAttributeRole = exampleSet.getAttributes().findRoleByName(newName);
+		if (existingAttributeRole != null) {
 			throw new UserError(this, 152, newName);
 		}
 
@@ -151,7 +159,7 @@ public class ChangeAttributeName extends AbstractDataProcessing {
 	public boolean writesIntoExistingData() {
 		return false;
 	}
-	
+
 	@Override
 	public ResourceConsumptionEstimator getResourceConsumptionEstimator() {
 		return OperatorResourceConsumptionHandler.getResourceConsumptionEstimator(getInputPort(), ChangeAttributeName.class, null);

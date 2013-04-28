@@ -43,6 +43,8 @@ public class UndoAction extends ResourceAction {
 		super("undo");
 		this.mainFrame = mainFrame;
 		setCondition(EDIT_IN_PROGRESS, DISALLOWED);
+		setCondition(PROCESS_RENDERER_IS_VISIBLE, MANDATORY);
+		setCondition(PROCESS_RENDERER_HAS_UNDO_STEPS, MANDATORY);
 	}
 
 	public void actionPerformed(ActionEvent e) {

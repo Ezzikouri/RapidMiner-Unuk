@@ -39,10 +39,11 @@ import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.ProcessRootOperator;
 import com.rapidminer.operator.ProcessSetupError;
+import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.SimpleProcessSetupError;
 import com.rapidminer.operator.UserError;
-import com.rapidminer.operator.ProcessSetupError.Severity;
 import com.rapidminer.operator.ports.InputPortExtender;
+import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.OutputPortExtender;
 import com.rapidminer.operator.ports.metadata.MDTransformationRule;
 import com.rapidminer.operator.ports.metadata.MetaData;
@@ -133,11 +134,24 @@ public class ProcessEmbeddingOperator extends Operator {
 					}
 					if (cachedProcess != null) {
 						ProcessRootOperator root = cachedProcess.getRootOperator();
-
-						int requires = root.getSubprocess(0).getInnerSources().getNumberOfConnectedPorts();
-						int gets = getInputPorts().getNumberOfConnectedPorts();
-						if (requires != gets) {
-							getInputPorts().getPortByIndex(0).addError(new SimpleMetaDataError(Severity.ERROR, getInputPorts().getPortByIndex(0), "included_process_input_mismatch", requires, gets));
+										
+						if (getParameterAsBoolean(PARAMETER_USE_INPUT)) {
+							int requires = root.getSubprocess(0).getInnerSources().getNumberOfConnectedPorts();
+							int gets = getInputPorts().getNumberOfConnectedPorts();
+							if (requires != gets) {
+								getInputPorts().getPortByIndex(0).addError(new SimpleMetaDataError(Severity.ERROR, getInputPorts().getPortByIndex(0), "included_process_input_mismatch", requires, gets));
+							}
+						} else {
+							List<OutputPort> outputPorts = root.getSubprocess(0).getInnerSources().getAllPorts();
+							List<String> repositoryLocations = cachedProcess.getContext().getInputRepositoryLocations();
+							for (int a = 0; a < outputPorts.size(); a++) {
+								OutputPort port = outputPorts.get(a);
+								if (port.isConnected()) {
+									if (a >= repositoryLocations.size() || repositoryLocations.get(a) == null || repositoryLocations.get(a).equals("")) {
+										addError(new SimpleProcessSetupError(Severity.ERROR, getPortOwner(), Collections.singletonList(new ParameterSettingQuickFix(ProcessEmbeddingOperator.this, PARAMETER_USE_INPUT, "true")), "included_process_missing_data", a+1));
+									}
+								}
+							}
 						}
 
 						int delivers = root.getSubprocess(0).getInnerSinks().getNumberOfConnectedPorts();
@@ -153,10 +167,10 @@ public class ProcessEmbeddingOperator extends Operator {
 						List<MetaData> result = root.getResultMetaData();
 						outputExtender.deliverMetaData(result);
 					}
-				}
+				}					
 				if (!getParameterAsBoolean(PARAMETER_USE_INPUT)) {
 					if (getInputPorts().getNumberOfConnectedPorts() > 0) {
-						addError(new SimpleMetaDataError(Severity.ERROR, getInputPorts().getPortByIndex(0),
+						addError(new SimpleMetaDataError(Severity.WARNING, getInputPorts().getPortByIndex(0),
 								Collections.singletonList(new ParameterSettingQuickFix(ProcessEmbeddingOperator.this, PARAMETER_USE_INPUT, "true")),
 								"included_process_input_unused"));
 					}

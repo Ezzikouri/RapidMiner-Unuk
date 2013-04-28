@@ -30,6 +30,7 @@ import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
@@ -98,7 +99,7 @@ public class OperatorDocToHtmlConverter {
 			trans.transform(xmlSource, new StreamResult(buffer));
 			html = buffer.toString();
 		} catch (TransformerException e) {
-			LogService.getRoot().finest("Failed to load documentation, using online fallback. Reason: " + e.getLocalizedMessage());
+			LogService.getRoot().log(Level.WARNING , "Failed to load documentation, using online fallback.", e);
 			return createFallbackDocumentation(operator);
 		}
 
@@ -327,14 +328,15 @@ public class OperatorDocToHtmlConverter {
 		}
 		// operator keys in the documentation begin with "operator.", so remove that
 		int index = operatorKey.indexOf(".");
-		if (index == -1) {
-			return SwingTools.getIconPath("24/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
-//			LogService.getRoot().finer("Tried to retrieve icon name for invalid operatorKey: '" + operatorKey + "'!");
-//			return null;
-		} else {
+		if (index != -1) {
 			operatorKey = operatorKey.substring(index + 1);
-			return SwingTools.getIconPath("24/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
 		}
+		OperatorDescription operatorDescription = OperatorService.getOperatorDescription(operatorKey);
+		if (operatorDescription==null) {
+			LogService.getRoot().finer("Tried to retrieve icon name for null operator with key "+operatorKey);
+			return null;
+		}
+		return SwingTools.getIconPath("24/" + operatorDescription.getIconName());
 	}
 
 	public static String getIconNameForOperatorSmall(String operatorKey) {
@@ -344,12 +346,15 @@ public class OperatorDocToHtmlConverter {
 		}
 		// operator keys in the documentation begin with "operator.", so remove that
 		int index = operatorKey.indexOf(".");
-		if (index == -1) {
-			return SwingTools.getIconPath("16/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
-		} else {
+		if (index != -1) {
 			operatorKey = operatorKey.substring(index + 1);
-			return SwingTools.getIconPath("16/" + OperatorService.getOperatorDescription(operatorKey).getIconName());
 		}
+		OperatorDescription operatorDescription = OperatorService.getOperatorDescription(operatorKey);
+		if (operatorDescription==null) {
+			LogService.getRoot().finer("Tried to retrieve icon name for null operator with key "+operatorKey);
+			return null;
+		}
+		return SwingTools.getIconPath("16/" + operatorDescription.getIconName());
 	}
 
 	public static String getOperatorNameForKey(String operatorKey) {
@@ -364,13 +369,14 @@ public class OperatorDocToHtmlConverter {
 	public static String getPluginNameForOperator(String operatorKey) {
 		OperatorDescription operatorDescription;
 		int index = operatorKey.indexOf(".");
-		if (index == -1) {
-			operatorDescription= OperatorService.getOperatorDescription(operatorKey);
-		} else {
+		if (index != -1) {
 			operatorKey = operatorKey.substring(index + 1);
-			operatorDescription = OperatorService.getOperatorDescription(operatorKey);
 		}
-		
+		operatorDescription = OperatorService.getOperatorDescription(operatorKey);
+		if (operatorDescription==null) {
+			LogService.getRoot().finer("Tried to retrieve plugin name for null operator with key "+operatorKey);
+			return null;
+		}
 		return operatorDescription.getProviderName();
 	}
 

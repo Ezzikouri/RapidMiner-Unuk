@@ -94,6 +94,8 @@ public class XMLResultSetConfiguration implements DataResultSetFactory {
      */
     public XMLResultSetConfiguration() {
         namespaceMap = new HashMap<String, String>();
+        VersionNumber rmVersion = RapidMiner.getVersion();
+    	this.xmlExampleSourceCompatibilityVersion = new OperatorVersion(rmVersion.getMajorNumber(), rmVersion.getMinorNumber(), rmVersion.getPatchLevel());
     }
 
     public void setDefaultNamespaceURI(String defaultNamespaceURI) {

@@ -46,7 +46,7 @@ public class BookmarksPackageListModel extends AbstractPackageListModel {
 	}
 	
 	@Override
-	public List<String> fetchPackageNames() {
+	public List<String> handleFetchPackageNames() {
 		UpdateServerAccount account = UpdateManager.getUpdateServerAccount();
 		if (!account.isLoggedIn()) return new ArrayList<String>();
 		
@@ -60,7 +60,6 @@ public class BookmarksPackageListModel extends AbstractPackageListModel {
 		if (accountService != null)
 			return accountService.getBookmarkedProducts("rapidminer");
 		
-		System.out.println();
 		return Collections.emptyList();
 	}
 

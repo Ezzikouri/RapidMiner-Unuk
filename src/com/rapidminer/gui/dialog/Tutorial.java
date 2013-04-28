@@ -22,6 +22,7 @@
  */
 package com.rapidminer.gui.dialog;
 
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -141,9 +142,12 @@ public class Tutorial extends ButtonDialog implements WindowListener {
 //		mainFrame.newProcess();
 		mainFrame.setTutorialMode(true);
 		layoutDefault(descriptionScrollPane, prevButton, nextButton, makeCloseButton());
-		setSize(500, 600);
-		if (mainFrame instanceof Window) {
-			Window window = (Window) mainFrame;
+		Dimension size = new Dimension(600, 650);
+		this.setSize(size);
+		this.setMaximumSize(size);
+		this.setPreferredSize(size);
+		if (mainFrame.getWindow() instanceof Window) {
+			Window window = (Window) mainFrame.getWindow();
 			setLocationRelativeTo(window);
 		}
 	}
@@ -177,6 +181,7 @@ public class Tutorial extends ButtonDialog implements WindowListener {
 		if (state == 0) {
 			prevButton.setEnabled(false);
 			description.setText(SwingTools.text2DisplayHtml(START_TEXT));
+			setLocationRelativeTo(mainFrame.getWindow());
 		} else {
 			setProcess(PROCESSES[state - 1]);
 		}

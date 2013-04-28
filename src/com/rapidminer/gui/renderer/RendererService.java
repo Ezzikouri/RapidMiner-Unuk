@@ -125,7 +125,6 @@ public class RendererService {
 				init(name, in, classLoader);
 			}
 		} catch (IOException e) {
-			//LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description of plugin" + name + ": " + "Cannot parse document: " + e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 					"com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_from_plugin_error", 
@@ -143,7 +142,6 @@ public class RendererService {
 	}
 
 	public static void init(String rendererFileName, InputStream in, ClassLoader classLoader) {
-		//LogService.getRoot().config("Loading renderers from '" + rendererFileName + "'.");
 		LogService.getRoot().log(Level.CONFIG, "com.rapidminer.gui.renderer.RendererService.loading_renderers", rendererFileName);
 		try {
 			Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
@@ -184,25 +182,21 @@ public class RendererService {
 				}
 				isInitialized = true;
 			} else {
-				//LogService.getRoot().warning("Cannot initialize io object description: Outermost tag of a ioobjects.xml definition must be <ioobjects>!");
 				LogService.getRoot().log(Level.WARNING, "com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_tag_error");
 			}
 		} catch (IOException e) {
-			//LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 					"com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_parsing_error", 
 					e),
 					e);
 		} catch (javax.xml.parsers.ParserConfigurationException e) {
-			//LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: " + e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 					"com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_error", 
 					e),
 					e);
 		} catch (SAXException e) {
-			//LogService.getRoot().log(Level.WARNING, "Cannot initialize io object description: Cannot parse document: " + e, e);
 			LogService.getRoot().log(Level.WARNING,
 					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
 					"com.rapidminer.gui.renderer.RendererService.initializing_io_object_description_parsing_error", 
@@ -303,12 +297,12 @@ public class RendererService {
 		String result = class2NameMap.get(clazz);
 		if (result == null) {
 
-			List<Class<?>> candidateList = new LinkedList<Class<?>>();
+			Set<Class<?>> candidates = new HashSet<Class<?>>();
 
 			//fetch candidates
-			for (Class<?> renderable : class2NameMap.keySet()) {
-				if (renderable.isAssignableFrom(clazz)) {
-					candidateList.add(renderable);
+			for (Class<?> candidate : class2NameMap.keySet()) {
+				if (candidate.isAssignableFrom(clazz)) {
+					candidates.add(candidate);
 				}
 			}
 
@@ -319,8 +313,8 @@ public class RendererService {
 				List<Class<?>> dominatedList = new LinkedList<Class<?>>();
 
 				//iterate over all candidate pairs and add all candidates that are dominated by other candidates into a list
-				for (Class<?> candidate : candidateList) {
-					for (Class<?> comperable : candidateList) {
+				for (Class<?> candidate : candidates) {
+					for (Class<?> comperable : candidates) {
 						if (candidate != comperable) {
 							if (!candidate.isAssignableFrom(comperable)) {
 								dominatedList.add(candidate);
@@ -332,23 +326,22 @@ public class RendererService {
 
 				//if dominates classes have been found set them as new candidates for the next iteration
 				if (dominatedClassesFound) {
-					candidateList.clear();
-					candidateList.addAll(dominatedList);
+					candidates.clear();
+					candidates.addAll(dominatedList);
 				}
 			}
 			//this loop should break with only one candidate left, BUT: theoretically there can be more than one
 
 			//if this is the case, log an error...
-			if (candidateList.size() > 1) {
-				//LogService.getGlobal().log("There is more than one renderable candidate for the result of " + clazz.getName(), LogService.ERROR);
-				LogService.getRoot().log(Level.SEVERE, "com.rapidminer.gui.renderer.RendererService.more_than_one_renderable_candidate_for_the_result_of_classname", clazz.getName());
+			if (candidates.size() > 1) {
+				LogService.getRoot().log(Level.INFO, "com.rapidminer.gui.renderer.RendererService.more_than_one_renderable_candidate_for_the_result_of_classname", clazz.getName());
 			}
 			
 			//and show the first candidate found
-			if (candidateList.isEmpty()) {
+			if (candidates.isEmpty()) {
 				return null;
 			} else {
-				return class2NameMap.get(candidateList.get(0));
+				return class2NameMap.get(candidates.toArray()[0]);
 			}
 		}
 		return result;

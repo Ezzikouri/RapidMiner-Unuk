@@ -47,6 +47,9 @@ public class PackageDescriptorCache {
 	private UpdateService updateService = null;
 
 	public PackageDescriptor getPackageInfo(String packageId) {
+		if (UpdateManager.PACKAGEID_RAPIDMINER.equals(packageId)) {
+			packageId = UpdateManager.getRMPackageId();
+		}
 		if (descriptors.containsKey(packageId)) {
 			//in Cache
 			return descriptors.get(packageId);
@@ -90,12 +93,12 @@ public class PackageDescriptorCache {
 		}
 	}
 
-	public void fetchPackageInfo(String packageId) {
+	private void fetchPackageInfo(String packageId) {
 		initUpdateService();
 		if (updateService != null) {
 			try {
 				String targetPlatform = UpdateManager.TARGET_PLATFORM;
-				if (!"rapidminer".equals(packageId)) {
+				if (!UpdateManager.PACKAGEID_RAPIDMINER.equals(packageId)) {
 					targetPlatform = "ANY";
 				}
 				PackageDescriptor descriptor = updateService.getPackageInfo(packageId, updateService.getLatestVersion(packageId, targetPlatform), targetPlatform);

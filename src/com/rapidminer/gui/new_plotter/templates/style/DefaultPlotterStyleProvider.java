@@ -34,7 +34,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.rapidminer.gui.new_plotter.templates.gui.ScatterTemplatePanel;
-import com.rapidminer.gui.new_plotter.templates.style.ColorScheme.ColorRGB;
 import com.rapidminer.tools.LogService;
 
 /**

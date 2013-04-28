@@ -66,6 +66,7 @@ import com.rapidminer.parameter.ParameterTypeDateFormat;
 import com.rapidminer.parameter.ParameterTypeString;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.DateParser;
+import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.io.Encoding;
 
@@ -107,6 +108,11 @@ public class ExcelExampleSetWriter extends AbstractStreamWriter {
 	 */
 	public static void write(ExampleSet exampleSet, Charset encoding, OutputStream out) throws IOException, WriteException {
 		try {
+			// .xls files can only store up to 256 columns, so throw error in case of more
+			if (exampleSet.getAttributes().allSize() > 256) {
+				throw new IllegalArgumentException(I18N.getMessage(I18N.getErrorBundle(), "export.excel.excel_xls_file_exceeds_column_limit"));
+			}
+			
 			WorkbookSettings ws = new WorkbookSettings();
 			ws.setEncoding(encoding.name());
 			ws.setLocale(Locale.US);
@@ -256,6 +262,11 @@ public class ExcelExampleSetWriter extends AbstractStreamWriter {
 	 * If you want to write it in XLS format use {@link #write(ExampleSet, Charset, OutputStream)}.
 	 */
 	public static void writeXLSX(ExampleSet exampleSet, String sheetName, String dateFormat, String numberFormat, OutputStream outputStream) throws WriteException, IOException {
+		// .xlsx files can only store up to 16384 columns, so throw error in case of more
+		if (exampleSet.getAttributes().allSize() > 16384) {
+			throw new IllegalArgumentException(I18N.getMessage(I18N.getErrorBundle(), "export.excel.excel_xlsx_file_exceeds_column_limit"));
+		}
+					
 		try {
 			XSSFWorkbook workbook = new XSSFWorkbook();
 

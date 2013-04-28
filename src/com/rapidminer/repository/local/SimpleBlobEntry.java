@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.repository.local;
 
 import java.io.File;
@@ -33,8 +34,6 @@ import java.io.OutputStream;
 import com.rapidminer.repository.BlobEntry;
 import com.rapidminer.repository.Folder;
 import com.rapidminer.repository.RepositoryException;
-import com.rapidminer.repository.RepositoryLocation;
-import com.rapidminer.tools.I18N;
 
 /**
  * Reference on BLOB entries in the repository.
@@ -45,14 +44,22 @@ public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 
 	private static final String BLOB_SUFFIX = ".blob";
 
-	SimpleBlobEntry(String name, SimpleFolder containingFolder,	LocalRepository localRepository) {
+	SimpleBlobEntry(String name, SimpleFolder containingFolder, LocalRepository localRepository) throws RepositoryException {
 		super(name, containingFolder, localRepository);
+		// create physical file here, otherwise it will not really exist and for example cause errors in the Binary Import Wizard
+		if (!getFile().exists()) {
+			try {
+				getFile().createNewFile();
+			} catch (IOException e) {
+				throw new RepositoryException(e.getMessage());
+			}
+		}
 	}
 
 	private File getFile() {
-		return new File(((SimpleFolder)getContainingFolder()).getFile(), getName()+BLOB_SUFFIX);
+		return new File(((SimpleFolder) getContainingFolder()).getFile(), getName() + BLOB_SUFFIX);
 	}
-	
+
 	@Override
 	public long getDate() {
 		return getFile().lastModified();
@@ -68,28 +75,15 @@ public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 		getFile().delete();
 		super.delete();
 	}
-	
-	@Override
-	public boolean rename(String newName) throws RepositoryException {
-		// check for possible invalid name
-		if (!RepositoryLocation.isNameValid(newName)) {
-			throw new RepositoryException(I18N.getMessage(I18N.getErrorBundle(), "repository.illegal_entry_name", newName, getLocation()));
-		}
 
-		renameFile(getFile(), newName);
-		return super.rename(newName);
+	@Override
+	protected void handleRename(String newName) throws RepositoryException {
+		renameFile(getFile(), newName);		
 	}
 	
 	@Override
-	public boolean move(Folder newParent) {	
-		moveFile(getFile(), ((SimpleFolder)newParent).getFile());
-		return super.move(newParent);
-	}
-	
-	@Override
-	public boolean move(Folder newParent, String newName) {	
-		moveFile(getFile(), ((SimpleFolder)newParent).getFile(), newName, BLOB_SUFFIX);
-		return super.move(newParent, newName);
+	protected void handleMove(Folder newParent, String newName) throws RepositoryException {
+		moveFile(getFile(), ((SimpleFolder) newParent).getFile(), newName, BLOB_SUFFIX);
 	}
 
 	@Override
@@ -107,7 +101,7 @@ public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 		try {
 			return new FileInputStream(getFile());
 		} catch (FileNotFoundException e) {
-			throw new RepositoryException("Cannot open stream from '"+getFile()+"': "+e, e);
+			throw new RepositoryException("Cannot open stream from '" + getFile() + "': " + e, e);
 		}
 	}
 
@@ -115,9 +109,9 @@ public class SimpleBlobEntry extends SimpleDataEntry implements BlobEntry {
 	public OutputStream openOutputStream(String mimeType) throws RepositoryException {
 		putProperty("mimetype", mimeType);
 		try {
-			return new FileOutputStream(getFile());			
+			return new FileOutputStream(getFile());
 		} catch (IOException e) {
-			throw new RepositoryException("Cannot open stream from '"+getFile()+"': "+e, e);
+			throw new RepositoryException("Cannot open stream from '" + getFile() + "': " + e, e);
 		}
 	}
 }

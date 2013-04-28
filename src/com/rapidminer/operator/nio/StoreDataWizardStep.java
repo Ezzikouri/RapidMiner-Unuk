@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.nio;
 
 import java.util.logging.Level;
@@ -53,19 +54,23 @@ import com.rapidminer.tools.LogService;
  *
  */
 public final class StoreDataWizardStep extends RepositoryLocationSelectionWizardStep {
-	
+
 	private WizardState state;
-	
-	public StoreDataWizardStep(AbstractWizard parent, WizardState state, String preselectedLocation) {
-		super(parent, preselectedLocation, true);
+
+	public StoreDataWizardStep(AbstractWizard parent, WizardState state, String preselectedLocation, boolean onlyWriteableRepositories) {
+		super(parent, preselectedLocation, true, onlyWriteableRepositories);
 		this.state = state;
+	}
+
+	public StoreDataWizardStep(AbstractWizard parent, WizardState state, String preselectedLocation) {
+		this(parent, state, preselectedLocation, false);
 	}
 
 	@Override
 	protected boolean performLeavingAction(WizardStepDirection direction) {
 		if (direction == WizardStepDirection.FINISH) {
 			String repositoryLocationPath = getRepositoryLocation();
-			if (repositoryLocationPath  == null) {
+			if (repositoryLocationPath == null) {
 				return false;
 			}
 			final RepositoryLocation location;
@@ -90,6 +95,7 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 			}
 			state.setSelectedLocation(location);
 			new ProgressThread("importing_data", true) {
+
 				@Override
 				public void run() {
 					DataResultSet resultSet = null;
@@ -100,20 +106,21 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 						resultSet = state.getDataResultSetFactory().makeDataResultSet(null);
 						state.getTranslator().clearErrors();
 						final ExampleSet exampleSet = state.readNow(resultSet, false, getProgressListener());
-						
+
 						try {
 							RepositoryManager.getInstance(null).store(exampleSet, location, null);
 							SwingUtilities.invokeLater(new Runnable() {
+
 								@Override
 								public void run() {
 									// Select repository entry
-									if (RapidMinerGUI.getMainFrame()!=null) {
+									if (RapidMinerGUI.getMainFrame() != null) {
 										RapidMinerGUI.getMainFrame().getRepositoryBrowser().expandToRepositoryLocation(location);
 										// Switch to result 
 										try {
 											Entry entry = location.locateEntry();
-											if (entry !=null && entry instanceof IOObjectEntry) {
-												OpenAction.showAsResult((IOObjectEntry)entry);
+											if (entry != null && entry instanceof IOObjectEntry) {
+												OpenAction.showAsResult((IOObjectEntry) entry);
 											}
 										} catch (RepositoryException e) {
 											LogService.getRoot().log(Level.WARNING, "Can not open result", e);
@@ -132,14 +139,13 @@ public final class StoreDataWizardStep extends RepositoryLocationSelectionWizard
 							try {
 								resultSet.close();
 							} catch (OperatorException e) {
-								//LogService.getRoot().log(Level.WARNING, "Failed to close result set: "+e, e);
-	                			LogService.getRoot().log(Level.WARNING,
-	                					I18N.getMessage(LogService.getRoot().getResourceBundle(), 
-	                					"com.rapidminer.operator.nio.StoreDataWizardStep.closing_result_set_error", 
-	                					e),
-	                					e);
+								LogService.getRoot().log(Level.WARNING,
+										I18N.getMessage(LogService.getRoot().getResourceBundle(),
+												"com.rapidminer.operator.nio.StoreDataWizardStep.closing_result_set_error",
+												e),
+										e);
 							}
-						}	
+						}
 						state.getDataResultSetFactory().close();
 						getProgressListener().complete();
 					}

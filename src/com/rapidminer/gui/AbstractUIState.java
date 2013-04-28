@@ -101,6 +101,7 @@ import com.rapidminer.gui.tools.StatusBar;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.SystemMonitor;
 import com.rapidminer.gui.tools.WelcomeScreen;
+import com.rapidminer.gui.tools.components.DropDownButton;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.DecisionRememberingConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.ManageDatabaseConnectionsDialog;
@@ -109,6 +110,7 @@ import com.rapidminer.gui.tools.dialogs.wizards.dataimport.BlobImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DatabaseImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.access.AccessImportWizard;
 import com.rapidminer.operator.DebugMode;
+import com.rapidminer.gui.tour.TourChooser;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
@@ -834,14 +836,20 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 
 		final RapidDockingToolbar viewToolBar = perspectives
 				.getWorkspaceToolBar();
+		//TODO: enable when tour is useable
+//		RapidDockingToolbar achievementToolBar = new RapidDockingToolbar("achievement");
+//		DropDownButton achievement = TourChooser.makeAchievmentDropDown();
+//		achievement.addToToolBar(achievementToolBar);
+		
+		
 		final ToolBarPanel toolBarPanel = toolBarContainer
 				.getToolBarPanelAt(BorderLayout.NORTH);
 		toolBarPanel.add(fileToolBar, new ToolBarConstraints(0, 0));
 		toolBarPanel.add(editToolBar, new ToolBarConstraints(0, 1));
 		toolBarPanel.add(runToolBar, new ToolBarConstraints(0, 2));
 		toolBarPanel.add(viewToolBar, new ToolBarConstraints(0, 3));
-
-		//??? getContentPane() 
+		//TODO: shift achievementToolBar to the right
+		// toolBarPanel.add(achievementToolBar, new ToolBarConstraints(0, 4)); 
 		contentPane.add(getStatusBar(), BorderLayout.SOUTH);
 		getStatusBar().startClockThread();
 
@@ -1046,14 +1054,6 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		if (process.equals(AbstractUIState.this.process)) {
 			if (results != null) {
 				resultDisplay.showData(results, "Process results");
-				final ProcessLocation location = AbstractUIState.this.process
-						.getProcessLocation();
-				final String resultName = location != null ? location
-						.getShortName() : "unnamed";
-				RapidMinerGUI.getResultHistory()
-						.addResults(resultName,
-								AbstractUIState.this.process.getRootOperator(),
-								results);
 			}
 		}
 	}
@@ -1213,6 +1213,20 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 			REDO_ACTION.setEnabled(false);
 		}
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean hasUndoSteps() {
+		return undoIndex > 0;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public boolean hasRedoSteps() {
+		return undoIndex < undoManager.getNumberOfUndos() - 1;
+	}
 
 	private void setProcessIntoStateAt(int undoIndex, boolean undo) {
 		String stateXML = undoManager.getXml(undoIndex);
@@ -1225,15 +1239,18 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		Operator selectedOperator = undoManager.getSelectedOperator(undoIndex);
 		try {
 			synchronized (process) {
+				String oldXml = process.getRootOperator().getXML(true);
 				Process process = new Process(stateXML, this.process);
 				// this.process.setupFromXML(stateXML);
 				setProcess(process, false);
 				// cannot use method processChanged() because this would add the
 				// old state to the undo stack!
-				this.changed = true;
-				setTitle();
-				if (this.process.getProcessLocation() != null && !tutorialMode) {
-					this.SAVE_ACTION.setEnabled(true);
+				if (!stateXML.equals(oldXml)) {
+					this.changed = true;
+					setTitle();
+					if (this.process.getProcessLocation() != null && !tutorialMode) {
+						this.SAVE_ACTION.setEnabled(true);
+					}
 				}
 
 				// restore selected operator
@@ -1742,6 +1759,15 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 
 	/*
 	 * (non-Javadoc)
+	 * @see com.rapidminer.gui.MainUIState#getImportXmlFileAction()
+	 */
+	@Override
+	public Action getImportXmlFileAction() {
+		return IMPORT_XML_FILE_ACTION;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * 
 	 * @see com.rapidminer.gui.MainUIState#getValidateAutomaticallyAction()
 	 */
@@ -1786,6 +1812,15 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 	@Override
 	public RunAction getRunAction() {
 		return RUN_ACTION;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.rapidminer.gui.MainUIState#getSaveAction()
+	 */
+	@Override
+	public SaveAction getSaveAction() {
+		return SAVE_ACTION;
 	}
 
 	/*
