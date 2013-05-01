@@ -33,6 +33,7 @@ import com.rapidminer.generator.GenerationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.UserError;
+import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.ExampleSetMetaData;
 import com.rapidminer.operator.ports.metadata.MetaData;
 import com.rapidminer.operator.preprocessing.filter.ChangeAttributeName;
@@ -127,7 +128,7 @@ import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
  * <li>To lower case: lower(text)</li>
  * <li>To upper case: upper(text)</li>
  * <li>First position of string in text: index(text, string)</li>
- * <li>Length: length(text)</li>
+ * <li>Length: length(text)</li>		
  * <li>Character at position pos in text: char(text, pos)</li>
  * <li>Compare: compare(text1, text2)</li>
  * <li>Contains string in text: contains(text, string)</li>
@@ -162,7 +163,7 @@ import com.rapidminer.tools.expression.parser.ExpressionParserFactory;
  * <li>Retrieving a parameter value: param("operator", "parameter")</li>
  * </ul>
  * </p>
- * 
+ * 		
  * 
  * <p>Beside those operators and functions, this operator also supports the constants
  * pi and e if this is indicated by the corresponding parameter (default: true). You can
@@ -208,6 +209,12 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 
 	@Override
 	protected MetaData modifyMetaData(ExampleSetMetaData metaData) {
+		List<AttributeMetaData> originalAttributes = new LinkedList<AttributeMetaData>();
+		for (AttributeMetaData attribute : metaData.getAllAttributes()) {
+			originalAttributes.add(attribute);
+		}
+		
+		List<String> newAttributeNames = new LinkedList<String>();
 		AbstractExpressionParser parser = ExpressionParserFactory.getExpressionParser(getParameterAsBoolean(PARAMETER_USE_STANDARD_CONSTANTS), getProcess());
 		try {
 			Iterator<String[]> j = getParameterList(PARAMETER_FUNCTIONS).iterator();
@@ -216,8 +223,18 @@ public class AttributeConstruction extends AbstractFeatureConstruction {
 				String name = nameFunctionPair[0];
 				String function = nameFunctionPair[1];
 				parser.addAttributeMetaData(metaData, name, function);
+				newAttributeNames.add(name);
 			}
 		} catch (UndefinedParameterError e) {} catch (GenerationException e) {}
+		
+		if (!getParameterAsBoolean(PARAMETER_KEEP_ALL)) {
+			for (AttributeMetaData attribute : originalAttributes) {
+				if (!newAttributeNames.contains(attribute.getName())) {
+					metaData.removeAttribute(attribute);
+				}
+			}
+		}
+		
 		return metaData;
 	}
 
