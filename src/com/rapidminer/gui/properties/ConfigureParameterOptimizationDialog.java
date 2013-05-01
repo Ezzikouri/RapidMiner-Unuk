@@ -127,7 +127,7 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 	private ExtendedJList parametersList;
 
 	private ExtendedJList selectedParametersList;
-
+	
 	private JLabel minValueJLabel;
 
 	private JLabel maxValueJLabel;
@@ -198,7 +198,7 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 				addParameter(parameterValue);
 			}
 		}
-
+		
 		updateInfoLabel();
 	}
 
@@ -689,13 +689,7 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 			}
 		});
 		buttonPanel.add(okButton);
-		JButton cancelButton = new JButton(new ResourceAction("cancel") {
-			private static final long serialVersionUID = 3400772620633105463L;
-
-			public void actionPerformed(ActionEvent e) {
-				cancel();
-			}
-		});
+		JButton cancelButton = makeCancelButton("cancel");
 		buttonPanel.add(cancelButton);
 		getRootPane().setDefaultButton(okButton);
 

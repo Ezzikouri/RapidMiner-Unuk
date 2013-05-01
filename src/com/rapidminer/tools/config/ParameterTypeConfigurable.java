@@ -49,6 +49,7 @@ public class ParameterTypeConfigurable extends ParameterTypeSingle {
 			throw new IllegalArgumentException("Unknown configurable type: " + typeId);
 		}
 		this.typeId = typeId;
+		setExpert(false);
 	}
 
 	public String getTypeId() {

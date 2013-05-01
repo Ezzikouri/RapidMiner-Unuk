@@ -1370,8 +1370,8 @@ public class DatabaseHandler {
 			// get the id value and set it in the statements
 			int idCount = 0;
 			for (Attribute idAtt : idAttributes) {
-				// id attributes may not be numerical, so check type
 				if (idAtt.isNumerical()) {
+					// id attributes may not be numerical, so check type
 					prepUpdateStatement.setDouble(attCount + ++idCount, ex.getValue(idAtt));
 					prepInsertStatement.setDouble(allAttList.indexOf(idAtt) + 1, ex.getValue(idAtt));
 				} else if (idAtt.isNominal()) {
@@ -1402,7 +1402,7 @@ public class DatabaseHandler {
 				if (Double.isNaN(value)) {
 					int sqlType = statementCreator.getSQLTypeForRMValueType(att.getValueType()).getDataType();
 					prepUpdateStatement.setNull(attList.indexOf(att) + 1, sqlType);
-					prepInsertStatement.setNull(attList.indexOf(att) + 1, sqlType);
+					prepInsertStatement.setNull(allAttList.indexOf(att) + 1, sqlType);
 				} else if (att.isNumerical()) {
 					prepUpdateStatement.setDouble(attList.indexOf(att) + 1, ex.getValue(att));
 					prepInsertStatement.setDouble(allAttList.indexOf(att) + 1, ex.getValue(att));
