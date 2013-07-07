@@ -170,6 +170,7 @@
 			<include name="**/*.java" />
 			<!-- ...but Tests -->
 			<!-- <exclude name="**/test/*" /> -->
+			<exclude name="com/rapidminer/doc/*" />
 		</javac>
 	</target>
 
