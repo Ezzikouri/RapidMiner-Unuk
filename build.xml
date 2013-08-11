@@ -1,4 +1,4 @@
-<project name="RapidMiner_Unuk" xmlns:ac="antlib:net.sf.antcontrib">
+<project name="RapidMiner" xmlns:ac="antlib:net.sf.antcontrib">
 	<taskdef uri="antlib:net.sf.antcontrib" resource="net/sf/antcontrib/antlib.xml" classpath="ant/ant-contrib-1.0b3.jar" />
 	<description>Build file for RapidMiner</description>
 	<property file="build.properties" />
@@ -170,7 +170,7 @@
 			<include name="**/*.java" />
 			<!-- ...but Tests -->
 			<!-- <exclude name="**/test/*" /> -->
-			<exclude name="com/rapidminer/doc/*" />
+			<!--exclude name="com/rapidminer/doc/*" /-->
 		</javac>
 	</target>
 

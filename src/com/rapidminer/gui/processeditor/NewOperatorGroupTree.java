@@ -415,12 +415,6 @@ public class NewOperatorGroupTree extends JPanel implements FilterListener, Sele
                 operatorGroupTree.expandRow(i);
             }
 
-        if (operatorGroupTree.getRowCount() > getHeight() / (operatorGroupTree.getRowHeight() + 2)) {
-            for (int i = operatorGroupTree.getRowCount(); i >= 0; i--) {
-                operatorGroupTree.collapseRow(i);
-            }
-        }
-
         GroupTree root = (GroupTree) this.operatorGroupTree.getModel().getRoot();
         TreePath path = new TreePath(root);
         showNodes(root, path);

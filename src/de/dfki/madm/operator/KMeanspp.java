@@ -26,6 +26,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.ProcessStoppedException;
 import com.rapidminer.operator.clustering.ClusterModel;
 import com.rapidminer.operator.clustering.clusterer.RMAbstractClusterer;
 import com.rapidminer.tools.RandomGenerator;
@@ -78,8 +79,9 @@ public class KMeanspp extends RMAbstractClusterer {
 	 * start the algorithm
 	 * 
 	 * @return array with Ids of the centroids
+	 * @throws ProcessStoppedException 
 	 */
-	public int[] getStart() {
+	public int[] getStart() throws ProcessStoppedException {
 		int[] ret = new int[minK];
 		int i = 0;
 		int anz = 0;
@@ -93,7 +95,10 @@ public class KMeanspp extends RMAbstractClusterer {
 		
 		while (anz < minK) {
 			boolean again = false;
+			checkForStop();
+			
 			do { 
+				checkForStop();
 				again = false;
 				double[] shortest = new double[examplesize];
 				double maxProb = 0;

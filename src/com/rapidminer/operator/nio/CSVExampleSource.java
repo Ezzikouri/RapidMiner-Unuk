@@ -59,7 +59,7 @@ public class CSVExampleSource extends AbstractDataResultSetReader {
 	public static final String PARAMETER_USE_QUOTES = "use_quotes";
 	public static final String PARAMETER_QUOTES_CHARACTER = "quotes_character";
 	public static final String PARAMETER_COLUMN_SEPARATORS = "column_separators";
-	public static final String PARAMETER_ESCAPE_CHARACTER = "escape_character_for_quotes";
+	public static final String PARAMETER_ESCAPE_CHARACTER = "escape_character";
 
 	static {
 		AbstractReader.registerReaderDescription(new ReaderDescription("csv", CSVExampleSource.class, PARAMETER_CSV_FILE));
@@ -117,8 +117,7 @@ public class CSVExampleSource extends AbstractDataResultSetReader {
 		type = new ParameterTypeChar(PARAMETER_QUOTES_CHARACTER, "The quotes character.", LineParser.DEFAULT_QUOTE_CHARACTER, false);
 		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_QUOTES, false, true));
 		types.add(type);
-		type = new ParameterTypeChar(PARAMETER_ESCAPE_CHARACTER, "The charcter that is used to escape quotes", LineParser.DEFAULT_QUOTE_ESCAPE_CHARACTER, true);
-		type.registerDependencyCondition(new BooleanParameterCondition(this, PARAMETER_USE_QUOTES, false, true));
+		type = new ParameterTypeChar(PARAMETER_ESCAPE_CHARACTER, "The character that is used to escape quotes and column seperators", LineParser.DEFAULT_QUOTE_ESCAPE_CHARACTER, true);
 		types.add(type);
 
 		// Comments

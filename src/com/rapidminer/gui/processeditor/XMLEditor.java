@@ -141,7 +141,7 @@ public class XMLEditor extends JPanel implements ProcessEditor, Dockable, FocusL
 	}
 	
 	public synchronized void validateProcess() throws IOException, XMLException {
-		Process newExp = new Process(editor.getText());
+		Process newExp = new Process(editor.getText().trim());
 		if (!newExp.getRootOperator().getXML(true).equals(RapidMinerGUI.getMainFrame().getProcess().getRootOperator().getXML(true))) {
 			Process old = RapidMinerGUI.getMainFrame().getProcess();
 			newExp.setProcessLocation(old.getProcessLocation());
@@ -150,7 +150,7 @@ public class XMLEditor extends JPanel implements ProcessEditor, Dockable, FocusL
 	}
 
 	public String getXMLFromEditor(){
-		return this.editor.getText();
+		return this.editor.getText().trim();
 	}
 	
 	public void focusGained(FocusEvent e) {}

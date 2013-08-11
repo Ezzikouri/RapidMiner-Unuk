@@ -124,14 +124,58 @@ public class ParsingError {
 	public String toString() {
 		return "line "+getRow()+", column "+getColumn()+": "+getErrorCode().getMessage() + "("+getOriginalValue()+")";
 	}
-	
+
 	@Override
-	public boolean equals(Object o) {
-		if (o instanceof ParsingError) {
-			return ((ParsingError)o).toString().equals(this.toString()) && 
-					((ParsingError)o).getColumns().equals(this.columns);
-		} else {
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + column;
+		result = prime * result + ((columns == null) ? 0 : columns.hashCode());
+		result = prime * result + ((errorCode == null) ? 0 : errorCode.hashCode());
+		result = prime * result + exampleIndex;
+		result = prime * result + ((originalValue == null) ? 0 : originalValue.hashCode());
+		result = prime * result + row;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
 			return false;
 		}
+		if (!(obj instanceof ParsingError)) {
+			return false;
+		}
+		ParsingError other = (ParsingError) obj;
+		if (column != other.column) {
+			return false;
+		}
+		if (columns == null) {
+			if (other.columns != null) {
+				return false;
+			}
+		} else if (!columns.equals(other.columns)) {
+			return false;
+		}
+		if (errorCode != other.errorCode) {
+			return false;
+		}
+		if (exampleIndex != other.exampleIndex) {
+			return false;
+		}
+		if (originalValue == null) {
+			if (other.originalValue != null) {
+				return false;
+			}
+		} else if (!originalValue.equals(other.originalValue)) {
+			return false;
+		}
+		if (row != other.row) {
+			return false;
+		}
+		return true;
 	}
 }

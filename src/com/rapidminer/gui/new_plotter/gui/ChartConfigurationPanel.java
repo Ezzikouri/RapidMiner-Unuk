@@ -110,7 +110,6 @@ import com.rapidminer.gui.tools.ResourceLabel;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.tools.I18N;
-import com.rapidminer.tools.ParameterService;
 
 /**
  * @author Nils Woehler

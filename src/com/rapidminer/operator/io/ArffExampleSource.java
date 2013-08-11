@@ -38,6 +38,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -47,6 +48,7 @@ import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.Port;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.PortProvider;
+import com.rapidminer.tools.LogService;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.StrictDecimalFormat;
 import com.rapidminer.tools.Tools;
@@ -294,7 +296,17 @@ public class ArffExampleSource extends AbstractDataReader {
 					} else {
 						for (int i = 0; i < getColumnCount(); i++) {
 							if (i > 0) {
-								Tools.getNextToken(tokenizer);
+								try {
+									Tools.getNextToken(tokenizer);
+								} catch (IOException e) {
+									// this exception indicates a malformed .arff file, log it
+									try {
+										LogService.getRoot().log(Level.WARNING, 
+												"com.rapidminer.operator.io.ArffExampleSource.unexpected_end_of_file", 
+												filePortHandler.getSelectedFile().getName());
+										throw e; // needs to be rethrown for the global catch below
+									} catch (OperatorException e1) {}
+								}
 							}
 							if (tokenizer.ttype == '?') {
 								tokens[i] = null;

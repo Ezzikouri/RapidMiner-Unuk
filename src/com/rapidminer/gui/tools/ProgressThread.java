@@ -24,6 +24,8 @@ package com.rapidminer.gui.tools;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,6 +50,10 @@ import com.rapidminer.tools.ProgressListener;
  */
 public abstract class ProgressThread implements Runnable {
 
+	Thread thread = new Thread();
+	
+	private final Set<ProgressThreadListener> listeners = new CopyOnWriteArraySet<ProgressThreadListener>();
+	
 	/** Task currently being executed. */
 	private static ProgressThread current = null;
 
@@ -127,6 +133,11 @@ public abstract class ProgressThread implements Runnable {
 	public ProgressDisplay getDisplay() {
 		return display;
 	}
+	
+	public void setDisplayLabel(String i18nKey) {
+		String newName = I18N.getMessage(I18N.getGUIBundle(), "gui.progress."+i18nKey+".label");
+		display.setLabel(newName);
+	}
 
 	/** Note that this method has nothing to do with Thread.strart. It merely enqueues
 	 *  this Runnable in the Executor's queue. */
@@ -205,6 +216,9 @@ public abstract class ProgressThread implements Runnable {
 					}
 					QUEUE_MODEL.remove(ProgressThread.this);
 					current = null;
+					for (ProgressThreadListener listener : listeners) {
+						listener.threadFinished(ProgressThread.this);
+				    }
 				}
 			}				
 		};
@@ -250,5 +264,15 @@ public abstract class ProgressThread implements Runnable {
 		if (cancelled) {
 			throw new ProgressThreadStoppedException();
 		}
+	}
+	
+	/** Adds a new ProgressThreadListener **/
+	public final void addProgressThreadListener(final ProgressThreadListener listener) {
+		listeners.add(listener);
+	}
+	
+	/** Removes a ProgressThreadListener **/
+	public final void removeProgressThreadListener(final ProgressThreadListener listener) {
+		listeners.remove(listener);
 	}
 }

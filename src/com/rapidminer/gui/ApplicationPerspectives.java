@@ -140,15 +140,6 @@ public abstract class ApplicationPerspectives {
         	if (mainFrame.getProcessPanel().getProcessRenderer().isShowing()) {
         		mainFrame.getProcessPanel().getProcessRenderer().requestFocusInWindow();
         	}
-        	
-        	// disable close action on the result dockable when in pre-defined results perspective
-        	//TODO: commented out because a fast switch between perspectives during this call breaks the Dockable (turns blue)
-        	/*
-        	if (perspective.getName().contains("result")) {
-        		mainFrame.getResultDisplay().getDockKey().setCloseEnabled(false);
-        	} else {
-        		mainFrame.getResultDisplay().getDockKey().setCloseEnabled(true);
-        	}*/
         }
         this.notifyChangeListener();
     }

@@ -56,7 +56,6 @@ public class ToggleActivationItem extends ToggleAction {
     {
         setCondition(ROOT_SELECTED, DISALLOWED);
         setCondition(OPERATOR_SELECTED, MANDATORY);
-        setCondition(PARENT_ENABLED, MANDATORY);
     }
 
     public ToggleActivationItem(final Actions actions) {

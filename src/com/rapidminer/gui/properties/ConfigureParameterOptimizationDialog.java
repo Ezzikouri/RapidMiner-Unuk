@@ -1127,6 +1127,7 @@ public class ConfigureParameterOptimizationDialog extends PropertyDialog {
 	}
 
 	protected void ok() {
+		updateSelectedNumericalParameterValues();
 		ok = true;
 		List<String[]> parameterList = new LinkedList<String[]>();
 		for (String key : parameterValuesMap.keySet()) {

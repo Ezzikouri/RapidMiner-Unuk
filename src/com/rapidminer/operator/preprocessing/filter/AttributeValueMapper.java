@@ -123,9 +123,13 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 			}
 			boolean first   = true;
 			boolean nominal = false;
+			boolean dataTypeUnknown = true;
 			for (AttributeMetaData amd : emd.getAllAttributes()) {
 				if (first) {
 					nominal = amd.isNominal();
+					if (amd.getValueType() != Ontology.ATTRIBUTE_VALUE) {
+						dataTypeUnknown = false;
+					}
 					first   = false;
 				} else {
 					if (nominal != amd.isNominal()) {
@@ -202,7 +206,7 @@ public class AttributeValueMapper extends AbstractValueProcessing {
 					}
 					amd.setValueSet(valueSet, SetRelation.SUBSET);
 				}
-			} else {
+			} else if (!dataTypeUnknown) {
 				HashMap<Double, Double> numericalValueMapping = new HashMap<Double, Double>();
 				for (Entry<String, String> entry : mappings.entrySet()) {
 					double oldValue = Double.NaN;

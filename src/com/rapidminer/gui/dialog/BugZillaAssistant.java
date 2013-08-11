@@ -65,7 +65,6 @@ import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 
 import com.rapidminer.RapidMiner;
-import com.rapidminer.gui.RapidMinerGUI;
 import com.rapidminer.gui.tools.ExtendedJScrollPane;
 import com.rapidminer.gui.tools.ProgressThread;
 import com.rapidminer.gui.tools.ResourceAction;
@@ -450,7 +449,7 @@ public class BugZillaAssistant extends ButtonDialog {
             @Override
             public void actionPerformed(ActionEvent e) {
                 BugReportViewerDialog dialog = new BugReportViewerDialog();
-                dialog.setInfoText(BugReport.createCompleteBugDescription(descriptionField.getText().trim(), exception, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected()));
+                dialog.setInfoText(BugReport.createCompleteBugDescription(descriptionField.getText().trim(), exception, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected(), true));
                 dialog.setVisible(true);
             }
 
@@ -556,8 +555,8 @@ public class BugZillaAssistant extends ButtonDialog {
                             
                             BugReport.createBugZillaReport(client, exception, summaryField.getText().trim(),
                                     descriptionField.getText().trim(), String.valueOf(compBox.getSelectedItem()), version, String.valueOf(severityBox.getSelectedItem()),
-                                    String.valueOf(platformBox.getSelectedItem()), String.valueOf(osBox.getSelectedItem()), RapidMinerGUI.getMainFrame().getProcess(),
-                                    RapidMinerGUI.getMainFrame().getMessageViewer().getLogMessage(), attachments, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected());
+                                    String.valueOf(platformBox.getSelectedItem()), String.valueOf(osBox.getSelectedItem()),
+                                    attachments, addProcessCheckBox.isSelected(), addSysPropsCheckBox.isSelected(), true);
                             
                             getProgressListener().setCompleted(100);
                             SwingTools.showMessageDialog("bugreport_successful");

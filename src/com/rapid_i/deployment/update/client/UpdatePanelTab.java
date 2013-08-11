@@ -70,7 +70,6 @@ import com.rapidminer.gui.tools.ResourceAction;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.VersionNumber;
 import com.rapidminer.gui.tools.components.LinkButton;
-import com.rapidminer.parameter.conditions.EqualStringCondition;
 import com.rapidminer.tools.I18N;
 import com.rapidminer.tools.LogService;
 

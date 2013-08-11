@@ -25,6 +25,8 @@ package com.rapidminer.tools.expression.parser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -65,9 +67,9 @@ import com.rapidminer.tools.Tools;
  */
 abstract public class AbstractExpressionParser {
 
-	private static final String[] FUNCTION_GROUPS = { "Basic Operators", "Log and Exponential", "Trigonometric", "Statistical", "Text", "Date", "Process", "Miscellaneous" };
+	private static final List<String> FUNCTION_GROUPS = new LinkedList<String>(Arrays.asList(new String[] { "Basic Operators", "Log and Exponential", "Trigonometric", "Statistical", "Text", "Date", "Process", "Miscellaneous" }));
 
-	private static final Map<String, List<FunctionDescription>> FUNCTIONS = new HashMap<String, List<FunctionDescription>>();
+	private static final Map<String, List<FunctionDescription>> FUNCTION_DESCRIPTIONS = new HashMap<String, List<FunctionDescription>>();
 
 	static {
 		// basic operators
@@ -87,7 +89,7 @@ abstract public class AbstractExpressionParser {
 		operatorFunctions.add(new FunctionDescription("!", "Boolean Not", "Delivers true if the following term is false or vice versa; example: !(att1 > 2)", 1));
 		operatorFunctions.add(new FunctionDescription("&&", "Boolean And", "Delivers true if both surrounding terms are true; example: (att1 > 2) && (att2 < 4)", 2));
 		operatorFunctions.add(new FunctionDescription("||", "Boolean Or", "Delivers true if at least one of the surrounding terms is true; example: (att1 < 3) || (att2 > 1)", 2));
-		FUNCTIONS.put(FUNCTION_GROUPS[0], operatorFunctions);
+		FUNCTION_DESCRIPTIONS.put(FUNCTION_GROUPS.get(0), operatorFunctions);
 
 		// log and exponential functions
 		List<FunctionDescription> logFunctions = new LinkedList<FunctionDescription>();
@@ -96,7 +98,7 @@ abstract public class AbstractExpressionParser {
 		logFunctions.add(new FunctionDescription("ld()", "Logarithm Base 2", "Calculates the logarithm of the argument to the base 2; example: ld(att2)", 1));
 		logFunctions.add(new FunctionDescription("exp()", "Exponential", "Calculates the value of the constant e to the power of the argument; example: exp(att3)", 1));
 		logFunctions.add(new FunctionDescription("pow()", "Power", "Calculates the first term to the power of the second one; example: pow(att1, 3)", 2));
-		FUNCTIONS.put(FUNCTION_GROUPS[1], logFunctions);
+		FUNCTION_DESCRIPTIONS.put(FUNCTION_GROUPS.get(1), logFunctions);
 
 		// trigonometric functions
 		List<FunctionDescription> trigonometricFunctions = new LinkedList<FunctionDescription>();
@@ -117,7 +119,7 @@ abstract public class AbstractExpressionParser {
 				"Calculates the inverse hyperbolic cosine of the given argument; example: acosh(att3)", 1));
 		trigonometricFunctions.add(new FunctionDescription("atanh()", "Inverse Hyperbolic Tangent",
 				"Calculates the inverse hyperbolic tangent of the given argument; example: atanh(att1)", 1));
-		FUNCTIONS.put(FUNCTION_GROUPS[2], trigonometricFunctions);
+		FUNCTION_DESCRIPTIONS.put(FUNCTION_GROUPS.get(2), trigonometricFunctions);
 
 		// statistical functions
 		List<FunctionDescription> statisticalFunctions = new LinkedList<FunctionDescription>();
@@ -135,7 +137,7 @@ abstract public class AbstractExpressionParser {
 				FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
 		statisticalFunctions.add(new FunctionDescription("max()", "Maximum", "Calculates the maximum of the given arguments; example: max(att1, att2)",
 				FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS));
-		FUNCTIONS.put(FUNCTION_GROUPS[3], statisticalFunctions);
+		FUNCTION_DESCRIPTIONS.put(FUNCTION_GROUPS.get(3), statisticalFunctions);
 
 		// text functions
 		List<FunctionDescription> textFunctions = new LinkedList<FunctionDescription>();
@@ -180,7 +182,7 @@ abstract public class AbstractExpressionParser {
 		textFunctions.add(new FunctionDescription("prefix()", "Prefix", "Delivers the prefix of the specified length; example: prefix(att2, 3)", 2));
 		textFunctions.add(new FunctionDescription("trim()", "Trim", "Removes all leading and trailing white space characters; example: trim(att3)", 1));
 		textFunctions.add(new FunctionDescription("escape_html()", "Escape HTML", "Escapes the given string with HTML entities; example: escape_html(att1)", 1));
-		FUNCTIONS.put(FUNCTION_GROUPS[4], textFunctions);
+		FUNCTION_DESCRIPTIONS.put(FUNCTION_GROUPS.get(4), textFunctions);
 
 		// date functions
 		List<FunctionDescription> dateFunctions = new LinkedList<FunctionDescription>();
@@ -236,14 +238,14 @@ abstract public class AbstractExpressionParser {
 						"Get Time",
 						"Allows to get a portion of a given date, e.g. get the day of a month only. Locale and Timezone arguments are optional; example: date_get(date, DATE_UNIT_DAY, \"us\", \"America/Los_Angeles\")",
 						4));
-		FUNCTIONS.put(FUNCTION_GROUPS[5], dateFunctions);
+		FUNCTION_DESCRIPTIONS.put(FUNCTION_GROUPS.get(5), dateFunctions);
 
 		// process functions
 		List<FunctionDescription> processFunctions = new LinkedList<FunctionDescription>();
 		processFunctions.add(new FunctionDescription("param()", "Parameter",
 				"Delivers the specified parameter of the specified operator; example: param(\"Read Excel\", \"file\")", 2));
 		processFunctions.add(new FunctionDescription("macro()", "Macro", "Delivers the value of the macro with the name specified by the first argument as string; example: macro(\"myMacro\"). Optionally a default value can be specified, which is delivered if the macro is not defined: macro(\"myMacro\", \"default value\")", -1));
-		FUNCTIONS.put(FUNCTION_GROUPS[6], processFunctions);
+		FUNCTION_DESCRIPTIONS.put(FUNCTION_GROUPS.get(6), processFunctions);
 
 		// miscellaneous functions
 		List<FunctionDescription> miscellaneousFunctions = new LinkedList<FunctionDescription>();
@@ -266,8 +268,11 @@ abstract public class AbstractExpressionParser {
 		miscellaneousFunctions.add(new FunctionDescription("bit_and()", "Bitwise AND", "Calculate the bitwise AND of two integer arguments; example: bit_and(att2, att3)", 2));
 		miscellaneousFunctions.add(new FunctionDescription("bit_xor()", "Bitwise XOR", "Calculate the bitwise XOR of two integer arguments; example: bit_xor(att1, att3)", 2));
 		miscellaneousFunctions.add(new FunctionDescription("bit_not()", "Bitwise NOT", "Calculate the bitwise NOT of the integer argument; example: bit_not(att2)", 1));
-		FUNCTIONS.put(FUNCTION_GROUPS[7], miscellaneousFunctions);
+		FUNCTION_DESCRIPTIONS.put(FUNCTION_GROUPS.get(7), miscellaneousFunctions);
+
 	}
+	
+	private static final ArrayList<Function> CUSTOM_FUNCTIONS = new ArrayList<Function>();
 
 	public abstract void setAllowUndeclared(boolean value);
 
@@ -280,11 +285,11 @@ abstract public class AbstractExpressionParser {
 	public abstract Object getValueAsObject() throws ExpressionParserException;
 
 	public String[] getFunctionGroups() {
-		return FUNCTION_GROUPS;
+		return FUNCTION_GROUPS.toArray(new String[FUNCTION_GROUPS.size()]);
 	}
 
 	public List<FunctionDescription> getFunctions(String functionGroup) {
-		return FUNCTIONS.get(functionGroup);
+		return FUNCTION_DESCRIPTIONS.get(functionGroup);
 	}
 
 	public abstract void addStandardConstants();
@@ -313,9 +318,9 @@ abstract public class AbstractExpressionParser {
 	}
 
 	public abstract void addConstant(String constantName, Object value);
-	
+
 	public abstract void addFunction(String functionName, Object value);
-	
+
 	protected abstract void addCustomFunctions();
 
 	public abstract void initParser(boolean useStandardConstants);
@@ -551,7 +556,8 @@ abstract public class AbstractExpressionParser {
 	public Map<String, Attribute> deriveVariablesFromExampleSet(ExampleSet exampleSet) throws GenerationException {
 		Map<String, Attribute> name2attributes;
 		try {
-			Collection symbolTableValues = getSymbolTableValues();
+			// new iterator to prevent ConcurrentModificationException
+			Collection symbolTableValues = new LinkedList(getSymbolTableValues());
 			name2attributes = new HashMap<String, Attribute>();
 			for (Object variableObj : symbolTableValues) {
 				if (!isConstant(variableObj)) {
@@ -693,4 +699,23 @@ abstract public class AbstractExpressionParser {
 		}
 	}
 
+	/** 
+	 * Registers a custom function that is described by a {@link Function}.
+	 * 
+	 * @param groupName the group name to include the function in.
+	 * @param customFD custom function to include.
+	 */
+	public static void registerFunction(String groupName,  Function function){
+		
+		if(!FUNCTION_GROUPS.contains(groupName)){
+			FUNCTION_GROUPS.add(groupName);
+			FUNCTION_DESCRIPTIONS.put(groupName, new LinkedList<FunctionDescription>());
+		}
+		FUNCTION_DESCRIPTIONS.get(groupName).add(function.getFunctionDescription());
+		CUSTOM_FUNCTIONS.add(function);
+	}
+	
+	public static final List<Function> getCustomFunctions(){
+		return CUSTOM_FUNCTIONS;
+	}
 }

@@ -47,8 +47,8 @@ directories:
 	LICENSE.txt	The GNU public license
 	CHANGES.txt	Changes from previous versions
 
-1. Make sure you have Java installed. RapidMiner runs on Java 6.0 
-   (aka 1.6) or higher. Type "java -version" on the command line to 
+1. Make sure you have Java installed. RapidMiner runs on Java 7.0 
+   (aka 1.7) or higher. Type "java -version" on the command line to 
    figure out your Java version. A Java Runtime Environment can 
    be downloaded from http://java.sun.com/
    Make sure your JAVA_HOME environment variable is set to point to

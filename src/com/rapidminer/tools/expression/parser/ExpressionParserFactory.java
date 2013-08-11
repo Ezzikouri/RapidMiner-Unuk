@@ -45,8 +45,10 @@ public class ExpressionParserFactory {
 			parserProviderClass = (Class<AbstractExpressionParser>) Class.forName("com.rapidminer.tools.jep.function.ExpressionParser", true, Plugin.getMajorClassLoader());
 			ExpressionParserFactory.isParserRegistered = true;
 			LogService.getRoot().info("Default version of expression parser registered successfully");
-		} catch (ClassNotFoundException e) {			
+		} catch (ClassNotFoundException e) {		
+			LogService.getRoot().info("Could not register the default version of expression parser");
 			parserProviderClass = null;
+			ExpressionParserFactory.isParserRegistered = false;
 		}
 	}
 
@@ -57,6 +59,7 @@ public class ExpressionParserFactory {
 		} catch (ClassNotFoundException e) {
 			LogService.getRoot().log(Level.WARNING, "Failed to register expression parser implementation: "+e, e);
 			parserProviderClass = null;
+			ExpressionParserFactory.isParserRegistered = false;
 		}
 	}
 

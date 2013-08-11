@@ -9,7 +9,7 @@ import com.rapidminer.gui.flow.ProcessPanel;
 /**
  * This interface gives access to the process related methods.
  * 
- * @author GĂˇbor Bakos
+ * @author Gabor Bakos
  */
 public interface ProcessState {
 

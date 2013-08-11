@@ -151,6 +151,7 @@ public class XMeansCore extends RMAbstractClusterer {
 		boolean change = true;
 		
 		while (bestModel.getCentroids().size() < k_max && change) {
+			checkForStop();
 			change = false;
 			int array_size = bestModel.getClusters().size();
 

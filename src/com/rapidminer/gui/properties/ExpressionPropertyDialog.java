@@ -496,7 +496,7 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 		int index = 1;
 		for (final FunctionDescription currentFunction : functions) {			
 			JButton currentButton = new JButton();
-			currentButton.setText(currentFunction.getFunction());
+			currentButton.setText(currentFunction.getDisplayName());
 			String argumentString = null;
 			int numberOfArguments = currentFunction.getNumberOfArguments();
 			if (numberOfArguments == FunctionDescription.UNLIMITED_NUMBER_OF_ARGUMENTS) {
@@ -506,11 +506,11 @@ public class ExpressionPropertyDialog extends PropertyDialog {
 			} else {
 				argumentString = numberOfArguments + " arguments";
 			}
-			currentButton.setToolTipText("<html><b>" + currentFunction.getName() + "</b>: " + currentFunction.getDescription() + " (<i>" + argumentString + "</i>)</html>");
+			currentButton.setToolTipText("<html><b>" + currentFunction.getHelpTextName() + "</b>: " + currentFunction.getDescription() + " (<i>" + argumentString + "</i>)</html>");
 			currentButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					addToExpression(currentFunction.getFunction());
+					addToExpression(currentFunction.getDisplayName());
 				}
 			});
 			functionButtonsLayout.setConstraints(currentButton, functionButtonsC);

@@ -61,6 +61,7 @@ import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
+import com.rapidminer.repository.RepositoryLocation;
 import com.rapidminer.repository.gui.RepositoryBrowser;
 import com.vlsolutions.swing.docking.DockGroup;
 import com.vlsolutions.swing.docking.Dockable;
@@ -144,6 +145,8 @@ public class MainFrame extends ApplicationFrame implements WindowListener, MainU
 
 	/** Log level of the LoggingViewer. */
 	public static final String PROPERTY_RAPIDMINER_GUI_LOG_LEVEL = "rapidminer.gui.log_level";
+
+	private static final int MAX_LOCATION_TITLE_LENGTH = 150;
 
 	private static final long serialVersionUID = -1602076945350148969L;
 
@@ -276,20 +279,33 @@ public class MainFrame extends ApplicationFrame implements WindowListener, MainU
 				welcomeScreen.updateRecentFileList();
 			}
 
-			@Override
-			protected void setTitle() {
+			/**
+			 * Sets the window title (RapidMiner + filename + an asterisk if process was
+			 * modified.
+			 */
+			public void setTitle() {
 				if (hostname == null) {
 					try {
-						hostname = "@" + InetAddress.getLocalHost().getHostName();
-					} catch (final UnknownHostException e) {
+						hostname = " @ " + InetAddress.getLocalHost().getHostName();
+					} catch (UnknownHostException e) {
 						hostname = "";
 					}
 				}
 
 				if (this.process != null) {
-					final ProcessLocation loc = process.getProcessLocation();
+					ProcessLocation loc = process.getProcessLocation();
 					if (loc != null) {
-						MainFrame.this.setTitle(loc.getShortName() + (changed ? "*" : "") + " \u2013 " + TITLE + hostname);
+						String locString = loc.toString();
+						// location string exceeding arbitrary number will be cut into repository name + /.../ + process name
+						if (locString.length() > MAX_LOCATION_TITLE_LENGTH) {
+							locString = RepositoryLocation.REPOSITORY_PREFIX +
+									process.getRepositoryLocation().getRepositoryName() +
+									RepositoryLocation.SEPARATOR +
+									"..." +
+									RepositoryLocation.SEPARATOR +
+									loc.getShortName();
+						}
+						MainFrame.this.setTitle(locString + (changed ? "*" : "") + " \u2013 " + TITLE + hostname);
 					} else {
 						MainFrame.this.setTitle("<new process" + (changed ? "*" : "") + "> \u2013 " + TITLE + hostname);
 					}

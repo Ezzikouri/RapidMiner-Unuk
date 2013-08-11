@@ -88,7 +88,7 @@ public abstract class ParseFileWizardStep extends WizardStep {
 
     private final CharTextField quoteCharacterTextField = new CharTextField(LineParser.DEFAULT_QUOTE_CHARACTER);
 
-    private final JLabel escapeCharacterLabel =  new JLabel("Escape Character for Seperator:");
+    private final JLabel escapeCharacterLabel =  new JLabel("Escape Character:");
 
     private final CharTextField escapeCharacterTextField = new CharTextField(LineParser.DEFAULT_QUOTE_ESCAPE_CHARACTER);
 

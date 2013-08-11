@@ -24,6 +24,7 @@ package com.rapidminer.tools.math.similarity.nominal;
 
 import com.rapidminer.example.Attribute;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.Tools;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.tools.math.similarity.DistanceMeasure;
 
@@ -68,6 +69,7 @@ public class NominalDistance extends DistanceMeasure {
     @Override
     public void init(ExampleSet exampleSet) throws OperatorException {
         super.init(exampleSet);
+        Tools.onlyNominalAttributes(exampleSet, "nominal similarities");
         this.useAttribute = new boolean[exampleSet.getAttributes().size()];
         int i = 0;
         for (Attribute attribute : exampleSet.getAttributes()) {

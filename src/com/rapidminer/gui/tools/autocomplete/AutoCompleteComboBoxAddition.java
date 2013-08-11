@@ -63,15 +63,21 @@ public class AutoCompleteComboBoxAddition {
 					vectorOfStrings.add(String.valueOf(comboBox.getModel().getElementAt(i)));
 				}
 				Document document = e.getDocument();
-				String documentText = document.getText(0, document.getLength());
+				final String documentText = document.getText(0, document.getLength());
 				final String result = checkForMatch(documentText, vectorOfStrings, caseSensitive);
-				// don't do anything if there is no match
+				final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
+				// reset the comboBox selection if there is no match
 				if (result == null) {
+					SwingUtilities.invokeLater(new Runnable() {
+						@Override
+						public void run() {
+							comboBox.getModel().setSelectedItem(documentText);
+						}
+					});
 					return;
 				}
 				final int startSelect = document.getLength();
 				final int endSelect = result.length();
-				final JTextField editorComponent = (JTextField) comboBox.getEditor().getEditorComponent();
 
 				if (startSelect == e.getOffset() + e.getLength()) {
 					SwingUtilities.invokeLater(new Runnable() {

@@ -101,7 +101,7 @@ public class RegexpPropertyDialog extends PropertyDialog {
 	
 	private JTabbedPane testExp = null;
 	
-	private DefaultListModel resultsListModel = new DefaultListModel();
+	private DefaultListModel<RegExpResult> resultsListModel = new DefaultListModel<RegExpResult>();
 	
 	private static String[][] regexpConstructs = {
 		{ ".", I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.constructs.any_character") },
@@ -157,9 +157,9 @@ public class RegexpPropertyDialog extends PropertyDialog {
 	
 	private final JTextField replacementTextField;
 	
-	private JList itemShortcutsList;
+	private JList<String> itemShortcutsList;
 	
-	private DefaultListModel matchedItemsListModel;
+	private DefaultListModel<String> matchedItemsListModel;
 	
 	private final Collection<String> items;
 	
@@ -261,7 +261,6 @@ public class RegexpPropertyDialog extends PropertyDialog {
 				matcher.reset(getText(0, getLength()));
 				int count = 0;
 				resultsListModel.clear();
-				StringBuffer sb = new StringBuffer();
 				while (matcher.find()) {
 					if (matcher.end() <= matcher.start()) continue;
 					setCharacterAttributes(matcher.start(), matcher.end()
@@ -274,10 +273,8 @@ public class RegexpPropertyDialog extends PropertyDialog {
 					resultsListModel.addElement(new RegExpResult(
 							this.getText(matcher.start(), matcher.end()-matcher.start()), 
 							groups, count+1));
-					matcher.appendReplacement(sb, replacementTextField.getText()); //Matcher.quoteReplacement(replacementTextField.getText()));
 					count++;
 				}
-				matcher.appendTail(sb);
 				
 				if (count == 0) {
 					// add empty element
@@ -285,7 +282,7 @@ public class RegexpPropertyDialog extends PropertyDialog {
 				}
 				
 				testExp.setTitleAt(1,  I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.regular_expression.result_list.title") + " ("+count+")");
-				inlineReplaceDocument.setText(sb.toString());
+				inlineReplaceDocument.setText(matcher.replaceAll(replacementTextField.getText()));
 				updateRegexpOptions();
 			} catch (BadLocationException ex) {
 				LogService.getRoot().log(Level.WARNING, RegexpPropertyDialog.class.getName()+".bad_location", ex);
@@ -389,7 +386,7 @@ public class RegexpPropertyDialog extends PropertyDialog {
 		    }
 		};
 		
-		JList regexpFindingsList = new JList(resultsListModel);
+		JList<RegExpResult> regexpFindingsList = new JList<RegExpResult>(resultsListModel);
 		regexpFindingsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		regexpFindingsList.setLayoutOrientation(JList.VERTICAL);
 		regexpFindingsList.setCellRenderer(resultCellRenderer);
@@ -582,7 +579,7 @@ public class RegexpPropertyDialog extends PropertyDialog {
 		
 		if (supportsItems) {
 			// item shortcuts list
-			itemShortcutsList = new JList(items.toArray());
+			itemShortcutsList = new JList<String>(items.toArray(new String[items.size()]));
 			itemShortcutsList.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.item_shortcuts.tip"));
 			itemShortcutsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			itemShortcutsList.addMouseListener(new MouseListener() {
@@ -611,8 +608,8 @@ public class RegexpPropertyDialog extends PropertyDialog {
 			itemShortcutsPane.setBorder(createTitledBorder(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.item_shortcuts.border")));
 			
 			// matched items list
-			matchedItemsListModel = new DefaultListModel();
-			JList matchedItemsList = new JList(matchedItemsListModel);
+			matchedItemsListModel = new DefaultListModel<String>();
+			JList<String> matchedItemsList = new JList<String>(matchedItemsListModel);
 			matchedItemsList.setToolTipText(I18N.getMessage(I18N.getGUIBundle(), "gui.dialog.parameter.regexp.matched_items.tip"));
 			// add custom cell renderer to disallow selections
 			matchedItemsList.setCellRenderer(new DefaultListCellRenderer() {

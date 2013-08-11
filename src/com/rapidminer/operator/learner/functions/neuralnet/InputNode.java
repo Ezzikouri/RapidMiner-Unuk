@@ -58,7 +58,8 @@ public class InputNode extends Node {
 	@Override
 	public double calculateValue(boolean shouldCalculate, Example example) {
 		if (Double.isNaN(currentValue) && shouldCalculate) {
-			double value = example.getValue(attribute);
+			Attribute testSetAttribute = example.getAttributes().get(attribute.getName());
+			double value = example.getValue(testSetAttribute);
 			if (Double.isNaN(value)) {
 				currentValue = 0;
 			} else {

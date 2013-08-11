@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.clustering.clusterer.soft;
 
 import java.util.Collection;
@@ -35,6 +36,7 @@ import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.Tools;
 import com.rapidminer.example.table.AttributeFactory;
+import com.rapidminer.operator.OperatorCapability;
 import com.rapidminer.operator.OperatorCreationException;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
@@ -43,7 +45,9 @@ import com.rapidminer.operator.clustering.ClusterModel;
 import com.rapidminer.operator.clustering.FlatFuzzyClusterModel;
 import com.rapidminer.operator.clustering.clusterer.KMeans;
 import com.rapidminer.operator.clustering.clusterer.RMAbstractClusterer;
+import com.rapidminer.operator.learner.CapabilityProvider;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
+import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
@@ -77,7 +81,6 @@ public class EMClusterer extends RMAbstractClusterer {
 	/** The parameter name for &quot;the quality, which has to be fulfilled for the stopping of the soft clustering&quot; */
 	public static final String PARAMETER_QUALITY = "quality";
 
-
 	/** The parameter name for &quot;Indicates if the probabilities will be shown in example table&quot; */
 	public static final String PARAMETER_SHOW_PROBABILITIES = "show_probabilities";
 
@@ -99,8 +102,20 @@ public class EMClusterer extends RMAbstractClusterer {
 	/** The parameter name for &quot;Indicates if the example set has correlated attributes&quot; */
 	public static final String PARAMETER_CORRELATED = "correlated_attributes";
 
+	private CapabilityProvider capabilityProvider = new CapabilityProvider() {
+		
+		@Override
+		public boolean supportsCapability(OperatorCapability capability) {
+			if(OperatorCapability.MISSING_VALUES.equals(capability)) {
+				return false;
+			}
+			return true;
+		}
+	};
+	
 	public EMClusterer(OperatorDescription description) {
 		super(description);
+		getExampleSetInputPort().addPrecondition(new CapabilityPrecondition(capabilityProvider, getExampleSetInputPort()));
 	}
 
 	@Override
@@ -112,10 +127,10 @@ public class EMClusterer extends RMAbstractClusterer {
 				AttributeMetaData newAttr = new AttributeMetaData("cluster_" + i + "_probability", Ontology.REAL, "cluster_" + i + "_probability");
 				propAttributes.add(newAttr);
 			}
-		} catch (UndefinedParameterError e) {
-		}
+		} catch (UndefinedParameterError e) {}
 		return propAttributes;
 	}
+
 	/*
 	 * Creates the Clustermodel.
 	 */
@@ -135,6 +150,7 @@ public class EMClusterer extends RMAbstractClusterer {
 
 		// the iterations
 		for (int iter = 0; iter < getParameterAsInt(PARAMETER_MAX_RUNS); iter++) {
+			checkForStop();
 			FlatFuzzyClusterModel result = new FlatFuzzyClusterModel(exampleSet, k, getParameterAsBoolean(RMAbstractClusterer.PARAMETER_ADD_AS_LABEL), getParameterAsBoolean(RMAbstractClusterer.PARAMETER_REMOVE_UNLABELED));
 			FlatFuzzyClusterModel oldResult = null;
 			// initialize the model
@@ -151,6 +167,7 @@ public class EMClusterer extends RMAbstractClusterer {
 			int[] clusterAssignments = new int[exampleSet.size()];
 			try {
 				for (optiStep = 0; (optiStep < getParameterAsInt(PARAMETER_MAX_OPTIMIZATION_STEPS)) && !stableState; optiStep++) {
+					checkForStop();
 					stableState = true;
 					oldResult = result;
 					result = new FlatFuzzyClusterModel(exampleSet, k, getParameterAsBoolean(RMAbstractClusterer.PARAMETER_ADD_AS_LABEL), getParameterAsBoolean(RMAbstractClusterer.PARAMETER_REMOVE_UNLABELED));
@@ -212,7 +229,6 @@ public class EMClusterer extends RMAbstractClusterer {
 		return bestModel;
 	}
 
-
 	/*
 	 * INIT SECTOR
 	 */
@@ -226,80 +242,79 @@ public class EMClusterer extends RMAbstractClusterer {
 		int distribution = getParameterAsInt(PARAMETER_INITIALIZATION_DISTRIBUTION);
 
 		switch (distribution) {
-		case RANDOMLY_ASSIGNED:
-			try {
-				// allocate the examples randomly to the clusters
-				Random random = RandomGenerator.getRandomGenerator(this);
-				int clustersFilled;
-				do {
-					clustersFilled = 0;
-					double[][] clusterMeans = new double[k][exampleSet.getAttributes().size()];
-					int i = 0;
-					for (Example ex : exampleSet) {
-						int cluster = random.nextInt(k);
-						exampleInClusterProbability[i][cluster] = 1;
-						int j = 0;
-						for (Attribute attribute : exampleSet.getAttributes()) {
-							clusterMeans[cluster][j] += ex.getValue(attribute);
-							j++;
+			case RANDOMLY_ASSIGNED:
+				try {
+					// allocate the examples randomly to the clusters
+					Random random = RandomGenerator.getRandomGenerator(this);
+					int clustersFilled;
+					do {
+						clustersFilled = 0;
+						double[][] clusterMeans = new double[k][exampleSet.getAttributes().size()];
+						int i = 0;
+						for (Example ex : exampleSet) {
+							int cluster = random.nextInt(k);
+							exampleInClusterProbability[i][cluster] = 1;
+							int j = 0;
+							for (Attribute attribute : exampleSet.getAttributes()) {
+								clusterMeans[cluster][j] += ex.getValue(attribute);
+								j++;
+							}
+							i++;
 						}
-						i++;
-					}
-					// check if there is at least one example in each cluster
-					for (i = 0; i < k; i++) {
-						// set means in the model (allready not normalized)
-						result.setClusterMean(i, clusterMeans[i]);
-						for (int j = 0; j < exampleInClusterProbability.length; j++) {
-							if (exampleInClusterProbability[j][i] == 1) {
-								clustersFilled++;
-								break;
+						// check if there is at least one example in each cluster
+						for (i = 0; i < k; i++) {
+							// set means in the model (allready not normalized)
+							result.setClusterMean(i, clusterMeans[i]);
+							for (int j = 0; j < exampleInClusterProbability.length; j++) {
+								if (exampleInClusterProbability[j][i] == 1) {
+									clustersFilled++;
+									break;
+								}
 							}
 						}
-					}
-				} while (clustersFilled < k);
-			} catch (UndefinedParameterError e) {
-			}
-			// compute means (normalized), stdDev...)
-			computeValuesWithClusterMemberships(exampleSet, k, exampleInClusterProbability, result);
-			if (isCorrelated()) {
-				initCovarianceMatrix(exampleSet, exampleInClusterProbability, result, k);
-			}
-			break;
-		case K_MEANS:
-			// allocate the examples according to the k-means run to the clusters
-			KMeans clusterAlgorithm = OperatorService.createOperator(KMeans.class);
-			ExampleSet clusterSet = (ExampleSet) exampleSet.clone(); 
-			clusterAlgorithm.setParameter(KMeans.PARAMETER_K, "" + k);
-			clusterAlgorithm.setParameter(RMAbstractClusterer.PARAMETER_ADD_CLUSTER_ATTRIBUTE, "true");
-			clusterAlgorithm.generateClusterModel(clusterSet); // ad a side effect, add cluster attribute to clusterSet			
-
-			double[][] clusterMeans = new double[k][exampleSet.getAttributes().size()];
-			int exampleIndex = 0;
-			Attribute clusterAttribute = clusterSet.getAttributes().getCluster();
-			for (Example example: clusterSet) {
-				int clusterIndex = (int) example.getValue(clusterAttribute);
-				exampleInClusterProbability[exampleIndex][clusterIndex] = 1;
-				int j = 0;
-				for (Attribute attribute : clusterSet.getAttributes()) {
-					clusterMeans[clusterIndex][j] += example.getValue(attribute);
-					j++;
+					} while (clustersFilled < k);
+				} catch (UndefinedParameterError e) {}
+				// compute means (normalized), stdDev...)
+				computeValuesWithClusterMemberships(exampleSet, k, exampleInClusterProbability, result);
+				if (isCorrelated()) {
+					initCovarianceMatrix(exampleSet, exampleInClusterProbability, result, k);
 				}
-				exampleIndex++;
-			}
-			for (int i = 0; i < k; i++) {
-				result.setClusterMean(i, clusterMeans[i]);
-			}
-			// compute means (normalized), stdDev...)
-			computeValuesWithClusterMemberships(exampleSet, k, exampleInClusterProbability, result);
-			if (isCorrelated()) {
-				initCovarianceMatrix(exampleSet, exampleInClusterProbability, result, k);
-			}
-			break;
-		case AVERAGE_PARAMETERS:
-		default:
-			Random random = RandomGenerator.getRandomGenerator(this);
-			initAverageParameters(exampleSet, k, exampleInClusterProbability, result, random);
-			break;
+				break;
+			case K_MEANS:
+				// allocate the examples according to the k-means run to the clusters
+				KMeans clusterAlgorithm = OperatorService.createOperator(KMeans.class);
+				ExampleSet clusterSet = (ExampleSet) exampleSet.clone();
+				clusterAlgorithm.setParameter(KMeans.PARAMETER_K, "" + k);
+				clusterAlgorithm.setParameter(RMAbstractClusterer.PARAMETER_ADD_CLUSTER_ATTRIBUTE, "true");
+				clusterAlgorithm.generateClusterModel(clusterSet); // ad a side effect, add cluster attribute to clusterSet			
+
+				double[][] clusterMeans = new double[k][exampleSet.getAttributes().size()];
+				int exampleIndex = 0;
+				Attribute clusterAttribute = clusterSet.getAttributes().getCluster();
+				for (Example example : clusterSet) {
+					int clusterIndex = (int) example.getValue(clusterAttribute);
+					exampleInClusterProbability[exampleIndex][clusterIndex] = 1;
+					int j = 0;
+					for (Attribute attribute : clusterSet.getAttributes()) {
+						clusterMeans[clusterIndex][j] += example.getValue(attribute);
+						j++;
+					}
+					exampleIndex++;
+				}
+				for (int i = 0; i < k; i++) {
+					result.setClusterMean(i, clusterMeans[i]);
+				}
+				// compute means (normalized), stdDev...)
+				computeValuesWithClusterMemberships(exampleSet, k, exampleInClusterProbability, result);
+				if (isCorrelated()) {
+					initCovarianceMatrix(exampleSet, exampleInClusterProbability, result, k);
+				}
+				break;
+			case AVERAGE_PARAMETERS:
+			default:
+				Random random = RandomGenerator.getRandomGenerator(this);
+				initAverageParameters(exampleSet, k, exampleInClusterProbability, result, random);
+				break;
 		}
 
 		// show probabilities in example table?
@@ -460,7 +475,6 @@ public class EMClusterer extends RMAbstractClusterer {
 	 * END: INIT SECTOR
 	 */
 
-
 	/*
 	 * Computes to which cluster an example fits best.
 	 */
@@ -487,7 +501,7 @@ public class EMClusterer extends RMAbstractClusterer {
 				double[] helpVector = VectorMath.vectorSubtraction(exampleToArray(ex), oldResult.getClusterMean(i));
 				double stDev = oldResult.getClusterStandardDeviation(i);
 				// stDev must be greater than 0: division by zero
-				if(stDev == 0) {
+				if (stDev == 0) {
 					stDev = 1E-10;
 				}
 				// formula see: http://jmlr.csail.mit.edu/papers/volume6/banerjee05b/banerjee05b.pdf (page 1725 + 1729)
@@ -532,7 +546,7 @@ public class EMClusterer extends RMAbstractClusterer {
 				}
 				// this is here(!) only the conditional probability: P(Example_j|Cluster_i) * W_i
 				exampleInClusterProbability[j][i] = (1 / Math.sqrt(Math.pow(2 * Math.PI, exampleSet.getAttributes().size()) * determinant)) * secondPart
-				* oldResult.getClusterProbability(i);
+						* oldResult.getClusterProbability(i);
 
 				if (exampleInClusterProbability[j][i] == Double.POSITIVE_INFINITY) {
 					problems.add(i);
@@ -687,14 +701,14 @@ public class EMClusterer extends RMAbstractClusterer {
 		return result;
 	}
 
-
 	@Override
-	public ClusterModel generateClusterModel(ExampleSet exampleSet) throws OperatorException {		 
+	public ClusterModel generateClusterModel(ExampleSet exampleSet) throws OperatorException {
 		// get parameters
 		int k = getParameterAsInt(PARAMETER_K);
 
 		// perform checks
 		Tools.isNonEmpty(exampleSet);
+		Tools.onlyNonMissingValues(exampleSet, "EMClusterer");
 		Tools.checkAndCreateIds(exampleSet);
 
 		if (exampleSet.size() < k) {
@@ -735,13 +749,13 @@ public class EMClusterer extends RMAbstractClusterer {
 
 		types.addAll(super.getParameterTypes());
 
-		types.add(new ParameterTypeInt(PARAMETER_MAX_RUNS, "The maximal number of runs of this operator with random initialization that are performed.", 1,Integer.MAX_VALUE, 5, false));
-		types.add(new ParameterTypeInt(PARAMETER_MAX_OPTIMIZATION_STEPS, "The maximal number of iterations performed for one run of this operator.", 1,	Integer.MAX_VALUE, 100, false));
-		types.add(new ParameterTypeDouble(PARAMETER_QUALITY,"The quality that must be fullfilled before the algorithm stops. (The rising of the loglikelyhood that must be undercut)", 1.0E-15, 1.0E-1,	1.0E-10));
+		types.add(new ParameterTypeInt(PARAMETER_MAX_RUNS, "The maximal number of runs of this operator with random initialization that are performed.", 1, Integer.MAX_VALUE, 5, false));
+		types.add(new ParameterTypeInt(PARAMETER_MAX_OPTIMIZATION_STEPS, "The maximal number of iterations performed for one run of this operator.", 1, Integer.MAX_VALUE, 100, false));
+		types.add(new ParameterTypeDouble(PARAMETER_QUALITY, "The quality that must be fullfilled before the algorithm stops. (The rising of the loglikelyhood that must be undercut)", 1.0E-15, 1.0E-1, 1.0E-10));
 
 		types.addAll(RandomGenerator.getRandomGeneratorParameters(this));
 
-		types.add(new ParameterTypeBoolean(PARAMETER_SHOW_PROBABILITIES, "Insert probabilities for every cluster with every example in the example set.",true));
+		types.add(new ParameterTypeBoolean(PARAMETER_SHOW_PROBABILITIES, "Insert probabilities for every cluster with every example in the example set.", true));
 		types.add(new ParameterTypeCategory(PARAMETER_INITIALIZATION_DISTRIBUTION, "Indicates the inital distribution of the centroids.", INIT_DISTRIBUTION, K_MEANS));
 		types.add(new ParameterTypeBoolean(PARAMETER_CORRELATED, "Has to be activated, if the example set contains correlated attributes.", true));
 

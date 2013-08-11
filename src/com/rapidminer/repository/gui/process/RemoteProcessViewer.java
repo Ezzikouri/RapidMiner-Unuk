@@ -520,4 +520,3 @@ public class RemoteProcessViewer extends JPanel implements Dockable {
 		return DOCK_KEY;
 	}
 }
-

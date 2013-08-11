@@ -23,17 +23,25 @@
 
 package com.rapidminer.tools.jep.function;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
 
 import org.nfunk.jep.JEP;
+import org.nfunk.jep.ParseException;
 import org.nfunk.jep.SymbolTable;
 import org.nfunk.jep.Variable;
+import org.nfunk.jep.function.PostfixMathCommand;
 import org.nfunk.jep.function.PostfixMathCommandI;
 import org.nfunk.jep.type.Complex;
 
 import com.rapidminer.Process;
 import com.rapidminer.operator.preprocessing.filter.ChangeAttributeName;
 import com.rapidminer.tools.expression.parser.AbstractExpressionParser;
+import com.rapidminer.tools.expression.parser.Function;
+import com.rapidminer.tools.expression.parser.JEPFunctionException;
 import com.rapidminer.tools.jep.function.expressions.Average;
 import com.rapidminer.tools.jep.function.expressions.BitwiseAnd;
 import com.rapidminer.tools.jep.function.expressions.BitwiseNot;
@@ -268,6 +276,9 @@ import com.rapidminer.tools.jep.function.expressions.text.UpperCase;
 public class ExpressionParser extends AbstractExpressionParser {
 
 	private JEP parser;
+	
+	/** Static map to remember already created {@link PostfixMathCommand}s. This prevents from creating new ones every time the JEP is instanciated. */
+	private static Map<String, PostfixMathCommand> REGISTERED_CUSTOM_FUNCTIONS = new HashMap<String, PostfixMathCommand>();
 
 	private ExpressionParser(boolean useStandardConstants) {
 		this(useStandardConstants, null);
@@ -355,8 +366,41 @@ public class ExpressionParser extends AbstractExpressionParser {
 		addFunction("date_add", new DateAdd());
 		addFunction("date_set", new DateSet());
 		addFunction("date_get", new DateGet());
-	}
+		
+		for (final Function function : getCustomFunctions()) {
+			String functionName = function.getFunctionName();
+			PostfixMathCommand postfixMathCommand = REGISTERED_CUSTOM_FUNCTIONS.get(functionName);
+			
+			// if function has not yet been created, create and save it now
+			if(postfixMathCommand == null) {
+				postfixMathCommand = new PostfixMathCommand() {
 
+					{
+						numberOfParameters = function.getFunctionDescription().getNumberOfArguments();
+					}
+
+					@Override
+					public void run(Stack stack) throws ParseException {
+						int numParams = numberOfParameters == -1 ? curNumberOfParameters : numberOfParameters;
+						ArrayList<Object> arguments = new ArrayList<Object>();
+						for (int i = 0; i < numParams; i++) {
+							arguments.add(stack.pop());
+						}
+						Object result;
+						try {
+							result = function.compute(arguments.toArray());
+						} catch (JEPFunctionException e) {
+							throw new ParseException(e.getMessage());
+						}
+						stack.push(result);
+					}
+				};
+				REGISTERED_CUSTOM_FUNCTIONS.put(functionName, postfixMathCommand);
+			}
+			addFunction(functionName, postfixMathCommand);
+		}
+	}
+	
 	public boolean hasError() {
 		return getParser().hasError();
 	}
@@ -367,12 +411,12 @@ public class ExpressionParser extends AbstractExpressionParser {
 		if (hasError()) {
 			throw new ExpressionParserException(getErrorInfo());
 		}
-		
+
 	}
 
 	@Override
 	public String getErrorInfo() {
-		if (getParser().hasError()){
+		if (getParser().hasError()) {
 			return getParser().getErrorInfo();
 		}
 		return "";
@@ -474,7 +518,7 @@ public class ExpressionParser extends AbstractExpressionParser {
 
 	@Override
 	public void addFunction(String functionName, Object value) {
-		getParser().addFunction(functionName, (PostfixMathCommandI) value);		
+		getParser().addFunction(functionName, (PostfixMathCommandI) value);
 	}
 
 }

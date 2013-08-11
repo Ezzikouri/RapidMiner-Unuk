@@ -104,6 +104,8 @@ public class ChangeAttributeNamesReplace extends AbstractDataProcessing {
 			}
 		} catch (IndexOutOfBoundsException e) {
 			throw new UserError(this, 215, replaceByString, PARAMETER_REPLACE_WHAT);
+		} catch (IllegalArgumentException e) {
+			throw new UserError(this, 152, replaceByString);
 		}
 
 		return exampleSet;
