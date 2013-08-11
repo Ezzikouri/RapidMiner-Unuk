@@ -153,6 +153,7 @@ public class SVClustering extends RMAbstractClusterer implements CapabilityProvi
 
 		int i = 0;
 		for (Example example: exampleSet) {
+			checkForStop();
 			if (clusterAssignments[i] == UNASSIGNED) {
 				LinkedList<Integer> neighbours = getNeighbours(exampleSet, example, i, clusterAssignments, clustering);
 				if (neighbours.size() >= minPts) {
@@ -162,6 +163,8 @@ public class SVClustering extends RMAbstractClusterer implements CapabilityProvi
 						clusterAssignments[exampleIndex] = nextClusterId;
 					}
 					while (neighbours.size() > 0) {
+						checkForStop();
+						
 						// Take the first index from the queue and fetch indexed example
 						int index = neighbours.poll().intValue();
 						Example neighbourExample = exampleSet.getExample(index);

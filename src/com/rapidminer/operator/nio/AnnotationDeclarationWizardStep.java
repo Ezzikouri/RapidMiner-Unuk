@@ -51,6 +51,8 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 	private final JPanel panel = new JPanel(new BorderLayout());
 	private final WizardState state;
 	private JTable table;
+	
+	private final LoadingContentPane loadingContentPane = new LoadingContentPane("loading_data", panel);
 
 	public AnnotationDeclarationWizardStep(WizardState state) {
 		super("importwizard.annotations");
@@ -72,7 +74,7 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
 		if (direction == WizardStepDirection.FORWARD) {
-			new ProgressThread("loading_data") {
+			ProgressThread thread = new ProgressThread("loading_data") {
 				@Override
 				public void run() {
 					getProgressListener().setTotal(100);
@@ -92,9 +94,12 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 						getProgressListener().complete();
 					}
 				}
-			}.start();
+			};
+			loadingContentPane.init(thread);
+			thread.start();
 		}
-		return true;
+		return true;			
+		
 	}
 
 	@Override
@@ -123,6 +128,6 @@ public class AnnotationDeclarationWizardStep extends WizardStep {
 
 	@Override
 	protected JComponent getComponent() {
-		return panel;
+		return loadingContentPane;
 	}
 }

@@ -175,6 +175,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 
 	private boolean canProceed = true;
 	private MetaDataValidator headerValidator;
+	
+	private final LoadingContentPane loadingContentPane;
 
 	public MetaDataDeclarationWizardStep(WizardState state) {
 		super("importwizard.metadata");
@@ -253,14 +255,15 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 		dummy.setPreferredSize(new Dimension(500, 500));
 		dummy.setMinimumSize(new Dimension(500, 500));
 		tableScrollPane = new JScrollPane(dummy, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		panel.add(tableScrollPane, BorderLayout.CENTER);
+		loadingContentPane = new LoadingContentPane("loading_data", tableScrollPane);
+		panel.add(loadingContentPane, BorderLayout.CENTER);
 	}
 
 	@Override
 	protected boolean performEnteringAction(WizardStepDirection direction) {
+		loadingContentPane.init();
 		dateFormatField.setSelectedItem(state.getTranslationConfiguration().getDatePattern());
 		errorsAsMissingBox.setSelected(state.getTranslationConfiguration().isFaultTolerant());
-
 		new ProgressThread("loading_data") {
 
 			@Override
@@ -344,12 +347,6 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 
 		public void updateHeader(Set<?> columns) {
 			fireTableCellUpdated(TableModelEvent.HEADER_ROW, TableModelEvent.ALL_COLUMNS);
-			for (Object column : columns) {
-				if (column instanceof Integer) {
-					fireTableCellUpdated(TableModelEvent.HEADER_ROW, (Integer)column);
-				}
-			}
-			
 		}
 
 	}
@@ -541,6 +538,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 	}
 
 	private void guessValueTypes() {
+		loadingContentPane.init();
 		guessButton.configurePropertiesFromAction(cancelGuessValueTypes);
 		isGuessing = true;
 		new ProgressThread("guessing_value_types") {
@@ -548,6 +546,8 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 			@Override
 			public void run() {
 				Thread.yield();
+				getProgressListener().setTotal(100);
+				getProgressListener().setCompleted(1);
 				DataResultSet resultSet = null;
 				try {
 					if (state.getTranslator() != null) {
@@ -558,6 +558,7 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 					state.getTranslationConfiguration().resetValueTypes();
 					state.getTranslator().guessValueTypes(state.getTranslationConfiguration(), resultSet, state.getNumberOfPreviewRows(), getProgressListener());
 					if (!state.getTranslator().isGuessingCancelled()) {
+						setDisplayLabel("generate_preview");
 						final ExampleSet exampleSet = state.readNow(resultSet, limitedPreviewBox.isSelected(), getProgressListener());
 						SwingUtilities.invokeLater(new Runnable() {
 
@@ -565,8 +566,11 @@ public class MetaDataDeclarationWizardStep extends WizardStep {
 							public void run() {
 								updateTableModel(exampleSet);
 								updateErrors();
+								loadingContentPane.loadingFinished();
 							}
 						});
+					} else {
+						loadingContentPane.loadingFinished();
 					}
 				} catch (OperatorException e) {
 					ImportWizardUtils.showErrorMessage(state.getDataResultSetFactory().getResourceName(), e.toString(), e);

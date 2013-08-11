@@ -164,9 +164,9 @@ public class ParameterIteration extends ParameterIteratingOperatorChain {
 			index++;
 		}
 		
-		if (numberOfCombinations < 1)
-            throw new UserError(this, 958);
-		
+		if (numberOfCombinations < 1 || values.length == 0)
+			throw new UserError(this, 958);
+	
 		// iterate parameter combinations
 		this.iteration = 0;
 		while (true) {

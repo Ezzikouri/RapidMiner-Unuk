@@ -648,6 +648,7 @@ public class MainFrame extends ApplicationFrame implements WindowListener {
 		toolBarContainer.add(dockingDesktop, BorderLayout.CENTER);
 
 		systemMonitor.startMonitorThread();
+		resultDisplay.getDockKey().setCloseEnabled(false);
 		resultDisplay.init(this);
 
 		// menu bar

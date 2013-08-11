@@ -864,6 +864,7 @@ public class Plugin {
 
 	private static void callPluginInitMethods(String methodName, Class[] arguments, Object[] argumentValues, boolean useOriginalJarClassLoader) {
 		List<Plugin> plugins = getAllPlugins();
+
 		for (Iterator<Plugin> iterator = plugins.iterator(); iterator.hasNext();) {
 			Plugin plugin = iterator.next();
 			if (!plugin.callInitMethod(methodName, arguments, argumentValues, useOriginalJarClassLoader)) {
@@ -943,7 +944,7 @@ public class Plugin {
 		boolean loadPlugins = Tools.booleanValue(loadPluginsString, true);
 		SafeMode safeMode = RapidMinerGUI.getSafeMode();
 		boolean isSafeMode = false;
-		if(safeMode != null) {
+		if (safeMode != null) {
 			isSafeMode = safeMode.isSafeMode();
 		}
 		if (loadPlugins && !isSafeMode) {
@@ -1124,7 +1125,7 @@ public class Plugin {
 			return new ImageIcon(iconURL);
 		return null;
 	}
-	
+
 	/** <strong>Experimental method.</strong>
 	 *  Unregisters this plugin, all of its {@link Operator}s, and calls tearDown() and optionally tearDownGUI(MainFrame) on the
 	 *  {@link #pluginInitClassName}. Finally, removes the plugin from {@link #allPlugins}. 

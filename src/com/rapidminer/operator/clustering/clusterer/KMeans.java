@@ -42,6 +42,7 @@ import com.rapidminer.operator.ports.metadata.CapabilityPrecondition;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeInt;
+import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.tools.Ontology;
 import com.rapidminer.tools.RandomGenerator;
 import com.rapidminer.tools.math.similarity.DistanceMeasure;
@@ -154,6 +155,8 @@ public class KMeans extends RMAbstractClusterer implements CapabilityProvider {
 			int[] centroidAssignments = new int[exampleSet.size()];
 			boolean stable = false;
 			for (int step = 0; (step < maxOptimizationSteps) && !stable; step++) {
+				checkForStop();
+				
 				// assign examles to new centroids
 				i = 0;
 				for (Example example : exampleSet) {
@@ -229,10 +232,22 @@ public class KMeans extends RMAbstractClusterer implements CapabilityProvider {
 
 	@Override
 	public boolean supportsCapability(OperatorCapability capability) {
+		boolean supportsNominal = false;
+		boolean pureNominal = false;
+		try {
+			// Check if a measure type is selected that supports nominal attributes
+			int selectedMeasureType = measureHelper.getSelectedMeasureType();
+			pureNominal = selectedMeasureType==DistanceMeasures.NOMINAL_MEASURES_TYPE;
+			supportsNominal = selectedMeasureType==DistanceMeasures.MIXED_MEASURES_TYPE || pureNominal;
+		} catch (UndefinedParameterError e) {
+			// parameter is undefined we will stick tell that we do not support nominal attributes
+		}
 		switch (capability) {
+		case NUMERICAL_ATTRIBUTES:
+			return !pureNominal;
 		case BINOMINAL_ATTRIBUTES:
 		case POLYNOMINAL_ATTRIBUTES:
-			return false;
+			return supportsNominal;
 		default:
 			return true;
 		}

@@ -91,7 +91,7 @@ public class WriteFileOperator extends Operator {
 
 			switch (getParameterAsInt(PARAMETER_DESTINATION_TYPE)) {
 				case DESTINATION_TYPE_FILE:
-					File file = getParameterAsFile(PARAMETER_FILENAME);
+					File file = getParameterAsFile(PARAMETER_FILENAME, true);
 					destName = file.getAbsolutePath();
 					try {
 						out = new FileOutputStream(file);

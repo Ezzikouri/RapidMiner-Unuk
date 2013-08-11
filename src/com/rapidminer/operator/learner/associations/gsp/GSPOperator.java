@@ -184,7 +184,7 @@ public class GSPOperator extends Operator {
 		if (isParameterSet(PARAMETER_POSITIVE_VALUE)) {
 			int attributeIndex = 0;
 			for (Attribute attribute : attributes) {
-				positiveIndices[attributeIndex] = attribute.getMapping().mapString(getParameterAsString(PARAMETER_POSITIVE_VALUE));
+				positiveIndices[attributeIndex] = attribute.getMapping().getIndex(getParameterAsString(PARAMETER_POSITIVE_VALUE));
 				attributeIndex++;
 			}
 		}
@@ -466,19 +466,20 @@ public class GSPOperator extends Operator {
 		type.setExpert(false);
 		types.add(type);
 
-		type = new ParameterTypeDouble(PARAMETER_MIN_SUPPORT, "This specifies the minimal support of a pattern", 0, 1, 0.9);
+		type = new ParameterTypeDouble(PARAMETER_MIN_SUPPORT, "This specifies the minimal support of a pattern", 0, 1, false);
+		type.setDefaultValue(0.9);
 		type.setExpert(false);
 		types.add(type);
 
-		type = new ParameterTypeDouble(PARAMETER_WINDOW_SIZE, "This specifies the window size", 0, Double.POSITIVE_INFINITY);
+		type = new ParameterTypeDouble(PARAMETER_WINDOW_SIZE, "This specifies the window size", 0, Double.POSITIVE_INFINITY, false);
 		type.setExpert(false);
 		types.add(type);
 
-		type = new ParameterTypeDouble(PARAMETER_MAX_GAP, "This specifies the maximal gap", 0, Double.POSITIVE_INFINITY);
+		type = new ParameterTypeDouble(PARAMETER_MAX_GAP, "This specifies the maximal gap", 0, Double.POSITIVE_INFINITY, false);
 		type.setExpert(false);
 		types.add(type);
 
-		type = new ParameterTypeDouble(PARAMETER_MIN_GAP, "This specifies the minimal gap", 0, Double.POSITIVE_INFINITY);
+		type = new ParameterTypeDouble(PARAMETER_MIN_GAP, "This specifies the minimal gap", 0, Double.POSITIVE_INFINITY, false);
 		type.setExpert(false);
 		types.add(type);
 

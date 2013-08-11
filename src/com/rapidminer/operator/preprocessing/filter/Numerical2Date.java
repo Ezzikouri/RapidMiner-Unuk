@@ -126,7 +126,7 @@ public class Numerical2Date extends AbstractDateDataProcessing {
 	public List<ParameterType> getParameterTypes() {
 		List<ParameterType> types = super.getParameterTypes();
 		types.add(new ParameterTypeAttribute(PARAMETER_ATTRIBUTE_NAME, "The attribute which should be transformed.", getExampleSetInputPort(), false,
-				false, Ontology.DATE_TIME));
+				false, Ontology.NUMERICAL));
 		types.add(new ParameterTypeBoolean(PARAMETER_KEEP_OLD_ATTRIBUTE, "Indicates if the original numerical attribute should be kept.", false));
 		types.add(new ParameterTypeLong(PARMETER_TIME_OFFSET, "Time offset in milliseconds", Long.MIN_VALUE, Long.MAX_VALUE, 0, true));
 		return types;

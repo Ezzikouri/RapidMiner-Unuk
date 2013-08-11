@@ -50,6 +50,11 @@ public class FileSystemService {
     public static File getMemoryConfigFile() {
         return new File(getUserRapidMinerDir(), "memory");
     }
+    
+    /** Returns the RapidMiner log file. */
+    public static File getLogFile() {
+        return new File(getUserRapidMinerDir(), "rm.log");
+    }
 
     /**
      * Returns the configuration file in the user dir/.RapidMiner5 and automatically adds

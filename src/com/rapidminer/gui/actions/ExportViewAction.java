@@ -67,7 +67,7 @@ public class ExportViewAction extends ResourceAction {
 			JPanel panel = (JPanel) component;
 			if (panel.getLayout().getClass().isAssignableFrom(CardLayout.class)) {
 				for (final Component comp : panel.getComponents()) {
-					if (comp.isVisible() && comp.getClass().isAssignableFrom(ChartConfigurationPanel.class)) {
+					if (comp.isVisible() && ChartConfigurationPanel.class.isAssignableFrom(comp.getClass())) {
 						final ChartConfigurationPanel chartConfigPanel = (ChartConfigurationPanel) comp;
 						
 						JPanel outerPanel = new JPanel() {
@@ -89,7 +89,7 @@ public class ExportViewAction extends ResourceAction {
 						
 						exportDialog.showExportDialog(RapidMinerGUI.getMainFrame(), "Export", outerPanel, componentName);
 						return;
-					} else if (comp.isVisible() && comp.getClass().isAssignableFrom(PlotterPanel.class)) {
+					} else if (comp.isVisible() && PlotterPanel.class.isAssignableFrom(comp.getClass())) {
 						// special case for PlotterPanel as the Panel itself is wider than the plotter
 						// not having a special case here results in the exported image being too wide (empty space to the left)
 						final PlotterPanel plotterPanel = (PlotterPanel) comp;

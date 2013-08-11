@@ -335,11 +335,7 @@ public abstract class OperatorChain extends Operator {
 	 *  Otherwise this method returns true if it is enabled and the parent is also enabled. */
 	@Override
 	public boolean isEnabled() {
-		if (getParent() == null) {
-			return super.isEnabled();
-		} else {
-			return (super.isEnabled() && getParent().isEnabled());
-		}
+		return super.isEnabled();
 	}
 
 	/** Invokes the super method and the method for all children. */

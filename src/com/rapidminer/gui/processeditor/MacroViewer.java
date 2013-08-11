@@ -25,6 +25,8 @@ package com.rapidminer.gui.processeditor;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
@@ -178,11 +180,19 @@ public class MacroViewer extends JPanel implements Dockable, ProcessEditor {
 	private void updateMacros() {
 		final List<Pair<String, String>> newData = new ArrayList<Pair<String, String>>();
 		Iterator<String> macroNames = RapidMinerGUI.getMainFrame().getProcess().getMacroHandler().getDefinedMacroNames();
+		
 		while (macroNames.hasNext()) {
 			String name = macroNames.next();
 			String value = RapidMinerGUI.getMainFrame().getProcess().getMacroHandler().getMacro(name);
 			newData.add(new Pair<String, String>(name, value));
 		}
+		
+		Collections.sort(newData, new Comparator<Pair<String, String>>() {
+		    public int compare(Pair<String, String> o1, Pair<String, String> o2) {              
+		        return o1.getFirst().compareToIgnoreCase(o2.getFirst());
+		    }
+		});
+		
 		SwingUtilities.invokeLater(new Runnable() {
 
 			@Override

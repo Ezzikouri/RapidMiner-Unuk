@@ -30,6 +30,8 @@ import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 
 import com.rapidminer.RapidMiner;
+import com.rapidminer.tools.cipher.CipherException;
+import com.rapidminer.tools.cipher.CipherTools;
 
 /** Makes a session based on RapidMiner properties.
  * 
@@ -51,17 +53,27 @@ public class DefaultMailSessionFactory implements MailSessionFactory {
             props.put("mail.from", "no-reply@rapidminer.com");
             final String user = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_USER);
             props.put("mail.user", user);
-            final String passwd = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_PASSWD);
             Authenticator authenticator = null;
-            if (passwd != null && passwd.length() > 0) {
-                props.setProperty("mail.smtp.submitter", user);
-                props.setProperty("mail.smtp.auth", "true");
-                authenticator = new Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(user, passwd);
-                    }
-                };
+            final String passwd;
+            try {
+            	if (CipherTools.isKeyAvailable()) {
+            		passwd = CipherTools.decrypt(ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_PASSWD));
+        		} else {
+        			passwd = "";
+        			LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.DefaultMailSessionFactory.smtp_password_cipher_missing");
+        		}
+            	if (passwd.length() > 0) {
+            		props.setProperty("mail.smtp.submitter", user);
+            		props.setProperty("mail.smtp.auth", "true");
+            		authenticator = new Authenticator() {
+            			@Override
+            			protected PasswordAuthentication getPasswordAuthentication() {
+            				return new PasswordAuthentication(user, passwd);
+            			}
+            		};
+            	}
+            } catch (CipherException e) {
+            	LogService.getRoot().log(Level.WARNING, "com.rapidminer.tools.DefaultMailSessionFactory.smtp_password_decode_failed");
             }
             String port = ParameterService.getParameterValue(RapidMiner.PROPERTY_RAPIDMINER_TOOLS_SMTP_PORT);
             if (port != null) {

@@ -201,7 +201,7 @@ public class ExampleSetPrecondition extends AbstractPrecondition {
 
 	@Override
 	public boolean isCompatible(MetaData input, CompatibilityLevel level) {
-		return ExampleSet.class.isAssignableFrom(input.getObjectClass());
+		return null == input ? false : ExampleSet.class.isAssignableFrom(input.getObjectClass());
 	}
 
 	@Override

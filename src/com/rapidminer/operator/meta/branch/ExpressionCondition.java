@@ -45,7 +45,6 @@ public class ExpressionCondition implements ProcessBranchCondition {
 		try {
 			expressionParser.parseExpression(value);
 		} catch (ExpressionParserException e) {
-			// TODO Auto-generated catch block
 			throw new GenerationException(value + ": " + expressionParser.getErrorInfo());
 		}
 
@@ -62,8 +61,9 @@ public class ExpressionCondition implements ProcessBranchCondition {
 			if (resultValue == 1d || resultValue == 0d){
 				return resultValue == 1d;
 			}
+		} else if (result instanceof Boolean) {
+			return ((Boolean)result).booleanValue(); 
 		}
 		throw new GenerationException("Must return boolean value");
 	}
-
 }

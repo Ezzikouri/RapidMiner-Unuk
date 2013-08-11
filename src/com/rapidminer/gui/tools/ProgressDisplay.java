@@ -46,6 +46,7 @@ class ProgressDisplay {
 			}
 			ProgressThreadDialog.getInstance().refreshDialog();
 		}
+	
 
 		@Override		
 		public void setTotal(int total) {		
@@ -92,6 +93,10 @@ class ProgressDisplay {
 	
 	public String getMessage() {
 		return message;
+	}
+	
+	public void setLabel(String label) {
+		this.label = label;
 	}
 	
 	private void checkCancelled() {

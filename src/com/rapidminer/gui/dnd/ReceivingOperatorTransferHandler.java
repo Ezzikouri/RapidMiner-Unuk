@@ -198,7 +198,7 @@ public abstract class ReceivingOperatorTransferHandler extends OperatorTransferH
 		} else if (acceptedFlavor.equals(DataFlavor.stringFlavor)) {
 			if (transferData instanceof String) {
 				try {
-					Process process = new Process((String) transferData);
+					Process process = new Process(((String) transferData).trim());
 					newOperators = process.getRootOperator().getSubprocess(0).getOperators();
 				} catch (Exception e) {
 					try {

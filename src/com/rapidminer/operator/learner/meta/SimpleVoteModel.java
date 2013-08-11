@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.learner.meta;
 
 import java.util.Iterator;
@@ -31,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.rapidminer.example.Example;
 import com.rapidminer.example.ExampleSet;
+import com.rapidminer.example.table.NominalMapping;
 import com.rapidminer.operator.Model;
 import com.rapidminer.operator.OperatorException;
 import com.rapidminer.operator.learner.SimplePredictionModel;
@@ -50,44 +52,60 @@ public class SimpleVoteModel extends SimplePredictionModel implements MetaModel 
 
 	private List<? extends SimplePredictionModel> baseModels;
 
+	private boolean labelIsNominal;
+	private List<Double> labelIndices;
+
 	public SimpleVoteModel(ExampleSet exampleSet, List<? extends SimplePredictionModel> baseModels) {
 		super(exampleSet);
 		this.baseModels = baseModels;
+		labelIsNominal = getLabel().isNominal();
+		if (labelIsNominal) {
+			labelIndices = new LinkedList<Double>();
+			NominalMapping mapping = getLabel().getMapping();
+			List<String> mappingValues = mapping.getValues();
+			for (String value : mappingValues) {
+				double index = mapping.getIndex(value);
+				labelIndices.add(index);
+			}
+		}
 	}
 
 	@Override
 	public double predict(Example example) throws OperatorException {
-		if (getLabel().isNominal()) {
+		if (labelIsNominal) {
 			Map<Double, AtomicInteger> classVotes = new TreeMap<Double, AtomicInteger>();
 			Iterator<? extends SimplePredictionModel> iterator = baseModels.iterator();
 			while (iterator.hasNext()) {
 				double prediction = iterator.next().predict(example);
 				AtomicInteger counter = classVotes.get(prediction);
 				if (counter == null) {
-					classVotes.put(prediction, new AtomicInteger(1));					
+					classVotes.put(prediction, new AtomicInteger(1));
 				} else {
 					counter.incrementAndGet();
 				}
 			}
 
-			Iterator<Double> votedClasses = classVotes.keySet().iterator();
 			List<Double> bestClasses = new LinkedList<Double>();
 			int bestClassesVotes = -1;
-			while (votedClasses.hasNext()) {
-				double currentClass = votedClasses.next();
-				int currentVotes = classVotes.get(currentClass).intValue();
-				if (currentVotes > bestClassesVotes) {
-					bestClasses.clear();
-					bestClasses.add(currentClass);
-					bestClassesVotes = currentVotes;
+			for (double currentClass : labelIndices) {
+				AtomicInteger votes = classVotes.get(currentClass);
+				if (votes != null) {
+					int currentVotes = votes.intValue();
+					if (currentVotes > bestClassesVotes) {
+						bestClasses.clear();
+						bestClasses.add(currentClass);
+						bestClassesVotes = currentVotes;
+					}
+					if (currentVotes == bestClassesVotes) {
+						bestClasses.add(currentClass);
+					}
+					example.setConfidence(getLabel().getMapping().mapIndex((int) currentClass), ((double) currentVotes) / (double) baseModels.size());
+				} else {
+					example.setConfidence(getLabel().getMapping().mapIndex((int) currentClass), 0.00);
 				}
-				if (currentVotes == bestClassesVotes) {
-					bestClasses.add(currentClass);
-				}
-				example.setConfidence(getLabel().getMapping().mapIndex((int)currentClass), ((double) currentVotes) / (double)baseModels.size());
 			}
 			if (bestClasses.size() == 1) {
-				return bestClasses.get(0);              
+				return bestClasses.get(0);
 			} else {
 				return bestClasses.get(RandomGenerator.getGlobalRandomGenerator().nextInt(bestClasses.size()));
 			}

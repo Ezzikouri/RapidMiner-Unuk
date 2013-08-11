@@ -96,6 +96,9 @@ public class ImprovedNeuralNetLearner extends AbstractLearner {
 
 
 	public Model learn(ExampleSet exampleSet) throws OperatorException {
+		
+		com.rapidminer.example.Tools.onlyNonMissingValues(exampleSet, "Neural Net");
+		
 		ImprovedNeuralNetModel model = new ImprovedNeuralNetModel(exampleSet);
 
 		List<String[]> hiddenLayers = getParameterList(PARAMETER_HIDDEN_LAYERS);

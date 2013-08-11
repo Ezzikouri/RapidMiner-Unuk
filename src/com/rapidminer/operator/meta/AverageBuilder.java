@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.meta;
 
 import java.util.List;
@@ -27,12 +28,13 @@ import java.util.List;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorDescription;
 import com.rapidminer.operator.OperatorException;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.InputPortExtender;
 import com.rapidminer.operator.ports.OutputPort;
 import com.rapidminer.operator.ports.metadata.MetaData;
+import com.rapidminer.tools.math.Averagable;
 import com.rapidminer.tools.math.AverageVector;
 import com.rapidminer.tools.math.RunVector;
-
 
 /**
  * Collects all average vectors (e.g. PerformanceVectors) from the input and
@@ -45,7 +47,7 @@ public class AverageBuilder extends Operator {
 	InputPortExtender inExtender = new InputPortExtender("averagable", getInputPorts(), new MetaData(AverageVector.class), 2);
 
 	private final OutputPort runOutput = getOutputPorts().createPort("average");
-	
+
 	public AverageBuilder(OperatorDescription description) {
 		super(description);
 		inExtender.start();
@@ -62,12 +64,16 @@ public class AverageBuilder extends Operator {
 				clazz = av.getClass();
 			} else {
 				if (!av.getClass().equals(clazz)) {
-					getLogger().warning("Received inputs of different types ("+clazz.getName()+" and "+av.getName()+"). Ignoring the latter.");
+					getLogger().warning("Received inputs of different types (" + clazz.getName() + " and " + av.getName() + "). Ignoring the latter.");
 					continue;
 				}
 			}
 			runVector.addVector(av);
-		}		
+		}
+		if (runVector.size() == 0){
+			throw new UserError(this, "averagable_input_missing", Averagable.class);
+		}
+
 		runOutput.deliver(runVector.average());
 
 		// collect AverageVectors 
@@ -101,6 +107,5 @@ public class AverageBuilder extends Operator {
 //		}
 //		runVector.addVector(averageVector);
 //	}
-
 
 }

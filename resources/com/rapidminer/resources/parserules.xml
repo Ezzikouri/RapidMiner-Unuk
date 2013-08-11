@@ -1458,6 +1458,10 @@
          <role>weight</role>
          <parameter>weight_name</parameter>
       </replaceRoleParameter>
+      <replaceParameter appliesBefore="5.3.010">
+       	<oldparameter>escape_character_for_quotes</oldparameter>
+       	<newparameter>escape_character</newparameter>
+      </replaceParameter>
    </read_csv>
    <read_excel>
       <setParameter>

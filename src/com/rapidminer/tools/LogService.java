@@ -22,11 +22,14 @@
  */
 package com.rapidminer.tools;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import com.rapidminer.RapidMiner;
 import com.rapidminer.gui.tools.LeanFormatter;
@@ -142,15 +145,18 @@ public class LogService extends WrapperLoggingHandler {
    
     private LogService(Logger logger) {
     	super(logger);
-    	// we install the default logging properties only if not overridden by the user at startup
-    	if ((System.getProperty("java.util.logging.config.file") != null) &&
-    			(System.getProperty("java.util.logging.config.class") != null))	{
-    		getRoot().setLevel(Level.CONFIG);
-    		for (Handler handler : Logger.getLogger("").getHandlers()) {
-    			handler.setLevel(Level.CONFIG);
-    			if (handler instanceof ConsoleHandler) {
-    				handler.setFormatter(new LeanFormatter());
-    			}
+    	
+    	// setup a log file if the execution mode can access the filesystem (e.g. not for RA)
+    	// we want our logfile to look the same regardless of any user settings, so ignore 
+    	// a possible user logging property config file
+    	if (RapidMiner.getExecutionMode().canAccessFilesystem()) {
+    		try {
+    			FileHandler logFileHandler = new FileHandler(FileSystemService.getLogFile().getAbsolutePath(), false);
+    			logFileHandler.setLevel(Level.ALL);
+    			logFileHandler.setFormatter(new SimpleFormatter());
+    			LogService.getRoot().addHandler(logFileHandler);
+    		} catch (IOException e) {
+    			LogService.getRoot().log(Level.WARNING, "com.rapidminer.logservice.logfile.failed_to_init", e.getMessage());
     		}
     	}
     }
