@@ -45,7 +45,7 @@ public class LeanFormatter extends Formatter {
 		b.append(" ");
 		b.append(record.getLevel().getLocalizedName());
 		b.append(": ");
-		b.append(record.getMessage());
+		b.append(formatMessage(record));
 		String className = record.getSourceClassName();
 		if (className != null) {
 			int dot = className.lastIndexOf('.');

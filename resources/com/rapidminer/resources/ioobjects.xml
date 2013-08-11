@@ -558,6 +558,15 @@
         <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
     </ioobject>
     
+    <ioobject
+      name="Generalized Sequential Patterns"
+      class="com.rapidminer.operator.learner.associations.gsp.GSPSet"
+      reportable="true"
+      icon="shopping_cart_empty.png">
+      <renderer>com.rapidminer.gui.renderer.associations.GSPRenderer</renderer>
+      <renderer>com.rapidminer.gui.renderer.DefaultTextRenderer</renderer>
+      <renderer>com.rapidminer.gui.renderer.AnnotationsRenderer</renderer>
+    </ioobject>
     
     <!-- Performance Vector -->
     

@@ -520,8 +520,7 @@ public class RapidMinerGUI extends RapidMiner {
 	public static void main(String[] args) throws Exception {
 		System.setSecurityManager(null);
 		RapidMiner.addShutdownHook(new ShutdownHook());
-		setExecutionMode(
-				System.getProperty(PROPERTY_HOME_REPOSITORY_URL) == null ?
+		setExecutionMode(System.getProperty(PROPERTY_HOME_REPOSITORY_URL) == null ?
 						ExecutionMode.UI : ExecutionMode.WEBSTART);
 
 		boolean shouldLaunch = true;

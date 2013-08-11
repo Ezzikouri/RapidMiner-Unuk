@@ -7,6 +7,7 @@ package com.rapidminer.gui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URI;
@@ -101,7 +102,6 @@ import com.rapidminer.gui.tools.StatusBar;
 import com.rapidminer.gui.tools.SwingTools;
 import com.rapidminer.gui.tools.SystemMonitor;
 import com.rapidminer.gui.tools.WelcomeScreen;
-import com.rapidminer.gui.tools.components.DropDownButton;
 import com.rapidminer.gui.tools.dialogs.ConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.DecisionRememberingConfirmDialog;
 import com.rapidminer.gui.tools.dialogs.ManageDatabaseConnectionsDialog;
@@ -110,7 +110,6 @@ import com.rapidminer.gui.tools.dialogs.wizards.dataimport.BlobImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.DatabaseImportWizard;
 import com.rapidminer.gui.tools.dialogs.wizards.dataimport.access.AccessImportWizard;
 import com.rapidminer.operator.DebugMode;
-import com.rapidminer.gui.tour.TourChooser;
 import com.rapidminer.operator.IOContainer;
 import com.rapidminer.operator.Operator;
 import com.rapidminer.operator.OperatorChain;
@@ -331,6 +330,7 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 			dialog.setVisible(true);
 		}
 	};
+	
 	public static final DockGroup DOCK_GROUP_ROOT = new DockGroup("root");
 	public static final DockGroup DOCK_GROUP_RESULTS = new DockGroup("results");
 	protected final DockingContext dockingContext = new DockingContext();
@@ -409,28 +409,6 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		}
 	};
 
-	protected final transient Observer<Process> processObserver = new Observer<Process>() {
-
-		@Override
-		public void update(final Observable<Process> observable,
-							final Process arg) {
-			// if (process.getProcessState() == Process.PROCESS_STATE_RUNNING) {
-			// return;
-			// }
-			if (System.currentTimeMillis() - lastUpdate > 500) {
-				updateProcessNow();
-			} else {
-				if (process.getProcessState() == Process.PROCESS_STATE_RUNNING) {
-					if (!updateTimer.isRunning()) {
-						updateTimer.start();
-					}
-				} else {
-					updateProcessNow();
-				}
-			}
-		}
-	};
-
 	/*
 	 * (non-Javadoc)
 	 * @see com.rapidminer.gui.MainUIState#addViewSwitchToUndo()
@@ -470,29 +448,43 @@ public abstract class AbstractUIState implements MainUIState, ProcessEndHandler 
 		return processPanel.getProcessRenderer().hasFocus();
 	}
 
-	private final transient BreakpointListener breakpointListener = new BreakpointListener() {
+	private transient final Observer<Process> processObserver = new Observer<Process>() {
 
 		@Override
-		public void breakpointReached(final Process process,
-										final Operator operator, final IOContainer ioContainer,
-										final int location) {
+		public void update(Observable<Process> observable, Process arg) {
+			// if (process.getProcessState() == Process.PROCESS_STATE_RUNNING) {
+			// return;
+			// }
+			if (System.currentTimeMillis() - lastUpdate > 500) {
+				updateProcessNow();
+			} else {
+				if (process.getProcessState() == Process.PROCESS_STATE_RUNNING) {
+					if (!updateTimer.isRunning()) {
+						updateTimer.start();
+					}
+				} else {
+					updateProcessNow();
+				}
+			}
+		}
+	};
+
+	private transient final BreakpointListener breakpointListener = new BreakpointListener() {
+
+		@Override
+		public void breakpointReached(Process process, final Operator operator, final IOContainer ioContainer, int location) {
 			if (process.equals(AbstractUIState.this.process)) {
 				RUN_ACTION.setState(process.getProcessState());
 				ProcessThread.beep("breakpoint");
-				final JFrame window = AbstractUIState.this.getWindow();
+				Window window = getWindow();
 				if (window != null) {
 					window.toFront();
 				}
-				resultDisplay.showData(ioContainer,
-						"Breakpoint in " + operator.getName()
-								+ ", application " + operator.getApplyCount());
+				resultDisplay.showData(ioContainer, "Breakpoint in " + operator.getName() + ", application " + operator.getApplyCount());
 			}
 		}
 
-		/**
-		 * Since the mainframe triggers the resume itself this method does
-		 * nothing.
-		 */
+		/** Since the mainframe triggers the resume itself this method does nothing. */
 		@Override
 		public void resume() {
 			RUN_ACTION.setState(process.getProcessState());

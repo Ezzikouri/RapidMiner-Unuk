@@ -135,7 +135,9 @@ public class LinearRegression extends AbstractLearner {
         boolean cleanUpLabel = false;
         String firstClassName = null;
         String secondClassName = null;
-
+        
+        com.rapidminer.example.Tools.onlyNonMissingValues(exampleSet, "Linear Regression");
+        
         boolean useBias = getParameterAsBoolean(PARAMETER_USE_BIAS);
         boolean removeColinearAttributes = getParameterAsBoolean(PARAMETER_ELIMINATE_COLINEAR_FEATURES);
         double ridge = getParameterAsDouble(PARAMETER_RIDGE);

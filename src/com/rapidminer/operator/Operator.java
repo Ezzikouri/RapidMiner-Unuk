@@ -81,6 +81,7 @@ import com.rapidminer.operator.ports.quickfix.QuickFix;
 import com.rapidminer.operator.ports.quickfix.RelativizeRepositoryLocationQuickfix;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.ParameterType;
+import com.rapidminer.parameter.ParameterTypeAttribute;
 import com.rapidminer.parameter.ParameterTypeBoolean;
 import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.ParameterTypeDate;
@@ -429,7 +430,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 	/** Sets the user specified comment for this operator. */
 	public void setUserDescription(String description) {
 		// update only if description is different from current description
-		if ( !(userDescription == null ? description == null || description.isEmpty() : userDescription.equals(description)) ) {
+		if (!(userDescription == null ? description == null || description.isEmpty() : userDescription.equals(description))) {
 			this.userDescription = description;
 			fireUpdate(this);
 		}
@@ -518,13 +519,9 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		return expanded;
 	}
 
-	/** Returns true if this operator is enabled and the parent (if not null) is also enabled. */
+	/** Returns true if this operator is enabled. No longer takes parent enabled status into account. */
 	public boolean isEnabled() {
-		if (getParent() == null) {
-			return enabled;
-		} else {
-			return enabled && getParent().isEnabled();
-		}
+		return enabled;
 	}
 
 	/**
@@ -586,6 +583,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 		clone.getParameters().copyFrom(this.getParameters());
 		//		if (parameters != null)	//might not have been created yet
 		//			clone.parameters = (Parameters) parameters.clone();
+		clone.compatibilityLevel = compatibilityLevel;
 		clone.errorList = errorList; // reference
 		return clone;
 	}
@@ -733,10 +731,24 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 			Iterator<ParameterType> i = getParameters().getParameterTypes().iterator();
 			while (i.hasNext()) {
 				ParameterType type = i.next();
-				if (!type.isOptional() && type.getDefaultValue() == null && !getParameters().isSet(type.getKey())) {
-					addError(new SimpleProcessSetupError(Severity.ERROR, portOwner, Collections.singletonList(new ParameterSettingQuickFix(this, type.getKey())),
-							"undefined_parameter", new Object[] { type.getKey().replace('_', ' ') }));
-					errorCount++;
+				boolean optional = type.isOptional();
+				if (!optional) {
+					boolean parameterSet = getParameters().isSet(type.getKey());
+					if (type.getDefaultValue() == null && !parameterSet) {
+						addError(new SimpleProcessSetupError(Severity.ERROR, portOwner, Collections.singletonList(new ParameterSettingQuickFix(this, type.getKey())),
+								"undefined_parameter", new Object[] { type.getKey().replace('_', ' ') }));
+						errorCount++;
+					} else if (type instanceof ParameterTypeAttribute && parameterSet) {
+						try {
+							if("".equals(getParameter(type.getKey()))){
+								addError(new SimpleProcessSetupError(Severity.ERROR, portOwner, Collections.singletonList(new ParameterSettingQuickFix(this, type.getKey())),
+										"undefined_parameter", new Object[] { type.getKey().replace('_', ' ') }));
+								errorCount++;
+							}
+						} catch (UndefinedParameterError e) { 
+							//Ignore 
+						}
+					}
 				}
 				if (type instanceof ParameterTypeRepositoryLocation) {
 					String value = getParameters().getParameterOrNull(type.getKey());
@@ -754,7 +766,7 @@ public abstract class Operator extends AbstractObservable<Operator> implements C
 
 						}
 					}
-				} else if (!type.isOptional() && type instanceof ParameterTypeDate) {
+				} else if (!optional && type instanceof ParameterTypeDate) {
 					String value = getParameters().getParameterOrNull(type.getKey());
 					if (value != null && !ParameterTypeDate.isValidDate(value)) {
 						addError(new SimpleProcessSetupError(Severity.WARNING, portOwner,

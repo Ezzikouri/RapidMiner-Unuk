@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.tools.expression.parser;
 
 /**
@@ -31,33 +32,33 @@ public class FunctionDescription {
 
 	public static final int UNLIMITED_NUMBER_OF_ARGUMENTS = -1;
 	
-	private String function;
-	
-	private String functionName;
-	
+	private String displayName;
+
+	private String helpTextName;
+
 	private String functionDescription;
-	
+
 	private int numberOfArguments;
-	
-	public FunctionDescription(String function, String name, String description, int numberOfArguments) {
-		this.function = function;
-		this.functionName = name;
+
+	public FunctionDescription(String functionName, String helpTextName, String description, int numberOfArguments) {
+		this.displayName = functionName;
+		this.helpTextName = helpTextName;
 		this.functionDescription = description;
 		this.numberOfArguments = numberOfArguments;
 	}
-	
-	public String getFunction() {
-		return this.function;
+
+	public String getDisplayName() {
+		return this.displayName;
 	}
-	
-	public String getName() {
-		return this.functionName;
+
+	public String getHelpTextName() {
+		return this.helpTextName;
 	}
-	
+
 	public String getDescription() {
 		return this.functionDescription;
 	}
-	
+
 	public int getNumberOfArguments() {
 		return this.numberOfArguments;
 	}

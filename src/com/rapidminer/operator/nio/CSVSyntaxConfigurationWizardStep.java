@@ -77,7 +77,7 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 	private final JCheckBox useQuotesBox = new JCheckBox("Use Quotes",true); // just temp preselection, real value is defined in the constructor 
 	private final JTextField commentCharacterTextField = new JTextField(LineParser.DEFAULT_COMMENT_CHARACTER_STRING);
 	private final CharTextField quoteCharacterTextField = new CharTextField(LineParser.DEFAULT_QUOTE_CHARACTER);
-	private final JLabel escapeCharacterLabel =  new JLabel("Escape Character for Seperator:");
+	private final JLabel escapeCharacterLabel =  new JLabel("Escape Character:");
 	private final CharTextField escapeCharacterTextField = new CharTextField(LineParser.DEFAULT_QUOTE_ESCAPE_CHARACTER);
 	private final JRadioButton commaButton = new JRadioButton("Comma \",\" ");
 	private final JRadioButton semicolonButton = new JRadioButton("Semicolon \";\"");
@@ -86,6 +86,7 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 	private final JRadioButton regexButton = new JRadioButton("Regular Expression");
 	private final JTextField regexTextField = new JTextField(LineParser.DEFAULT_SPLIT_EXPRESSION);
 	private final JButton regexEvalButton = new JButton();
+	private LoadingContentPane loadingContentPane;
 
 	private CSVResultSetConfiguration configuration;
 
@@ -275,8 +276,9 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 		parsingPanel.add(separationPanel);
 
 		previewTable = new ExtendedJTable(false, false, false);
+		loadingContentPane = new LoadingContentPane("loading_data", previewTable);
 		//previewTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		tablePane = new JScrollPane(previewTable);
+		tablePane = new JScrollPane(loadingContentPane);
 		
 		tablePane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		tablePane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -321,7 +323,7 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 	private static UpdateQueue updateQueue;
 	
 	private void settingsChanged() {
-		updateQueue.executeBackgroundJob(new ProgressThread("loading_data") {
+		ProgressThread loadingDataThread = new ProgressThread("loading_data") {
 			public void run() {
 				try {
 					final TableModel model = configuration.makePreviewTableModel(getProgressListener());
@@ -346,7 +348,10 @@ public class CSVSyntaxConfigurationWizardStep extends WizardStep {
 					errorTableModel.setErrors(configuration.getErrors());
 					ImportWizardUtils.showErrorMessage(configuration.getResourceName(), e.toString(), e);
 				}
-			}});
+			}};
+		
+		loadingContentPane.init(loadingDataThread);
+		updateQueue.executeBackgroundJob(loadingDataThread);
 	}
 	
 	@Override

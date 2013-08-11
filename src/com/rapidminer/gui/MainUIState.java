@@ -17,7 +17,6 @@ import com.rapidminer.gui.actions.RunAction;
 import com.rapidminer.gui.actions.RunRemoteNowAction;
 import com.rapidminer.gui.actions.SaveAction;
 import com.rapidminer.gui.actions.ToggleAction;
-import com.rapidminer.gui.flow.ProcessPanel;
 import com.rapidminer.gui.operatortree.OperatorTree;
 import com.rapidminer.gui.processeditor.NewOperatorEditor;
 import com.rapidminer.gui.processeditor.ProcessContextProcessEditor;

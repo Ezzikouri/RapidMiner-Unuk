@@ -10,7 +10,7 @@ import javax.swing.JMenuItem;
 /**
  * The menus related UI interface.
  * 
- * @author GĂˇbor Bakos
+ * @author Gabor Bakos
  */
 public interface MenusUI {
 

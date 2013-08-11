@@ -199,12 +199,14 @@ SET /A NUMBER_OF_GC_THREADS=%NUMBER_OF_PROCESSORS%-1
 if %JAVA_MINOR% GEQ 7 goto :startMultiCoreMode_withG1GC
 @echo Starting in multicore mode with CMS garbage collector...
 "%JAVA%" -XX:+UseParallelGC -XX:+UseParallelOldGC -XX:ParallelGCThreads=%NUMBER_OF_GC_THREADS% -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% -jar "%RAPIDMINER_HOME%\lib\launcher.jar" %CMD_LINE_ARGS%
+goto startEnd
 
 :startMultiCoreMode_withG1GC
 @echo Starting in multicore mode with G1 garbage collector...
 "%JAVA%" -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:InitiatingHeapOccupancyPercent=0 -XX:ConcGCThreads=%NUMBER_OF_GC_THREADS% -XX:ParallelGCThreads=%NUMBER_OF_PROCESSORS% -Xms%MAX_JAVA_MEMORY%m -Xmx%MAX_JAVA_MEMORY%m -classpath "%COMPLETE_CLASSPATH%" -Drapidminer.home="%RAPIDMINER_HOME%" -Drapidminer.operators.additional="%RAPIDMINER_OPERATORS_ADDITIONAL%" %RAPIDMINER_JDBC_DRIVER_PARAMETER% -jar "%RAPIDMINER_HOME%\lib\launcher.jar" %CMD_LINE_ARGS%
-:startEnd
+goto startEnd
 
+:startEnd
 if errorlevel 2 goto update 
 goto end
 

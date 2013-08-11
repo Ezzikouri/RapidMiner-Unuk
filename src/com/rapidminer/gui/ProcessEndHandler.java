@@ -10,7 +10,7 @@ import com.rapidminer.operator.IOContainer;
  * A simple interface to define the {@link #processEnded(Process, IOContainer)}
  * method.
  * 
- * @author GĂˇbor Bakos
+ * @author Gabor Bakos
  */
 public interface ProcessEndHandler {
 	/**

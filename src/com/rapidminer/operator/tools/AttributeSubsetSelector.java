@@ -20,6 +20,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see http://www.gnu.org/licenses/.
  */
+
 package com.rapidminer.operator.tools;
 
 import java.util.Collection;
@@ -38,8 +39,8 @@ import com.rapidminer.example.ExampleSet;
 import com.rapidminer.example.set.Condition;
 import com.rapidminer.example.set.ConditionCreationException;
 import com.rapidminer.operator.Operator;
-import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ProcessSetupError.Severity;
+import com.rapidminer.operator.UserError;
 import com.rapidminer.operator.ports.InputPort;
 import com.rapidminer.operator.ports.metadata.AttributeMetaData;
 import com.rapidminer.operator.ports.metadata.CompatibilityLevel;
@@ -51,6 +52,7 @@ import com.rapidminer.operator.ports.metadata.SimpleMetaDataError;
 import com.rapidminer.operator.ports.quickfix.AbstractQuickFix;
 import com.rapidminer.operator.ports.quickfix.QuickFix;
 import com.rapidminer.operator.preprocessing.filter.attributes.AttributeFilterCondition;
+import com.rapidminer.operator.preprocessing.filter.attributes.AttributeFilterCondition.ScanResult;
 import com.rapidminer.operator.preprocessing.filter.attributes.BlockTypeAttributeFilter;
 import com.rapidminer.operator.preprocessing.filter.attributes.NoMissingValuesAttributeFilter;
 import com.rapidminer.operator.preprocessing.filter.attributes.NumericValueAttributeFilter;
@@ -59,7 +61,6 @@ import com.rapidminer.operator.preprocessing.filter.attributes.SingleAttributeFi
 import com.rapidminer.operator.preprocessing.filter.attributes.SubsetAttributeFilter;
 import com.rapidminer.operator.preprocessing.filter.attributes.TransparentAttributeFilter;
 import com.rapidminer.operator.preprocessing.filter.attributes.ValueTypeAttributeFilter;
-import com.rapidminer.operator.preprocessing.filter.attributes.AttributeFilterCondition.ScanResult;
 import com.rapidminer.parameter.ParameterHandler;
 import com.rapidminer.parameter.ParameterType;
 import com.rapidminer.parameter.ParameterTypeBoolean;
@@ -67,7 +68,6 @@ import com.rapidminer.parameter.ParameterTypeCategory;
 import com.rapidminer.parameter.UndefinedParameterError;
 import com.rapidminer.parameter.conditions.EqualTypeCondition;
 import com.rapidminer.tools.Ontology;
-
 
 /**
  * An AttributeSubsetSelector provides conditions for filtering
@@ -80,6 +80,7 @@ import com.rapidminer.tools.Ontology;
  * @author Sebastian Land, Tobias Malbrecht
  */
 public class AttributeSubsetSelector {
+
 	/** The parameter name for &quot;Implementation of the condition.&quot; */
 	public static final String PARAMETER_FILTER_TYPE = "attribute_filter_type";
 
@@ -90,7 +91,7 @@ public class AttributeSubsetSelector {
 
 	public static String[] CONDITION_NAMES = new String[] { "all", "single", "subset", "regular_expression", "value_type", "block_type", "no_missing_values", "numeric_value_filter" };
 
-	private static Class[] CONDITION_IMPLEMENTATIONS = { TransparentAttributeFilter.class, SingleAttributeFilter.class, SubsetAttributeFilter.class, RegexpAttributeFilter.class, ValueTypeAttributeFilter.class, BlockTypeAttributeFilter.class , NoMissingValuesAttributeFilter.class, NumericValueAttributeFilter.class };
+	private static Class[] CONDITION_IMPLEMENTATIONS = { TransparentAttributeFilter.class, SingleAttributeFilter.class, SubsetAttributeFilter.class, RegexpAttributeFilter.class, ValueTypeAttributeFilter.class, BlockTypeAttributeFilter.class, NoMissingValuesAttributeFilter.class, NumericValueAttributeFilter.class };
 
 	public static final int CONDITION_ALL = 0;
 
@@ -114,12 +115,11 @@ public class AttributeSubsetSelector {
 
 	private int[] valueTypes;
 
-
 	public AttributeSubsetSelector(ParameterHandler operator, InputPort inPort) {
 		this(operator, inPort, Ontology.ATTRIBUTE_VALUE);
 	}
 
-	public AttributeSubsetSelector(ParameterHandler operator, InputPort inPort, int...valueTypes) {
+	public AttributeSubsetSelector(ParameterHandler operator, InputPort inPort, int... valueTypes) {
 		this.operator = operator;
 		this.inPort = inPort;
 		if (valueTypes.length == 0) {
@@ -161,7 +161,7 @@ public class AttributeSubsetSelector {
 						resultSet.removeAttribute(attribute);
 					if (result == MetaDataInfo.UNKNOWN)
 						foundUnknown = true;
-				} else if (!keepSpecialIfNotIncluded) {					
+				} else if (!keepSpecialIfNotIncluded) {
 					resultSet.removeAttribute(attribute);
 				}
 			}
@@ -187,12 +187,12 @@ public class AttributeSubsetSelector {
 				resultSet.attributesAreSubset();
 
 			switch (metaData.getAttributeSetRelation()) {
-			case SUBSET: 
-				resultSet.attributesAreSubset();
-				break;
-			case SUPERSET: 
-				resultSet.attributesAreSuperset();
-				break;
+				case SUBSET:
+					resultSet.attributesAreSubset();
+					break;
+				case SUPERSET:
+					resultSet.attributesAreSuperset();
+					break;
 			}
 			return resultSet;
 		} catch (ConditionCreationException e) {
@@ -204,7 +204,7 @@ public class AttributeSubsetSelector {
 
 	private boolean isOfAllowedType(int attributeValueType) {
 		boolean keep = false;
-		for (int type: valueTypes) {
+		for (int type : valueTypes) {
 			if (Ontology.ATTRIBUTE_VALUE_TYPE.isA(attributeValueType, type)) {
 				keep = true;
 				break;
@@ -274,13 +274,13 @@ public class AttributeSubsetSelector {
 			while (iterator.hasNext()) {
 				Attribute attribute = iterator.next();
 				//check if it is allowed anyway
-				if (isOfAllowedType(attribute.getValueType())) { 
-					ScanResult result = condition.beforeScanCheck(attribute).invert(invert); 
+				if (isOfAllowedType(attribute.getValueType())) {
+					ScanResult result = condition.beforeScanCheck(attribute).invert(invert);
 					switch (result) {
-					case KEEP:
-					case UNCHECKED:
-						remainingAttributes.add(attribute);
-						break;
+						case KEEP:
+						case UNCHECKED:
+							remainingAttributes.add(attribute);
+							break;
 					}
 				}
 			}
@@ -293,7 +293,7 @@ public class AttributeSubsetSelector {
 					ScanResult afterScanResult = ScanResult.UNCHECKED;
 					// now iterates over all examples as long as unchecked is returned
 					for (Example example : exampleSet) {
-						ScanResult result = condition.check(attribute, example); 
+						ScanResult result = condition.check(attribute, example);
 						if (result != ScanResult.UNCHECKED) {
 							afterScanResult = result;
 							break;
@@ -326,10 +326,16 @@ public class AttributeSubsetSelector {
 			}
 			return remainingAttributes;
 		} catch (ConditionCreationException e) {
-			if (operator instanceof Operator)
-				throw new UserError((Operator) operator, e, 904, CONDITION_NAMES[operator.getParameterAsInt(PARAMETER_FILTER_TYPE)], e.getMessage());
-			else
-				throw new UserError(null, e, 904, CONDITION_NAMES[operator.getParameterAsInt(PARAMETER_FILTER_TYPE)], e.getMessage());
+			Throwable cause = e.getCause();
+			if (cause instanceof UserError) {
+				throw (UserError) cause;
+			} else {
+				if (operator instanceof Operator) {
+					throw new UserError((Operator) operator, e, 904, CONDITION_NAMES[operator.getParameterAsInt(PARAMETER_FILTER_TYPE)], e.getMessage());
+				} else {
+					throw new UserError(null, e, 904, CONDITION_NAMES[operator.getParameterAsInt(PARAMETER_FILTER_TYPE)], e.getMessage());
+				}
+			}
 		}
 	}
 
@@ -394,11 +400,7 @@ public class AttributeSubsetSelector {
 					conditionalType.registerDependencyCondition(new EqualTypeCondition(operator, PARAMETER_FILTER_TYPE, CONDITION_NAMES, !conditionalType.isExpert(), i));
 				}
 				// can't do anything about it
-			} catch (InstantiationException e) {
-			} catch (IllegalAccessException e) {
-			} catch (IllegalArgumentException e) {
-			} catch (SecurityException e) {
-			}
+			} catch (InstantiationException e) {} catch (IllegalAccessException e) {} catch (IllegalArgumentException e) {} catch (SecurityException e) {}
 		}
 
 		type = new ParameterTypeBoolean(PARAMETER_INVERT_SELECTION, "Indicates if only attributes should be accepted which would normally filtered.", false);
@@ -413,8 +415,9 @@ public class AttributeSubsetSelector {
 
 	public Precondition makePrecondition() {
 		return new Precondition() {
+
 			@Override
-			public void assumeSatisfied() { }
+			public void assumeSatisfied() {}
 
 			@Override
 			public void check(MetaData metaData) {
@@ -422,12 +425,13 @@ public class AttributeSubsetSelector {
 					ExampleSetMetaData subsetMetaData = getMetaDataSubset((ExampleSetMetaData) metaData, false);
 					if (subsetMetaData.getAllAttributes().isEmpty()) {
 						QuickFix selectAllQuickFix = new AbstractQuickFix(4, false, "attributefilter_select_all") {
+
 							@Override
 							public void apply() {
 								operator.getParameters().setParameter(PARAMETER_FILTER_TYPE, CONDITION_NAMES[CONDITION_ALL]);
 							}
 						};
-						SimpleMetaDataError error = new SimpleMetaDataError(Severity.WARNING, inPort, Collections.<QuickFix>singletonList(selectAllQuickFix ), "attribute_selection_empty");
+						SimpleMetaDataError error = new SimpleMetaDataError(Severity.WARNING, inPort, Collections.<QuickFix> singletonList(selectAllQuickFix), "attribute_selection_empty");
 						inPort.addError(error);
 					}
 				}
@@ -447,7 +451,7 @@ public class AttributeSubsetSelector {
 			public boolean isCompatible(MetaData input, CompatibilityLevel level) {
 				return ExampleSet.class.isAssignableFrom(input.getObjectClass());
 			}
-			
+
 		};
 	}
 }

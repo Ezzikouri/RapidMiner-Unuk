@@ -1362,8 +1362,10 @@ public class DatabaseHandler {
 		// create prepared statements for UPDATE and INSERT (which is used in case UPDATE finds no matching row to update)		
 		String updateStatementString = "UPDATE " + sc.makeIdentifier(selectedTableName) + " " + updateAttStringBuilder.toString() + " WHERE " + updateIdStringBuilder.toString();
 		String insertStatementString = "INSERT INTO " + sc.makeIdentifier(selectedTableName) + " " + insertAttStringBuilder.toString() + " VALUES " + insertValStringBuilder.toString();
+		String selectStatementString = "SELECT COUNT(*) FROM " + sc.makeIdentifier(selectedTableName) + " WHERE " + updateIdStringBuilder.toString();
 		PreparedStatement prepUpdateStatement = createPreparedStatement(updateStatementString, false);
 		PreparedStatement prepInsertStatement = createPreparedStatement(insertStatementString, false);
+		PreparedStatement prepSelectStatement = createPreparedStatement(selectStatementString, false);
 
 		// iterate over all examples
 		for (Example ex : exampleSet) {
@@ -1374,23 +1376,28 @@ public class DatabaseHandler {
 					// id attributes may not be numerical, so check type
 					prepUpdateStatement.setDouble(attCount + ++idCount, ex.getValue(idAtt));
 					prepInsertStatement.setDouble(allAttList.indexOf(idAtt) + 1, ex.getValue(idAtt));
+					prepSelectStatement.setDouble(idAttNameList.indexOf(idAtt.getName()) + 1, ex.getValue(idAtt));
 				} else if (idAtt.isNominal()) {
 					prepUpdateStatement.setString(attCount + ++idCount, ex.getValueAsString(idAtt));
 					prepInsertStatement.setString(allAttList.indexOf(idAtt) + 1, ex.getValueAsString(idAtt));
+					prepSelectStatement.setString(idAttNameList.indexOf(idAtt.getName()) + 1, ex.getValueAsString(idAtt));
 				} else {
 					// date, time, date_time are not covered above, so handle them here
 					if (idAtt.getValueType() == Ontology.DATE) {
 						Date date = new Date(new Double(ex.getValue(idAtt)).longValue());
 						prepUpdateStatement.setDate(attCount + ++idCount, date);
 						prepInsertStatement.setDate(allAttList.indexOf(idAtt) + 1, date);
+						prepSelectStatement.setDate(idAttNameList.indexOf(idAtt.getName()) + 1, date);
 					} else if (idAtt.getValueType() == Ontology.TIME) {
 						Time time = new Time(new Double(ex.getValue(idAtt)).longValue());
 						prepUpdateStatement.setTime(attCount + ++idCount, time);
 						prepInsertStatement.setTime(allAttList.indexOf(idAtt) + 1, time);
+						prepSelectStatement.setTime(idAttNameList.indexOf(idAtt.getName()) + 1, time);
 					} else if (idAtt.getValueType() == Ontology.DATE_TIME) {
 						Timestamp timestamp = new Timestamp(new Double(ex.getValue(idAtt)).longValue());
 						prepUpdateStatement.setTimestamp(attCount + ++idCount, timestamp);
 						prepInsertStatement.setTimestamp(allAttList.indexOf(idAtt) + 1, timestamp);
+						prepSelectStatement.setTimestamp(idAttNameList.indexOf(idAtt.getName()) + 1, timestamp);
 					}
 				}
 			}
@@ -1427,12 +1434,21 @@ public class DatabaseHandler {
 				}
 			}
 
-			// try to update
-			if (logger != null) {
-				logger.fine(prepUpdateStatement.toString());
+			int updatedRowCount = 0;
+			// try to update if there is at least one NOT id attribute
+			if (attCount > 0) {
+				if (logger != null) {
+					logger.fine(prepUpdateStatement.toString());
+				}
+				updatedRowCount = prepUpdateStatement.executeUpdate();
+			} else {
+				// if there are only id attributes, try and see if entry already exists
+				ResultSet rs = prepSelectStatement.executeQuery();
+				if (rs.next()) {
+					updatedRowCount = rs.getInt(1);
+				}
 			}
-			int updatedRowCount = prepUpdateStatement.executeUpdate();
-			// no update done -> row with given id value does not yet exist, so insert it
+			// no update done || row with given id values does not yet exist, so insert it
 			if (updatedRowCount <= 0) {
 				if (logger != null) {
 					logger.fine(prepInsertStatement.toString());

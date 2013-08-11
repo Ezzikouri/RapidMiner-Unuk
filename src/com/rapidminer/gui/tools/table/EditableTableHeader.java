@@ -30,6 +30,9 @@ import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
@@ -58,6 +61,30 @@ public class EditableTableHeader extends JTableHeader implements CellEditorListe
 		setReorderingAllowed(false);
 		cellEditor = null;
 		recreateTableColumn(columnModel);
+		
+		// this listener is just for the case when someone opens an editor and then changes the size of the left-handed
+		// column without losing focus of the editor. Without this listener the editor would remain in the same position
+		// and look very weird.
+		this.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
+			
+			@Override
+			public void columnSelectionChanged(ListSelectionEvent e) {}
+			
+			@Override
+			public void columnRemoved(TableColumnModelEvent e) {}
+			
+			@Override
+			public void columnMoved(TableColumnModelEvent e) {}
+			
+			@Override
+			public void columnMarginChanged(ChangeEvent e) {
+				// calling it each time because after the first time the editor is set to null anyway
+				removeEditor();
+			}
+			
+			@Override
+			public void columnAdded(TableColumnModelEvent e) {}
+		});
 	}
 
 	@Override

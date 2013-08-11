@@ -23,7 +23,6 @@
 
 package com.rapid_i.deployment.update.client;
 
-import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -200,16 +199,6 @@ public class UpdatePackagesModel extends Observable {
 			b.append("</td></tr>");
 		}
 		b.append("</table><div>").append(descriptor.getLongDescription()).append("</div>");
-		// Before you are shocked, read the comment of isPurchased() :-)
-		if (UpdateManager.COMMERCIAL_LICENSE_NAME.equals(descriptor.getLicenseName())) {
-			if (isPurchased(descriptor)) {
-				b.append("<p>You have purchased this package. However, you cannot install this extension with this version of RapidMiner. Please upgrade first.</p>");
-			} else {
-				try {
-					b.append("<p><a href=" + UpdateManager.getUpdateServerURI("/shop/" + descriptor.getPackageId()).toString() + ">Order this extension.</a></p><p>You cannot install this extension with this pre-release of RapidMiner. Please upgrade first.</p>");
-				} catch (URISyntaxException e) {}
-			}
-		}
 
 		if (changes != null && !changes.trim().equals("")) {
 			b.append("<h2>Changes</h2>");

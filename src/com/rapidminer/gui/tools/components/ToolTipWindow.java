@@ -150,6 +150,33 @@ public class ToolTipWindow {
         }
     });
 
+    /** We use this approach for tracking the mouse exited event from the dialog.
+     * http://weblogs.java.net/blog/alexfromsun/archive/2006/09/a_wellbehaved_g.html
+     * The method described in the Java Tutorial on using glasspanes described here:
+     * http://java.sun.com/docs/books/tutorial/uiswing/components/rootpane.html
+     * fails for various reasons. Most importantly, it makes the scroll bars unusable. */
+    private AWTEventListener hideTipOnExitListener = new AWTEventListener() {
+        @Override
+        public void eventDispatched(AWTEvent event) {
+            if (event instanceof MouseEvent) {
+                MouseEvent me = (MouseEvent) event;
+                if ((me.getID() != MouseEvent.MOUSE_EXITED) || (state != State.SHOWING_TIP) ||
+                        !SwingUtilities.isDescendingFrom(me.getComponent(), currentDialog)) {
+                    return;
+                }
+                Point origin = currentDialog.getLocationOnScreen();
+                Point mep    = me.getLocationOnScreen();
+                if (mep.getX() < origin.getX() ||
+                        mep.getY() < origin.getY() ||
+                        mep.getX() > origin.getX() + currentDialog.getWidth() ||
+                        mep.getY() > origin.getY() + currentDialog.getHeight()) {
+                    hideTip();
+                }
+            }
+        }
+
+    };
+
     //	/** Hides the tip after 25s. */
     //	private final Timer hideTipTimer = new Timer(25000, new ActionListener() {
     //		@Override
@@ -320,35 +347,7 @@ public class ToolTipWindow {
                 parentIsActive(e);
             }
         });
-
-        // We use this approach for tracking the mouse exited event from the dialog.
-        // http://weblogs.java.net/blog/alexfromsun/archive/2006/09/a_wellbehaved_g.html
-        // The method described in the Java Tutorial on using glasspanes described here:
-        // http://java.sun.com/docs/books/tutorial/uiswing/components/rootpane.html
-        // fails for various reasons. Most importantly, it makes the scroll bars unusable.
-        Toolkit.getDefaultToolkit().addAWTEventListener(new AWTEventListener() {
-            @Override
-            public void eventDispatched(AWTEvent event) {
-                if (event instanceof MouseEvent) {
-                    MouseEvent me = (MouseEvent) event;
-                    if ((me.getID() != MouseEvent.MOUSE_EXITED) || (state != State.SHOWING_TIP) ||
-                            !SwingUtilities.isDescendingFrom(me.getComponent(), currentDialog)) {
-                        return;
-                    }
-                    Point origin = currentDialog.getLocationOnScreen();
-                    Point mep    = me.getLocationOnScreen();
-                    if (mep.getX() < origin.getX() ||
-                            mep.getY() < origin.getY() ||
-                            mep.getX() > origin.getX() + currentDialog.getWidth() ||
-                            mep.getY() > origin.getY() + currentDialog.getHeight()) {
-                        hideTip();
-                    }
-                }
             }
-
-        },
-        AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK);
-    }
 
     private void parentIsActive(MouseEvent e) {
         lastMousePosition = e.getPoint();
@@ -408,12 +407,14 @@ public class ToolTipWindow {
         currentDialog.addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
+            	Toolkit.getDefaultToolkit().addAWTEventListener(hideTipOnExitListener, AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.MOUSE_EVENT_MASK);
                 if (state == State.SHOWING_TIP) {
                     tipScrollPane.getVerticalScrollBar().setValue(0);
                 }
             }
             @Override
             public void windowClosed(WindowEvent e) {
+            	Toolkit.getDefaultToolkit().removeAWTEventListener(hideTipOnExitListener);
                 state = State.IDLE;
             }
         });

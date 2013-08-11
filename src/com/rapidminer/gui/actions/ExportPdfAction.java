@@ -97,16 +97,9 @@ public class ExportPdfAction extends ResourceAction {
 		}
 		
 		// prompt user for pdf location
-		File file = SwingTools.chooseFile(RapidMinerGUI.getMainFrame().getWindow(), "export_pdf", null, false, false, new String[] { "pdf" }, new String[] { "PDF" }, false);
+		File file = promptForPdfLocation();
 		if (file == null) {
 			return;
-		}
-		// prompt for overwrite confirmation
-		if (file.exists()) {
-			int returnVal = SwingTools.showConfirmDialog("export_pdf", ConfirmDialog.YES_NO_OPTION, file.getName());
-			if (returnVal == ConfirmDialog.NO_OPTION) {
-				return;
-			}
 		}
 		
 		try {
@@ -133,16 +126,9 @@ public class ExportPdfAction extends ResourceAction {
 		}
 		
 		// prompt user for pdf location
-		File file = SwingTools.chooseFile(RapidMinerGUI.getMainFrame().getWindow(), "export_pdf", null, false, false, new String[] { "pdf" }, new String[] { "PDF" }, false);
+		File file = promptForPdfLocation();
 		if (file == null) {
 			return;
-		}
-		// prompt for overwrite confirmation
-		if (file.exists()) {
-			int returnVal = SwingTools.showConfirmDialog("export_pdf", ConfirmDialog.YES_NO_OPTION, file.getName());
-			if (returnVal == ConfirmDialog.NO_OPTION) {
-				return;
-			}
 		}
 		
 		try {
@@ -156,6 +142,31 @@ public class ExportPdfAction extends ResourceAction {
 		} catch (Exception e) {
 			SwingTools.showSimpleErrorMessage("cannot_export_pdf", e, e.getMessage());
 		}
+	}
+
+	/**
+	 * Prompts the user for the location of the .pdf file.
+	 * Will append .pdf if file does not end with it.
+	 * 
+	 * @return
+	 */
+	private File promptForPdfLocation() {
+		// prompt user for pdf location
+		File file = SwingTools.chooseFile(RapidMinerGUI.getMainFrame().getWindow(), "export_pdf", null, false, false, new String[] { "pdf" }, new String[] { "PDF" }, false);
+		if (file == null) {
+			return null;
+		}
+		if (!file.getName().endsWith(".pdf")) {
+			file = new File(file.getAbsolutePath() + ".pdf");
+		}
+		// prompt for overwrite confirmation
+		if (file.exists()) {
+			int returnVal = SwingTools.showConfirmDialog("export_pdf", ConfirmDialog.YES_NO_OPTION, file.getName());
+			if (returnVal == ConfirmDialog.NO_OPTION) {
+				return null;
+			}
+		}
+		return file;
 	}
 
 	/**
@@ -175,7 +186,9 @@ public class ExportPdfAction extends ResourceAction {
 			JPanel panel = (JPanel) component;
 			if (panel.getLayout().getClass().isAssignableFrom(CardLayout.class)) {
 				for (final Component comp : panel.getComponents()) {
-					if (comp.isVisible() && comp.getClass().isAssignableFrom(ChartConfigurationPanel.class)) {
+					// iterate over all card components and see if there is a chart which would require special handling
+					// if not we don't do anything in this loop and do the standard behavior at the bottom of the method
+					if (comp.isVisible() && ChartConfigurationPanel.class.isAssignableFrom(comp.getClass())) {
 						final ChartConfigurationPanel chartConfigPanel = (ChartConfigurationPanel) comp;
 						
 						// create new LinkAndBrushChartPanel with double buffering set to false to get vector graphic export
@@ -193,7 +206,7 @@ public class ExportPdfAction extends ResourceAction {
 						document.add(Image.getInstance(tp));
 						
 						return;
-					} else if (comp.isVisible() && comp.getClass().isAssignableFrom(PlotterPanel.class)) {
+					} else if (comp.isVisible() && PlotterPanel.class.isAssignableFrom(comp.getClass())) {
 						// special case for PlotterPanel as the Panel itself is wider than the plotter
 						// not having a special case here results in the exported image being too wide (empty space to the left)
 						final PlotterPanel plotterPanel = (PlotterPanel) comp;

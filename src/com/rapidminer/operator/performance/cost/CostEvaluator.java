@@ -72,6 +72,7 @@ public class CostEvaluator extends Operator {
         super(description);
 
         exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput, Ontology.ATTRIBUTE_VALUE, Attributes.LABEL_NAME));
+        exampleSetInput.addPrecondition(new ExampleSetPrecondition(exampleSetInput, Ontology.ATTRIBUTE_VALUE, Attributes.PREDICTION_NAME));
         getTransformer().addGenerationRule(performanceOutput, PerformanceVector.class);
         getTransformer().addPassThroughRule(exampleSetInput, exampleSetOutput);
 
@@ -86,6 +87,10 @@ public class CostEvaluator extends Operator {
     @Override
     public void doWork() throws OperatorException {
         ExampleSet exampleSet = exampleSetInput.getData(ExampleSet.class);
+        Attribute predictedLabel = exampleSet.getAttributes().getPredictedLabel();
+        if(predictedLabel == null){
+            throw new UserError(this, 107);
+        }
         Attribute label = exampleSet.getAttributes().getLabel();
         if (label != null) {
             if (label.isNominal()) {
@@ -118,7 +123,7 @@ public class CostEvaluator extends Operator {
                     }
                 }
 
-                MeasuredPerformance criterion = new ClassificationCostCriterion(costMatrix, classOrderMap, label, exampleSet.getAttributes().getPredictedLabel());
+				MeasuredPerformance criterion = new ClassificationCostCriterion(costMatrix, classOrderMap, label, predictedLabel);
                 PerformanceVector performance = new PerformanceVector();
                 performance.addCriterion(criterion);
                 // now measuring costs

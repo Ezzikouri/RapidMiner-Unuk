@@ -56,12 +56,12 @@ public class Substring extends PostfixMathCommand {
 			return;
 		}
 
-		if (!(stringObject instanceof String) || !(start instanceof Double) || !(length instanceof Double)) {
+		if (!(stringObject instanceof String) || !(start instanceof Number) || !(length instanceof Number)) {
 			throw new ParseException(
 					"Invalid argument type, must be (string, number, number)");
 		}
-		int startI = ((Double) start).intValue();
-		int lenI = ((Double) length).intValue();
+		int startI = ((Number) start).intValue();
+		int lenI = ((Number) length).intValue();
 		String string = (String) stringObject;
 		try {
 			stack.push(string.substring(startI, startI + lenI));
